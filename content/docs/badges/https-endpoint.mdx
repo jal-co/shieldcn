@@ -1,0 +1,68 @@
+---
+title: HTTPS Endpoint
+description: Create a badge from any HTTPS endpoint that returns JSON.
+---
+
+<BadgeSandbox
+  endpoint="/https/:url.svg"
+  pathParams={[
+    { name: "url", label: "endpoint URL (without https://)", placeholder: "cal-badge-icd0onfvrxx6.runkit.sh", required: true, description: "Any HTTPS URL that returns JSON with label/value/color fields." },
+  ]}
+  defaults={{ url: "cal-badge-icd0onfvrxx6.runkit.sh" }}
+/>
+
+## How it works
+
+Create an HTTPS endpoint on any platform (RunKit, Vercel, Cloudflare Workers, etc.) that returns JSON:
+
+```json
+{
+  "label": "hello",
+  "value": "world",
+  "color": "blue"
+}
+```
+
+The badgen format is also supported:
+
+```json
+{
+  "subject": "hello",
+  "status": "world",
+  "color": "blue"
+}
+```
+
+Then use it as a badge:
+
+<CodeLine language="markdown" code="![badge](https://shieldcn.dev/https/your-endpoint.example.com/path/args)" />
+
+## Path arguments
+
+Any path segments after the hostname are forwarded to the endpoint:
+
+| Badge URL | Fetches |
+|-----------|---------|
+| `/https/example.com` | `https://example.com` |
+| `/https/example.com/foo/bar` | `https://example.com/foo/bar` |
+
+## Response format
+
+The endpoint must return JSON with these fields (all optional except `value`/`status`):
+
+<ApiRefTable
+  title="Endpoint response"
+  props={[
+    { name: "label", type: "string", default: '"badge"', description: "Left-side text. Also accepts 'subject' (badgen compat)." },
+    { name: "value", type: "string", description: "Right-side text. Also accepts 'status' or 'message'.", required: true },
+    { name: "color", type: "string", description: "Badge color (hex or named color)." },
+  ]}
+/>
+
+## Caching
+
+Endpoint responses are cached for 5 minutes.
+
+## Credits
+
+This endpoint format is inspired by [badgen.net](https://badgen.net)'s HTTPS endpoint feature.

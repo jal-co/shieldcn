@@ -1,0 +1,44 @@
+---
+title: Themes
+description: Color themes using shadcn palette names.
+---
+
+## Available themes
+
+Every badge accepts a `theme` query parameter that maps to a shadcn/ui color palette:
+
+| Theme | Label BG | Value BG |
+|-------|----------|----------|
+| `zinc` (default) | `#27272a` | `#3f3f46` |
+| `slate` | `#1e293b` | `#334155` |
+| `stone` | `#292524` | `#44403c` |
+| `neutral` | `#262626` | `#404040` |
+| `gray` | `#1f2937` | `#374151` |
+| `blue` | `#1e3a5f` | `#2563eb` |
+| `green` | `#14532d` | `#16a34a` |
+| `rose` | `#4c0519` | `#e11d48` |
+| `orange` | `#431407` | `#ea580c` |
+| `amber` | `#451a03` | `#d97706` |
+| `violet` | `#2e1065` | `#7c3aed` |
+| `purple` | `#3b0764` | `#9333ea` |
+| `red` | `#450a0a` | `#dc2626` |
+| `cyan` | `#083344` | `#0891b2` |
+| `emerald` | `#022c22` | `#059669` |
+
+## Usage
+
+```md
+![npm](https://shieldcn.dev/npm/react.svg?theme=blue)
+![npm](https://shieldcn.dev/npm/react.svg?theme=rose)
+```
+
+## Custom colors
+
+Override individual colors with hex values (without `#`):
+
+```md
+![npm](https://shieldcn.dev/npm/react.svg?color=61dafb)
+![npm](https://shieldcn.dev/npm/react.svg?labelColor=000000&color=61dafb)
+```
+
+`color` overrides the value (right) background. `labelColor` overrides the label (left) background.

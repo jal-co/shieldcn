@@ -1,0 +1,13 @@
+{
+  "title": "Docs",
+  "pages": [
+    "---Getting Started---",
+    "index",
+    "---Badges---",
+    "...badges",
+    "---Customization---",
+    "...customization",
+    "---Reference---",
+    "api-reference"
+  ]
+}

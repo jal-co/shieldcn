@@ -1,0 +1,29 @@
+---
+title: Dynamic JSON
+description: Create a badge from any JSON API using JSONPath queries.
+---
+
+<BadgeSandbox
+  endpoint="/badge/dynamic/json.svg"
+  pathParams={[]}
+  extraParams={[
+    { name: "url", label: "JSON document URL", placeholder: "https://api.github.com/repos/vercel/next.js", description: "URL to a public JSON document." },
+    { name: "query", label: "JSONPath expression", placeholder: "$.stargazers_count", description: "JSONPath expression to extract the value." },
+    { name: "prefix", label: "prefix", placeholder: "", description: "Text to prepend to the extracted value." },
+    { name: "suffix", label: "suffix", placeholder: "", description: "Text to append to the extracted value." },
+  ]}
+  defaults={{ url: "https://api.github.com/repos/vercel/next.js", query: "$.stargazers_count" }}
+/>
+
+## JSONPath syntax
+
+| Expression | Description |
+|-----------|-------------|
+| `$.key` | Top-level field |
+| `$.nested.key` | Nested field |
+| `$.array[0]` | First array element |
+| `$.array.length` | Array length |
+
+## Caching
+
+Dynamic JSON responses are cached for 5 minutes.

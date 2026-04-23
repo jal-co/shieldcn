@@ -1,0 +1,65 @@
+---
+title: Getting Started
+description: Beautiful README badges as a service. Drop-in shields.io replacement styled as shadcn/ui buttons.
+---
+
+## What is shieldcn?
+
+shieldcn serves SVG badge images that look like **shadcn/ui Button components** — same font, border-radius, padding, and color tokens. Use them in GitHub READMEs, npm pages, docs sites, and anywhere that accepts `<img>` tags.
+
+## Quick start
+
+Add a badge to your README:
+
+<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.svg)" />
+
+That's it. No configuration, no API keys, no build step.
+
+## Badge types
+
+| Badge | URL pattern |
+|-------|------------|
+| npm version | `/npm/{package}.svg` |
+| npm downloads | `/npm/{package}/downloads.svg` |
+| GitHub stars | `/github/{owner}/{repo}/stars.svg` |
+| GitHub release | `/github/{owner}/{repo}/release.svg` |
+| CI status | `/github/{owner}/{repo}/ci.svg` |
+| License | `/github/{owner}/{repo}/license.svg` |
+| Discord online | `/discord/{serverId}.svg` |
+| Static | `/badge/{label}-{message}-{color}.svg` |
+| Dynamic JSON | `/badge/dynamic/json.svg?url=...&query=...` |
+
+## Variants
+
+Every badge supports shadcn Button variants:
+
+<CodeLine language="markdown" code="![default](https://shieldcn.dev/npm/react.svg)" />
+<CodeLine language="markdown" code="![secondary](https://shieldcn.dev/npm/react.svg?variant=secondary)" />
+<CodeLine language="markdown" code="![outline](https://shieldcn.dev/npm/react.svg?variant=outline)" />
+<CodeLine language="markdown" code="![ghost](https://shieldcn.dev/npm/react.svg?variant=ghost)" />
+<CodeLine language="markdown" code="![destructive](https://shieldcn.dev/npm/react.svg?variant=destructive)" />
+
+## Sizes
+
+<CodeLine language="markdown" code="![xs](https://shieldcn.dev/npm/react.svg?size=xs)" />
+<CodeLine language="markdown" code="![sm](https://shieldcn.dev/npm/react.svg?size=sm)" />
+<CodeLine language="markdown" code="![default](https://shieldcn.dev/npm/react.svg?size=default)" />
+<CodeLine language="markdown" code="![lg](https://shieldcn.dev/npm/react.svg?size=lg)" />
+
+## Icons
+
+Badges auto-detect icons per provider. Override with any [Simple Icons](https://simpleicons.org) slug or [Lucide](https://lucide.dev/icons) icon:
+
+<CodeLine language="markdown" code="![react](https://shieldcn.dev/npm/react.svg?logo=react)" />
+<CodeLine language="markdown" code="![star](https://shieldcn.dev/badge/stars-42-blue.svg?logo=lucide:star)" />
+<CodeLine language="markdown" code="![no icon](https://shieldcn.dev/npm/react.svg?logo=false)" />
+
+## Response formats
+
+- **`.svg`** — SVG image (default, for `<img>` tags and markdown)
+- **`.json`** — raw badge data
+- **`/shields.json`** — shields.io-compatible endpoint
+
+## Built with
+
+Badge components for React → [jal-co/ui](https://ui.justinlevine.me)

@@ -1,0 +1,24 @@
+---
+title: Static Badge
+description: Create a badge with any custom text and color.
+---
+
+<BadgeSandbox
+  endpoint="/badge/:badgeContent.svg"
+  pathParams={[
+    { name: "badgeContent", label: "label-message-color", placeholder: "build-passing-green", required: true, description: "Dashes separate label, message, and color. Underscores → spaces." },
+  ]}
+  defaults={{ badgeContent: "build-passing-green" }}
+/>
+
+## Text encoding
+
+| Input | Output |
+|-------|--------|
+| `_` or `%20` | Space |
+| `__` | Literal `_` |
+| `--` | Literal `-` |
+
+## Named colors
+
+`brightgreen`, `green`, `yellow`, `orange`, `red`, `blue`, `purple`, `violet`, `grey`, `lightgrey` — or any hex value.

@@ -1,0 +1,11 @@
+{
+  "title": "Badges",
+  "pages": [
+    "npm",
+    "github",
+    "discord",
+    "static",
+    "dynamic-json",
+    "https-endpoint"
+  ]
+}

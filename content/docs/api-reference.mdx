@@ -1,0 +1,205 @@
+---
+title: API Reference
+description: Complete URL specification, query parameters, and response formats.
+---
+
+## URL format
+
+<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.svg" />
+<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.json" />
+<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}/shields.json" />
+
+## Badge endpoints
+
+### npm
+
+| Endpoint | Description |
+|----------|-------------|
+| `/npm/{package}.svg` | Latest version |
+| `/npm/{package}/downloads.svg` | Weekly download count |
+| `/npm/@scope/package.svg` | Scoped package version |
+
+### GitHub
+
+| Endpoint | Description |
+|----------|-------------|
+| `/github/{owner}/{repo}/stars.svg` | Star count |
+| `/github/{owner}/{repo}/release.svg` | Latest release tag |
+| `/github/{owner}/{repo}/ci.svg` | CI workflow status |
+| `/github/{owner}/{repo}/license.svg` | SPDX license identifier |
+
+### Discord
+
+| Endpoint | Description |
+|----------|-------------|
+| `/discord/{serverId}.svg` | Online member count |
+
+### Static
+
+| Endpoint | Description |
+|----------|-------------|
+| `/badge/{label}-{message}-{color}.svg` | Custom text badge |
+| `/badge/dynamic/json.svg?url=...&query=...` | Dynamic JSON badge |
+
+## Query parameters
+
+<ApiRefTable
+  title="Appearance"
+  props={[
+    {
+      name: "variant",
+      type: '"default" | "secondary" | "outline" | "ghost" | "destructive"',
+      default: '"default"',
+      description: "shadcn Button variant. Controls background, text color, and border.",
+    },
+    {
+      name: "size",
+      type: '"xs" | "sm" | "default" | "lg"',
+      default: '"sm"',
+      description: "shadcn Button size. xs=24px, sm=32px, default=36px, lg=40px.",
+    },
+    {
+      name: "mode",
+      type: '"dark" | "light"',
+      default: '"dark"',
+      description: "Color mode. Dark matches GitHub dark theme.",
+    },
+    {
+      name: "theme",
+      type: "string",
+      default: "—",
+      description: "Color theme override: zinc, slate, blue, green, rose, orange, violet, purple, cyan, emerald.",
+    },
+  ]}
+/>
+
+<ApiRefTable
+  title="Colors"
+  props={[
+    {
+      name: "color",
+      type: "string",
+      default: "—",
+      description: "Override badge background color (hex without #).",
+    },
+    {
+      name: "labelColor",
+      type: "string",
+      default: "—",
+      description: "Override label-side background color for split mode (hex without #).",
+    },
+    {
+      name: "valueColor",
+      type: "string",
+      default: "—",
+      description: "Override value text color (hex without #).",
+    },
+    {
+      name: "labelTextColor",
+      type: "string",
+      default: "—",
+      description: "Override label text color (hex without #).",
+    },
+    {
+      name: "labelOpacity",
+      type: "number",
+      default: "0.7",
+      description: "Label text opacity (0-1). Set to 1 for full visibility.",
+    },
+  ]}
+/>
+
+<ApiRefTable
+  title="Icons"
+  props={[
+    {
+      name: "logo",
+      type: "string | false",
+      default: "auto",
+      description: "SimpleIcons slug (e.g. react, typescript), Lucide icon (e.g. lucide:star), or false to hide.",
+    },
+    {
+      name: "logoColor",
+      type: "string",
+      default: "—",
+      description: "Override logo color (hex without #).",
+    },
+  ]}
+/>
+
+<ApiRefTable
+  title="Layout"
+  props={[
+    {
+      name: "label",
+      type: "string",
+      default: "auto",
+      description: "Override left-side label text.",
+    },
+    {
+      name: "split",
+      type: "boolean",
+      default: "false",
+      description: "Two-tone background: label side + value side with different colors.",
+    },
+    {
+      name: "statusDot",
+      type: "boolean",
+      default: "auto",
+      description: "Show a colored dot before the label. Auto-enabled for CI badges.",
+    },
+    {
+      name: "height",
+      type: "number",
+      description: "Override badge height in px.",
+    },
+    {
+      name: "fontSize",
+      type: "number",
+      description: "Override font size in px.",
+    },
+    {
+      name: "radius",
+      type: "number",
+      description: "Override border radius in px.",
+    },
+    {
+      name: "padX",
+      type: "number",
+      description: "Override horizontal padding in px.",
+    },
+    {
+      name: "iconSize",
+      type: "number",
+      description: "Override icon size in px.",
+    },
+    {
+      name: "gap",
+      type: "number",
+      description: "Override gap between icon and text in px.",
+    },
+    {
+      name: "labelGap",
+      type: "number",
+      description: "Override gap between label and value text in px.",
+    },
+  ]}
+/>
+
+## Response formats
+
+### SVG (default)
+
+<CodeBlock language="http" code={"Content-Type: image/svg+xml\nCache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"} />
+
+### JSON
+
+<CodeBlock language="json" code={'{\n  "label": "npm",\n  "value": "v19.1.0",\n  "color": "blue",\n  "link": "https://www.npmjs.com/package/react"\n}'} />
+
+### Shields.io compatible
+
+<CodeBlock language="json" code={'{\n  "schemaVersion": 1,\n  "label": "npm",\n  "message": "v19.1.0",\n  "color": "blue"\n}'} />
+
+Use with shields.io endpoint badge:
+
+<CodeLine language="markdown" code="![npm](https://img.shields.io/endpoint?url=https://shieldcn.dev/npm/react/shields.json)" />

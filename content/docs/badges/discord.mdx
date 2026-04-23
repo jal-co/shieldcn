@@ -1,0 +1,16 @@
+---
+title: Discord
+description: Display online member count for a Discord server.
+---
+
+<BadgeSandbox
+  endpoint="/discord/:serverId.svg"
+  pathParams={[
+    { name: "serverId", label: "Discord server ID", placeholder: "1316199667142496307", required: true, description: "Server must have widget enabled in Server Settings → Widget." },
+  ]}
+  defaults={{ serverId: "1316199667142496307" }}
+/>
+
+## Data source
+
+Uses the [Discord Widget API](https://discord.com/developers/docs/resources/guild#get-guild-widget). No API key required. Cached 1 hour.
