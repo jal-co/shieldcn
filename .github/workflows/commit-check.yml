@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   commit-check:
@@ -23,4 +22,4 @@ jobs:
           author-name: false
           author-email: false
           job-summary: true
-          pr-comments: ${{ github.event_name == 'pull_request' }}
+          pr-comments: false
