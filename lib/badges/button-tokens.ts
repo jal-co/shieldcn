@@ -83,6 +83,7 @@ export function getButtonStyle(
   mode: ModeColors
 ): ButtonStyle {
   const r = 6 // rounded-md = 0.375rem ≈ 6px
+  const isLightMode = mode.background === lightMode.background
 
   switch (variant) {
     case "default":
@@ -92,7 +93,12 @@ export function getButtonStyle(
     case "destructive":
       return { bg: mode.destructive, fg: mode.destructiveForeground, borderRadius: r }
     case "outline":
-      return { bg: "transparent", fg: mode.accentForeground, border: mode.border, borderRadius: r }
+      return {
+        bg: "transparent",
+        fg: isLightMode ? mode.foreground : mode.accentForeground,
+        border: isLightMode ? "#d4d4d8" : "#3f3f46",
+        borderRadius: r,
+      }
     case "ghost":
       return { bg: "transparent", fg: mode.accentForeground, borderRadius: r }
     default:

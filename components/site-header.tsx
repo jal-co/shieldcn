@@ -27,9 +27,6 @@ export function SiteHeader() {
           <Link href="/showcase">Showcase</Link>
         </Button>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/gallery">Gallery</Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
           <Link href="/docs/api-reference">API</Link>
         </Button>
       </nav>
