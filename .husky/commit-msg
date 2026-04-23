@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# Validate commit message follows Conventional Commits
+# https://www.conventionalcommits.org/en/v1.0.0/
+#
+# Format: <type>(<scope>): <description>
+# Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+
+commit_msg=$(cat "$1")
+
+# Allow merge commits
+if echo "$commit_msg" | grep -qE "^Merge "; then
+  exit 0
+fi
+
+# Allow revert commits
+if echo "$commit_msg" | grep -qE "^Revert "; then
+  exit 0
+fi
+
+# Allow fixup commits
+if echo "$commit_msg" | grep -qE "^fixup! "; then
+  exit 0
+fi
+
+# Validate conventional commit format
+if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?(!)?: .{1,}$"; then
+  echo ""
+  echo "❌ Invalid commit message format."
+  echo ""
+  echo "Expected: <type>(<scope>): <description>"
+  echo ""
+  echo "Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert"
+  echo ""
+  echo "Examples:"
+  echo "  feat(auth): add JWT refresh token support"
+  echo "  fix: handle null response in user endpoint"
+  echo "  docs: update API reference"
+  echo "  feat!: remove deprecated v1 endpoints"
+  echo ""
+  echo "See: https://www.conventionalcommits.org/en/v1.0.0/"
+  echo ""
+  exit 1
+fi
+
+# Check subject line length (max 80 chars)
+subject=$(echo "$commit_msg" | head -1)
+if [ ${#subject} -gt 80 ]; then
+  echo ""
+  echo "❌ Commit subject too long (${#subject} chars, max 80)."
+  echo ""
+  exit 1
+fi
