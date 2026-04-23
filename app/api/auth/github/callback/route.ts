@@ -1,20 +1,30 @@
 /**
  * GET /api/auth/github/callback
  *
- * Handles the OAuth callback from GitHub.
- * Exchanges the code for an access token, fetches the user's login,
- * and adds the token to the pool.
+ * Handles OAuth callback. Validates CSRF state, exchanges code for token,
+ * encrypts token, stores in pool.
  */
 
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { addToken } from "@/lib/token-pool"
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const code = url.searchParams.get("code")
+  const state = url.searchParams.get("state")
 
   if (!code) {
     redirect("/token-pool?error=no_code")
+  }
+
+  // Validate CSRF state
+  const cookieStore = await cookies()
+  const savedState = cookieStore.get("oauth_state")?.value
+  cookieStore.delete("oauth_state")
+
+  if (!state || !savedState || state !== savedState) {
+    redirect("/token-pool?error=invalid_state")
   }
 
   const clientId = process.env.GITHUB_OAUTH_CLIENT_ID
@@ -50,7 +60,7 @@ export async function GET(request: Request) {
 
     const accessToken = tokenData.access_token
 
-    // Fetch the user's GitHub login
+    // Fetch the user's GitHub login (verify token works)
     const userResponse = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -69,7 +79,7 @@ export async function GET(request: Request) {
       redirect("/token-pool?error=no_user")
     }
 
-    // Add token to the pool
+    // Encrypt and store token
     await addToken(githubUser, accessToken)
 
     redirect("/token-pool?success=true")

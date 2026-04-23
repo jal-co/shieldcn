@@ -11,10 +11,12 @@ let pool: Pool | null = null
 
 export function getPool(): Pool {
   if (!pool) {
+    const connString = process.env.DATABASE_URL
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: connString,
       max: 5,
-      ssl: process.env.DATABASE_URL?.includes("railway")
+      // Neon, Railway, Supabase all need SSL
+      ssl: connString && (connString.includes("neon") || connString.includes("railway") || connString.includes("supabase"))
         ? { rejectUnauthorized: false }
         : undefined,
     })

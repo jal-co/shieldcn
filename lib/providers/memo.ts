@@ -9,6 +9,7 @@
  * Inspired by badgen.net/memo
  */
 
+import { createHash } from "node:crypto"
 import type { BadgeData } from "@/lib/badges/types"
 import { getPool, initDB } from "@/lib/db"
 
@@ -34,14 +35,7 @@ async function ensureTable() {
 }
 
 function hashToken(token: string): string {
-  // Simple hash for token comparison (not crypto-grade, but sufficient for badge auth)
-  let hash = 0
-  for (let i = 0; i < token.length; i++) {
-    const chr = token.charCodeAt(i)
-    hash = ((hash << 5) - hash) + chr
-    hash |= 0
-  }
-  return hash.toString(36)
+  return createHash("sha256").update(token).digest("hex")
 }
 
 /**
