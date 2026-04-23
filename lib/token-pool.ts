@@ -86,6 +86,12 @@ export async function pickToken(): Promise<string | undefined> {
   try {
     await ensureInit()
     const db = getPool()
+
+    // Periodically clean up invalid tokens older than 7 days
+    await db.query(
+      `DELETE FROM github_tokens WHERE is_valid = FALSE AND last_used_at < NOW() - INTERVAL '7 days'`
+    )
+
     const result = await db.query(
       `UPDATE github_tokens
        SET last_used_at = NOW()
