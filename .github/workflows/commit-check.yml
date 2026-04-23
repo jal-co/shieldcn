@@ -1,0 +1,26 @@
+name: Commit Check
+
+on:
+  push:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  commit-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: commit-check/commit-check-action@v2
+        with:
+          message: true
+          branch: true
+          author-name: false
+          author-email: false
+          job-summary: true
+          pr-comments: ${{ github.event_name == 'pull_request' }}

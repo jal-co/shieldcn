@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Validate branch name follows Conventional Branch
+# https://conventional-branch.github.io/
+#
+# Format: <type>/<description>
+# Types: feature, feat, bugfix, fix, hotfix, release, chore
+
+branch=$(git branch --show-current)
+
+# Allow main/master/develop
+if echo "$branch" | grep -qE "^(main|master|develop)$"; then
+  exit 0
+fi
+
+# Validate conventional branch format
+if ! echo "$branch" | grep -qE "^(feature|feat|bugfix|fix|hotfix|release|chore)/[a-z0-9][a-z0-9.\-]*[a-z0-9]$"; then
+  echo ""
+  echo "❌ Invalid branch name: $branch"
+  echo ""
+  echo "Expected: <type>/<description>"
+  echo ""
+  echo "Types: feature, feat, bugfix, fix, hotfix, release, chore"
+  echo ""
+  echo "Examples:"
+  echo "  feat/add-login-page"
+  echo "  fix/header-bug"
+  echo "  hotfix/security-patch"
+  echo "  release/v1.2.0"
+  echo "  chore/update-dependencies"
+  echo ""
+  echo "Rules:"
+  echo "  - Lowercase alphanumerics, hyphens, and dots only"
+  echo "  - No consecutive hyphens or dots"
+  echo "  - No leading/trailing hyphens or dots in description"
+  echo ""
+  echo "See: https://conventional-branch.github.io/"
+  echo ""
+  exit 1
+fi
