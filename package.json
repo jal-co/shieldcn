@@ -13,6 +13,7 @@
     "*.{ts,tsx}": "eslint --no-warn-ignored --max-warnings 0"
   },
   "dependencies": {
+    "@openpanel/nextjs": "^1.5.0",
     "@resvg/resvg-wasm": "^2.6.2",
     "@types/mdx": "^2.0.13",
     "class-variance-authority": "^0.7.1",

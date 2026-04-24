@@ -1,0 +1,15 @@
+{
+  "title": "GitHub",
+  "pages": [
+    "index",
+    "stars",
+    "forks",
+    "license",
+    "release",
+    "ci",
+    "issues",
+    "prs",
+    "commits",
+    "repository"
+  ]
+}

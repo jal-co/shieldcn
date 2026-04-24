@@ -101,6 +101,7 @@ Every badge supports shadcn Button variants and sizes:
 ![outline](https://shieldcn.dev/npm/react.svg?variant=outline)
 ![ghost](https://shieldcn.dev/npm/react.svg?variant=ghost)
 ![destructive](https://shieldcn.dev/npm/react.svg?variant=destructive)
+![branded](https://shieldcn.dev/npm/react.svg?variant=branded)
 
 ![xs](https://shieldcn.dev/npm/react.svg?size=xs)
 ![sm](https://shieldcn.dev/npm/react.svg?size=sm)
@@ -141,6 +142,19 @@ pnpm build          # next build
 ## Token pool
 
 shieldcn uses a [token pool](https://shieldcn.dev/token-pool) (inspired by [shields.io](https://shields.io/blog/2024-11-14-how-shields-io-uses-the-github-api)) to distribute GitHub API requests across many tokens. You can help by authorizing the OAuth app — read-only, zero scopes, revocable anytime.
+
+## Analytics
+
+shieldcn uses [OpenPanel](https://openpanel.dev/open-source?utm_source=shieldcn.dev) for privacy-friendly product analytics.
+
+To enable it, set:
+
+```bash
+NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
+OPENPANEL_CLIENT_SECRET=...
+```
+
+If those env vars are missing, analytics stays disabled.
 
 ## Credits
 

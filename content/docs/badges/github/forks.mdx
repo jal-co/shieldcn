@@ -1,0 +1,47 @@
+---
+title: GitHub Forks
+description: Display the fork count for any GitHub repository.
+---
+
+Show how many times a repository has been forked.
+
+<BadgeSandbox
+  endpoint="/github/forks/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL format
+
+```
+/github/forks/{owner}/{repo}.svg
+/github/{owner}/{repo}/forks.svg
+```
+
+## Examples
+
+```md
+![Next.js forks](https://shieldcn.dev/github/forks/vercel/next.js.svg)
+![React forks](https://shieldcn.dev/github/forks/facebook/react.svg)
+![TensorFlow forks](https://shieldcn.dev/github/forks/tensorflow/tensorflow.svg)
+```
+
+## Styling examples
+
+```md
+<!-- With git-fork icon -->
+![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?logo=lucide:git-fork)
+
+<!-- Green theme -->
+![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?theme=green)
+
+<!-- Outline variant -->
+![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?variant=outline)
+```
+
+## Response format
+
+The badge shows the fork count formatted with k/M suffixes for large numbers.

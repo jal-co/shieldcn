@@ -1,0 +1,47 @@
+---
+title: GitHub License
+description: Display the license type for any GitHub repository.
+---
+
+Show which open source license a repository uses.
+
+<BadgeSandbox
+  endpoint="/github/license/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL format
+
+```
+/github/license/{owner}/{repo}.svg
+/github/{owner}/{repo}/license.svg
+```
+
+## Examples
+
+```md
+![Next.js license](https://shieldcn.dev/github/license/vercel/next.js.svg)
+![React license](https://shieldcn.dev/github/license/facebook/react.svg)
+![Linux license](https://shieldcn.dev/github/license/torvalds/linux.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Violet theme -->
+![license](https://shieldcn.dev/github/license/vercel/next.js.svg?theme=violet)
+
+<!-- Secondary variant -->
+![license](https://shieldcn.dev/github/license/vercel/next.js.svg?variant=secondary)
+
+<!-- Custom label -->
+![license](https://shieldcn.dev/github/license/vercel/next.js.svg?label=open%20source)
+```
+
+## Response format
+
+Shows the SPDX license identifier (e.g., `MIT`, `Apache-2.0`, `GPL-3.0`). If the repository has no detected license, shows `none`.

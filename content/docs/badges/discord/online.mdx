@@ -1,0 +1,48 @@
+---
+title: Discord Online Count
+description: Display the live online member count for a Discord server.
+---
+
+Show how many members are currently online using the Discord widget API.
+
+<BadgeSandbox
+  endpoint="/discord/:serverId.svg"
+  pathParams={[
+    { name: "serverId", label: "Discord server ID", placeholder: "1316199667142496307", required: true, description: "Server must have widget enabled in Server Settings → Widget." },
+  ]}
+  defaults={{ serverId: "1316199667142496307" }}
+/>
+
+## URL format
+
+```
+/discord/{serverId}.svg
+```
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/discord/1316199667142496307.svg" alt="discord" description="Default variant" />
+  <BadgePreviewCard src="/discord/1316199667142496307.svg?variant=branded" alt="discord" description="Branded (blurple)" />
+  <BadgePreviewCard src="/discord/1316199667142496307.svg?variant=secondary" alt="discord" description="Secondary variant" />
+  <BadgePreviewCard src="/discord/1316199667142496307.svg?variant=outline" alt="discord" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/discord/1316199667142496307.svg?variant=branded" alt="discord" description="Branded — Discord blurple background" />
+
+## How to find your server ID
+
+1. Enable Developer Mode in Discord (User Settings → Advanced → Developer Mode)
+2. Right-click your server name and click "Copy Server ID"
+
+## Requirements
+
+The server must have the **widget enabled**:
+1. Go to Server Settings → Widget
+2. Enable "Enable Server Widget"
+
+## Data source
+
+Uses the [Discord Widget API](https://discord.com/developers/docs/resources/guild#get-guild-widget). No API key required. Cached 1 hour.

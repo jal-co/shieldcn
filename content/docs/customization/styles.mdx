@@ -7,18 +7,22 @@ description: Visual style variants for badges.
 
 | Style | Description |
 |-------|-------------|
-| `default` | Dark backgrounds, subtle gradient overlay, rounded corners. The signature shieldcn look. |
+| `default` | Primary background, bold contrast. The signature shieldcn look. |
+| `secondary` | Muted background, subtle appearance. |
 | `outline` | Transparent background, visible border, themed text colors. |
-| `subtle` | Fully rounded pill, muted semi-transparent background. |
-| `flat` | Shields.io-compatible flat style for consistency with existing badges. |
+| `ghost` | Transparent background, no border. |
+| `destructive` | Red/danger styling for error states. |
+| `branded` | Uses the logo's brand color as background (e.g., Discord blurple, npm red). |
 
 ## Usage
 
 ```md
-![default](https://shieldcn.dev/npm/react.svg?style=default)
-![outline](https://shieldcn.dev/npm/react.svg?style=outline)
-![subtle](https://shieldcn.dev/npm/react.svg?style=subtle)
-![flat](https://shieldcn.dev/npm/react.svg?style=flat)
+![default](https://shieldcn.dev/npm/react.svg?variant=default)
+![secondary](https://shieldcn.dev/npm/react.svg?variant=secondary)
+![outline](https://shieldcn.dev/npm/react.svg?variant=outline)
+![ghost](https://shieldcn.dev/npm/react.svg?variant=ghost)
+![destructive](https://shieldcn.dev/npm/react.svg?variant=destructive)
+![branded](https://shieldcn.dev/npm/react.svg?variant=branded)
 ```
 
 ## Combining with themes
@@ -26,7 +30,18 @@ description: Visual style variants for badges.
 Styles and themes compose freely:
 
 ```md
-![blue outline](https://shieldcn.dev/npm/react.svg?style=outline&theme=blue)
-![green subtle](https://shieldcn.dev/npm/react.svg?style=subtle&theme=green)
-![rose flat](https://shieldcn.dev/npm/react.svg?style=flat&theme=rose)
+![blue outline](https://shieldcn.dev/npm/react.svg?variant=outline&theme=blue)
+![green secondary](https://shieldcn.dev/npm/react.svg?variant=secondary&theme=green)
 ```
+
+## Branded variant
+
+The `branded` variant automatically uses the icon's official brand color as the badge background:
+
+```md
+![npm branded](https://shieldcn.dev/npm/react.svg?variant=branded)
+![discord branded](https://shieldcn.dev/badge/join-discord.svg?variant=branded&logo=discord)
+![typescript branded](https://shieldcn.dev/badge/typescript-5.0.svg?variant=branded&logo=typescript)
+```
+
+This pulls colors directly from SimpleIcons — Discord gets blurple (#5865F2), npm gets red (#CB3837), etc.

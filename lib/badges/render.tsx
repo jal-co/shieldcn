@@ -26,10 +26,24 @@ import {
   type ModeColors,
 } from "./button-tokens"
 
-const fontData = readFileSync(join(process.cwd(), "lib/fonts/inter-medium.ttf"))
-const FONTS = [
-  { name: "Inter", data: fontData, weight: 500 as const, style: "normal" as const },
-]
+// Pre-load all font files
+const fontsDir = join(process.cwd(), "lib/fonts")
+const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
+const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
+const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
+
+export type BadgeFont = "inter" | "geist" | "geist-mono"
+
+const FONT_CONFIG: Record<BadgeFont, { name: string; data: Buffer }> = {
+  inter: { name: "Inter", data: interData },
+  geist: { name: "Geist", data: geistData },
+  "geist-mono": { name: "Geist Mono", data: geistMonoData },
+}
+
+function getFonts(font: BadgeFont = "inter") {
+  const f = FONT_CONFIG[font] ?? FONT_CONFIG.inter
+  return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
+}
 
 /** Hex → rgba with baked-in opacity */
 function rgba(hex: string, opacity: number): string {
@@ -51,6 +65,9 @@ interface ResolvedBadge {
   // Content
   label: string
   value: string
+
+  // Font
+  fontFamily: string
 
   // Dimensions
   height: number
@@ -91,10 +108,14 @@ interface ResolvedBadge {
 
 function resolve(config: BadgeConfig): ResolvedBadge {
   const mode = config.mode === "light" ? lightMode : darkMode
-  const bs = getButtonStyle(config.style, mode)
+  const bs = getButtonStyle(config.style, mode, config.brandColor)
   const bz = getButtonSize(config.size ?? "sm")
 
   // Dimensions (overridable)
+  // Font
+  const font = config.font ?? "inter"
+  const fontFamily = FONT_CONFIG[font]?.name ?? FONT_CONFIG.inter.name
+
   const height = config.height ?? bz.height
   const paddingX = config.padX ?? bz.paddingX
   const fontSize = config.fontSize ?? bz.fontSize
@@ -156,6 +177,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   return {
     label: config.label,
     value: config.value,
+    fontFamily,
     height,
     paddingX,
     fontSize,
@@ -188,7 +210,56 @@ function resolve(config: BadgeConfig): ResolvedBadge {
 export async function renderBadge(config: BadgeConfig): Promise<string> {
   const r = resolve(config)
   const el = r.split ? renderSplit(r) : renderSingle(r)
-  return satori(el, { height: r.height, fonts: FONTS })
+  const fonts = getFonts(config.font)
+  const svg = await satori(el, { height: r.height, fonts })
+  return inlineDataUriImages(svg)
+}
+
+/**
+ * Post-process SVG to inline data URI images as actual SVG elements.
+ * Satori converts nested <svg> to <image href="data:image/svg+xml;...">.
+ * Some renderers don't handle these well, so we convert them back to inline paths.
+ */
+function inlineDataUriImages(svg: string): string {
+  // Match <image> tags with SVG data URIs
+  const imageRegex = /<image\s+x="([^"]+)"\s+y="([^"]+)"\s+width="([^"]+)"\s+height="([^"]+)"\s+href="data:image\/svg\+xml;[^"]+"[^>]*\/>/g
+
+  return svg.replace(imageRegex, (match, x, y, width, height) => {
+    // Extract the data URI content
+    const hrefMatch = match.match(/href="data:image\/svg\+xml;utf8,([^"]+)"/)
+    if (!hrefMatch) return match
+
+    // Decode the URI-encoded SVG
+    let innerSvg: string
+    try {
+      innerSvg = decodeURIComponent(hrefMatch[1])
+    } catch {
+      return match
+    }
+
+    // Extract viewBox from inner SVG
+    const vbMatch = innerSvg.match(/viewBox="([^"]+)"/)
+    const viewBox = vbMatch ? vbMatch[1].split(/\s+/).map(Number) : [0, 0, 24, 24]
+    const [, , vbWidth, vbHeight] = viewBox
+
+    // Extract path(s) from inner SVG
+    const paths: string[] = []
+    const pathRegex = /<path\s+([^>]+)>/g
+    let pathMatch: RegExpExecArray | null
+    while ((pathMatch = pathRegex.exec(innerSvg)) !== null) {
+      paths.push(`<path ${pathMatch[1]}/>`)
+    }
+
+    if (paths.length === 0) return match
+
+    // Calculate scale to fit width x height
+    const scaleX = parseFloat(width) / vbWidth
+    const scaleY = parseFloat(height) / vbHeight
+    const scale = Math.min(scaleX, scaleY)
+
+    // Create a group with transform to position and scale the paths
+    return `<g transform="translate(${x},${y}) scale(${scale})">${paths.join("")}</g>`
+  })
 }
 
 export async function renderErrorBadge(label: string, message: string): Promise<string> {
@@ -263,7 +334,7 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       borderRadius: r.borderRadius,
       paddingLeft: r.paddingX,
       paddingRight: r.paddingX,
-      fontFamily: "Inter",
+      fontFamily: r.fontFamily,
       fontSize: r.fontSize,
       fontWeight: 500,
       ...(r.bg ? { backgroundColor: r.bg } : {}),
@@ -296,7 +367,7 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
       alignItems: "center",
       height: r.height,
       borderRadius: r.borderRadius,
-      fontFamily: "Inter",
+      fontFamily: r.fontFamily,
       fontSize: r.fontSize,
       fontWeight: 500,
       overflow: "hidden",

@@ -1,0 +1,50 @@
+---
+title: npm Node Version
+description: Display the required Node.js version for any npm package.
+---
+
+Show the Node.js version requirement from a package's `engines.node` field.
+
+<BadgeSandbox
+  endpoint="/npm/node/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL format
+
+```
+/npm/node/{package}.svg
+```
+
+## Examples
+
+```md
+![node](https://shieldcn.dev/npm/node/next.svg)
+![node](https://shieldcn.dev/npm/node/vite.svg)
+![node](https://shieldcn.dev/npm/node/typescript.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Outline variant -->
+![node](https://shieldcn.dev/npm/node/next.svg?variant=outline)
+
+<!-- Green theme -->
+![node](https://shieldcn.dev/npm/node/next.svg?theme=green)
+
+<!-- With Node.js logo -->
+![node](https://shieldcn.dev/npm/node/next.svg?logo=nodedotjs)
+```
+
+## Notes
+
+- Returns the `engines.node` value from package.json
+- Shows "any" if no Node version is specified
+
+## Data source
+
+Uses [registry.npmjs.org](https://registry.npmjs.org). No API key required. Cached 1 hour.

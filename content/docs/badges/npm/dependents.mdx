@@ -1,0 +1,51 @@
+---
+title: npm Dependents
+description: Display the number of packages that depend on an npm package.
+---
+
+Show how many other packages depend on this package.
+
+<BadgeSandbox
+  endpoint="/npm/dependents/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL format
+
+```
+/npm/dependents/{package}.svg
+```
+
+## Examples
+
+```md
+![dependents](https://shieldcn.dev/npm/dependents/react.svg)
+![dependents](https://shieldcn.dev/npm/dependents/lodash.svg)
+![dependents](https://shieldcn.dev/npm/dependents/typescript.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Outline variant -->
+![dependents](https://shieldcn.dev/npm/dependents/react.svg?variant=outline)
+
+<!-- Purple theme -->
+![dependents](https://shieldcn.dev/npm/dependents/react.svg?theme=purple)
+
+<!-- Custom label -->
+![dependents](https://shieldcn.dev/npm/dependents/react.svg?label=used%20by)
+```
+
+## Use cases
+
+- Show ecosystem adoption
+- Highlight library stability
+- Social proof for package pages
+
+## Data source
+
+Uses [registry.npmjs.org](https://registry.npmjs.org). No API key required. Cached 1 hour.

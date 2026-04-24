@@ -1,0 +1,91 @@
+---
+title: GitHub CI Status
+description: Display GitHub Actions workflow status and check results.
+---
+
+Show the status of GitHub Actions workflows and commit checks.
+
+<BadgeSandbox
+  endpoint="/github/ci/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  extraParams={[
+    { name: "workflow", label: "workflow file", placeholder: "ci.yml" },
+    { name: "branch", label: "branch", placeholder: "main" },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+  showStatusDot
+/>
+
+## URL formats
+
+### Workflow status
+
+```
+/github/ci/{owner}/{repo}.svg
+/github/ci/{owner}/{repo}.svg?workflow=ci.yml
+/github/ci/{owner}/{repo}.svg?branch=main
+/github/ci/{owner}/{repo}.svg?workflow=ci.yml&branch=main
+```
+
+Shows the conclusion of the most recent workflow run. Filter by workflow file or branch using query parameters.
+
+### Commit checks
+
+```
+/github/checks/{owner}/{repo}.svg
+/github/checks/{owner}/{repo}/{ref}.svg
+/github/checks/{owner}/{repo}/{ref}/{check_name}.svg
+```
+
+Shows the combined check status for a commit. Optionally specify a branch/tag ref or individual check name.
+
+## Status values
+
+| Status | Color | Description |
+|--------|-------|-------------|
+| `passing` | Green | All checks passed |
+| `failing` | Red | One or more checks failed |
+| `pending` | Amber | Checks are still running |
+| `cancelled` | Gray | Workflow was cancelled |
+| `skipped` | Gray | Workflow was skipped |
+
+## Examples
+
+```md
+<!-- Default workflow status -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
+
+<!-- Specific workflow -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?workflow=build_and_deploy.yml)
+
+<!-- Specific branch -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?branch=canary)
+
+<!-- Combined checks -->
+![checks](https://shieldcn.dev/github/checks/nodejs/node.svg)
+
+<!-- Checks for specific branch -->
+![checks](https://shieldcn.dev/github/checks/nodejs/node/main.svg)
+```
+
+## Styling examples
+
+CI badges automatically show a **colored status dot** based on the result. You can also use split mode for a two-tone background:
+
+```md
+<!-- Status dot (default) -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
+
+<!-- Split background -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?split=true)
+
+<!-- Hide status dot -->
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?statusDot=false)
+```
+
+## Caching
+
+CI badges are cached for 10 minutes to balance freshness with API rate limits.

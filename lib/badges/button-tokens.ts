@@ -78,9 +78,19 @@ export interface ButtonStyle {
   borderRadius: number   // px
 }
 
+/** Check if a hex color (without #) is light enough to need dark text. */
+function isLightHex(hex: string): boolean {
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+}
+
 export function getButtonStyle(
   variant: string,
-  mode: ModeColors
+  mode: ModeColors,
+  brandColor?: string
 ): ButtonStyle {
   const r = 6 // rounded-md = 0.375rem ≈ 6px
   const isLightMode = mode.background === lightMode.background
@@ -101,6 +111,12 @@ export function getButtonStyle(
       }
     case "ghost":
       return { bg: "transparent", fg: mode.accentForeground, borderRadius: r }
+    case "branded": {
+      // Use brand color as background with contrast-aware text
+      const brandBg = brandColor ? `#${brandColor}` : mode.primary
+      const brandFg = brandColor ? (isLightHex(brandColor) ? "#18181b" : "#ffffff") : mode.primaryForeground
+      return { bg: brandBg, fg: brandFg, borderRadius: r }
+    }
     default:
       return { bg: mode.primary, fg: mode.primaryForeground, borderRadius: r }
   }

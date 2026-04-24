@@ -1,0 +1,39 @@
+---
+title: Discord Online Members
+description: Display the online member count for a Discord server via invite.
+---
+
+Show the approximate online member count using a public invite code.
+
+<BadgeSandbox
+  endpoint="/discord/online-members/:inviteCode.svg"
+  pathParams={[
+    { name: "inviteCode", label: "Discord invite code", placeholder: "reactiflux", required: true, description: "Public invite code (not the full URL)." },
+  ]}
+  defaults={{ inviteCode: "reactiflux" }}
+/>
+
+## URL format
+
+```
+/discord/online-members/{inviteCode}.svg
+```
+
+## Examples
+
+```md
+![online](https://shieldcn.dev/discord/online-members/reactiflux.svg)
+![online](https://shieldcn.dev/discord/online-members/reactiflux.svg?variant=branded)
+![online](https://shieldcn.dev/discord/online-members/typescript.svg?theme=green)
+```
+
+## When to use this vs widget API
+
+| Method | Endpoint | Pros | Cons |
+|--------|----------|------|------|
+| Widget API | `/discord/{serverId}` | Exact count | Requires widget enabled |
+| Invite API | `/discord/online-members/{inviteCode}` | No server config needed | Approximate count |
+
+## Data source
+
+Uses the [Discord Invite API](https://discord.com/developers/docs/resources/invite#get-invite) with `with_counts=true`. No API key required. Cached 1 hour.

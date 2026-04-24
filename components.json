@@ -17,5 +17,8 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@fonttrio": "https://www.fonttrio.xyz/r/{name}.json"
   }
 }

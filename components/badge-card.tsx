@@ -3,13 +3,8 @@
 import { useState } from "react"
 import { BadgeModal } from "@/components/badge-modal"
 
-export interface ShowcaseBadge {
-  title: string
-  subtitle: string
-  badgePath: string
-  description?: string
-  docsHref?: string
-}
+import type { ShowcaseBadge } from "@/lib/showcase-data"
+export type { ShowcaseBadge }
 
 interface BadgeCardProps {
   badge: ShowcaseBadge

@@ -1,0 +1,45 @@
+---
+title: npm Version
+description: Display the latest version of any npm package.
+---
+
+Show the current published version of a package.
+
+<BadgeSandbox
+  endpoint="/npm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true, description: "Unscoped (react) or scoped (@types/react)." },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL formats
+
+```
+/npm/{package}.svg
+/npm/v/{package}.svg
+/npm/v/{package}/{tag}.svg
+```
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/npm/react.svg" alt="npm react" description="Default variant" />
+  <BadgePreviewCard src="/npm/react.svg?variant=secondary" alt="npm react" description="Secondary variant" />
+  <BadgePreviewCard src="/npm/react.svg?variant=branded" alt="npm react" description="Branded (npm red)" />
+  <BadgePreviewCard src="/npm/react.svg?variant=outline" alt="npm react" description="Outline variant" />
+  <BadgePreviewCard src="/npm/react.svg?theme=blue" alt="npm react" description="Blue theme" />
+  <BadgePreviewCard src="/npm/react.svg?label=react" alt="npm react" description="Custom label" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/npm/react.svg" alt="npm version" description="Default — clean version badge for READMEs" />
+
+<BadgePreview src="/npm/react.svg?variant=branded" alt="npm version" description="Branded — npm's official red" />
+
+<BadgePreview src="/npm/@types/react.svg?variant=secondary" alt="npm version" description="Scoped package — secondary variant" />
+
+## Data source
+
+Uses [registry.npmjs.org](https://registry.npmjs.org). No API key required. Cached 1 hour.

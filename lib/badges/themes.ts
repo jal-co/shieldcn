@@ -178,6 +178,20 @@ export function resolveTheme(name?: string): ResolvedColors {
  * background (labelBg) and adjusts text to white. `labelColor` is
  * kept for shields.io compat but is an alias for the same thing.
  */
+/**
+ * Check if a hex color is light (should use dark text on it).
+ */
+function isLightColor(hex: string): boolean {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
+  // Relative luminance formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.6
+}
+
 export function applyColorOverrides(
   colors: ResolvedColors,
   overrides: { color?: string; labelColor?: string }
@@ -185,16 +199,17 @@ export function applyColorOverrides(
   const result = { ...colors }
   if (overrides.color) {
     const hex = `#${overrides.color}`
+    const textColor = isLightColor(hex) ? "#18181b" : "#ffffff"
     result.labelBg = hex
     result.valueBg = hex
-    // On a custom color background, use white text
-    result.valueFg = "#ffffff"
-    // Make label text a semi-transparent white
-    result.labelFg = "#ffffff"
+    result.valueFg = textColor
+    result.labelFg = textColor
   }
   if (overrides.labelColor) {
-    result.labelBg = `#${overrides.labelColor}`
-    result.valueBg = `#${overrides.labelColor}`
+    const hex = `#${overrides.labelColor}`
+    const textColor = isLightColor(hex) ? "#18181b" : "#ffffff"
+    result.labelBg = hex
+    result.labelFg = textColor
   }
   return result
 }

@@ -1,0 +1,70 @@
+---
+title: GitHub Commits
+description: Display commit counts and last commit time for GitHub repositories.
+---
+
+Show total commits or how recently a repository was updated.
+
+<BadgeSandbox
+  endpoint="/github/commits/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL formats
+
+### Total commits
+
+```
+/github/commits/{owner}/{repo}.svg
+/github/commits/{owner}/{repo}/{branch}.svg
+```
+
+Shows the total number of commits. Optionally specify a branch.
+
+### Last commit
+
+```
+/github/last-commit/{owner}/{repo}.svg
+/github/last-commit/{owner}/{repo}/{branch}.svg
+```
+
+Shows relative time since the last commit (e.g., "2 hours ago", "3 days ago").
+
+## Examples
+
+```md
+<!-- Total commits (default branch) -->
+![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg)
+
+<!-- Commits on specific branch -->
+![commits](https://shieldcn.dev/github/commits/vercel/next.js/canary.svg)
+
+<!-- Last commit time -->
+![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js.svg)
+
+<!-- Last commit on branch -->
+![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js/canary.svg)
+```
+
+## Styling examples
+
+```md
+<!-- With git-commit icon -->
+![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg?logo=lucide:git-commit-horizontal)
+
+<!-- Blue theme -->
+![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg?theme=blue)
+
+<!-- Custom label -->
+![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js.svg?label=updated)
+```
+
+## Use cases
+
+- Show project maturity with total commit count
+- Indicate active maintenance with "last commit" time
+- Compare activity across branches

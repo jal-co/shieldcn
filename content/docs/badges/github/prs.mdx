@@ -1,0 +1,68 @@
+---
+title: GitHub Pull Requests
+description: Display pull request counts by state for GitHub repositories.
+---
+
+Show open, closed, or merged pull request counts.
+
+<BadgeSandbox
+  endpoint="/github/prs/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL formats
+
+### Open PRs
+
+```
+/github/prs/{owner}/{repo}.svg
+/github/open-prs/{owner}/{repo}.svg
+```
+
+### Closed PRs
+
+```
+/github/closed-prs/{owner}/{repo}.svg
+```
+
+### Merged PRs
+
+```
+/github/merged-prs/{owner}/{repo}.svg
+```
+
+## Examples
+
+```md
+<!-- Open PRs -->
+![prs](https://shieldcn.dev/github/prs/vercel/next.js.svg)
+
+<!-- Closed PRs -->
+![closed](https://shieldcn.dev/github/closed-prs/vercel/next.js.svg)
+
+<!-- Merged PRs -->
+![merged](https://shieldcn.dev/github/merged-prs/vercel/next.js.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Purple theme for merged -->
+![merged](https://shieldcn.dev/github/merged-prs/vercel/next.js.svg?theme=purple)
+
+<!-- With git-pull-request icon -->
+![prs](https://shieldcn.dev/github/prs/vercel/next.js.svg?logo=lucide:git-pull-request)
+
+<!-- Green for open -->
+![open](https://shieldcn.dev/github/open-prs/vercel/next.js.svg?theme=green)
+```
+
+## Use cases
+
+- Show project activity with open PR count
+- Highlight merged contributions
+- Track review backlog

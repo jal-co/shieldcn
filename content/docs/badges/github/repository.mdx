@@ -1,0 +1,90 @@
+---
+title: GitHub Repository
+description: Display watchers, branches, contributors, and other repository metadata.
+---
+
+Show various repository statistics and metadata.
+
+<BadgeSandbox
+  endpoint="/github/:topic/:owner/:repo.svg"
+  pathParams={[
+    { name: "topic", label: "badge type", placeholder: "watchers", required: true, description: "watchers, branches, contributors, dependabot, milestones" },
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ topic: "watchers", owner: "vercel", repo: "next.js" }}
+/>
+
+## URL formats
+
+### Watchers
+
+```
+/github/watchers/{owner}/{repo}.svg
+```
+
+Shows the number of people watching the repository.
+
+### Branches
+
+```
+/github/branches/{owner}/{repo}.svg
+```
+
+Shows the total number of branches.
+
+### Contributors
+
+```
+/github/contributors/{owner}/{repo}.svg
+```
+
+Shows the number of contributors.
+
+### Dependabot
+
+```
+/github/dependabot/{owner}/{repo}.svg
+```
+
+Shows whether Dependabot is enabled.
+
+### Milestones
+
+```
+/github/milestones/{owner}/{repo}/{number}.svg
+```
+
+Shows completion percentage for a specific milestone.
+
+## Examples
+
+```md
+<!-- Watchers -->
+![watchers](https://shieldcn.dev/github/watchers/vercel/next.js.svg)
+
+<!-- Branches -->
+![branches](https://shieldcn.dev/github/branches/vercel/next.js.svg)
+
+<!-- Contributors -->
+![contributors](https://shieldcn.dev/github/contributors/vercel/next.js.svg)
+
+<!-- Dependabot status -->
+![dependabot](https://shieldcn.dev/github/dependabot/ubuntu/yaru.svg)
+
+<!-- Milestone progress -->
+![milestone](https://shieldcn.dev/github/milestones/chrislgarry/Apollo-11/1.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Contributors with users icon -->
+![contributors](https://shieldcn.dev/github/contributors/vercel/next.js.svg?logo=lucide:users)
+
+<!-- Cyan theme for watchers -->
+![watchers](https://shieldcn.dev/github/watchers/vercel/next.js.svg?theme=cyan)
+
+<!-- Green for milestone progress -->
+![milestone](https://shieldcn.dev/github/milestones/chrislgarry/Apollo-11/1.svg?theme=green)
+```

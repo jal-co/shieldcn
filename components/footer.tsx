@@ -24,6 +24,17 @@ export function SiteFooter() {
               Beautiful README badges as a service. A shields.io alternative
               with the visual quality of shadcn/ui.
             </p>
+            <p className="text-xs text-muted-foreground">
+              Analytics by{" "}
+              <a
+                href="https://openpanel.dev/open-source?utm_source=shieldcn.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                OpenPanel
+              </a>
+            </p>
           </div>
 
           <div className="flex gap-10 text-sm">

@@ -8,6 +8,7 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { addToken } from "@/lib/token-pool"
+import { trackEvent } from "@/lib/openpanel"
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -88,6 +89,13 @@ export async function GET(request: Request) {
   } catch {
     redirect("/token-pool?error=db_store_failed")
   }
+
+  void trackEvent({
+    name: "token_pool_authorized",
+    data: {
+      githubUser,
+    },
+  })
 
   redirect("/token-pool?success=true")
 }

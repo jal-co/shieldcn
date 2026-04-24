@@ -6,7 +6,7 @@
  */
 
 /** Visual style variants for badges (maps to shadcn Button variant). */
-export type BadgeStyle = "default" | "outline" | "subtle" | "flat" | "ghost" | "secondary" | "destructive"
+export type BadgeStyle = "default" | "outline" | "subtle" | "flat" | "ghost" | "secondary" | "destructive" | "branded"
 
 /** Badge size presets (maps to shadcn Button size). */
 export type BadgeSize = "xs" | "sm" | "default" | "lg"
@@ -82,6 +82,10 @@ export interface BadgeConfig {
   mode?: "light" | "dark"
   /** Whether the user explicitly set a theme or color override. */
   hasThemeOverride?: boolean
+  /** Brand color for "branded" variant (hex without #). */
+  brandColor?: string
+  /** Font family for badge text. */
+  font?: "inter" | "geist" | "geist-mono"
 }
 
 /** Raw badge data returned by data providers. */

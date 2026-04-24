@@ -1,0 +1,43 @@
+---
+title: GitHub Stars
+description: Display the star count for any GitHub repository.
+---
+
+Show how many stars a repository has earned.
+
+<BadgeSandbox
+  endpoint="/github/stars/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL format
+
+```
+/github/stars/{owner}/{repo}.svg
+/github/{owner}/{repo}/stars.svg
+```
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg" alt="Next.js stars" description="Default variant" />
+  <BadgePreviewCard src="/github/stars/facebook/react.svg?variant=secondary" alt="React stars" description="Secondary variant" />
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg?variant=branded&logo=github" alt="stars branded" description="Branded variant" />
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg?theme=blue" alt="stars blue" description="Blue theme" />
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg?variant=outline" alt="stars outline" description="Outline variant" />
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg?size=lg" alt="stars large" description="Large size" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/github/stars/vercel/next.js.svg" alt="stars" description="Default — works great in any README" />
+
+<BadgePreview src="/github/stars/vercel/next.js.svg?variant=branded&logo=github" alt="stars" description="Branded — GitHub's brand color" />
+
+## Response format
+
+The badge shows the star count formatted with k/M suffixes for large numbers (e.g., `139.1k`).
