@@ -33,9 +33,42 @@ const docsNav: NavGroup[] = [
       { title: "Static Badge", href: "/docs/badges/static" },
       { title: "Dynamic JSON", href: "/docs/badges/dynamic-json" },
       { title: "HTTPS Endpoint", href: "/docs/badges/https-endpoint" },
-      { title: "npm", href: "/docs/badges/npm" },
-      { title: "GitHub", href: "/docs/badges/github" },
-      { title: "Discord", href: "/docs/badges/discord" },
+    ],
+  },
+  {
+    title: "npm",
+    items: [
+      { title: "Overview", href: "/docs/badges/npm" },
+      { title: "Version", href: "/docs/badges/npm/version" },
+      { title: "Downloads", href: "/docs/badges/npm/downloads" },
+      { title: "License", href: "/docs/badges/npm/license" },
+      { title: "Node Version", href: "/docs/badges/npm/node" },
+      { title: "Types", href: "/docs/badges/npm/types" },
+      { title: "Dependents", href: "/docs/badges/npm/dependents" },
+    ],
+  },
+  {
+    title: "Discord",
+    items: [
+      { title: "Overview", href: "/docs/badges/discord" },
+      { title: "Online Count", href: "/docs/badges/discord/online" },
+      { title: "Members", href: "/docs/badges/discord/members" },
+      { title: "Online Members", href: "/docs/badges/discord/online-members" },
+    ],
+  },
+  {
+    title: "GitHub",
+    items: [
+      { title: "Overview", href: "/docs/badges/github" },
+      { title: "Stars", href: "/docs/badges/github/stars" },
+      { title: "Forks", href: "/docs/badges/github/forks" },
+      { title: "License", href: "/docs/badges/github/license" },
+      { title: "Releases & Tags", href: "/docs/badges/github/release" },
+      { title: "CI Status", href: "/docs/badges/github/ci" },
+      { title: "Issues", href: "/docs/badges/github/issues" },
+      { title: "Pull Requests", href: "/docs/badges/github/prs" },
+      { title: "Commits", href: "/docs/badges/github/commits" },
+      { title: "Repository", href: "/docs/badges/github/repository" },
     ],
   },
   {
@@ -95,7 +128,7 @@ export function Sidebar() {
           {docsNav.map((group, i) => (
             <div key={group.title} className="flex flex-col gap-0.5">
               <p className={cn(
-                "px-2 pb-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground",
+                "px-2 pb-0.5 text-xs font-bold uppercase tracking-wide text-foreground",
                 i === 0 ? "pt-0" : "pt-3"
               )}>
                 {group.title}

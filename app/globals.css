@@ -38,17 +38,18 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --font-sans: var(--font-geist);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-fira-code);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-heading: var(--font-geist);
+  --font-heading: var(--font-sora);
   --font-body: var(--font-geist);
   --font-geist: var(--font-geist);
-  --font-geist-mono: var(--font-geist-mono);
+  --font-sora: var(--font-sora);
+  --font-fira-code: var(--font-fira-code);
 }
 
 :root {
@@ -127,6 +128,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
   }
   h1 {
     font-family: var(--font-heading);
@@ -145,23 +149,29 @@
   h3 {
     font-family: var(--font-heading);
     font-size: 1.5rem;
-    line-height: 1.3;
+    line-height: 1.25;
     letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+  h4 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
     font-weight: 500;
   }
-  h4, h5, h6 {
+  h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
   }
   body, p {
     font-family: var(--font-body);
+    font-size: 1rem;
     line-height: 1.6;
+    font-weight: 400;
   }
   code, pre {
     font-family: var(--font-mono);
-  }
-  html {
-    @apply font-geist-mono;
   }
 }
 

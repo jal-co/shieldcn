@@ -1,0 +1,42 @@
+---
+title: GitHub
+description: Badges for GitHub repositories — stars, forks, releases, CI, issues, PRs, and more.
+---
+
+Display live stats from any public GitHub repository.
+
+## URL formats
+
+All GitHub badges support both URL formats:
+
+```
+/github/{topic}/{owner}/{repo}.svg
+/github/{owner}/{repo}/{topic}.svg
+```
+
+## Available badges
+
+| Category | Topics | Description |
+|----------|--------|-------------|
+| [Stars](./stars) | `stars` | Repository star count |
+| [Forks](./forks) | `forks` | Repository fork count |
+| [License](./license) | `license` | Repository license |
+| [Release](./release) | `release`, `releases`, `tags`, `tag`, `assets-dl` | Releases, tags, and downloads |
+| [CI Status](./ci) | `ci`, `checks` | GitHub Actions workflow status |
+| [Issues](./issues) | `issues`, `open-issues`, `closed-issues`, `label-issues` | Issue counts by state or label |
+| [Pull Requests](./prs) | `prs`, `open-prs`, `closed-prs`, `merged-prs` | PR counts by state |
+| [Commits](./commits) | `commits`, `last-commit` | Commit count and recency |
+| [Repository](./repository) | `watchers`, `branches`, `contributors`, `dependabot`, `milestones` | Other repo metadata |
+
+## Quick examples
+
+```md
+![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg)
+![release](https://shieldcn.dev/github/release/vercel/next.js.svg)
+![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
+![license](https://shieldcn.dev/github/license/vercel/next.js.svg)
+```
+
+## Data source
+
+All data from the [GitHub REST API](https://docs.github.com/en/rest). Uses the [token pool](/token-pool) for distributed rate limiting. Most badges cached 1 hour, CI/checks cached 10 minutes.

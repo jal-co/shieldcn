@@ -9,7 +9,24 @@
 import { renderBadge, renderErrorBadge } from "@/lib/badges/render"
 import { resolveTheme, applyColorOverrides, statusColors } from "@/lib/badges/themes"
 import { getSimpleIcon } from "@/lib/badges/simple-icons"
-import type { BadgeData, BadgeStyle, BadgeSize } from "@/lib/badges/types"
+import { getProviderBrandColor } from "@/lib/badges/brand-colors"
+import { trackEvent } from "@/lib/openpanel"
+import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "@/lib/badges/types"
+
+/** Check if a hex color (without #) is light enough to need dark text/icons. */
+function isLightHex(hex: string): boolean {
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+}
+
+/** Get the right foreground for a branded badge based on brand color. */
+function brandedFg(color: string | undefined): string {
+  if (!color) return "#ffffff"
+  return isLightHex(color) ? "#18181b" : "#ffffff"
+}
 
 // Providers
 import {
@@ -439,6 +456,8 @@ export async function GET(
   const size = (searchParams.get("size") || undefined) as BadgeSize | undefined
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const theme = searchParams.get("theme") ?? undefined
+  const fontParam = searchParams.get("font") ?? undefined
+  const font = (fontParam && ["inter", "geist", "geist-mono"].includes(fontParam) ? fontParam : undefined) as BadgeConfig["font"]
   const logoParam = searchParams.get("logo")
   const logoColor = searchParams.get("logoColor") ?? undefined
 
@@ -466,9 +485,17 @@ export async function GET(
   let iconViewBox: string | undefined
   let iconFillRule: string | undefined
   let iconFill: string | undefined
+  let brandColor: string | undefined
+
+  // For branded variant, get provider brand color as fallback
+  const provider = cleanSegments[0]
+  const providerBrand = getProviderBrandColor(provider)
 
   if (logoParam === "false" || logoParam === "none") {
-    // Explicitly hidden
+    // Explicitly hidden — still use provider brand for branded variant
+    if (style === "branded" && providerBrand) {
+      brandColor = providerBrand
+    }
   } else if (logoParam && logoParam !== "true") {
     // Custom icon: SimpleIcons slug or lucide:name
     const si = await getSimpleIcon(logoParam, logoColor)
@@ -476,49 +503,58 @@ export async function GET(
       iconPath = si.icon.path
       iconViewBox = si.icon.viewBox
       iconFillRule = si.icon.fillRule
-      // Only apply brand color if user explicitly set logoColor,
-      // or if badge has no theme/variant override (plain default).
-      // Otherwise inherit text color so it doesn't clash with colored backgrounds.
-      if (logoColor) {
-        iconFill = `#${logoColor}`
-      } else if (!hasThemeOverride && style === "default") {
-        iconFill = si.defaultColor !== "currentColor" ? `#${si.defaultColor}` : undefined
+
+      // Track brand color: icon's color > provider's color
+      if (si.defaultColor && si.defaultColor !== "currentColor") {
+        brandColor = si.defaultColor
+      } else if (providerBrand) {
+        brandColor = providerBrand
       }
-      // else: iconFill stays undefined → inherits label text color
+
+      // Determine icon fill color
+      if (style === "branded") {
+        iconFill = brandedFg(brandColor)
+      } else if (logoColor) {
+        iconFill = `#${logoColor}`
+      } else if (!hasThemeOverride && style === "default" && si.defaultColor !== "currentColor") {
+        iconFill = `#${si.defaultColor}`
+      }
     }
   } else {
-    // Default provider icon via SimpleIcons / Lucide
+    // Default provider icon
     const defaultLogo = getDefaultLogoSlug(cleanSegments)
     if (defaultLogo) {
-      // Try SimpleIcons first
-      if (defaultLogo.simpleIcon) {
-        const si = await getSimpleIcon(defaultLogo.simpleIcon, logoColor)
+      // Try sources in order: SimpleIcons > Lucide > React Icons
+      const sources = [
+        defaultLogo.simpleIcon,
+        defaultLogo.lucide ? `lucide:${defaultLogo.lucide}` : null,
+        defaultLogo.reactIcon ? `ri:${defaultLogo.reactIcon}` : null,
+      ].filter(Boolean) as string[]
+
+      for (const source of sources) {
+        const si = await getSimpleIcon(source, logoColor)
         if (si) {
           iconPath = si.icon.path
           iconViewBox = si.icon.viewBox
           iconFillRule = si.icon.fillRule
-          // Don't apply brand color for default icons — use theme label color
-          // (the brand color would clash with themed backgrounds)
+
+          // Track brand color: icon's color > provider's color
+          if (si.defaultColor && si.defaultColor !== "currentColor") {
+            brandColor = si.defaultColor
+          }
+          break
         }
       }
-      // Fallback to Lucide
-      if (!iconPath && defaultLogo.lucide) {
-        const si = await getSimpleIcon(`lucide:${defaultLogo.lucide}`, logoColor)
-        if (si) {
-          iconPath = si.icon.path
-          iconViewBox = si.icon.viewBox
-          iconFillRule = si.icon.fillRule
-        }
+
+      // For branded variant, use contrast-aware icon color
+      if (style === "branded") {
+        iconFill = brandedFg(brandColor)
       }
-      // Fallback to React Icons
-      if (!iconPath && defaultLogo.reactIcon) {
-        const si = await getSimpleIcon(`ri:${defaultLogo.reactIcon}`, logoColor)
-        if (si) {
-          iconPath = si.icon.path
-          iconViewBox = si.icon.viewBox
-          iconFillRule = si.icon.fillRule
-        }
-      }
+    }
+
+    // Fallback to provider brand color if no icon brand color found
+    if (!brandColor && providerBrand) {
+      brandColor = providerBrand
     }
   }
 
@@ -560,6 +596,8 @@ export async function GET(
     statusDot,
     split,
     hasThemeOverride,
+    brandColor,
+    font,
     valueColor: searchParams.get("valueColor") ?? undefined,
     labelTextColor: searchParams.get("labelTextColor") ?? undefined,
     labelOpacity: num("labelOpacity"),
@@ -570,6 +608,23 @@ export async function GET(
     iconSize: num("iconSize"),
     gap: num("gap"),
     labelGap: num("labelGap"),
+  })
+
+  void trackEvent({
+    name: "badge_rendered",
+    data: {
+      provider: cleanSegments[0] || "unknown",
+      format,
+      style,
+      size: size ?? "sm",
+      mode,
+      split,
+      statusDot,
+      hasLogo: !!iconPath,
+      hasThemeOverride,
+      hasBrandColor: !!brandColor,
+      font: font ?? "inter",
+    },
   })
 
   // PNG response

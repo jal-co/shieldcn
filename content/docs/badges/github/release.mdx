@@ -1,0 +1,95 @@
+---
+title: GitHub Releases & Tags
+description: Display release versions, tag counts, and asset downloads for GitHub repositories.
+---
+
+Show release information, tags, and download counts.
+
+<BadgeSandbox
+  endpoint="/github/release/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "vercel", required: true },
+    { name: "repo", label: "repository name", placeholder: "next.js", required: true },
+  ]}
+  defaults={{ owner: "vercel", repo: "next.js" }}
+/>
+
+## URL formats
+
+### Latest release
+
+```
+/github/release/{owner}/{repo}.svg
+```
+
+Shows the latest release tag (including prereleases).
+
+### Stable release only
+
+```
+/github/release/{owner}/{repo}/stable.svg
+```
+
+Shows the latest non-prerelease version.
+
+### Release count
+
+```
+/github/releases/{owner}/{repo}.svg
+```
+
+Shows total number of releases.
+
+### Tag count
+
+```
+/github/tags/{owner}/{repo}.svg
+```
+
+Shows total number of tags.
+
+### Latest tag
+
+```
+/github/tag/{owner}/{repo}.svg
+```
+
+Shows the name of the most recent tag.
+
+### Asset downloads
+
+```
+/github/assets-dl/{owner}/{repo}.svg
+/github/assets-dl/{owner}/{repo}/{tag}.svg
+```
+
+Shows download count for release assets. Use a specific tag or omit for latest release.
+
+## Examples
+
+```md
+<!-- Latest release -->
+![release](https://shieldcn.dev/github/release/vercel/next.js.svg)
+
+<!-- Stable only -->
+![stable](https://shieldcn.dev/github/release/electron/electron/stable.svg)
+
+<!-- Release count -->
+![releases](https://shieldcn.dev/github/releases/microsoft/vscode.svg)
+
+<!-- Downloads -->
+![downloads](https://shieldcn.dev/github/assets-dl/electron/electron.svg)
+
+<!-- Downloads for specific version -->
+![downloads](https://shieldcn.dev/github/assets-dl/electron/electron/v28.0.0.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Green theme for releases -->
+![release](https://shieldcn.dev/github/release/vercel/next.js.svg?theme=green)
+
+<!-- With tag icon -->
+![release](https://shieldcn.dev/github/release/vercel/next.js.svg?logo=lucide:tag)
+```

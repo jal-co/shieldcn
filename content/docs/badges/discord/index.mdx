@@ -1,0 +1,29 @@
+---
+title: Discord
+description: Badges for Discord servers — online count, member count, and more.
+---
+
+Display live Discord server stats using the widget API or invite API.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Online Count](./online) | `/discord/{serverId}` | Live online members via widget API |
+| [Members](./members) | `/discord/members/{inviteCode}` | Total member count via invite API |
+| [Online Members](./online-members) | `/discord/online-members/{inviteCode}` | Online members via invite API |
+
+## Quick examples
+
+```md
+![online](https://shieldcn.dev/discord/1316199667142496307.svg)
+![members](https://shieldcn.dev/discord/members/reactiflux.svg)
+![online members](https://shieldcn.dev/discord/online-members/reactiflux.svg?variant=branded)
+```
+
+## Data sources
+
+- **Widget API** — Requires server widget enabled in Server Settings → Widget
+- **Invite API** — Uses public invite codes with `with_counts=true`
+
+No API key required. Cached 1 hour.

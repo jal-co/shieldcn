@@ -30,7 +30,7 @@ interface BadgeModalProps {
   onOpenChange: (open: boolean) => void
 }
 
-const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive"]
+const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"]
 const SIZES = ["xs", "sm", "default", "lg"]
 const THEMES = ["_none", "zinc", "slate", "blue", "green", "rose", "orange", "violet", "purple", "cyan", "emerald"]
 const MODES = ["dark", "light"]

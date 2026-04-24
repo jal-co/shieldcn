@@ -1,0 +1,12 @@
+{
+  "title": "npm",
+  "pages": [
+    "index",
+    "version",
+    "downloads",
+    "license",
+    "node",
+    "types",
+    "dependents"
+  ]
+}

@@ -60,7 +60,8 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 
 | Param | Values | Default |
 |-------|--------|---------|
-| `variant` | `default`, `secondary`, `outline`, `ghost`, `destructive` | `default` |
+| `variant` | `default`, `secondary`, `outline`, `ghost`, `destructive`, `branded` | `default` |
+| `font` | `inter`, `geist`, `geist-mono` | `inter` |
 | `size` | `xs`, `sm`, `default`, `lg` | `sm` |
 | `mode` | `dark`, `light` | `dark` |
 | `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |

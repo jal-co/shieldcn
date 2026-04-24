@@ -35,6 +35,7 @@ const VARIANTS = [
   { value: "outline", label: "outline" },
   { value: "ghost", label: "ghost" },
   { value: "destructive", label: "destructive" },
+  { value: "branded", label: "branded" },
 ] as const
 
 const SIZES = [
@@ -71,6 +72,8 @@ interface State {
   // Flags
   split: boolean
   statusDot: "auto" | "true" | "false"
+  // Font
+  font: string
   // Icons
   logo: string
   logoColor: string
@@ -109,15 +112,20 @@ function buildUrl(s: State, baseUrl: string): string {
   if (s.split) p.set("split", "true")
   if (s.statusDot === "true") p.set("statusDot", "true")
   if (s.statusDot === "false") p.set("statusDot", "false")
+  if (s.font && s.font !== "inter") p.set("font", s.font)
   if (s.logo) p.set("logo", s.logo)
   if (s.logoColor) p.set("logoColor", s.logoColor)
   if (s.label) p.set("label", s.label)
-  if (s.color) p.set("color", s.color)
+  if (s.split) {
+    // In split mode, labelColor = left bg, color = right bg
+    if (s.leftBg) p.set("labelColor", s.leftBg)
+    if (s.rightBg) p.set("color", s.rightBg)
+  } else {
+    if (s.color) p.set("color", s.color)
+  }
   if (s.valueColor) p.set("valueColor", s.valueColor)
   if (s.labelTextColor) p.set("labelTextColor", s.labelTextColor)
   if (s.labelOpacity) p.set("labelOpacity", s.labelOpacity)
-  if (s.split && s.leftBg) p.set("labelColor", s.leftBg)
-  if (s.split && s.rightBg) p.set("color", s.rightBg)
 
   const q = p.toString()
   return `${baseUrl}${path}${q ? `?${q}` : ""}`
@@ -136,6 +144,7 @@ const defaults: State = {
   mode: "dark",
   split: false,
   statusDot: "auto",
+  font: "inter",
   logo: "",
   logoColor: "",
   label: "",
@@ -218,9 +227,20 @@ export function BadgeBuilder() {
       </div>
 
       {/* ── Tier 2: Logo, theme, mode, flags ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Field label="Logo" hint="slug or lucide:name">
           <LogoPicker value={s.logo} onChange={v => set("logo", v)} />
+        </Field>
+
+        <Field label="Font">
+          <Select value={s.font} onValueChange={v => set("font", v)}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="inter">Inter</SelectItem>
+              <SelectItem value="geist">Geist</SelectItem>
+              <SelectItem value="geist-mono">Geist Mono</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field label="Theme">
@@ -253,8 +273,8 @@ export function BadgeBuilder() {
               <div className="flex items-center gap-2">
                 <Checkbox
                   label="statusDot"
-                  checked={s.statusDot !== "false"}
-                  onChange={v => set("statusDot", v ? "auto" : "false")}
+                  checked={s.statusDot === "true"}
+                  onChange={v => set("statusDot", v ? "true" : "false")}
                 />
               </div>
             )}

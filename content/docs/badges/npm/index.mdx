@@ -1,0 +1,42 @@
+---
+title: npm
+description: Badges for npm packages — version, downloads, license, types, and more.
+---
+
+Display live stats for any npm package.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Version](./version) | `/npm/{package}` | Latest version |
+| [Downloads](./downloads) | `/npm/dw/{package}`, `/npm/dm/{package}`, etc. | Download counts |
+| [License](./license) | `/npm/license/{package}` | Package license |
+| [Node Version](./node) | `/npm/node/{package}` | Required Node.js version |
+| [Types](./types) | `/npm/types/{package}` | TypeScript types status |
+| [Dependents](./dependents) | `/npm/dependents/{package}` | Dependent package count |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/npm/react.svg)
+![downloads](https://shieldcn.dev/npm/dm/react.svg)
+![license](https://shieldcn.dev/npm/license/react.svg)
+![types](https://shieldcn.dev/npm/types/react.svg)
+```
+
+## Scoped packages
+
+For scoped packages like `@types/react`, use the full scope:
+
+```md
+![version](https://shieldcn.dev/npm/@types/react.svg)
+![version](https://shieldcn.dev/npm/v/@scope/package.svg)
+```
+
+## Data source
+
+- Version, license, types, node: [registry.npmjs.org](https://registry.npmjs.org)
+- Downloads: [api.npmjs.org](https://api.npmjs.org)
+
+No API key required. Cached 1 hour.

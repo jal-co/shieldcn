@@ -1,0 +1,45 @@
+---
+title: npm License
+description: Display the license of any npm package.
+---
+
+Show the license specified in a package's package.json.
+
+<BadgeSandbox
+  endpoint="/npm/license/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL format
+
+```
+/npm/license/{package}.svg
+```
+
+## Examples
+
+```md
+![license](https://shieldcn.dev/npm/license/react.svg)
+![license](https://shieldcn.dev/npm/license/vue.svg)
+![license](https://shieldcn.dev/npm/license/lodash.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Ghost variant (subtle) -->
+![license](https://shieldcn.dev/npm/license/react.svg?variant=ghost)
+
+<!-- Outline variant -->
+![license](https://shieldcn.dev/npm/license/react.svg?variant=outline)
+
+<!-- Green theme -->
+![license](https://shieldcn.dev/npm/license/react.svg?theme=green)
+```
+
+## Data source
+
+Uses [registry.npmjs.org](https://registry.npmjs.org). No API key required. Cached 1 hour.

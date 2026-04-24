@@ -1,19 +1,27 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Fira_Code, Geist, Sora } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Analytics } from "@/components/analytics"
 import "./globals.css"
+import { cn } from "@/lib/utils"
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
 })
 
-const geistMono = Geist_Mono({
+const sora = Sora({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-sora",
+})
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-fira-code",
 })
 
 const siteUrl = "https://shieldcn.dev"
+const ogImage = `${siteUrl}/og.png`
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -43,12 +51,21 @@ export const metadata: Metadata = {
     title: "shieldcn",
     description:
       "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui components.",
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "shieldcn",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "shieldcn",
     description:
       "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui components.",
+    images: [ogImage],
   },
   alternates: {
     canonical: siteUrl,
@@ -64,12 +81,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable}`}
+      className={cn(geist.variable, sora.variable, firaCode.variable)}
     >
       <body className="antialiased font-sans">
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )

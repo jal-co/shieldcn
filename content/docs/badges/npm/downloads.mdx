@@ -1,0 +1,57 @@
+---
+title: npm Downloads
+description: Display download counts for any npm package.
+---
+
+Show weekly, monthly, yearly, or total download counts.
+
+<BadgeSandbox
+  endpoint="/npm/dm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL formats
+
+| Period | Endpoint | Example |
+|--------|----------|---------|
+| Weekly | `/npm/dw/{package}` | `/npm/dw/react` |
+| Monthly | `/npm/dm/{package}` | `/npm/dm/react` |
+| Yearly | `/npm/dy/{package}` | `/npm/dy/react` |
+| Total | `/npm/dt/{package}` | `/npm/dt/react` |
+| Legacy | `/npm/{package}/downloads` | `/npm/react/downloads` |
+
+## Examples
+
+```md
+<!-- Weekly downloads -->
+![downloads](https://shieldcn.dev/npm/dw/react.svg)
+
+<!-- Monthly downloads -->
+![downloads](https://shieldcn.dev/npm/dm/react.svg)
+
+<!-- Yearly downloads -->
+![downloads](https://shieldcn.dev/npm/dy/react.svg)
+
+<!-- Total downloads -->
+![downloads](https://shieldcn.dev/npm/dt/react.svg)
+```
+
+## Styling examples
+
+```md
+<!-- Branded -->
+![downloads](https://shieldcn.dev/npm/dm/react.svg?variant=branded)
+
+<!-- Green theme -->
+![downloads](https://shieldcn.dev/npm/dm/react.svg?theme=green)
+
+<!-- Outline variant -->
+![downloads](https://shieldcn.dev/npm/dt/react.svg?variant=outline)
+```
+
+## Data source
+
+Uses [api.npmjs.org](https://api.npmjs.org). No API key required. Cached 1 hour.

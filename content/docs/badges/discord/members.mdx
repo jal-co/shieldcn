@@ -1,0 +1,37 @@
+---
+title: Discord Members
+description: Display the total member count for a Discord server.
+---
+
+Show the approximate total member count using a public invite code.
+
+<BadgeSandbox
+  endpoint="/discord/members/:inviteCode.svg"
+  pathParams={[
+    { name: "inviteCode", label: "Discord invite code", placeholder: "reactiflux", required: true, description: "Public invite code (not the full URL)." },
+  ]}
+  defaults={{ inviteCode: "reactiflux" }}
+/>
+
+## URL format
+
+```
+/discord/members/{inviteCode}.svg
+```
+
+## Examples
+
+```md
+![members](https://shieldcn.dev/discord/members/reactiflux.svg)
+![members](https://shieldcn.dev/discord/members/reactiflux.svg?variant=branded)
+![members](https://shieldcn.dev/discord/members/typescript.svg?variant=outline)
+```
+
+## How to get an invite code
+
+1. Create or find a permanent invite link for your server
+2. The invite code is the part after `discord.gg/` — e.g., `reactiflux` from `https://discord.gg/reactiflux`
+
+## Data source
+
+Uses the [Discord Invite API](https://discord.com/developers/docs/resources/invite#get-invite) with `with_counts=true`. No API key required. Cached 1 hour.

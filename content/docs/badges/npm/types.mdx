@@ -1,0 +1,53 @@
+---
+title: npm Types
+description: Display the TypeScript types status for any npm package.
+---
+
+Show whether a package includes TypeScript types or has types available via DefinitelyTyped.
+
+<BadgeSandbox
+  endpoint="/npm/types/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## URL format
+
+```
+/npm/types/{package}.svg
+```
+
+## Examples
+
+```md
+![types](https://shieldcn.dev/npm/types/react.svg)
+![types](https://shieldcn.dev/npm/types/typescript.svg)
+![types](https://shieldcn.dev/npm/types/zod.svg)
+```
+
+## Type status values
+
+| Value | Meaning |
+|-------|---------|
+| `bundled` | Package includes its own TypeScript definitions |
+| `@types/{pkg}` | Types available via DefinitelyTyped |
+| `none` | No TypeScript types available |
+
+## Styling examples
+
+```md
+<!-- Blue theme for TypeScript -->
+![types](https://shieldcn.dev/npm/types/react.svg?theme=blue)
+
+<!-- With TypeScript logo -->
+![types](https://shieldcn.dev/npm/types/react.svg?logo=typescript)
+
+<!-- Branded variant -->
+![types](https://shieldcn.dev/npm/types/zod.svg?variant=branded&logo=typescript)
+```
+
+## Data source
+
+Uses [registry.npmjs.org](https://registry.npmjs.org). No API key required. Cached 1 hour.
