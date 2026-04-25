@@ -64,8 +64,8 @@ function getElementPosition(id: string) {
 	if (!element) return null;
 	const rect = element.getBoundingClientRect();
 	return {
-		top: rect.top + window.scrollY,
-		left: rect.left + window.scrollX,
+		top: rect.top,
+		left: rect.left,
 		width: rect.width,
 		height: rect.height,
 	};
@@ -100,12 +100,10 @@ function calculateContentPosition(
 			break;
 	}
 
-	const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
-
 	return {
 		top: Math.max(
-			scrollY + PADDING,
-			Math.min(top, scrollY + viewportHeight - CONTENT_HEIGHT - PADDING),
+			PADDING,
+			Math.min(top, viewportHeight - CONTENT_HEIGHT - PADDING),
 		),
 		left: Math.max(
 			PADDING,
@@ -188,8 +186,8 @@ export function TourProvider({
 				elementPosition &&
 				steps[currentStep]?.onClickWithinArea
 			) {
-				const clickX = e.clientX + window.scrollX;
-				const clickY = e.clientY + window.scrollY;
+				const clickX = e.clientX;
+				const clickY = e.clientY;
 
 				const isWithinBounds =
 					clickX >= elementPosition.left &&
@@ -263,7 +261,7 @@ export function TourProvider({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-							className="absolute inset-0 z-50 overflow-hidden bg-black/50"
+							className="fixed inset-0 z-50 overflow-hidden bg-black/50"
 							style={{
 								clipPath: `polygon(
                   0% 0%,
@@ -284,7 +282,7 @@ export function TourProvider({
 							animate={{ opacity: 1, scale: 1 }}
 							exit={{ opacity: 0, scale: 0.95 }}
 							style={{
-								position: "absolute",
+								position: "fixed",
 								top: elementPosition.top - HIGHLIGHT_PAD,
 								left: elementPosition.left - HIGHLIGHT_PAD,
 								width: (steps[currentStep]?.width || elementPosition.width) + HIGHLIGHT_PAD * 2,
@@ -311,7 +309,7 @@ export function TourProvider({
 								damping: 20,
 								opacity: { duration: 0.2 },
 							}}
-							style={{ position: "absolute", transform: "translate(-50%, -50%)" }}
+							style={{ position: "fixed", transform: "translate(-50%, -50%)" }}
 							className="z-[101] pointer-events-none"
 						>
 							<span className="relative flex size-3">
@@ -341,7 +339,7 @@ export function TourProvider({
 							}}
 							exit={{ opacity: 0, y: 10 }}
 							style={{
-								position: "absolute",
+								position: "fixed",
 								width: calculateContentPosition(
 									elementPosition,
 									steps[currentStep]?.position,
