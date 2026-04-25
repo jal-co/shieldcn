@@ -1,0 +1,116 @@
+---
+title: BadgePreview
+description: Visual badge preview with live rendering and copyable code snippet.
+---
+
+## Installation
+
+<InstallBlock name="badge-preview" />
+
+## Usage
+
+<CodeLine code={`import { BadgePreview } from "@/components/badge-preview"`} />
+
+### Basic preview
+
+<BadgePreview
+  src="/npm/react.svg"
+  code='<BadgePreview src="https://shieldcn.dev/npm/react.svg" alt="React" />'
+/>
+
+### With code snippet
+
+Shows a copyable code block below the badge preview.
+
+<BadgePreview
+  src="/npm/react.svg?variant=branded"
+  code='![React](https://shieldcn.dev/npm/react.svg?variant=branded)'
+/>
+
+### With label
+
+<BadgePreview
+  src="/github/stars/vercel/next.js.svg?variant=outline"
+  code='![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg?variant=outline)'
+/>
+
+### Dark and light modes
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="Dark background"
+    src="/npm/react.svg"
+    code='<BadgePreview src="..." mode="dark" />'
+  />
+  <BadgePreviewCard
+    title="Light background"
+    src="/npm/react.svg?mode=light"
+    code='<BadgePreview src="..." mode="light" />'
+  />
+</BadgePreviewGroup>
+
+### Variant grid
+
+Use `BadgePreviewGroup` and `BadgePreviewCard` to show multiple variants:
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="Default"
+    src="/npm/react.svg"
+    code='![npm](https://shieldcn.dev/npm/react.svg)'
+  />
+  <BadgePreviewCard
+    title="Branded"
+    src="/npm/react.svg?variant=branded"
+    code='![npm](https://shieldcn.dev/npm/react.svg?variant=branded)'
+  />
+  <BadgePreviewCard
+    title="Outline"
+    src="/npm/react.svg?variant=outline"
+    code='![npm](https://shieldcn.dev/npm/react.svg?variant=outline)'
+  />
+  <BadgePreviewCard
+    title="Ghost"
+    src="/npm/react.svg?variant=ghost"
+    code='![npm](https://shieldcn.dev/npm/react.svg?variant=ghost)'
+  />
+</BadgePreviewGroup>
+
+## API Reference
+
+<ApiRefTable
+  title="BadgePreview"
+  props={[
+    {
+      name: "src",
+      type: "string",
+      required: true,
+      description: "Badge image URL.",
+    },
+    {
+      name: "alt",
+      type: "string",
+      description: 'Accessible alt text. Defaults to "badge".',
+    },
+    {
+      name: "code",
+      type: "string",
+      description: "Code snippet to display below the badge.",
+    },
+    {
+      name: "label",
+      type: "string",
+      description: "Label displayed above the badge.",
+    },
+    {
+      name: "mode",
+      type: '"dark" | "light"',
+      description: 'Background mode. Defaults to "dark".',
+    },
+    {
+      name: "className",
+      type: "string",
+      description: "Additional class names.",
+    },
+  ]}
+/>

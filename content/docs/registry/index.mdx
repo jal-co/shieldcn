@@ -1,0 +1,76 @@
+---
+title: Registry
+description: Install React helpers for shieldcn badges via the shadcn registry.
+---
+
+shieldcn is a Markdown badge service first — every badge is a URL you drop into a README, docs page, or anywhere Markdown renders.
+
+But if you're building with React, you can also install lightweight helpers via the [shadcn registry](https://ui.shadcn.com/docs/registry). These components make it easy to render, layout, and preview shieldcn badges in your app.
+
+## Setup
+
+Add the shieldcn registry to your `components.json`:
+
+<CodeLine code={`"registries": { "@shieldcn": "https://shieldcn.dev/r/{name}.json" }`} language="json" />
+
+Then install any component:
+
+<InstallBlock name="readme-badge" />
+
+## Available components
+
+### ReadmeBadge
+
+Renders a shieldcn badge image with optional link wrapping. Works with any badge URL.
+
+<InstallBlock name="readme-badge" />
+
+<CodeLine code={`import { ReadmeBadge } from "@/components/readme-badge"`} />
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="Basic"
+    src="/npm/react.svg?variant=branded"
+    code='<ReadmeBadge src="https://shieldcn.dev/npm/react.svg?variant=branded" alt="React" />'
+  />
+  <BadgePreviewCard
+    title="With link"
+    src="/github/stars/vercel/next.js.svg?variant=outline"
+    code='<ReadmeBadge src="https://shieldcn.dev/github/stars/vercel/next.js.svg" alt="stars" href="https://github.com/vercel/next.js" />'
+  />
+</BadgePreviewGroup>
+
+### ReadmeBadgeRow
+
+Horizontal layout wrapper for multiple badges with consistent spacing and wrapping.
+
+<InstallBlock name="readme-badge-row" />
+
+<CodeLine code={`import { ReadmeBadgeRow } from "@/components/readme-badge-row"`} />
+
+<BadgePreview
+  src="/npm/react.svg"
+  code='<ReadmeBadgeRow>
+  <ReadmeBadge src="https://shieldcn.dev/npm/react.svg" alt="npm" />
+  <ReadmeBadge src="https://shieldcn.dev/github/stars/vercel/next.js.svg" alt="stars" />
+  <ReadmeBadge src="https://shieldcn.dev/badge/build-passing-green.svg" alt="build" />
+</ReadmeBadgeRow>'
+/>
+
+### BadgePreview
+
+Visual badge preview with live rendering and optional copyable code snippet. Great for docs pages and badge builders.
+
+<InstallBlock name="badge-preview" />
+
+<CodeLine code={`import { BadgePreview } from "@/components/badge-preview"`} />
+
+## Not a replacement for URLs
+
+These components don't replace the badge service. They're convenience wrappers for rendering shieldcn badge URLs in React apps.
+
+The core product is still the URL:
+
+<CodeLine code="https://shieldcn.dev/npm/react.svg" language="text" />
+
+That works everywhere — GitHub READMEs, npm pages, docs sites, forums, and anywhere else Markdown renders.

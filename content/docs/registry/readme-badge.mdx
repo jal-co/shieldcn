@@ -1,0 +1,126 @@
+---
+title: ReadmeBadge
+description: Render a shieldcn badge image with optional link wrapping.
+---
+
+## Installation
+
+<InstallBlock name="readme-badge" />
+
+## Usage
+
+<CodeLine code={`import { ReadmeBadge } from "@/components/readme-badge"`} />
+
+### Basic badge
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="npm version"
+    src="/npm/react.svg"
+    code='<ReadmeBadge src="https://shieldcn.dev/npm/react.svg" alt="React npm version" />'
+  />
+  <BadgePreviewCard
+    title="Branded"
+    src="/npm/react.svg?variant=branded"
+    code='<ReadmeBadge src="https://shieldcn.dev/npm/react.svg?variant=branded" alt="React" />'
+  />
+</BadgePreviewGroup>
+
+### Badge with link
+
+Wraps the badge in an anchor tag that opens in a new tab.
+
+<BadgePreview
+  src="/github/stars/vercel/next.js.svg?variant=outline"
+  code='<ReadmeBadge
+  src="https://shieldcn.dev/github/stars/vercel/next.js.svg"
+  alt="Next.js GitHub stars"
+  href="https://github.com/vercel/next.js"
+/>'
+/>
+
+### Custom height
+
+<BadgePreview
+  src="/npm/react.svg?size=lg"
+  code='<ReadmeBadge
+  src="https://shieldcn.dev/npm/react.svg?size=lg"
+  alt="React"
+  height={28}
+/>'
+/>
+
+### Variants
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="Default"
+    src="/npm/react.svg"
+    code='<ReadmeBadge src="...?variant=default" />'
+  />
+  <BadgePreviewCard
+    title="Secondary"
+    src="/npm/react.svg?variant=secondary"
+    code='<ReadmeBadge src="...?variant=secondary" />'
+  />
+  <BadgePreviewCard
+    title="Outline"
+    src="/npm/react.svg?variant=outline"
+    code='<ReadmeBadge src="...?variant=outline" />'
+  />
+  <BadgePreviewCard
+    title="Ghost"
+    src="/npm/react.svg?variant=ghost"
+    code='<ReadmeBadge src="...?variant=ghost" />'
+  />
+  <BadgePreviewCard
+    title="Destructive"
+    src="/npm/react.svg?variant=destructive"
+    code='<ReadmeBadge src="...?variant=destructive" />'
+  />
+  <BadgePreviewCard
+    title="Branded"
+    src="/npm/react.svg?variant=branded"
+    code='<ReadmeBadge src="...?variant=branded" />'
+  />
+</BadgePreviewGroup>
+
+## API Reference
+
+<ApiRefTable
+  title="ReadmeBadge"
+  props={[
+    {
+      name: "src",
+      type: "string",
+      required: true,
+      description: "Badge image URL.",
+    },
+    {
+      name: "alt",
+      type: "string",
+      required: true,
+      description: "Accessible alt text.",
+    },
+    {
+      name: "href",
+      type: "string",
+      description: "Optional link URL. Wraps badge in an anchor tag.",
+    },
+    {
+      name: "height",
+      type: "number",
+      description: "Image height in pixels. Defaults to 20.",
+    },
+    {
+      name: "className",
+      type: "string",
+      description: "Class name for the outer element (link or image).",
+    },
+    {
+      name: "imgClassName",
+      type: "string",
+      description: "Class name for the img element when wrapped in a link.",
+    },
+  ]}
+/>

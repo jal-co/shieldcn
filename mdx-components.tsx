@@ -4,6 +4,7 @@ import { BadgePreview, BadgePreviewGroup, BadgePreviewCard } from "@/components/
 import { CodeBlock } from "@/components/code-block"
 import { CodeLine } from "@/components/code-line"
 import { ApiRefTable } from "@/components/api-ref-table"
+import { InstallBlock } from "@/components/install-block"
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -21,6 +22,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CodeBlock,
     CodeLine,
     ApiRefTable,
+    InstallBlock,
   }
 }
 

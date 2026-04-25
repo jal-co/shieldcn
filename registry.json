@@ -1,0 +1,52 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "shieldcn",
+  "homepage": "https://shieldcn.dev",
+  "items": [
+    {
+      "name": "readme-badge",
+      "type": "registry:component",
+      "title": "Readme Badge",
+      "description": "Renders a shieldcn badge image with optional link wrapping. Works with any badge URL — shieldcn, shields.io, or custom images.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "categories": ["badges", "readme"],
+      "files": [
+        {
+          "path": "registry/readme-badge/readme-badge.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "readme-badge-row",
+      "type": "registry:component",
+      "title": "Readme Badge Row",
+      "description": "Horizontal layout wrapper for multiple badges with consistent spacing, wrapping, and alignment. Pairs with ReadmeBadge.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "categories": ["badges", "readme", "layout"],
+      "files": [
+        {
+          "path": "registry/readme-badge-row/readme-badge-row.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "badge-preview",
+      "type": "registry:component",
+      "title": "Badge Preview",
+      "description": "Visual badge preview with live image rendering and optional copyable code snippet. Ideal for documentation pages, badge builders, and app UIs.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "categories": ["badges", "docs"],
+      "files": [
+        {
+          "path": "registry/badge-preview/badge-preview.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}
