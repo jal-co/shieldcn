@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorInput } from "@/components/color-input"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -229,8 +230,11 @@ export function BadgeBuilder() {
 
       {/* ── Tier 2: Logo, theme, mode, flags ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Field label="Logo" hint="slug or lucide:name">
-          <LogoPicker value={s.logo} onChange={v => set("logo", v)} />
+        <Field label="Logo" hint="slug, lucide:name, or SVG">
+          <div className="space-y-1.5">
+            <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
+            <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="w-full" />
+          </div>
         </Field>
 
         <Field label="Font">
@@ -356,9 +360,10 @@ export function BadgeBuilder() {
         <a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Simple Icons</a>{" "}
         slug,{" "}
         <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Lucide</a>{" "}
-        with <code className="text-[11px] bg-muted px-1 rounded">lucide:name</code>, or{" "}
+        with <code className="text-[11px] bg-muted px-1 rounded">lucide:name</code>,{" "}
         <a href="https://react-icons.github.io/react-icons/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">React Icons</a>{" "}
-        with <code className="text-[11px] bg-muted px-1 rounded">ri:ComponentName</code>.
+        with <code className="text-[11px] bg-muted px-1 rounded">ri:ComponentName</code>,{" "}
+        or upload a custom SVG.
         </p>
         <Button
           variant="ghost"

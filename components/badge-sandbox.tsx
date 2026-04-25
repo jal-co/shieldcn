@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { LogoPicker } from "@/components/logo-picker"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -265,7 +266,10 @@ export function BadgeSandbox({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SField label="logo">
-            <LogoPicker value={logo} onChange={setLogo} />
+            <div className="space-y-1.5">
+              <LogoPicker value={logo.startsWith("data:") ? "" : logo} onChange={setLogo} />
+              <SvgIconUpload value={logo} onChange={setLogo} className="w-full" />
+            </div>
           </SField>
 
           <SField label="logoColor">

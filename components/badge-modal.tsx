@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 
 interface BadgeModalProps {
   title: string
@@ -200,7 +201,16 @@ export function BadgeModal({
               <TextControl label="Label bg (split only)" value={labelColor} onChange={setLabelColor} placeholder="hex" />
               <TextControl label="Value text" value={valueColor} onChange={setValueColor} placeholder="hex" />
               <TextControl label="Label text" value={labelTextColor} onChange={setLabelTextColor} placeholder="hex" />
-              <TextControl label="Logo" value={logo} onChange={setLogo} placeholder="slug or lucide:name" />
+              <div className="space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground">Logo</Label>
+                <Input
+                  value={logo.startsWith("data:") ? "" : logo}
+                  onChange={(e) => setLogo(e.target.value)}
+                  placeholder="slug or lucide:name"
+                  className="h-8 text-xs"
+                />
+                <SvgIconUpload value={logo} onChange={setLogo} className="w-full" />
+              </div>
               <TextControl label="Logo color" value={logoColor} onChange={setLogoColor} placeholder="hex" />
               <TextControl label="Label override" value={label} onChange={setLabel} placeholder="text" />
               <div className="space-y-1.5">

@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { ColorInput } from "@/components/color-input"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { cn } from "@/lib/utils"
 
 const VARIANTS: Variant[] = [
@@ -755,32 +756,39 @@ function BadgeItem({
                 className="h-7 text-xs"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Logo
-                </Label>
-                <Input
-                  placeholder="slug or lucide:name"
-                  value={
-                    typeof badge.overrides.logo === "string"
-                      ? badge.overrides.logo
-                      : badge.overrides.logo === false
-                        ? "false"
-                        : ""
-                  }
-                  onChange={(e) => {
-                    const raw = e.target.value.trim()
-                    if (raw === "false") setOverride("logo", false)
-                    else setOverride("logo", raw)
-                  }}
-                  className="h-7 text-xs"
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Logo
+                  </Label>
+                  <Input
+                    placeholder="slug or lucide:name"
+                    value={
+                      typeof badge.overrides.logo === "string" && !String(badge.overrides.logo).startsWith("data:")
+                        ? badge.overrides.logo
+                        : badge.overrides.logo === false
+                          ? "false"
+                          : ""
+                    }
+                    onChange={(e) => {
+                      const raw = e.target.value.trim()
+                      if (raw === "false") setOverride("logo", false)
+                      else setOverride("logo", raw)
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <ColorField
+                  label="Logo color"
+                  value={badge.overrides.logoColor ?? ""}
+                  onChange={(v) => setOverride("logoColor", v)}
                 />
               </div>
-              <ColorField
-                label="Logo color"
-                value={badge.overrides.logoColor ?? ""}
-                onChange={(v) => setOverride("logoColor", v)}
+              <SvgIconUpload
+                value={typeof badge.overrides.logo === "string" ? badge.overrides.logo : ""}
+                onChange={(v) => setOverride("logo", v || undefined)}
+                className="w-full"
               />
             </div>
           </div>
