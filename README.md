@@ -39,76 +39,75 @@ Built with [jal-co/ui](https://ui.justinlevine.me) components.
 ![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
 ```
 
-## Badge types
+## Badge types (some examples)
 
 ### npm
 
-| Badge | URL |
-|-------|-----|
-| Version | `/npm/{package}.svg` |
-| Version (tag) | `/npm/v/{package}[/{tag}].svg` |
-| Downloads (weekly) | `/npm/dw/{package}.svg` |
-| Downloads (monthly) | `/npm/dm/{package}.svg` |
-| Downloads (yearly) | `/npm/dy/{package}.svg` |
-| Downloads (total) | `/npm/dt/{package}.svg` |
-| License | `/npm/license/{package}.svg` |
-| Node version | `/npm/node/{package}.svg` |
-| TypeScript types | `/npm/types/{package}.svg` |
-| Dependents | `/npm/dependents/{package}.svg` |
+| Badge | Example | URL |
+|-------|---------|-----|
+| Version | ![version](https://shieldcn.dev/npm/react.svg) | `/npm/{package}.svg` |
+| Version (tag) | ![version](https://shieldcn.dev/npm/v/react/canary.svg?variant=outline) | `/npm/v/{package}[/{tag}].svg` |
+| Downloads (weekly) | ![downloads](https://shieldcn.dev/npm/dw/react.svg?variant=branded) | `/npm/dw/{package}.svg` |
+| Downloads (monthly) | ![downloads](https://shieldcn.dev/npm/dm/react.svg?variant=secondary) | `/npm/dm/{package}.svg` |
+| Downloads (yearly) | ![downloads](https://shieldcn.dev/npm/dy/react.svg) | `/npm/dy/{package}.svg` |
+| Downloads (total) | ![downloads](https://shieldcn.dev/npm/dt/react.svg?variant=ghost) | `/npm/dt/{package}.svg` |
+| License | ![license](https://shieldcn.dev/npm/license/react.svg?variant=outline) | `/npm/license/{package}.svg` |
+| Node version | ![node](https://shieldcn.dev/npm/node/next.svg?variant=secondary) | `/npm/node/{package}.svg` |
+| TypeScript types | ![types](https://shieldcn.dev/npm/types/zod.svg?variant=branded&logo=typescript) | `/npm/types/{package}.svg` |
+| Dependents | ![dependents](https://shieldcn.dev/npm/dependents/react.svg) | `/npm/dependents/{package}.svg` |
 
 ### GitHub
 
-| Badge | URL |
-|-------|-----|
-| Stars | `/github/stars/{owner}/{repo}.svg` |
-| Forks | `/github/forks/{owner}/{repo}.svg` |
-| Watchers | `/github/watchers/{owner}/{repo}.svg` |
-| Branches | `/github/branches/{owner}/{repo}.svg` |
-| Releases | `/github/releases/{owner}/{repo}.svg` |
-| Tags | `/github/tags/{owner}/{repo}.svg` |
-| Latest tag | `/github/tag/{owner}/{repo}.svg` |
-| License | `/github/license/{owner}/{repo}.svg` |
-| Release | `/github/release/{owner}/{repo}[/stable].svg` |
-| Contributors | `/github/contributors/{owner}/{repo}.svg` |
-| CI status | `/github/ci/{owner}/{repo}.svg` |
-| Checks | `/github/checks/{owner}/{repo}[/ref][/check].svg` |
-| Issues | `/github/issues/{owner}/{repo}.svg` |
-| Open issues | `/github/open-issues/{owner}/{repo}.svg` |
-| Closed issues | `/github/closed-issues/{owner}/{repo}.svg` |
-| Label issues | `/github/label-issues/{owner}/{repo}/{label}[/state].svg` |
-| PRs | `/github/prs/{owner}/{repo}.svg` |
-| Open PRs | `/github/open-prs/{owner}/{repo}.svg` |
-| Closed PRs | `/github/closed-prs/{owner}/{repo}.svg` |
-| Merged PRs | `/github/merged-prs/{owner}/{repo}.svg` |
-| Milestones | `/github/milestones/{owner}/{repo}/{number}.svg` |
-| Commits | `/github/commits/{owner}/{repo}[/ref].svg` |
-| Last commit | `/github/last-commit/{owner}/{repo}[/ref].svg` |
-| Asset downloads | `/github/assets-dl/{owner}/{repo}[/tag].svg` |
-| Dependabot | `/github/dependabot/{owner}/{repo}.svg` |
+| Badge | Example | URL |
+|-------|---------|-----|
+| Stars | ![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg?variant=secondary) | `/github/stars/{owner}/{repo}.svg` |
+| Forks | ![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?variant=outline) | `/github/forks/{owner}/{repo}.svg` |
+| Watchers | ![watchers](https://shieldcn.dev/github/watchers/vercel/next.js.svg?variant=ghost) | `/github/watchers/{owner}/{repo}.svg` |
+| Branches | ![branches](https://shieldcn.dev/github/branches/vercel/next.js.svg) | `/github/branches/{owner}/{repo}.svg` |
+| Releases | ![releases](https://shieldcn.dev/github/releases/vercel/next.js.svg?variant=secondary) | `/github/releases/{owner}/{repo}.svg` |
+| Tags | ![tags](https://shieldcn.dev/github/tags/vercel/next.js.svg?variant=outline) | `/github/tags/{owner}/{repo}.svg` |
+| Latest tag | ![tag](https://shieldcn.dev/github/tag/vercel/next.js.svg?variant=branded) | `/github/tag/{owner}/{repo}.svg` |
+| License | ![license](https://shieldcn.dev/github/license/vercel/next.js.svg) | `/github/license/{owner}/{repo}.svg` |
+| Release | ![release](https://shieldcn.dev/github/release/vercel/next.js.svg?variant=secondary) | `/github/release/{owner}/{repo}[/stable].svg` |
+| Contributors | ![contributors](https://shieldcn.dev/github/contributors/vercel/next.js.svg?variant=outline) | `/github/contributors/{owner}/{repo}.svg` |
+| CI status | ![ci](https://shieldcn.dev/github/ci/jal-co/shieldcn.svg) | `/github/ci/{owner}/{repo}.svg` |
+| Checks | ![checks](https://shieldcn.dev/github/checks/vercel/next.js.svg?variant=ghost) | `/github/checks/{owner}/{repo}[/ref][/check].svg` |
+| Issues | ![issues](https://shieldcn.dev/github/issues/vercel/next.js.svg?variant=destructive) | `/github/issues/{owner}/{repo}.svg` |
+| Open issues | ![open issues](https://shieldcn.dev/github/open-issues/vercel/next.js.svg) | `/github/open-issues/{owner}/{repo}.svg` |
+| Closed issues | ![closed issues](https://shieldcn.dev/github/closed-issues/vercel/next.js.svg?variant=secondary) | `/github/closed-issues/{owner}/{repo}.svg` |
+| Label issues | ![label issues](https://shieldcn.dev/github/label-issues/vercel/next.js/bug.svg?variant=destructive) | `/github/label-issues/{owner}/{repo}/{label}[/state].svg` |
+| PRs | ![prs](https://shieldcn.dev/github/prs/vercel/next.js.svg?variant=outline) | `/github/prs/{owner}/{repo}.svg` |
+| Open PRs | ![open prs](https://shieldcn.dev/github/open-prs/vercel/next.js.svg?variant=secondary) | `/github/open-prs/{owner}/{repo}.svg` |
+| Closed PRs | ![closed prs](https://shieldcn.dev/github/closed-prs/vercel/next.js.svg?variant=ghost) | `/github/closed-prs/{owner}/{repo}.svg` |
+| Merged PRs | ![merged prs](https://shieldcn.dev/github/merged-prs/vercel/next.js.svg?theme=violet) | `/github/merged-prs/{owner}/{repo}.svg` |
+| Commits | ![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg?variant=secondary) | `/github/commits/{owner}/{repo}[/ref].svg` |
+| Last commit | ![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js.svg) | `/github/last-commit/{owner}/{repo}[/ref].svg` |
+| Asset downloads | ![downloads](https://shieldcn.dev/github/assets-dl/vercel/next.js.svg?variant=outline) | `/github/assets-dl/{owner}/{repo}[/tag].svg` |
+| Dependabot | ![dependabot](https://shieldcn.dev/github/dependabot/vercel/next.js.svg?variant=branded) | `/github/dependabot/{owner}/{repo}.svg` |
 
 ### Discord
 
-| Badge | URL |
-|-------|-----|
-| Online count | `/discord/{serverId}.svg` |
-| Members | `/discord/members/{inviteCode}.svg` |
-| Online members | `/discord/online-members/{inviteCode}.svg` |
+| Badge | Example | URL |
+|-------|---------|-----|
+| Online count | ![online](https://shieldcn.dev/discord/1316199667142496307.svg?variant=branded) | `/discord/{serverId}.svg` |
+| Members | ![members](https://shieldcn.dev/discord/members/reactiflux.svg?variant=secondary) | `/discord/members/{inviteCode}.svg` |
+| Online members | ![online](https://shieldcn.dev/discord/online-members/reactiflux.svg?variant=outline) | `/discord/online-members/{inviteCode}.svg` |
 
 ### Reddit
 
-| Badge | URL |
-|-------|-----|
-| Karma | `/reddit/{type}/u/{user}.svg` |
-| Subscribers | `/reddit/subscribers/r/{subreddit}.svg` |
+| Badge | Example | URL |
+|-------|---------|-----|
+| Karma | ![karma](https://shieldcn.dev/reddit/karma/u/spez.svg?variant=branded) | `/reddit/{type}/u/{user}.svg` |
+| Subscribers | ![subs](https://shieldcn.dev/reddit/subscribers/r/programming.svg?variant=secondary) | `/reddit/subscribers/r/{subreddit}.svg` |
 
 ### Static & Dynamic
 
-| Badge | URL |
-|-------|-----|
-| Static | `/badge/{label}-{message}-{color}.svg` |
-| Dynamic JSON | `/badge/dynamic/json.svg?url=...&query=...` |
-| HTTPS endpoint | `/https/{hostname}/{path}.svg` |
-| Memo | `/memo/{key}.svg` |
+| Badge | Example | URL |
+|-------|---------|-----|
+| Static | ![static](https://shieldcn.dev/badge/built%20with-shieldcn-blue.svg?variant=outline) | `/badge/{label}-{message}-{color}.svg` |
+| Dynamic JSON | ![dynamic](https://shieldcn.dev/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count&label=stars&logo=lucide:star&variant=secondary) | `/badge/dynamic/json.svg?url=...&query=...` |
+| HTTPS endpoint | — | `/https/{hostname}/{path}.svg` |
+| Memo | — | `/memo/{key}.svg` |
 
 ## Variants & sizes
 
@@ -162,19 +161,6 @@ pnpm build          # next build
 ## Token pool
 
 shieldcn uses a [token pool](https://shieldcn.dev/token-pool) (inspired by [shields.io](https://shields.io/blog/2024-11-14-how-shields-io-uses-the-github-api)) to distribute GitHub API requests across many tokens. You can help by authorizing the OAuth app — read-only, zero scopes, revocable anytime.
-
-## Analytics
-
-shieldcn uses [OpenPanel](https://openpanel.dev/open-source?utm_source=shieldcn.dev) for privacy-friendly product analytics.
-
-To enable it, set:
-
-```bash
-NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
-OPENPANEL_CLIENT_SECRET=...
-```
-
-If those env vars are missing, analytics stays disabled.
 
 ## Credits
 
