@@ -22,6 +22,7 @@ const docsNav: NavGroup[] = [
     title: "Getting Started",
     items: [
       { title: "Introduction", href: "/docs" },
+      { title: "Agent Skill", href: "/docs/skill" },
       { title: "API Reference", href: "/docs/api-reference" },
       { title: "Token Pool", href: "/token-pool" },
       { title: "Sponsor", href: "/sponsor" },

@@ -181,10 +181,33 @@ Three icon libraries with 40,000+ icons total, plus custom SVG upload.
 - Dark and light mode
 - Free, open source, MIT licensed
 
+## Agent skill
+
+Install the shieldcn agent skill to let AI coding agents add badges to projects:
+
+```bash
+npx skills add jal-co/shieldcn
+```
+
+Works with Claude Code, Cursor, Codex, Windsurf, and 40+ more agents via [skills.sh](https://skills.sh). The skill teaches agents all shieldcn providers, URL patterns, query parameters, and markdown best practices for badge rows.
+
+Install globally to use across all projects:
+
+```bash
+npx skills add jal-co/shieldcn -g
+```
+
+Install to a specific agent:
+
+```bash
+npx skills add jal-co/shieldcn -a claude-code
+```
+
 ## Links
 
 - Homepage: https://shieldcn.dev
 - Documentation: https://shieldcn.dev/docs
+- Agent Skill: https://shieldcn.dev/docs/skill
 - API Reference: https://shieldcn.dev/docs/api-reference
 - Showcase: https://shieldcn.dev/showcase
 - Badge Generator: https://shieldcn.dev/gen

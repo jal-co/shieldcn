@@ -16,10 +16,21 @@ Add a badge to any markdown file:
 
 No configuration, no API keys, no build step.
 
+## Agent skill
+
+Install the shieldcn agent skill to let AI coding agents add badges to projects:
+
+```bash
+npx skills add jal-co/shieldcn
+```
+
+Works with Claude Code, Cursor, Codex, Windsurf, and 40+ more agents via skills.sh.
+
 ## Links
 
 - Homepage: https://shieldcn.dev
 - Documentation: https://shieldcn.dev/docs
+- Agent Skill: https://shieldcn.dev/docs/skill
 - API Reference: https://shieldcn.dev/docs/api-reference
 - Showcase: https://shieldcn.dev/showcase
 - Badge Generator: https://shieldcn.dev/gen
