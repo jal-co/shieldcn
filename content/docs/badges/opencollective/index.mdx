@@ -1,0 +1,36 @@
+---
+title: Open Collective
+description: Badges for Open Collective projects — backers, sponsors, balance, budget.
+---
+
+Display funding stats for any [Open Collective](https://opencollective.com) project.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Backers | `/opencollective/backers/{slug}` | Backer count |
+| Sponsors | `/opencollective/sponsors/{slug}` | Sponsor count |
+| Contributors | `/opencollective/contributors/{slug}` | Total contributors |
+| Balance | `/opencollective/balance/{slug}` | Current balance |
+| Yearly Budget | `/opencollective/budget/{slug}` | Yearly income |
+
+## Quick examples
+
+```md
+![backers](https://shieldcn.dev/opencollective/backers/webpack.svg)
+![sponsors](https://shieldcn.dev/opencollective/sponsors/webpack.svg)
+![budget](https://shieldcn.dev/opencollective/budget/webpack.svg)
+```
+
+<BadgeSandbox
+  endpoint="/opencollective/backers/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "collective slug", placeholder: "webpack", required: true },
+  ]}
+  defaults={{ slug: "webpack" }}
+/>
+
+## Data source
+
+Uses [Open Collective API](https://opencollective.com). No API key required. Cached 1 hour.

@@ -48,9 +48,9 @@ export const featuredBadges: ShowcaseBadge[] = [
   dynamicBadge("GitHub Stars", "featured github", "/github/stars/vercel/next.js.svg?variant=outline", "A clean social-proof badge that works well in a top README row.", "/docs/badges/github"),
   dynamicBadge("GitHub CI", "featured github", "/github/ci/vercel/next.js.svg?variant=secondary", "A softer CI badge that reads cleanly in a top README row.", "/docs/badges/github"),
   dynamicBadge("npm Version", "featured npm", "/npm/react.svg?variant=secondary", "A softer package version badge that pairs well with download badges.", "/docs/badges/npm"),
-  dynamicBadge("Discord Members", "featured discord", "/discord/members/reactiflux.svg?variant=outline", "Community-size badge using the Discord invite API with counts.", "/docs/badges/discord"),
-  dynamicBadge("Coverage", "featured static", "/badge/coverage-95%25-blue.svg?theme=blue", "A polished coverage badge for quality-focused README rows."),
-  makeLogoBadge("typescript", "TypeScript", "3178C6", "&variant=secondary"),
+  dynamicBadge("PyPI Version", "featured pypi", "/pypi/requests.svg?variant=branded", "Python package version badge with PyPI branding.", "/docs/badges/pypi"),
+  dynamicBadge("Bluesky Followers", "featured social", "/bluesky/jay.bsky.team.svg?variant=outline", "Social proof badge for Bluesky profiles.", "/docs/badges/bluesky"),
+  dynamicBadge("Bundle Size", "featured bundlephobia", "/bundlephobia/minzip/react.svg?variant=secondary", "Show how lightweight your package is.", "/docs/badges/bundlephobia"),
 ]
 
 export const categories: Category[] = [
@@ -87,6 +87,82 @@ export const categories: Category[] = [
       dynamicBadge("Discord Online", "widget api", "/discord/1316199667142496307.svg?variant=secondary", "Live online count using the server widget API.", "/docs/badges/discord"),
       dynamicBadge("Discord Members", "invite api", "/discord/members/reactiflux.svg?variant=outline", "Approximate member count using the invite API with counts.", "/docs/badges/discord"),
       dynamicBadge("Discord Online Members", "invite api", "/discord/online-members/reactiflux.svg?variant=branded", "Approximate online members using invite counts.", "/docs/badges/discord"),
+    ],
+  },
+  {
+    name: "PyPI",
+    description: "Python package badges from the Python Package Index.",
+    icons: [
+      dynamicBadge("PyPI Version", "package metadata", "/pypi/requests.svg?variant=branded", "Latest published version on PyPI.", "/docs/badges/pypi"),
+      dynamicBadge("PyPI Downloads", "package growth", "/pypi/dm/requests.svg?variant=secondary", "Monthly download count from pypistats.", "/docs/badges/pypi"),
+      dynamicBadge("PyPI License", "package metadata", "/pypi/license/flask.svg?variant=outline", "Package license from PyPI metadata.", "/docs/badges/pypi"),
+      dynamicBadge("Python Version", "compatibility", "/pypi/python/django.svg?variant=secondary", "Required Python version.", "/docs/badges/pypi"),
+    ],
+  },
+  {
+    name: "Crates.io",
+    description: "Rust crate badges from the Crates.io registry.",
+    icons: [
+      dynamicBadge("Crate Version", "package metadata", "/crates/serde.svg?variant=branded", "Latest crate version.", "/docs/badges/crates"),
+      dynamicBadge("Crate Downloads", "package growth", "/crates/d/tokio.svg?variant=secondary", "Total download count.", "/docs/badges/crates"),
+      dynamicBadge("Crate License", "package metadata", "/crates/license/serde.svg?variant=outline", "Crate license.", "/docs/badges/crates"),
+    ],
+  },
+  {
+    name: "Docker Hub",
+    description: "Container image badges from Docker Hub.",
+    icons: [
+      dynamicBadge("Docker Pulls", "adoption", "/docker/pulls/library/nginx.svg?variant=branded", "Total pull count — the Docker equivalent of downloads.", "/docs/badges/docker"),
+      dynamicBadge("Docker Stars", "social proof", "/docker/stars/library/nginx.svg?variant=secondary", "Star count on Docker Hub.", "/docs/badges/docker"),
+      dynamicBadge("Docker Image Size", "efficiency", "/docker/size/library/alpine.svg?variant=outline", "Compressed image size.", "/docs/badges/docker"),
+    ],
+  },
+  {
+    name: "Social",
+    description: "Badges for social platforms — Bluesky, Mastodon, Hacker News, Lemmy, and Reddit.",
+    icons: [
+      dynamicBadge("Bluesky Followers", "social proof", "/bluesky/jay.bsky.team.svg?variant=branded", "Bluesky follower count.", "/docs/badges/bluesky"),
+      dynamicBadge("Bluesky Posts", "activity", "/bluesky/posts/jay.bsky.team.svg?variant=outline", "Bluesky post count.", "/docs/badges/bluesky"),
+      dynamicBadge("Mastodon Followers", "fediverse", "/mastodon/followers/mastodon.social/Gargron.svg?variant=branded", "Mastodon follower count from any instance.", "/docs/badges/mastodon"),
+      dynamicBadge("Lemmy Subscribers", "fediverse", "/lemmy/subscribers/lemmy.world/technology.svg?variant=secondary", "Lemmy community subscriber count.", "/docs/badges/lemmy"),
+      dynamicBadge("HN Karma", "dev community", "/hackernews/pg.svg?variant=branded", "Hacker News user karma.", "/docs/badges/hackernews"),
+      dynamicBadge("Reddit Subscribers", "social proof", "/reddit/subscribers/r/programming.svg?variant=branded", "Subreddit subscriber count."),
+    ],
+  },
+  {
+    name: "More Registries",
+    description: "Package badges for Packagist, RubyGems, NuGet, Pub.dev, Homebrew, Maven, CocoaPods, and JSR.",
+    icons: [
+      dynamicBadge("Packagist", "php", "/packagist/v/laravel/framework.svg?variant=branded", "PHP/Composer package version.", "/docs/badges/packagist"),
+      dynamicBadge("RubyGems", "ruby", "/rubygems/rails.svg?variant=branded", "Ruby gem version.", "/docs/badges/rubygems"),
+      dynamicBadge("NuGet", ".net", "/nuget/Newtonsoft.Json.svg?variant=branded", ".NET package version.", "/docs/badges/nuget"),
+      dynamicBadge("Pub.dev", "dart/flutter", "/pub/flutter_bloc.svg?variant=branded", "Dart/Flutter package version.", "/docs/badges/pub"),
+      dynamicBadge("Pub Points", "dart/flutter", "/pub/points/flutter_bloc.svg?variant=secondary", "Pub.dev quality score.", "/docs/badges/pub"),
+      dynamicBadge("Homebrew", "macos", "/homebrew/node.svg?variant=branded", "Homebrew formula version.", "/docs/badges/homebrew"),
+      dynamicBadge("Maven Central", "java", "/maven/com.google.guava/guava.svg?variant=branded", "Maven Central artifact version.", "/docs/badges/maven"),
+      dynamicBadge("CocoaPods", "ios", "/cocoapods/Alamofire.svg?variant=branded", "CocoaPods pod version.", "/docs/badges/cocoapods"),
+      dynamicBadge("JSR Version", "javascript", "/jsr/@std/path.svg?variant=branded", "JSR package version.", "/docs/badges/jsr"),
+      dynamicBadge("JSR Score", "quality", "/jsr/score/@std/path.svg?variant=secondary", "JSR package quality score.", "/docs/badges/jsr"),
+    ],
+  },
+  {
+    name: "Bundle Size",
+    description: "Bundle size badges from Bundlephobia — show how lightweight your package is.",
+    icons: [
+      dynamicBadge("Minzipped Size", "bundle size", "/bundlephobia/minzip/react.svg?variant=secondary", "Minified + gzipped bundle size.", "/docs/badges/bundlephobia"),
+      dynamicBadge("Minified Size", "bundle size", "/bundlephobia/min/lodash.svg?variant=outline", "Minified bundle size.", "/docs/badges/bundlephobia"),
+      dynamicBadge("Tree Shaking", "bundle size", "/bundlephobia/tree-shaking/lodash-es.svg?variant=secondary", "Tree-shaking support status.", "/docs/badges/bundlephobia"),
+    ],
+  },
+  {
+    name: "Funding & Tools",
+    description: "Open Collective funding badges, Codecov coverage, VS Code Marketplace, and WakaTime.",
+    icons: [
+      dynamicBadge("OC Backers", "funding", "/opencollective/backers/webpack.svg?variant=branded", "Open Collective backer count.", "/docs/badges/opencollective"),
+      dynamicBadge("OC Budget", "funding", "/opencollective/budget/webpack.svg?variant=secondary", "Yearly Open Collective budget.", "/docs/badges/opencollective"),
+      dynamicBadge("Codecov", "quality", "/codecov/github/codecov/codecov-cli.svg?variant=branded", "Code coverage percentage with color coding.", "/docs/badges/codecov"),
+      dynamicBadge("VS Code Installs", "marketplace", "/vscode/installs/esbenp/prettier-vscode.svg?variant=branded", "VS Code extension install count.", "/docs/badges/vscode"),
+      dynamicBadge("VS Code Rating", "marketplace", "/vscode/rating/esbenp/prettier-vscode.svg?variant=secondary", "VS Code extension rating.", "/docs/badges/vscode"),
     ],
   },
   {

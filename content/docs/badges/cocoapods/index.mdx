@@ -1,0 +1,32 @@
+---
+title: CocoaPods
+description: Badges for iOS/macOS pods — version.
+---
+
+Display the latest version for any pod on [CocoaPods](https://cocoapods.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/cocoapods/{pod}` | Latest version |
+| Version | `/cocoapods/v/{pod}` | Latest version (explicit) |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/cocoapods/Alamofire.svg)
+![version](https://shieldcn.dev/cocoapods/v/SwiftyJSON.svg)
+```
+
+<BadgeSandbox
+  endpoint="/cocoapods/:pod.svg"
+  pathParams={[
+    { name: "pod", label: "pod name", placeholder: "Alamofire", required: true },
+  ]}
+  defaults={{ pod: "Alamofire" }}
+/>
+
+## Data source
+
+Uses [CocoaPods Trunk API](https://trunk.cocoapods.org). No API key required. Cached 1 hour.

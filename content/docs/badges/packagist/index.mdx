@@ -1,0 +1,36 @@
+---
+title: Packagist
+description: Badges for PHP/Composer packages — version, downloads, license.
+---
+
+Display live stats for any package on [Packagist](https://packagist.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/packagist/v/{vendor}/{package}` | Latest stable version |
+| Downloads (total) | `/packagist/dt/{vendor}/{package}` | Total downloads |
+| Downloads (monthly) | `/packagist/dm/{vendor}/{package}` | Monthly downloads |
+| Downloads (daily) | `/packagist/dd/{vendor}/{package}` | Daily downloads |
+| License | `/packagist/license/{vendor}/{package}` | Package license |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/packagist/v/laravel/framework.svg)
+![downloads](https://shieldcn.dev/packagist/dt/laravel/framework.svg)
+```
+
+<BadgeSandbox
+  endpoint="/packagist/v/:vendor/:package.svg"
+  pathParams={[
+    { name: "vendor", label: "vendor", placeholder: "laravel", required: true },
+    { name: "package", label: "package", placeholder: "framework", required: true },
+  ]}
+  defaults={{ vendor: "laravel", package: "framework" }}
+/>
+
+## Data source
+
+Uses [Packagist API](https://packagist.org). No API key required. Cached 1 hour.

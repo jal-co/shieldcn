@@ -1,0 +1,35 @@
+---
+title: Crates.io
+description: Badges for Rust crates — version, downloads, license.
+---
+
+Display live stats for any crate on [crates.io](https://crates.io).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/crates/{crate}` | Latest version |
+| Downloads | `/crates/d/{crate}` | Total downloads |
+| Recent Downloads | `/crates/dr/{crate}` | Recent downloads |
+| License | `/crates/license/{crate}` | Crate license |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/crates/serde.svg)
+![downloads](https://shieldcn.dev/crates/d/tokio.svg)
+![license](https://shieldcn.dev/crates/license/serde.svg)
+```
+
+<BadgeSandbox
+  endpoint="/crates/:crate.svg"
+  pathParams={[
+    { name: "crate", label: "crate name", placeholder: "serde", required: true },
+  ]}
+  defaults={{ crate: "serde" }}
+/>
+
+## Data source
+
+Uses [crates.io API](https://crates.io/api/v1/crates). No API key required. Cached 1 hour.

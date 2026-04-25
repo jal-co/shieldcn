@@ -1,0 +1,33 @@
+---
+title: Homebrew
+description: Badges for Homebrew formulae and casks — version, installs.
+---
+
+Display live stats for [Homebrew](https://brew.sh) formulae and casks.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Formula Version | `/homebrew/{formula}` | Latest stable version |
+| Cask Version | `/homebrew/cask/{cask}` | Latest cask version |
+| Installs | `/homebrew/installs/{formula}[/{days}]` | Install count (30/90/365 days) |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/homebrew/node.svg)
+![cask](https://shieldcn.dev/homebrew/cask/firefox.svg)
+```
+
+<BadgeSandbox
+  endpoint="/homebrew/:formula.svg"
+  pathParams={[
+    { name: "formula", label: "formula name", placeholder: "node", required: true },
+  ]}
+  defaults={{ formula: "node" }}
+/>
+
+## Data source
+
+Uses [Homebrew Formulae API](https://formulae.brew.sh/api). No API key required. Cached 1 hour.

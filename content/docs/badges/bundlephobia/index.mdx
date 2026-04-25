@@ -1,0 +1,34 @@
+---
+title: Bundlephobia
+description: Badges for npm package bundle size — minified, gzipped, tree-shaking.
+---
+
+Display bundle size stats for any npm package via [Bundlephobia](https://bundlephobia.com).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Minified | `/bundlephobia/min/{package}` | Minified size |
+| Minified + gzipped | `/bundlephobia/minzip/{package}` | Minified + gzipped size |
+| Tree-shaking | `/bundlephobia/tree-shaking/{package}` | Tree-shaking support |
+
+## Quick examples
+
+```md
+![minzip](https://shieldcn.dev/bundlephobia/minzip/react.svg)
+![min](https://shieldcn.dev/bundlephobia/min/lodash.svg)
+![tree-shaking](https://shieldcn.dev/bundlephobia/tree-shaking/lodash-es.svg)
+```
+
+<BadgeSandbox
+  endpoint="/bundlephobia/minzip/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+## Data source
+
+Uses [Bundlephobia API](https://bundlephobia.com/api/size). No API key required. Cached 24 hours.

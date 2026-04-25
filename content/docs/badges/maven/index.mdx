@@ -1,0 +1,33 @@
+---
+title: Maven Central
+description: Badges for Java/Kotlin artifacts — version.
+---
+
+Display the latest version for any artifact on [Maven Central](https://search.maven.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/maven/{groupId}/{artifactId}` | Latest version |
+| Version | `/maven/v/{groupId}/{artifactId}` | Latest version (explicit) |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/maven/com.google.guava/guava.svg)
+![version](https://shieldcn.dev/maven/org.springframework/spring-core.svg)
+```
+
+<BadgeSandbox
+  endpoint="/maven/:groupId/:artifactId.svg"
+  pathParams={[
+    { name: "groupId", label: "group ID", placeholder: "com.google.guava", required: true },
+    { name: "artifactId", label: "artifact ID", placeholder: "guava", required: true },
+  ]}
+  defaults={{ groupId: "com.google.guava", artifactId: "guava" }}
+/>
+
+## Data source
+
+Uses [Maven Central Search API](https://search.maven.org). No API key required. Cached 1 hour.

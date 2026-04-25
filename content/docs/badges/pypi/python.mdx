@@ -1,0 +1,22 @@
+---
+title: Python Version
+description: Display the required Python version for a PyPI package.
+---
+
+<BadgeSandbox
+  endpoint="/pypi/python/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "django", required: true },
+  ]}
+  defaults={{ package: "django" }}
+/>
+
+## URL format
+
+```
+/pypi/python/{package}.svg
+```
+
+## Data source
+
+Uses [pypi.org](https://pypi.org). No API key required. Cached 1 hour.

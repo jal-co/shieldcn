@@ -1,0 +1,36 @@
+---
+title: Twitch
+description: Badges for Twitch channels — live status, followers.
+---
+
+Display live stats for any [Twitch](https://twitch.tv) channel.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Status | `/twitch/status/{login}` | Live/offline status with viewer count |
+| Followers | `/twitch/followers/{login}` | Follower count |
+
+## Quick examples
+
+```md
+![status](https://shieldcn.dev/twitch/status/shroud.svg)
+![followers](https://shieldcn.dev/twitch/followers/ninja.svg)
+```
+
+<BadgeSandbox
+  endpoint="/twitch/status/:login.svg"
+  pathParams={[
+    { name: "login", label: "channel login", placeholder: "shroud", required: true },
+  ]}
+  defaults={{ login: "shroud" }}
+/>
+
+## Setup
+
+Requires `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` environment variables. Get them from the [Twitch Developer Console](https://dev.twitch.tv/console/apps).
+
+## Data source
+
+Uses [Twitch Helix API](https://dev.twitch.tv/docs/api/). Requires API credentials. Live status cached 5 minutes.

@@ -1,0 +1,10 @@
+{
+  "title": "PyPI",
+  "pages": [
+    "index",
+    "version",
+    "downloads",
+    "license",
+    "python"
+  ]
+}

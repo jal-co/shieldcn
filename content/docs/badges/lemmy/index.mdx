@@ -1,0 +1,34 @@
+---
+title: Lemmy
+description: Badges for Lemmy communities — subscribers, posts, comments.
+---
+
+Display live stats for any [Lemmy](https://join-lemmy.org) community on any instance.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Subscribers | `/lemmy/subscribers/{instance}/{community}` | Subscriber count |
+| Posts | `/lemmy/posts/{instance}/{community}` | Post count |
+| Comments | `/lemmy/comments/{instance}/{community}` | Comment count |
+
+## Quick examples
+
+```md
+![subscribers](https://shieldcn.dev/lemmy/subscribers/lemmy.world/technology.svg)
+![posts](https://shieldcn.dev/lemmy/posts/lemmy.world/technology.svg)
+```
+
+<BadgeSandbox
+  endpoint="/lemmy/subscribers/:instance/:community.svg"
+  pathParams={[
+    { name: "instance", label: "instance", placeholder: "lemmy.world", required: true },
+    { name: "community", label: "community", placeholder: "technology", required: true },
+  ]}
+  defaults={{ instance: "lemmy.world", community: "technology" }}
+/>
+
+## Data source
+
+Uses the [Lemmy API](https://join-lemmy.org/docs/) (`/api/v3/community`). Works with any Lemmy instance. No API key required. Cached 1 hour.

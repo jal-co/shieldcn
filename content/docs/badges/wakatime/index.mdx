@@ -1,0 +1,30 @@
+---
+title: WakaTime
+description: Badges for WakaTime developer stats — coding time.
+---
+
+Display coding time for any [WakaTime](https://wakatime.com) user with a public profile.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Coding Time | `/wakatime/{username}` | Total coding time |
+
+## Quick examples
+
+```md
+![coding time](https://shieldcn.dev/wakatime/willfarrell.svg)
+```
+
+<BadgeSandbox
+  endpoint="/wakatime/:username.svg"
+  pathParams={[
+    { name: "username", label: "username", placeholder: "willfarrell", required: true },
+  ]}
+  defaults={{ username: "willfarrell" }}
+/>
+
+## Data source
+
+Uses [WakaTime API](https://wakatime.com/developers). Requires public profile. Cached 1 hour.

@@ -72,6 +72,43 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
+    title: "Package Registries",
+    items: [
+      { title: "PyPI", href: "/docs/badges/pypi" },
+      { title: "Crates.io", href: "/docs/badges/crates" },
+      { title: "Docker Hub", href: "/docs/badges/docker" },
+      { title: "Packagist", href: "/docs/badges/packagist" },
+      { title: "RubyGems", href: "/docs/badges/rubygems" },
+      { title: "NuGet", href: "/docs/badges/nuget" },
+      { title: "Pub.dev", href: "/docs/badges/pub" },
+      { title: "Homebrew", href: "/docs/badges/homebrew" },
+      { title: "Maven Central", href: "/docs/badges/maven" },
+      { title: "CocoaPods", href: "/docs/badges/cocoapods" },
+      { title: "JSR", href: "/docs/badges/jsr" },
+      { title: "Bundlephobia", href: "/docs/badges/bundlephobia" },
+    ],
+  },
+  {
+    title: "Social",
+    items: [
+      { title: "Bluesky", href: "/docs/badges/bluesky" },
+      { title: "YouTube", href: "/docs/badges/youtube" },
+      { title: "Mastodon", href: "/docs/badges/mastodon" },
+      { title: "Lemmy", href: "/docs/badges/lemmy" },
+      { title: "Hacker News", href: "/docs/badges/hackernews" },
+      { title: "Twitch", href: "/docs/badges/twitch" },
+    ],
+  },
+  {
+    title: "Tools & Services",
+    items: [
+      { title: "VS Code Marketplace", href: "/docs/badges/vscode" },
+      { title: "Open Collective", href: "/docs/badges/opencollective" },
+      { title: "Codecov", href: "/docs/badges/codecov" },
+      { title: "WakaTime", href: "/docs/badges/wakatime" },
+    ],
+  },
+  {
     title: "Customization",
     items: [
       { title: "Themes", href: "/docs/customization/themes" },

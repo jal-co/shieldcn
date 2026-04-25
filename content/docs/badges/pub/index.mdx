@@ -1,0 +1,36 @@
+---
+title: Pub.dev
+description: Badges for Dart/Flutter packages — version, likes, points, popularity.
+---
+
+Display live stats for any package on [pub.dev](https://pub.dev).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/pub/{package}` | Latest version |
+| Likes | `/pub/likes/{package}` | Like count |
+| Points | `/pub/points/{package}` | Pub points score |
+| Popularity | `/pub/popularity/{package}` | Popularity percentage |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/pub/flutter_bloc.svg)
+![likes](https://shieldcn.dev/pub/likes/riverpod.svg)
+![points](https://shieldcn.dev/pub/points/flutter_bloc.svg)
+![popularity](https://shieldcn.dev/pub/popularity/flutter_bloc.svg)
+```
+
+<BadgeSandbox
+  endpoint="/pub/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "flutter_bloc", required: true },
+  ]}
+  defaults={{ package: "flutter_bloc" }}
+/>
+
+## Data source
+
+Uses [Pub.dev API](https://pub.dev/api). No API key required. Cached 1 hour.
