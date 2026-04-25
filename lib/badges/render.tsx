@@ -283,10 +283,10 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   if (r.iconFillRule === "__lucide__") {
     return (
       <svg viewBox={vb} width={r.iconSize} height={r.iconSize}
-        fill="none" stroke={color} strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round"
+        fill="none"
         style={{ flexShrink: 0 }}>
-        <path d={r.icon} />
+        <path d={r.icon} fill="none" stroke={color} strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     )
   }

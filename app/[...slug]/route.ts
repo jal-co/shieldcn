@@ -512,8 +512,10 @@ export async function GET(
       }
 
       // Determine icon fill color
-      if (style === "branded") {
-        iconFill = brandedFg(brandColor)
+      if (style === "branded" && !logoColor) {
+        // Use the actual badge bg color for contrast, not the icon's brand color
+        const effectiveBg = colorOverride ?? brandColor
+        iconFill = brandedFg(effectiveBg)
       } else if (logoColor) {
         iconFill = `#${logoColor}`
       } else if (!hasThemeOverride && style === "default" && si.defaultColor !== "currentColor") {
@@ -546,15 +548,16 @@ export async function GET(
         }
       }
 
-      // For branded variant, use contrast-aware icon color
-      if (style === "branded") {
-        iconFill = brandedFg(brandColor)
-      }
     }
 
     // Fallback to provider brand color if no icon brand color found
     if (!brandColor && providerBrand) {
       brandColor = providerBrand
+    }
+
+    // For branded variant, use contrast-aware icon color (after brand color is resolved)
+    if (style === "branded" && !logoColor) {
+      iconFill = brandedFg(brandColor)
     }
   }
 
