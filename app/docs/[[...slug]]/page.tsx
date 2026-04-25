@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { source } from "@/lib/source"
 import { getMDXComponents } from "@/mdx-components"
+import { pageMetadata } from "@/lib/metadata"
+import { techArticleJsonLd } from "@/lib/json-ld"
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>
@@ -13,8 +15,24 @@ export default async function Page(props: {
   const MDX = page.data.body
   const toc = page.data.toc
 
+  const slug = params.slug?.join("/") || ""
+  const path = `/docs${slug ? `/${slug}` : ""}`
+
   return (
-    <div className="mx-auto flex w-full items-start gap-14 py-10 px-6 md:px-10">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            techArticleJsonLd({
+              title: page.data.title,
+              description: page.data.description || "shieldcn documentation",
+              path,
+            }),
+          ),
+        }}
+      />
+      <div className="mx-auto flex w-full items-start gap-14 py-10 px-6 md:px-10">
       <div className="min-w-0 flex-1">
         <div className="flex flex-col gap-12 w-full">
           {/* Title + description */}
@@ -61,6 +79,7 @@ export default async function Page(props: {
         </aside>
       )}
     </div>
+    </>
   )
 }
 
@@ -75,8 +94,10 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug)
   if (!page) notFound()
 
-  return {
+  const slug = params.slug?.join("/") || ""
+  return pageMetadata({
     title: page.data.title,
-    description: page.data.description,
-  }
+    description: page.data.description || "shieldcn documentation",
+    path: `/docs${slug ? `/${slug}` : ""}`,
+  })
 }

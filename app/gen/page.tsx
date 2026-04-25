@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 import { SiteShell } from "@/components/site-shell"
 import GeneratorClient from "./generator-client"
+import { pageMetadata } from "@/lib/metadata"
 
-export const metadata: Metadata = {
-  title: "Generator",
+export const metadata: Metadata = pageMetadata({
+  title: "Badge Generator",
   description:
-    "Auto-generate shieldcn badges for any GitHub repo. Detects your stack, lets you customize, and exports markdown.",
-}
+    "Auto-generate README badges for any GitHub repo. Detects your stack, lets you customize variants and themes, and exports copy-paste markdown.",
+  path: "/gen",
+})
 
 export default function GeneratorPage() {
   return (

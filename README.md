@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Beautiful README badges as a service.<br />
+  Beautiful README badges.<br />
   A <a href="https://shields.io">shields.io</a> alternative styled as <a href="https://ui.shadcn.com">shadcn/ui</a> buttons. Never paywalled.
 </p>
 

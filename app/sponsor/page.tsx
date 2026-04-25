@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import Image from "next/image"
+import { pageMetadata } from "@/lib/metadata"
 import Link from "next/link"
 import { Heart, ExternalLink, Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,9 +25,12 @@ interface Sponsor {
 }
 
 export const metadata: Metadata = {
-  title: "Sponsor — shieldcn",
-  description:
-    "Support shieldcn. Every badge is free and always will be — but if you want to help, this is the way.",
+  ...pageMetadata({
+    title: "Sponsor",
+    description:
+      "Support shieldcn — free, open-source README badges for everyone. Sponsor tiers, stargazers, and how to contribute.",
+    path: "/sponsor",
+  }),
 }
 
 const GITHUB_SPONSORS_URL = "https://github.com/sponsors/jal-co"

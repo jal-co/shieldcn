@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -5,10 +6,28 @@ import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
 import { BadgeMarquee } from "@/components/badge-marquee"
 import { SiteShell } from "@/components/site-shell"
+import { pageMetadata } from "@/lib/metadata"
+import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
+
+export const metadata: Metadata = pageMetadata({
+  title: "shieldcn — Beautiful README Badges",
+  description:
+    "A shields.io alternative with shadcn/ui design quality. GitHub, npm, and Discord badges with 6 variants, 16 themes, and 5,000+ icons. Free and open source.",
+  path: "/",
+  ogTitle: "shieldcn — Beautiful README Badges",
+})
 
 export default function Home() {
   return (
     <SiteShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppJsonLd()) }}
+      />
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-4xl px-6 md:px-10">
           {/* Hero */}

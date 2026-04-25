@@ -21,9 +21,9 @@ export function SiteFooter() {
               shieldcn
             </Link>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Beautiful README badges as a service. A shields.io alternative
-              with the visual quality of shadcn/ui. 5,000+ built-in icons and
-              custom SVG upload.
+              Beautiful README badges styled as shadcn/ui buttons. A
+              shields.io alternative with 6 variants, 16 themes, and 5,000+
+              built-in icons.
             </p>
             <p className="text-xs text-muted-foreground">
               Analytics by{" "}
