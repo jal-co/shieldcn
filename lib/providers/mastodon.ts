@@ -8,18 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function mastodonFetch(instance: string, acct: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://${instance}/api/v1/accounts/lookup?acct=${encodeURIComponent(acct)}`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "mastodon",
+    cacheKey: `profile:${instance}:${acct}`,
+    url: `https://${instance}/api/v1/accounts/lookup?acct=${encodeURIComponent(acct)}`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { cachedFetch, handleUpstreamStatus } from "@/lib/cache"
 
 interface VSCodeExtension {
   results: Array<{
@@ -19,26 +20,30 @@ interface VSCodeExtension {
 }
 
 async function vscodeFetch(publisher: string, extension: string): Promise<VSCodeExtension | null> {
-  try {
-    const r = await fetch("https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json;api-version=6.0-preview.1",
-      },
-      body: JSON.stringify({
-        filters: [{
-          criteria: [{ filterType: 7, value: `${publisher}.${extension}` }],
-        }],
-        flags: 914, // include stats + versions
-      }),
-      next: { revalidate: 3600 },
-    })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return cachedFetch<VSCodeExtension>(
+    "vscode",
+    `ext:${publisher}:${extension}`,
+    async () => {
+      const r = await fetch("https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json;api-version=6.0-preview.1",
+        },
+        body: JSON.stringify({
+          filters: [{
+            criteria: [{ filterType: 7, value: `${publisher}.${extension}` }],
+          }],
+          flags: 914,
+        }),
+        next: { revalidate: 3600 },
+      })
+      handleUpstreamStatus("vscode", r.status)
+      if (!r.ok) return null
+      return r.json()
+    },
+    3600,
+  )
 }
 
 function getStat(stats: Array<{ statisticName: string; value: number }>, name: string): number {

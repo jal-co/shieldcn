@@ -7,18 +7,15 @@
  */
 
 import type { BadgeData } from "@/lib/badges/types"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function bundleFetch(pkg: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://bundlephobia.com/api/size?package=${encodeURIComponent(pkg)}`,
-      { next: { revalidate: 86400 } } // cache for 24h — bundle sizes rarely change
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "bundlephobia",
+    cacheKey: `size:${pkg}`,
+    url: `https://bundlephobia.com/api/size?package=${encodeURIComponent(pkg)}`,
+    ttl: 86400, // 24h — bundle sizes rarely change
+  })
 }
 
 function formatBytes(bytes: number): string {

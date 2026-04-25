@@ -37,3 +37,6 @@ next-env.d.ts
 
 # fumadocs
 .source/
+
+# reddit drafts
+reddit/

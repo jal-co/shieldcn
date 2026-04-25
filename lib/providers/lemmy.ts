@@ -8,18 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function lemmyFetch(instance: string, community: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://${instance}/api/v3/community?name=${encodeURIComponent(community)}`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "lemmy",
+    cacheKey: `community:${instance}:${community}`,
+    url: `https://${instance}/api/v3/community?name=${encodeURIComponent(community)}`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------

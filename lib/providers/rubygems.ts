@@ -8,18 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function gemFetch(gem: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://rubygems.org/api/v1/gems/${encodeURIComponent(gem)}.json`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "rubygems",
+    cacheKey: `gem:${gem}`,
+    url: `https://rubygems.org/api/v1/gems/${encodeURIComponent(gem)}.json`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------

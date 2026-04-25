@@ -80,7 +80,7 @@ export function SiteFooter() {
                 Community
               </p>
               <a
-                href="https://github.com/justinlevi/shieldcn"
+                href="https://github.com/jal-co/shieldcn"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground"
@@ -125,7 +125,7 @@ export function SiteFooter() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://github.com/justinlevi/shieldcn"
+              href="https://github.com/jal-co/shieldcn"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground transition-colors hover:text-foreground"

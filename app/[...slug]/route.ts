@@ -12,6 +12,7 @@ import { getSimpleIcon } from "@/lib/badges/simple-icons"
 import { getProviderBrandColor } from "@/lib/badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "@/lib/badges/svg-parser"
 import { trackEvent } from "@/lib/openpanel"
+import { normalizeSearchParams } from "@/lib/normalize-params"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "@/lib/badges/types"
 
 /** Check if a hex color (without #) is light enough to need dark text/icons. */
@@ -841,7 +842,7 @@ export async function GET(
 ) {
   const { slug } = await params
   const url = new URL(request.url)
-  const searchParams = url.searchParams
+  const searchParams = normalizeSearchParams(url.searchParams)
 
   // Parse format from URL
   const { format, cleanSegments } = parseFormat(slug)

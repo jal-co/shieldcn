@@ -7,22 +7,20 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function redditFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, {
-      headers: { "User-Agent": "shieldcn/1.0" },
-      next: { revalidate: 3600 },
-    })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function redditFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({
+    provider: "reddit",
+    cacheKey: key,
+    url,
+    ttl: 3600,
+    headers: { "User-Agent": "shieldcn/1.0" },
+  })
 }
 
 export async function getRedditKarma(user: string, type: string): Promise<BadgeData | null> {
-  const data = await redditFetch(`https://www.reddit.com/user/${user}/about.json`)
+  const data = await redditFetch(`https://www.reddit.com/user/${user}/about.json`, `karma:${user}:${type}`)
   if (!data) return null
   const d = data.data as Record<string, unknown> | undefined
   if (!d) return null
@@ -53,7 +51,7 @@ export async function getRedditKarma(user: string, type: string): Promise<BadgeD
 }
 
 export async function getRedditSubscribers(subreddit: string): Promise<BadgeData | null> {
-  const data = await redditFetch(`https://www.reddit.com/r/${subreddit}/about.json`)
+  const data = await redditFetch(`https://www.reddit.com/r/${subreddit}/about.json`, `subs:${subreddit}`)
   if (!data) return null
   const d = data.data as Record<string, unknown> | undefined
   if (!d || typeof d.subscribers !== "number") return null

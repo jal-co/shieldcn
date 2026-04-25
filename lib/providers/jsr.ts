@@ -7,15 +7,10 @@
  */
 
 import type { BadgeData } from "@/lib/badges/types"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function jsrFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function jsrFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "jsr", cacheKey: key, url, ttl: 3600 })
 }
 
 /**
@@ -35,7 +30,7 @@ function jsrLink(scope: string, name: string): string {
 
 export async function getJSRVersion(scope: string, name: string): Promise<BadgeData | null> {
   const s = normalizeScope(scope)
-  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`)
+  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`, `v:${s}:${name}`)
   if (!data || typeof data.latestVersion !== "string") return null
 
   return {
@@ -51,7 +46,7 @@ export async function getJSRVersion(scope: string, name: string): Promise<BadgeD
 
 export async function getJSRScore(scope: string, name: string): Promise<BadgeData | null> {
   const s = normalizeScope(scope)
-  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`)
+  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`, `score:${s}:${name}`)
   if (!data) return null
 
   const score = data.score as number | undefined

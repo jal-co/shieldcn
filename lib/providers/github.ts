@@ -11,12 +11,15 @@
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
 import { pickToken, invalidateToken } from "@/lib/token-pool"
+import { isBackedOff, recordBackoff, clearBackoff } from "@/lib/cache"
 
 // ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
 
 async function githubFetch(url: string, revalidate: number = 3600): Promise<Response | null> {
+  if (isBackedOff("github")) return null
+
   try {
     const token = await pickToken()
     const headers: HeadersInit = {
@@ -24,6 +27,13 @@ async function githubFetch(url: string, revalidate: number = 3600): Promise<Resp
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
     const response = await fetch(url, { headers, next: { revalidate } })
+
+    // Track rate limits
+    if (response.status === 429 || response.status === 503) {
+      recordBackoff("github")
+      return null
+    }
+
     if (response.status === 401 && token) {
       await invalidateToken(token)
       return fetch(url, {
@@ -32,6 +42,7 @@ async function githubFetch(url: string, revalidate: number = 3600): Promise<Resp
       })
     }
     if (!response.ok) return null
+    clearBackoff("github")
     return response
   } catch {
     return null

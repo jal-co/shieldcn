@@ -9,15 +9,10 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function npmFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function npmFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "npm", cacheKey: key, url, ttl: 3600 })
 }
 
 // ---------------------------------------------------------------------------
@@ -27,7 +22,7 @@ async function npmFetch(url: string): Promise<Record<string, unknown> | null> {
 export async function getNpmVersion(pkg: string, tag?: string): Promise<BadgeData | null> {
   const encoded = encodeURIComponent(pkg)
   const dist = tag || "latest"
-  const data = await npmFetch(`https://registry.npmjs.org/${encoded}/${dist}`)
+  const data = await npmFetch(`https://registry.npmjs.org/${encoded}/${dist}`, `v:${pkg}:${dist}`)
   if (!data || typeof data.version !== "string") return null
 
   return {
@@ -43,7 +38,7 @@ export async function getNpmVersion(pkg: string, tag?: string): Promise<BadgeDat
 
 async function getDownloads(pkg: string, period: string): Promise<number | null> {
   const encoded = encodeURIComponent(pkg)
-  const data = await npmFetch(`https://api.npmjs.org/downloads/point/${period}/${encoded}`)
+  const data = await npmFetch(`https://api.npmjs.org/downloads/point/${period}/${encoded}`, `dl:${pkg}:${period}`)
   if (!data || typeof data.downloads !== "number") return null
   return data.downloads as number
 }
@@ -81,7 +76,7 @@ export async function getNpmTotalDownloads(pkg: string): Promise<BadgeData | nul
 // ---------------------------------------------------------------------------
 
 export async function getNpmLicense(pkg: string): Promise<BadgeData | null> {
-  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`)
+  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`, `license:${pkg}`)
   if (!data) return null
 
   const license = typeof data.license === "string"
@@ -102,7 +97,7 @@ export async function getNpmLicense(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getNpmNodeVersion(pkg: string): Promise<BadgeData | null> {
-  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`)
+  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`, `node:${pkg}`)
   if (!data) return null
 
   const engines = data.engines as Record<string, string> | undefined
@@ -120,7 +115,7 @@ export async function getNpmNodeVersion(pkg: string): Promise<BadgeData | null> 
 // ---------------------------------------------------------------------------
 
 export async function getNpmTypes(pkg: string): Promise<BadgeData | null> {
-  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`)
+  const data = await npmFetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`, `types:${pkg}`)
   if (!data) return null
 
   // Check for TypeScript types
@@ -129,7 +124,7 @@ export async function getNpmTypes(pkg: string): Promise<BadgeData | null> {
   }
 
   // Check if @types/ package exists
-  const typesData = await npmFetch(`https://registry.npmjs.org/@types/${encodeURIComponent(pkg)}/latest`)
+  const typesData = await npmFetch(`https://registry.npmjs.org/@types/${encodeURIComponent(pkg)}/latest`, `types:@types/${pkg}`)
   if (typesData) {
     return { label: "types", value: "DefinitelyTyped", color: "blue", link: `https://www.npmjs.com/package/@types/${pkg}` }
   }
@@ -144,7 +139,7 @@ export async function getNpmTypes(pkg: string): Promise<BadgeData | null> {
 export async function getNpmDependents(pkg: string): Promise<BadgeData | null> {
   // npm doesn't have an official dependents API, use the search API
   const data = await npmFetch(
-    `https://registry.npmjs.org/-/v1/search?text=dependencies:${encodeURIComponent(pkg)}&size=1`
+    `https://registry.npmjs.org/-/v1/search?text=dependencies:${encodeURIComponent(pkg)}&size=1`, `dependents:${pkg}`
   )
   if (!data || typeof data.total !== "number") return null
 

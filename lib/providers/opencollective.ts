@@ -8,17 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function ocFetch(slug: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(`https://opencollective.com/${slug}.json`, {
-      next: { revalidate: 3600 },
-    })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "opencollective",
+    cacheKey: `collective:${slug}`,
+    url: `https://opencollective.com/${slug}.json`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------
