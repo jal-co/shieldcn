@@ -48,7 +48,7 @@ export default function GeneratorPage() {
                   </a>
                   {" · "}
                   <a
-                    href="https://github.com/k33bs/shieldcngen"
+                    href="https://github.com/jal-co/shieldcn"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline underline-offset-2 hover:text-foreground"
