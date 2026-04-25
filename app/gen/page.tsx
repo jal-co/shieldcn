@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { SiteShell } from "@/components/site-shell"
 import GeneratorClient from "./generator-client"
 import { pageMetadata } from "@/lib/metadata"
@@ -53,7 +54,9 @@ export default function GeneratorPage() {
             </p>
           </header>
 
-          <GeneratorClient />
+          <Suspense>
+            <GeneratorClient />
+          </Suspense>
         </div>
       </main>
     </SiteShell>

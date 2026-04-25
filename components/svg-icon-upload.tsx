@@ -188,7 +188,7 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
           variant="outline"
           size="sm"
           className={cn(
-            "h-8 gap-1.5 text-xs",
+            "h-9 gap-1.5 text-xs",
             isDataUri && "border-border text-foreground",
             className,
           )}

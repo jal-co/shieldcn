@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react"
+import { useQueryStates } from "nuqs"
 import { Copy, Download, FileUp, RefreshCw, Trash2, X } from "lucide-react"
 import {
   badgeHtml,
@@ -22,6 +23,7 @@ import {
   type Theme,
   type Variant,
 } from "@/lib/gen/shieldcn"
+import { genSearchParams } from "@/lib/gen/search-params"
 import { deserialize, mergeRefresh, serialize, type Config } from "@/lib/gen/config"
 import { inspect, type InspectResult } from "@/lib/gen/detect"
 import { Button } from "@/components/ui/button"
@@ -95,7 +97,10 @@ const GROUP_ORDER: BadgeGroup[] = [
 ]
 
 export default function GeneratorApp() {
-  const [inputUrl, setInputUrl] = useState("")
+  const [qs, setQs] = useQueryStates(genSearchParams, {
+    history: "replace",
+  })
+  const [inputUrl, setInputUrl] = useState(qs.url)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [config, setConfig] = useState<Config | null>(null)
@@ -105,9 +110,42 @@ export default function GeneratorApp() {
     { added: string[]; refreshed: string[]; missing: string[] } | null
   >(null)
 
+  // Auto-generate on mount if URL param is present
+  const didAutoGenerate = useRef(false)
+  useEffect(() => {
+    if (qs.url && !didAutoGenerate.current && !config) {
+      didAutoGenerate.current = true
+      void handleGenerate(qs.url)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync global settings from URL params to config
+  useEffect(() => {
+    if (!config) return
+    const urlGlobal: GlobalSettings = {
+      variant: qs.variant,
+      size: qs.size,
+      mode: qs.mode,
+      theme: qs.theme,
+    }
+    const configGlobal = config.global
+    if (
+      urlGlobal.variant !== configGlobal.variant ||
+      urlGlobal.size !== configGlobal.size ||
+      urlGlobal.mode !== configGlobal.mode ||
+      urlGlobal.theme !== configGlobal.theme
+    ) {
+      setConfig((c) => (c ? { ...c, global: urlGlobal } : c))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qs.variant, qs.size, qs.mode, qs.theme])
+
   const updateGlobal = useCallback((patch: Partial<GlobalSettings>) => {
     setConfig((c) => (c ? { ...c, global: { ...c.global, ...patch } } : c))
-  }, [])
+    // Sync to URL
+    void setQs(patch)
+  }, [setQs])
 
   const updateBadge = useCallback((id: string, patch: Partial<Badge>) => {
     setConfig((c) => {
@@ -177,20 +215,28 @@ export default function GeneratorApp() {
     }
   }, [])
 
-  const handleGenerate = useCallback(async () => {
-    if (!inputUrl.trim()) return
-    const result = await runInspect(inputUrl.trim())
+  const handleGenerate = useCallback(async (urlOverride?: string) => {
+    const url = urlOverride ?? inputUrl.trim()
+    if (!url) return
+    if (url !== inputUrl) setInputUrl(url)
+    void setQs({ url })
+    const result = await runInspect(url)
     if (!result) return
     setConfig({
       version: 1,
       source: { type: "github", ...result.source },
-      global: DEFAULT_GLOBAL,
+      global: {
+        variant: qs.variant,
+        size: qs.size,
+        mode: qs.mode,
+        theme: qs.theme,
+      },
       badges: result.badges,
       generatedAt: new Date().toISOString(),
     })
     setNotes(result.notes)
     setShieldsIoUrls(result.existingShieldsIoUrls)
-  }, [inputUrl, runInspect])
+  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme])
 
   const handleConfigUpload = useCallback(async (file: File) => {
     setError(null)
@@ -203,13 +249,20 @@ export default function GeneratorApp() {
       }
       setConfig(parsed.config)
       setInputUrl(parsed.config.source.url)
+      void setQs({
+        url: parsed.config.source.url,
+        variant: parsed.config.global.variant,
+        size: parsed.config.global.size,
+        mode: parsed.config.global.mode,
+        theme: parsed.config.global.theme,
+      })
       setNotes([])
       setShieldsIoUrls([])
       setRefreshDiff(null)
     } catch (e) {
       setError((e as Error).message)
     }
-  }, [])
+  }, [setQs])
 
   const configRef = useRef<Config | null>(null)
   useEffect(() => {
