@@ -83,6 +83,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      yaml:
+        specifier: ^2.8.3
+        version: 2.8.3
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4

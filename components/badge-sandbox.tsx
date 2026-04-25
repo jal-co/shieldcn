@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from "react"
 import { Copy, Check, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ColorInput } from "@/components/color-input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -268,7 +269,7 @@ export function BadgeSandbox({
           </SField>
 
           <SField label="logoColor">
-            <Input value={logoColor} onChange={e => setLogoColor(e.target.value)} placeholder="auto" />
+            <ColorInput value={logoColor} onChange={setLogoColor} placeholder="auto" />
           </SField>
 
           <SField label="label">
@@ -302,9 +303,9 @@ export function BadgeSandbox({
 
         {showAdvanced && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <SField label="color"><Input value={color} onChange={e => setColor(e.target.value)} placeholder="hex" /></SField>
-            <SField label="valueColor"><Input value={valueColor} onChange={e => setValueColor(e.target.value)} placeholder="hex" /></SField>
-            <SField label="labelTextColor"><Input value={labelTextColor} onChange={e => setLabelTextColor(e.target.value)} placeholder="hex" /></SField>
+            <SField label="color"><ColorInput value={color} onChange={setColor} placeholder="hex" /></SField>
+            <SField label="valueColor"><ColorInput value={valueColor} onChange={setValueColor} placeholder="hex" /></SField>
+            <SField label="labelTextColor"><ColorInput value={labelTextColor} onChange={setLabelTextColor} placeholder="hex" /></SField>
             <SField label="labelOpacity"><Input value={labelOpacity} onChange={e => setLabelOpacity(e.target.value)} placeholder="0–1" /></SField>
           </div>
         )}

@@ -163,6 +163,7 @@ If those env vars are missing, analytics stays disabled.
 - **[shadcn/ui](https://ui.shadcn.com)** — the design system these badges are built on.
 - **[Satori](https://github.com/vercel/satori)** — Vercel's JSX-to-SVG engine that makes rendering React components as badge images possible.
 - **[jal-co/ui](https://ui.justinlevine.me)** — the component library powering the docs site.
+- **[@k33bs](https://github.com/k33bs)** — creator of [shieldcngen](https://github.com/k33bs/shieldcngen), the badge generator tool powering the [`/gen`](https://shieldcn.dev/gen) page.
 
 ## Contributing
 
