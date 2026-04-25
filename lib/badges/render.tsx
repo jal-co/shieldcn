@@ -15,6 +15,7 @@
  */
 
 import satori from "satori"
+import { optimize } from "svgo"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import type { BadgeConfig } from "./types"
@@ -211,8 +212,39 @@ export async function renderBadge(config: BadgeConfig): Promise<string> {
   const r = resolve(config)
   const el = r.split ? renderSplit(r) : renderSingle(r)
   const fonts = getFonts(config.font)
-  const svg = await satori(el, { height: r.height, fonts })
-  return inlineDataUriImages(svg)
+  const raw = await satori(el, { height: r.height, fonts })
+  const svg = inlineDataUriImages(raw)
+  return optimizeSvg(svg)
+}
+
+/**
+ * Optimize SVG output with SVGO.
+ * Reduces Satori's verbose output by ~60% — collapsing path coordinates,
+ * removing unused attributes, and merging paths where possible.
+ */
+function optimizeSvg(svg: string): string {
+  try {
+    const result = optimize(svg, {
+      multipass: true,
+      plugins: [
+        {
+          name: "preset-default",
+          params: {
+            overrides: {
+              // Keep IDs — Satori uses mask IDs for clipping
+              cleanupIds: false,
+            },
+          },
+        },
+        // Aggressively round path coordinates (badge text doesn't need 8 decimals)
+        { name: "convertPathData", params: { floatPrecision: 1 } },
+      ],
+    })
+    return result.data
+  } catch {
+    // If SVGO fails for any reason, return the original
+    return svg
+  }
 }
 
 /**
