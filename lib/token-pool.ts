@@ -98,7 +98,7 @@ export async function pickToken(): Promise<string | undefined> {
        WHERE id = (
          SELECT id FROM github_tokens
          WHERE is_valid = TRUE
-         ORDER BY RANDOM()
+         ORDER BY last_used_at ASC NULLS FIRST
          LIMIT 1
        )
        RETURNING access_token`
