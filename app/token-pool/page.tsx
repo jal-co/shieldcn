@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SiteShell } from "@/components/site-shell"
 import { getPoolStats } from "@/lib/token-pool"
+import { pageMetadata } from "@/lib/metadata"
 
-export const metadata: Metadata = {
-  title: "Token Pool — shieldcn",
+export const metadata: Metadata = pageMetadata({
+  title: "Token Pool",
   description:
-    "Help shieldcn serve more GitHub badges by sharing a read-only token. Inspired by shields.io's token pool.",
-}
+    "Help shieldcn serve more GitHub badges by donating a read-only OAuth token. Distributed rate limiting inspired by shields.io.",
+  path: "/token-pool",
+})
 
 export default async function TokenPoolPage({
   searchParams,

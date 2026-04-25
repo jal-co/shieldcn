@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s — shieldcn",
   },
   description:
-    "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
+    "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
   keywords: [
     "badges",
     "shields",
@@ -40,6 +40,18 @@ export const metadata: Metadata = {
     "svg badges",
     "shields.io alternative",
     "shadcn",
+    "badge generator",
+    "readme badge maker",
+    "github readme badges",
+    "markdown badges",
+    "custom badges",
+    "project badges",
+    "open source badges",
+    "CI badges",
+    "build badges",
+    "discord badges",
+    "badge builder",
+    "status badges",
   ],
   authors: [{ name: "Justin Levine", url: "https://justinlevine.me" }],
   creator: "Justin Levine",
@@ -50,7 +62,7 @@ export const metadata: Metadata = {
     siteName: "shieldcn",
     title: "shieldcn",
     description:
-      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
+      "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
     images: [
       {
         url: ogImage,
@@ -64,7 +76,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "shieldcn",
     description:
-      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
+      "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
     images: [ogImage],
   },
   alternates: {

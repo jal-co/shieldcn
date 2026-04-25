@@ -1,0 +1,27 @@
+# shieldcn
+
+> Beautiful README badges. A shields.io alternative styled as shadcn/ui buttons.
+
+shieldcn is a free, open-source badge image service. It renders SVG and PNG badge images that look like shadcn/ui Button components — same Inter font, border-radius, padding, and color tokens. Use them in GitHub READMEs, npm pages, docs sites, and anywhere that accepts `<img>` tags.
+
+## Quick start
+
+Add a badge to any markdown file:
+
+```markdown
+![npm version](https://shieldcn.dev/npm/react.svg)
+![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg)
+![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
+```
+
+No configuration, no API keys, no build step.
+
+## Links
+
+- Homepage: https://shieldcn.dev
+- Documentation: https://shieldcn.dev/docs
+- API Reference: https://shieldcn.dev/docs/api-reference
+- Showcase: https://shieldcn.dev/showcase
+- Badge Generator: https://shieldcn.dev/gen
+- GitHub: https://github.com/jal-co/shieldcn
+- Full LLM context: https://shieldcn.dev/llms-full.txt

@@ -1,0 +1,191 @@
+# shieldcn
+
+> Beautiful README badges. A shields.io alternative styled as shadcn/ui buttons.
+
+shieldcn is a free, open-source badge image service at https://shieldcn.dev. It renders SVG and PNG badge images that look like shadcn/ui Button components — same Inter font, border-radius, padding, and color tokens. Badges are rendered via Satori (JSX → SVG). Use them in GitHub READMEs, npm pages, docs sites, and anywhere that accepts `<img>` tags.
+
+No configuration, no API keys, no build step. Every endpoint is public and free.
+
+## URL format
+
+```
+https://shieldcn.dev/{provider}/{...params}.svg    → SVG badge
+https://shieldcn.dev/{provider}/{...params}.png    → PNG badge
+https://shieldcn.dev/{provider}/{...params}.json   → raw data
+https://shieldcn.dev/{provider}/{...params}/shields.json → shields.io compatible
+```
+
+## Badge types
+
+### npm
+
+| Badge | URL |
+|-------|-----|
+| Version | `/npm/{package}.svg` |
+| Version (tag) | `/npm/v/{package}[/{tag}].svg` |
+| Downloads (weekly) | `/npm/dw/{package}.svg` |
+| Downloads (monthly) | `/npm/dm/{package}.svg` |
+| Downloads (yearly) | `/npm/dy/{package}.svg` |
+| Downloads (total) | `/npm/dt/{package}.svg` |
+| License | `/npm/license/{package}.svg` |
+| Node version | `/npm/node/{package}.svg` |
+| TypeScript types | `/npm/types/{package}.svg` |
+| Dependents | `/npm/dependents/{package}.svg` |
+
+Scoped packages: `/npm/@scope/package.svg`
+
+### GitHub
+
+| Badge | URL |
+|-------|-----|
+| Stars | `/github/stars/{owner}/{repo}.svg` |
+| Forks | `/github/forks/{owner}/{repo}.svg` |
+| Watchers | `/github/watchers/{owner}/{repo}.svg` |
+| Branches | `/github/branches/{owner}/{repo}.svg` |
+| Releases | `/github/releases/{owner}/{repo}.svg` |
+| Tags | `/github/tags/{owner}/{repo}.svg` |
+| Latest tag | `/github/tag/{owner}/{repo}.svg` |
+| License | `/github/license/{owner}/{repo}.svg` |
+| Release | `/github/release/{owner}/{repo}[/stable].svg` |
+| Contributors | `/github/contributors/{owner}/{repo}.svg` |
+| CI status | `/github/ci/{owner}/{repo}.svg` |
+| Checks | `/github/checks/{owner}/{repo}[/ref][/check].svg` |
+| Issues | `/github/issues/{owner}/{repo}.svg` |
+| Open issues | `/github/open-issues/{owner}/{repo}.svg` |
+| Closed issues | `/github/closed-issues/{owner}/{repo}.svg` |
+| Label issues | `/github/label-issues/{owner}/{repo}/{label}[/state].svg` |
+| PRs | `/github/prs/{owner}/{repo}.svg` |
+| Open PRs | `/github/open-prs/{owner}/{repo}.svg` |
+| Closed PRs | `/github/closed-prs/{owner}/{repo}.svg` |
+| Merged PRs | `/github/merged-prs/{owner}/{repo}.svg` |
+| Milestones | `/github/milestones/{owner}/{repo}/{number}.svg` |
+| Commits | `/github/commits/{owner}/{repo}[/ref].svg` |
+| Last commit | `/github/last-commit/{owner}/{repo}[/ref].svg` |
+| Asset downloads | `/github/assets-dl/{owner}/{repo}[/tag].svg` |
+| Dependabot | `/github/dependabot/{owner}/{repo}.svg` |
+
+GitHub badges support both URL formats:
+- `/github/stars/{owner}/{repo}.svg`
+- `/github/{owner}/{repo}/stars.svg`
+
+### Discord
+
+| Badge | URL |
+|-------|-----|
+| Online count | `/discord/{serverId}.svg` |
+| Members | `/discord/members/{inviteCode}.svg` |
+| Online members | `/discord/online-members/{inviteCode}.svg` |
+
+### Reddit
+
+| Badge | URL |
+|-------|-----|
+| Karma | `/reddit/{type}/u/{user}.svg` |
+| Subscribers | `/reddit/subscribers/r/{subreddit}.svg` |
+
+### Static & dynamic
+
+| Badge | URL |
+|-------|-----|
+| Static | `/badge/{label}-{message}-{color}.svg` |
+| Dynamic JSON | `/badge/dynamic/json.svg?url=...&query=...` |
+| HTTPS endpoint | `/https/{hostname}/{path}.svg` |
+| Memo (writable) | `/memo/{key}.svg` |
+
+## Query parameters
+
+### Appearance
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `variant` | `default`, `secondary`, `outline`, `ghost`, `destructive`, `branded` | `default` |
+| `size` | `xs`, `sm`, `default`, `lg` | `sm` |
+| `mode` | `dark`, `light` | `dark` |
+| `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |
+| `font` | `inter`, `geist`, `geist-mono` | `inter` |
+
+### Colors
+
+| Param | Description |
+|-------|-------------|
+| `color` | Override badge background color (hex without #) |
+| `labelColor` | Override label-side background for split mode (hex without #) |
+| `valueColor` | Override value text color (hex without #) |
+| `labelTextColor` | Override label text color (hex without #) |
+| `labelOpacity` | Label text opacity, 0–1 (default: 0.7) |
+
+### Icons
+
+| Param | Description |
+|-------|-------------|
+| `logo` | SimpleIcons slug (`react`), Lucide (`lucide:star`), React Icons (`ri:FaReact`), base64 SVG data URI, or `false` to hide |
+| `logoColor` | Override icon color (hex without #) |
+
+Three icon libraries with 40,000+ icons total, plus custom SVG upload.
+
+### Layout
+
+| Param | Description |
+|-------|-------------|
+| `label` | Override label text |
+| `split` | `true` for two-tone split background |
+| `statusDot` | `true`/`false` — colored dot before label (auto for CI) |
+| `height` | Badge height in px |
+| `fontSize` | Font size in px |
+| `radius` | Border radius in px |
+| `padX` | Horizontal padding in px |
+| `iconSize` | Icon size in px |
+| `gap` | Gap between icon and text in px |
+| `labelGap` | Gap between label and value in px |
+
+## Examples
+
+```markdown
+<!-- npm version badge -->
+![npm](https://shieldcn.dev/npm/react.svg)
+
+<!-- GitHub stars with secondary variant -->
+![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg?variant=secondary)
+
+<!-- CI status with outline variant -->
+![CI](https://shieldcn.dev/github/ci/jal-co/shieldcn.svg?variant=outline)
+
+<!-- Custom static badge -->
+![custom](https://shieldcn.dev/badge/built%20with-shieldcn-blue.svg)
+
+<!-- Branded variant (uses provider brand color as background) -->
+![npm branded](https://shieldcn.dev/npm/react.svg?variant=branded)
+
+<!-- Split mode -->
+![split](https://shieldcn.dev/npm/react.svg?split=true)
+
+<!-- Light mode -->
+![light](https://shieldcn.dev/npm/react.svg?mode=light)
+
+<!-- Custom icon -->
+![custom icon](https://shieldcn.dev/badge/status-online-green.svg?logo=lucide:circle-check)
+
+<!-- Discord online count -->
+![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
+```
+
+## Key differences from shields.io
+
+- Badges look like shadcn/ui Button components, not flat rectangles
+- 6 variants (default, secondary, outline, ghost, destructive, branded)
+- 16 color themes from shadcn palette
+- 40,000+ icons from SimpleIcons + Lucide + React Icons
+- Custom SVG icon upload via base64 data URI
+- Split mode with two-tone backgrounds
+- Status dots for CI badges
+- Dark and light mode
+- Free, open source, MIT licensed
+
+## Links
+
+- Homepage: https://shieldcn.dev
+- Documentation: https://shieldcn.dev/docs
+- API Reference: https://shieldcn.dev/docs/api-reference
+- Showcase: https://shieldcn.dev/showcase
+- Badge Generator: https://shieldcn.dev/gen
+- GitHub: https://github.com/jal-co/shieldcn
