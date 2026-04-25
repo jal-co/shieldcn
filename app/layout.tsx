@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Fira_Code, Geist, Sora } from "next/font/google"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@/components/analytics"
 import "./globals.css"
@@ -96,9 +97,11 @@ export default function RootLayout({
       className={cn(geist.variable, sora.variable, firaCode.variable)}
     >
       <body className="antialiased font-sans">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </NuqsAdapter>
         <Analytics />
       </body>
     </html>

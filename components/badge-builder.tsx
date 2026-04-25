@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo } from "react"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, ChevronDown, RotateCcw } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
@@ -15,49 +15,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
 
 const PROVIDERS = [
-  { value: "npm", label: "npm version", placeholder: "react", inputLabel: "Package name" },
-  { value: "npm-downloads", label: "npm downloads", placeholder: "react", inputLabel: "Package name" },
-  { value: "github-stars", label: "GitHub stars", placeholder: "vercel/next.js", inputLabel: "owner/repo" },
-  { value: "github-release", label: "GitHub release", placeholder: "vercel/next.js", inputLabel: "owner/repo" },
-  { value: "github-ci", label: "CI status", placeholder: "vercel/next.js", inputLabel: "owner/repo" },
-  { value: "github-license", label: "License", placeholder: "vercel/next.js", inputLabel: "owner/repo" },
-  { value: "discord", label: "Discord", placeholder: "1316199667142496307", inputLabel: "Server ID" },
-  { value: "static", label: "Static badge", placeholder: "build-passing-green", inputLabel: "label-message-color" },
+  { value: "npm", label: "npm version", placeholder: "react", inputLabel: "Package" },
+  { value: "npm-downloads", label: "npm downloads", placeholder: "react", inputLabel: "Package" },
+  { value: "github-stars", label: "GitHub stars", placeholder: "vercel/next.js", inputLabel: "Repository" },
+  { value: "github-release", label: "GitHub release", placeholder: "vercel/next.js", inputLabel: "Repository" },
+  { value: "github-ci", label: "CI status", placeholder: "vercel/next.js", inputLabel: "Repository" },
+  { value: "github-license", label: "License", placeholder: "vercel/next.js", inputLabel: "Repository" },
+  { value: "discord", label: "Discord online", placeholder: "1316199667142496307", inputLabel: "Server ID" },
+  { value: "static", label: "Static badge", placeholder: "build-passing-green", inputLabel: "Text (label-message-color)" },
 ] as const
 
 const VARIANTS = [
-  { value: "default", label: "default" },
-  { value: "secondary", label: "secondary" },
-  { value: "outline", label: "outline" },
-  { value: "ghost", label: "ghost" },
-  { value: "destructive", label: "destructive" },
-  { value: "branded", label: "branded" },
+  { value: "default", label: "Default" },
+  { value: "secondary", label: "Secondary" },
+  { value: "outline", label: "Outline" },
+  { value: "ghost", label: "Ghost" },
+  { value: "destructive", label: "Destructive" },
+  { value: "branded", label: "Branded" },
 ] as const
 
 const SIZES = [
-  { value: "xs", label: "xs (24px)" },
-  { value: "sm", label: "sm (32px)" },
-  { value: "default", label: "default (36px)" },
-  { value: "lg", label: "lg (40px)" },
+  { value: "xs", label: "Extra small" },
+  { value: "sm", label: "Small" },
+  { value: "default", label: "Default" },
+  { value: "lg", label: "Large" },
 ] as const
 
 const THEMES = [
-  { value: "_none", label: "none (variant colors)" },
-  { value: "zinc", label: "zinc" },
-  { value: "slate", label: "slate" },
-  { value: "blue", label: "blue" },
-  { value: "green", label: "green" },
-  { value: "rose", label: "rose" },
-  { value: "orange", label: "orange" },
-  { value: "violet", label: "violet" },
-  { value: "purple", label: "purple" },
-  { value: "cyan", label: "cyan" },
+  { value: "_none", label: "None" },
+  { value: "zinc", label: "Zinc" },
+  { value: "slate", label: "Slate" },
+  { value: "blue", label: "Blue" },
+  { value: "green", label: "Green" },
+  { value: "rose", label: "Rose" },
+  { value: "orange", label: "Orange" },
+  { value: "violet", label: "Violet" },
+  { value: "purple", label: "Purple" },
+  { value: "cyan", label: "Cyan" },
 ] as const
 
 // ---------------------------------------------------------------------------
@@ -71,22 +73,16 @@ interface State {
   size: string
   theme: string
   mode: string
-  // Flags
   split: boolean
   statusDot: "auto" | "true" | "false"
-  // Font
   font: string
-  // Icons
   logo: string
   logoColor: string
-  // Text overrides
   label: string
-  // Color overrides
   color: string
   valueColor: string
   labelTextColor: string
   labelOpacity: string
-  // Split colors
   leftBg: string
   rightBg: string
 }
@@ -119,7 +115,6 @@ function buildUrl(s: State, baseUrl: string): string {
   if (s.logoColor) p.set("logoColor", s.logoColor)
   if (s.label) p.set("label", s.label)
   if (s.split) {
-    // In split mode, labelColor = left bg, color = right bg
     if (s.leftBg) p.set("labelColor", s.leftBg)
     if (s.rightBg) p.set("color", s.rightBg)
   } else {
@@ -158,9 +153,11 @@ const defaults: State = {
   rightBg: "",
 }
 
+import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
+
 export function BadgeBuilder() {
   const [s, setS] = useState<State>(defaults)
-  const [showCustomize, setShowCustomize] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [copied, setCopied] = useState(false)
   const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
 
@@ -175,7 +172,6 @@ export function BadgeBuilder() {
 
   const currentProvider = PROVIDERS.find(p => p.value === s.provider)
   const isCI = s.provider === "github-ci"
-  const isStatic = s.provider === "static"
 
   const handleCopy = useCallback(() => {
     if (!markdown) return
@@ -185,13 +181,27 @@ export function BadgeBuilder() {
   }, [markdown])
 
   const sizeHeight = { xs: "h-6", sm: "h-8", default: "h-9", lg: "h-10" }[s.size] || "h-8"
+  const isDefault = JSON.stringify(s) === JSON.stringify(defaults)
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6 space-y-5">
-      <h3 className="text-lg font-semibold tracking-tight">Badge Builder</h3>
+    <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold tracking-tight">Badge Builder</h3>
+        {!isDefault && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setS(defaults); setShowAdvanced(false) }}
+            className="text-muted-foreground text-xs gap-1.5"
+          >
+            <RotateCcw className="size-3" />
+            Reset
+          </Button>
+        )}
+      </div>
 
-      {/* ── Tier 1: Always visible ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── Row 1: What badge? ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Badge type">
           <Select value={s.provider} onValueChange={v => {
             const p = PROVIDERS.find(x => x.value === v)
@@ -208,7 +218,10 @@ export function BadgeBuilder() {
         <Field label={currentProvider?.inputLabel || "Input"}>
           <Input value={s.input} onChange={e => set("input", e.target.value)} placeholder={currentProvider?.placeholder} />
         </Field>
+      </div>
 
+      {/* ── Row 2: Style ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Field label="Variant">
           <Select value={s.variant} onValueChange={v => set("variant", v)}>
             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -226,27 +239,6 @@ export function BadgeBuilder() {
             </SelectContent>
           </Select>
         </Field>
-      </div>
-
-      {/* ── Tier 2: Logo, theme, mode, flags ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Field label="Logo" hint="slug, lucide:name, or SVG">
-          <div className="space-y-1.5">
-            <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
-            <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="w-full" />
-          </div>
-        </Field>
-
-        <Field label="Font">
-          <Select value={s.font} onValueChange={v => set("font", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="inter">Inter</SelectItem>
-              <SelectItem value="geist">Geist</SelectItem>
-              <SelectItem value="geist-mono">Geist Mono</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
 
         <Field label="Theme">
           <Select value={s.theme} onValueChange={v => set("theme", v)}>
@@ -261,119 +253,122 @@ export function BadgeBuilder() {
           <Select value={s.mode} onValueChange={v => set("mode", v)}>
             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="dark">dark</SelectItem>
-              <SelectItem value="light">light</SelectItem>
+              <SelectItem value="dark">Dark</SelectItem>
+              <SelectItem value="light">Light</SelectItem>
             </SelectContent>
           </Select>
         </Field>
+      </div>
 
-        <Field label="Logo color" hint="hex">
-          <ColorInput value={s.logoColor} onChange={v => set("logoColor", v)} placeholder="auto" />
+      {/* ── Row 3: Icon ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Icon">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
+            </div>
+            <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="shrink-0" />
+          </div>
         </Field>
 
-        <Field label="Flags">
-          <div className="flex flex-col gap-1.5 pt-1">
-            <Checkbox label="split" checked={s.split} onChange={v => set("split", v)} />
-            {isCI && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  label="statusDot"
-                  checked={s.statusDot === "true"}
-                  onChange={v => set("statusDot", v ? "true" : "false")}
-                />
-              </div>
-            )}
-          </div>
+        <Field label="Font">
+          <Select value={s.font} onValueChange={v => set("font", v)}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="inter">Inter</SelectItem>
+              <SelectItem value="geist">Geist</SelectItem>
+              <SelectItem value="geist-mono">Geist Mono</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
       </div>
 
-      {/* ── Split mode fields ── */}
+      {/* ── Toggles ── */}
+      <div className="flex flex-wrap items-center gap-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <ShadcnCheckbox checked={s.split} onCheckedChange={v => set("split", v === true)} />
+          <span className="text-sm">Split mode</span>
+        </label>
+        {isCI && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <ShadcnCheckbox
+              checked={s.statusDot === "true"}
+              onCheckedChange={v => set("statusDot", v ? "true" : "false")}
+            />
+            <span className="text-sm">Status dot</span>
+          </label>
+        )}
+      </div>
+
+      {/* ── Split mode colors ── */}
       {s.split && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-md border border-border/60 bg-muted/20 p-4">
-          <p className="col-span-full text-xs font-medium uppercase tracking-wider text-muted-foreground">Split colors</p>
-          <Field label="Left background" hint="hex without #">
-            <ColorInput value={s.leftBg} onChange={v => set("leftBg", v)} placeholder="auto (secondary)" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg border border-border/50 bg-muted/10 p-4">
+          <Field label="Left background">
+            <ColorInput value={s.leftBg} onChange={v => set("leftBg", v)} placeholder="auto" />
           </Field>
-          <Field label="Right background" hint="hex without #">
-            <ColorInput value={s.rightBg} onChange={v => set("rightBg", v)} placeholder="auto (status/theme)" />
+          <Field label="Right background">
+            <ColorInput value={s.rightBg} onChange={v => set("rightBg", v)} placeholder="auto" />
           </Field>
-          <Field label="Label override">
-            <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="left side text" />
+          <Field label="Label text">
+            <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" />
           </Field>
         </div>
       )}
 
-      {/* ── Tier 3: Customize (expandable) ── */}
+      {/* ── Advanced ── */}
       <button
-        onClick={() => setShowCustomize(!showCustomize)}
-        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
-        <span className="text-xs">{showCustomize ? "−" : "+"}</span>
-        {showCustomize ? "Hide" : "Show"} color overrides
+        <ChevronDown className={cn("size-3.5 transition-transform", showAdvanced && "rotate-180")} />
+        Advanced options
       </button>
 
-      {showCustomize && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-md border border-border/60 bg-muted/20 p-4">
-          <Field label="Badge bg color" hint="hex without #">
+      {showAdvanced && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 rounded-lg border border-border/50 bg-muted/10 p-4">
+          <Field label="Background color" color={s.color}>
             <ColorInput value={s.color} onChange={v => set("color", v)} placeholder="auto" />
           </Field>
-          <Field label="Value text color" hint="hex without #">
+          <Field label="Value text color" color={s.valueColor}>
             <ColorInput value={s.valueColor} onChange={v => set("valueColor", v)} placeholder="auto" />
           </Field>
-          <Field label="Label text color" hint="hex without #">
+          <Field label="Label text color" color={s.labelTextColor}>
             <ColorInput value={s.labelTextColor} onChange={v => set("labelTextColor", v)} placeholder="auto" />
           </Field>
-          <Field label="Label opacity" hint="0–1">
+          <Field label="Icon color" color={s.logoColor}>
+            <ColorInput value={s.logoColor} onChange={v => set("logoColor", v)} placeholder="auto" />
+          </Field>
+          <Field label="Label opacity">
             <Input value={s.labelOpacity} onChange={e => set("labelOpacity", e.target.value)} placeholder="0.7" />
           </Field>
           {!s.split && (
-            <Field label="Label override">
+            <Field label="Custom label">
               <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" />
             </Field>
           )}
         </div>
       )}
 
-      {/* ── Preview ── */}
+      <Separator />
+
+      {/* ── Preview + Output ── */}
       {url && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-center rounded-lg border border-border bg-muted/20 p-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt="badge preview" className={sizeHeight} />
           </div>
 
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-md border border-border bg-muted/50 px-3 py-2 text-xs font-mono break-all">
+            <code className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-xs font-mono break-all text-muted-foreground">
               {markdown}
             </code>
-            <Button variant="outline" size="sm" onClick={handleCopy}>
+            <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0">
               {copied ? <><Check className="size-3.5" /> Copied</> : <><Copy className="size-3.5" /> Copy</>}
             </Button>
           </div>
         </div>
       )}
-
-      {/* ── Reset ── */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-        Logos: any{" "}
-        <a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Simple Icons</a>{" "}
-        slug,{" "}
-        <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Lucide</a>{" "}
-        with <code className="text-[11px] bg-muted px-1 rounded">lucide:name</code>,{" "}
-        <a href="https://react-icons.github.io/react-icons/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">React Icons</a>{" "}
-        with <code className="text-[11px] bg-muted px-1 rounded">ri:ComponentName</code>,{" "}
-        or upload a custom SVG.
-        </p>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => { setS(defaults); setShowCustomize(false) }}
-          className="text-muted-foreground"
-        >
-          Reset
-        </Button>
-      </div>
     </div>
   )
 }
@@ -382,25 +377,20 @@ export function BadgeBuilder() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({ label, color, children }: { label: string; color?: string; children: React.ReactNode }) {
+  const hasColor = color && /^#?[0-9a-fA-F]{3,8}$/.test(color.replace(/^#/, ""))
   return (
     <div className="space-y-1.5">
-      <div className="flex items-baseline gap-1">
-        <Label className="text-xs shrink-0">{label}</Label>
-        {hint && <span className="text-[10px] text-muted-foreground truncate">({hint})</span>}
-      </div>
+      <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+        {hasColor && (
+          <span
+            className="inline-block size-2.5 rounded-full border border-border/60 shrink-0"
+            style={{ backgroundColor: color.startsWith("#") ? color : `#${color}` }}
+          />
+        )}
+        {label}
+      </Label>
       {children}
     </div>
-  )
-}
-
-import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
-
-function Checkbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex items-center gap-2 cursor-pointer">
-      <ShadcnCheckbox checked={checked} onCheckedChange={v => onChange(v === true)} />
-      <span className="text-muted-foreground text-xs font-mono">{label}</span>
-    </label>
   )
 }

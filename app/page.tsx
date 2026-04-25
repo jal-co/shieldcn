@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
 import { BadgeMarquee } from "@/components/badge-marquee"
+import { GenHeroInput } from "@/components/gen-hero-input"
 import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
@@ -42,14 +43,16 @@ export default function Home() {
                 6 variants, 16 themes, 5,000+ built-in icons, and custom SVG upload — unlimited combinations.
               </p>
 
+              <GenHeroInput />
+
               <div className="flex items-center justify-center gap-3 pt-2">
-                <Button asChild>
+                <Button asChild className="w-36">
                   <Link href="/docs">
                     Get Started
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild className="w-36">
                   <Link href="/showcase">
                     Showcase
                   </Link>
