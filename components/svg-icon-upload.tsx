@@ -12,6 +12,7 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { optimize } from "svgo/browser"
 import { FileUp, Trash2, Image } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -72,12 +73,32 @@ function minifySvg(svg: string): string {
 }
 
 /**
- * Convert raw SVG string to a minified base64 data URI.
+ * Convert raw SVG string to a compact data URI.
+ *
+ * Pipeline: raw SVG → SVGO (path optimization + cleanup) → mini URI encoding.
+ * Mini URI encoding only escapes `#` (fragment identifier) and swaps
+ * double quotes to single quotes. This is ~50-70% smaller than base64
+ * for typical icon SVGs.
  */
 function svgToDataUri(svg: string): string {
-  const minified = minifySvg(svg)
-  const b64 = btoa(unescape(encodeURIComponent(minified)))
-  return `data:image/svg+xml;base64,${b64}`
+  let minified: string
+  try {
+    const result = optimize(minifySvg(svg), {
+      multipass: true,
+      plugins: [
+        "preset-default",
+        "removeDimensions",
+        { name: "convertPathData", params: { floatPrecision: 1 } },
+      ],
+    })
+    minified = result.data
+  } catch {
+    // SVGO failed — fall back to basic minification
+    minified = minifySvg(svg)
+  }
+  // Mini URI encoding: only `#` needs escaping in a data URI.
+  // Swap " → ' so the URI works inside double-quoted HTML attributes.
+  return "data:image/svg+xml," + minified.replace(/"/g, "'").replace(/#/g, "%23")
 }
 
 /**
