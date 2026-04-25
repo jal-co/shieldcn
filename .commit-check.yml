@@ -1,0 +1,15 @@
+checks:
+  - check: message
+    regex: ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?(!)?\:\s.+
+    error: |
+      Commit message must follow Conventional Commits.
+      Format: <type>(<scope>): <description>
+      Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+    suggest: Use conventional commit format. See https://www.conventionalcommits.org/
+  - check: branch
+    regex: ^(main|master|develop)$|^(feat|feature|fix|bugfix|hotfix|docs|refactor|style|test|perf|ci|build|chore|release)\/.+
+    error: |
+      Branch name must follow Conventional Branch format.
+      Format: <type>/<description>
+      Types: feat, feature, fix, bugfix, hotfix, docs, refactor, style, test, perf, ci, build, chore, release
+    suggest: Use conventional branch format. See https://conventional-branch.github.io/
