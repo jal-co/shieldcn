@@ -1,0 +1,107 @@
+---
+title: ReadmeBadgeRow
+description: Horizontal layout wrapper for multiple badges with spacing and alignment.
+---
+
+## Installation
+
+<InstallBlock name="readme-badge-row" />
+
+## Usage
+
+<CodeLine code={`import { ReadmeBadge } from "@/components/readme-badge"`} />
+<CodeLine code={`import { ReadmeBadgeRow } from "@/components/readme-badge-row"`} />
+
+### Basic row
+
+<BadgePreview
+  src="/npm/react.svg"
+  code='<ReadmeBadgeRow>
+  <ReadmeBadge src="https://shieldcn.dev/npm/react.svg" alt="npm" />
+  <ReadmeBadge src="https://shieldcn.dev/github/stars/vercel/next.js.svg" alt="stars" />
+  <ReadmeBadge src="https://shieldcn.dev/badge/build-passing-green.svg" alt="build" />
+</ReadmeBadgeRow>'
+/>
+
+### Alignment
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="Left (default)"
+    src="/badge/left-aligned-blue.svg"
+    code='<ReadmeBadgeRow align="left">...</ReadmeBadgeRow>'
+  />
+  <BadgePreviewCard
+    title="Center"
+    src="/badge/centered-blue.svg"
+    code='<ReadmeBadgeRow align="center">...</ReadmeBadgeRow>'
+  />
+  <BadgePreviewCard
+    title="Right"
+    src="/badge/right-aligned-blue.svg"
+    code='<ReadmeBadgeRow align="right">...</ReadmeBadgeRow>'
+  />
+</BadgePreviewGroup>
+
+### Gap sizes
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    title="xs"
+    src="/badge/gap-xs-green.svg?variant=outline"
+    code='<ReadmeBadgeRow gap="xs">...</ReadmeBadgeRow>'
+  />
+  <BadgePreviewCard
+    title="sm (default)"
+    src="/badge/gap-sm-green.svg?variant=outline"
+    code='<ReadmeBadgeRow gap="sm">...</ReadmeBadgeRow>'
+  />
+  <BadgePreviewCard
+    title="md"
+    src="/badge/gap-md-green.svg?variant=outline"
+    code='<ReadmeBadgeRow gap="md">...</ReadmeBadgeRow>'
+  />
+  <BadgePreviewCard
+    title="lg"
+    src="/badge/gap-lg-green.svg?variant=outline"
+    code='<ReadmeBadgeRow gap="lg">...</ReadmeBadgeRow>'
+  />
+</BadgePreviewGroup>
+
+### Works with any children
+
+`ReadmeBadgeRow` works with any inline elements, not just `ReadmeBadge`:
+
+<CodeLine code={`<ReadmeBadgeRow>
+  <img src="https://shieldcn.dev/npm/react.svg" alt="React" />
+  <img src="https://shields.io/badge/foo-bar-blue" alt="shields" />
+</ReadmeBadgeRow>`} />
+
+## API Reference
+
+<ApiRefTable
+  title="ReadmeBadgeRow"
+  props={[
+    {
+      name: "gap",
+      type: '"xs" | "sm" | "md" | "lg"',
+      description: 'Spacing between badges. Defaults to "sm".',
+    },
+    {
+      name: "align",
+      type: '"left" | "center" | "right"',
+      description: 'Horizontal alignment. Defaults to "left".',
+    },
+    {
+      name: "className",
+      type: "string",
+      description: "Additional class names for the wrapper.",
+    },
+    {
+      name: "children",
+      type: "ReactNode",
+      required: true,
+      description: "Badge elements or any inline children.",
+    },
+  ]}
+/>

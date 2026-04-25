@@ -78,6 +78,15 @@ const docsNav: NavGroup[] = [
       { title: "Styles", href: "/docs/customization/styles" },
     ],
   },
+  {
+    title: "Registry",
+    items: [
+      { title: "Overview", href: "/docs/registry" },
+      { title: "ReadmeBadge", href: "/docs/registry/readme-badge" },
+      { title: "ReadmeBadgeRow", href: "/docs/registry/readme-badge-row" },
+      { title: "BadgePreview", href: "/docs/registry/badge-preview" },
+    ],
+  },
 ]
 
 export { docsNav }
