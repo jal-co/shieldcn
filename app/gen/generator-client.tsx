@@ -48,6 +48,7 @@ import { Separator } from "@/components/ui/separator"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { cn } from "@/lib/utils"
+import { TOUR_STEP_IDS } from "@/lib/tour-constants"
 
 const VARIANTS: Variant[] = [
   "default",
@@ -333,7 +334,7 @@ export default function GeneratorApp() {
         <TabsContent value="url">
           <Card>
             <CardContent>
-              <div className="space-y-2">
+              <div id={TOUR_STEP_IDS.URL_INPUT} className="space-y-2">
                 <Label htmlFor="url-input" className="text-xs text-muted-foreground">
                   GitHub repository URL or owner/repo
                 </Label>
@@ -564,7 +565,7 @@ function ResultsPanel({
       )}
 
       {/* Global defaults */}
-      <div className="space-y-3">
+      <div id={TOUR_STEP_IDS.GLOBAL_DEFAULTS} className="space-y-3">
         <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Global defaults
         </h3>
@@ -602,14 +603,18 @@ function ResultsPanel({
         if (!items || items.length === 0) return null
         const visible = items.filter((b) => b.enabled)
         if (visible.length === 0) return null
+        const isFirst = GROUP_ORDER.indexOf(group) === GROUP_ORDER.findIndex((g) => {
+          const items2 = byGroup.get(g)
+          return items2 && items2.some((b) => b.enabled)
+        })
         return (
-          <div key={group} className="space-y-3">
+          <div key={group} id={isFirst ? TOUR_STEP_IDS.BADGE_GROUP : undefined} className="space-y-3">
             <div className="flex items-baseline gap-2">
               <h3 className="text-sm font-semibold">{GROUP_TITLES[group]}</h3>
               <span className="text-xs text-muted-foreground">{visible.length}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {visible.map((badge) => (
+              {visible.map((badge, badgeIdx) => (
                 <BadgeItem
                   key={badge.id}
                   badge={badge}
@@ -618,6 +623,7 @@ function ResultsPanel({
                   onUpdateOverrides={(patch) => updateOverrides(badge.id, patch)}
                   onRemove={() => removeBadge(badge.id)}
                   onCopy={onCopy}
+                  tourId={isFirst && badgeIdx === 0 ? TOUR_STEP_IDS.BADGE_POPOVER : undefined}
                 />
               ))}
             </div>
@@ -638,7 +644,7 @@ function ResultsPanel({
           rows={Math.min(Math.max(enabledBadges.length, 4), 16)}
           className="font-mono text-xs"
         />
-        <div className="flex flex-wrap gap-2">
+        <div id={TOUR_STEP_IDS.COPY_ACTIONS} className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => onCopy(markdown)}>
             <Copy className="size-3.5" />
             Copy markdown
@@ -692,6 +698,7 @@ function BadgeItem({
   onUpdateOverrides,
   onRemove,
   onCopy,
+  tourId,
 }: {
   badge: Badge
   global: GlobalSettings
@@ -699,6 +706,7 @@ function BadgeItem({
   onUpdateOverrides: (patch: Overrides) => void
   onRemove: () => void
   onCopy: (text: string) => void
+  tourId?: string
 }) {
   const [open, setOpen] = useState(false)
   const url = badgeUrl(badge, global)
@@ -720,6 +728,7 @@ function BadgeItem({
       <PopoverTrigger asChild>
         <button
           type="button"
+          id={tourId}
           className={cn(
             "inline-flex items-center rounded-md border border-transparent p-0.5 transition-colors hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             open && "border-primary",
