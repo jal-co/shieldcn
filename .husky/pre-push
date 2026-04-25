@@ -14,17 +14,19 @@ if echo "$branch" | grep -qE "^(main|master|develop)$"; then
 fi
 
 # Validate conventional branch format
-if ! echo "$branch" | grep -qE "^(feature|feat|bugfix|fix|hotfix|release|chore)/[a-z0-9][a-z0-9.\-]*[a-z0-9]$"; then
+if ! echo "$branch" | grep -qE "^(feat|feature|fix|bugfix|hotfix|docs|refactor|style|test|perf|ci|build|chore|release)/[a-z0-9][a-z0-9.\-]*[a-z0-9]$"; then
   echo ""
   echo "❌ Invalid branch name: $branch"
   echo ""
   echo "Expected: <type>/<description>"
   echo ""
-  echo "Types: feature, feat, bugfix, fix, hotfix, release, chore"
+  echo "Types: feat, feature, fix, bugfix, hotfix, docs, refactor, style, test, perf, ci, build, chore, release"
   echo ""
   echo "Examples:"
   echo "  feat/add-login-page"
   echo "  fix/header-bug"
+  echo "  docs/add-pypi-guide"
+  echo "  refactor/split-render-pipeline"
   echo "  hotfix/security-patch"
   echo "  release/v1.2.0"
   echo "  chore/update-dependencies"

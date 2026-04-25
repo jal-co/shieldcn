@@ -1,0 +1,53 @@
+name: 📦 New Provider
+description: Request support for a new badge provider
+labels: ["feature", "provider"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Want shieldcn to support a new service? Tell us about it.
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider name
+      placeholder: Hex.pm
+    validations:
+      required: true
+
+  - type: input
+    id: website
+    attributes:
+      label: Provider website
+      placeholder: https://hex.pm
+    validations:
+      required: true
+
+  - type: textarea
+    id: badges
+    attributes:
+      label: What badges should it support?
+      description: List the data points you'd want as badges
+      placeholder: |
+        - Version (latest release)
+        - Downloads (total / weekly)
+        - License
+    validations:
+      required: true
+
+  - type: input
+    id: api
+    attributes:
+      label: Public API endpoint
+      description: Link to their API docs (must be public, no auth required ideally)
+      placeholder: https://hex.pm/api
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else — rate limits, auth requirements, similar shields.io badges, etc.
+    validations:
+      required: false

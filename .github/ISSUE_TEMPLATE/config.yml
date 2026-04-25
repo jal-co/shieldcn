@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Documentation
+    url: https://shieldcn.dev/docs
+    about: Check the docs before opening an issue
+  - name: 🎨 Badge Builder
+    url: https://shieldcn.dev
+    about: Try the interactive badge builder on the homepage
