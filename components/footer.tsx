@@ -60,6 +60,12 @@ export function SiteFooter() {
               >
                 Token Pool
               </Link>
+              <Link
+                href="/gen"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Generator
+              </Link>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -101,7 +107,7 @@ export function SiteFooter() {
             <a href="https://shields.io" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">shields.io</a>
             {" "}&{" "}
             <a href="https://badgen.net" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">badgen.net</a>
-            .
+.
           </p>
 
           <div className="flex items-center gap-3">

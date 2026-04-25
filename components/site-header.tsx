@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, Wand2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { MobileNav } from "@/components/mobile-nav"
@@ -25,6 +25,12 @@ export function SiteHeader() {
         </Button>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/showcase">Showcase</Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/gen">
+            <Wand2 className="size-3.5" />
+            Generator
+          </Link>
         </Button>
 
       </nav>

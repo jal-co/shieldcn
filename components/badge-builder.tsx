@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
+import { ColorInput } from "@/components/color-input"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -263,7 +264,7 @@ export function BadgeBuilder() {
         </Field>
 
         <Field label="Logo color" hint="hex">
-          <Input value={s.logoColor} onChange={e => set("logoColor", e.target.value)} placeholder="auto" />
+          <ColorInput value={s.logoColor} onChange={v => set("logoColor", v)} placeholder="auto" />
         </Field>
 
         <Field label="Flags">
@@ -287,10 +288,10 @@ export function BadgeBuilder() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-md border border-border/60 bg-muted/20 p-4">
           <p className="col-span-full text-xs font-medium uppercase tracking-wider text-muted-foreground">Split colors</p>
           <Field label="Left background" hint="hex without #">
-            <Input value={s.leftBg} onChange={e => set("leftBg", e.target.value)} placeholder="auto (secondary)" />
+            <ColorInput value={s.leftBg} onChange={v => set("leftBg", v)} placeholder="auto (secondary)" />
           </Field>
           <Field label="Right background" hint="hex without #">
-            <Input value={s.rightBg} onChange={e => set("rightBg", e.target.value)} placeholder="auto (status/theme)" />
+            <ColorInput value={s.rightBg} onChange={v => set("rightBg", v)} placeholder="auto (status/theme)" />
           </Field>
           <Field label="Label override">
             <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="left side text" />
@@ -310,13 +311,13 @@ export function BadgeBuilder() {
       {showCustomize && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-md border border-border/60 bg-muted/20 p-4">
           <Field label="Badge bg color" hint="hex without #">
-            <Input value={s.color} onChange={e => set("color", e.target.value)} placeholder="auto" />
+            <ColorInput value={s.color} onChange={v => set("color", v)} placeholder="auto" />
           </Field>
           <Field label="Value text color" hint="hex without #">
-            <Input value={s.valueColor} onChange={e => set("valueColor", e.target.value)} placeholder="auto" />
+            <ColorInput value={s.valueColor} onChange={v => set("valueColor", v)} placeholder="auto" />
           </Field>
           <Field label="Label text color" hint="hex without #">
-            <Input value={s.labelTextColor} onChange={e => set("labelTextColor", e.target.value)} placeholder="auto" />
+            <ColorInput value={s.labelTextColor} onChange={v => set("labelTextColor", v)} placeholder="auto" />
           </Field>
           <Field label="Label opacity" hint="0–1">
             <Input value={s.labelOpacity} onChange={e => set("labelOpacity", e.target.value)} placeholder="0.7" />
