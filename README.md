@@ -46,7 +46,15 @@ Built with [jal-co/ui](https://ui.justinlevine.me) components.
 | Badge | URL |
 |-------|-----|
 | Version | `/npm/{package}.svg` |
-| Downloads | `/npm/{package}/downloads.svg` |
+| Version (tag) | `/npm/v/{package}[/{tag}].svg` |
+| Downloads (weekly) | `/npm/dw/{package}.svg` |
+| Downloads (monthly) | `/npm/dm/{package}.svg` |
+| Downloads (yearly) | `/npm/dy/{package}.svg` |
+| Downloads (total) | `/npm/dt/{package}.svg` |
+| License | `/npm/license/{package}.svg` |
+| Node version | `/npm/node/{package}.svg` |
+| TypeScript types | `/npm/types/{package}.svg` |
+| Dependents | `/npm/dependents/{package}.svg` |
 
 ### GitHub
 
@@ -83,6 +91,15 @@ Built with [jal-co/ui](https://ui.justinlevine.me) components.
 | Badge | URL |
 |-------|-----|
 | Online count | `/discord/{serverId}.svg` |
+| Members | `/discord/members/{inviteCode}.svg` |
+| Online members | `/discord/online-members/{inviteCode}.svg` |
+
+### Reddit
+
+| Badge | URL |
+|-------|-----|
+| Karma | `/reddit/{type}/u/{user}.svg` |
+| Subscribers | `/reddit/subscribers/r/{subreddit}.svg` |
 
 ### Static & Dynamic
 
@@ -90,6 +107,8 @@ Built with [jal-co/ui](https://ui.justinlevine.me) components.
 |-------|-----|
 | Static | `/badge/{label}-{message}-{color}.svg` |
 | Dynamic JSON | `/badge/dynamic/json.svg?url=...&query=...` |
+| HTTPS endpoint | `/https/{hostname}/{path}.svg` |
+| Memo | `/memo/{key}.svg` |
 
 ## Variants & sizes
 

@@ -89,6 +89,12 @@ export function SiteFooter() {
               >
                 jal-co/ui
               </a>
+              <a
+                href="/llms.txt"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                llms.txt
+              </a>
             </div>
           </div>
         </div>
