@@ -1,0 +1,40 @@
+# Auto-labeler config for actions/labeler
+# Docs: https://github.com/actions/labeler
+#
+# Branch prefixes must stay in sync with:
+#   - .husky/pre-push (allowed branch types)
+#   - .github/CONTRIBUTING.md (documented types)
+
+feature:
+  - head-branch: ["^feat/", "^feature/"]
+
+bug:
+  - head-branch: ["^fix/", "^bugfix/", "^hotfix/"]
+
+docs:
+  - head-branch: ["^docs/"]
+  - changed-files:
+      - any-glob-to-any-file:
+          - "content/docs/**"
+          - "app/docs/**"
+
+ci:
+  - head-branch: ["^ci/", "^build/"]
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+chore:
+  - head-branch: ["^chore/"]
+
+refactor:
+  - head-branch: ["^refactor/"]
+
+style:
+  - head-branch: ["^style/"]
+
+perf:
+  - head-branch: ["^perf/"]
+
+test:
+  - head-branch: ["^test/"]

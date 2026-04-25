@@ -16,6 +16,6 @@ ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "gith
 
 [branch]
 conventional_branch = true
-allow_branch_types = ["feature", "bugfix", "hotfix", "release", "chore", "feat", "fix"]
+allow_branch_types = ["feat", "feature", "fix", "bugfix", "hotfix", "docs", "refactor", "style", "test", "perf", "ci", "build", "chore", "release"]
 require_rebase_target = "origin/main"
 ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "github-actions[bot]"]

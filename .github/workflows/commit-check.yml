@@ -1,9 +1,8 @@
 name: Commit Check
 
 on:
-  push:
   pull_request:
-    branches: ["main"]
+    branches: [main]
 
 permissions:
   contents: read
@@ -21,5 +20,6 @@ jobs:
           branch: true
           author-name: false
           author-email: false
+          dry-run: false
           job-summary: true
           pr-comments: false

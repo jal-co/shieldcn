@@ -1,0 +1,49 @@
+name: ✨ Feature Request
+description: Suggest a new badge customization or enhancement
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for shieldcn? We'd love to hear it.
+        
+        **Want to request a new provider?** Use the [📦 New Provider](https://github.com/jal-co/shieldcn/issues/new?template=provider.yml) template instead.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - New badge type for existing provider
+        - New query parameter / customization
+        - Landing page / showcase / gallery
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like to see?
+      description: Describe the feature and why it would be useful
+      placeholder: "Add a `rounded` query param to control border-radius"
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: Proposed URL / query param format
+      description: If applicable, what should the URL or params look like?
+      placeholder: |
+        /npm/react.svg?rounded=true
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, examples from other badge services, screenshots, etc.
+    validations:
+      required: false
