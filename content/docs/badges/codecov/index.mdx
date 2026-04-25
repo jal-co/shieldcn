@@ -1,0 +1,44 @@
+---
+title: Codecov
+description: Badges for code coverage — coverage percentage with color coding.
+---
+
+Display code coverage for any repository tracked by [Codecov](https://codecov.io).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Coverage | `/codecov/{service}/{owner}/{repo}` | Coverage percentage |
+| Coverage (branch) | `/codecov/{service}/{owner}/{repo}/{branch}` | Branch-specific coverage |
+
+The `service` parameter can be `github`, `gitlab`, or `bitbucket`.
+
+## Quick examples
+
+```md
+![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli.svg)
+![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli/main.svg)
+```
+
+<BadgeSandbox
+  endpoint="/codecov/github/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "owner", placeholder: "codecov", required: true },
+    { name: "repo", label: "repo", placeholder: "codecov-cli", required: true },
+  ]}
+  defaults={{ owner: "codecov", repo: "codecov-cli" }}
+/>
+
+## Color coding
+
+Coverage is automatically color-coded:
+
+- **≥ 90%** — green
+- **≥ 75%** — yellow
+- **≥ 50%** — amber
+- **< 50%** — red
+
+## Data source
+
+Uses [Codecov API](https://codecov.io/api). No API key required for public repos. Cached 1 hour.

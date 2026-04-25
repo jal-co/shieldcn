@@ -1,0 +1,34 @@
+---
+title: Mastodon
+description: Badges for Mastodon profiles — followers, following, posts.
+---
+
+Display live stats for any [Mastodon](https://joinmastodon.org) profile on any instance.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Followers | `/mastodon/followers/{instance}/{acct}` | Follower count |
+| Following | `/mastodon/following/{instance}/{acct}` | Following count |
+| Posts | `/mastodon/posts/{instance}/{acct}` | Post count |
+
+## Quick examples
+
+```md
+![followers](https://shieldcn.dev/mastodon/followers/mastodon.social/Gargron.svg)
+![posts](https://shieldcn.dev/mastodon/posts/mastodon.social/Gargron.svg)
+```
+
+<BadgeSandbox
+  endpoint="/mastodon/followers/:instance/:acct.svg"
+  pathParams={[
+    { name: "instance", label: "instance", placeholder: "mastodon.social", required: true },
+    { name: "acct", label: "username", placeholder: "Gargron", required: true },
+  ]}
+  defaults={{ instance: "mastodon.social", acct: "Gargron" }}
+/>
+
+## Data source
+
+Uses the [Mastodon API](https://docs.joinmastodon.org/api/) (`/api/v1/accounts/lookup`). Works with any Mastodon-compatible instance. No API key required. Cached 1 hour.

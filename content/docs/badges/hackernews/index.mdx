@@ -1,0 +1,32 @@
+---
+title: Hacker News
+description: Badges for Hacker News users — karma.
+---
+
+Display karma for any [Hacker News](https://news.ycombinator.com) user.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Karma | `/hackernews/{userId}` | User karma |
+| Karma | `/hackernews/karma/{userId}` | User karma (explicit) |
+
+## Quick examples
+
+```md
+![karma](https://shieldcn.dev/hackernews/pg.svg)
+![karma](https://shieldcn.dev/hackernews/dang.svg?variant=branded)
+```
+
+<BadgeSandbox
+  endpoint="/hackernews/:userId.svg"
+  pathParams={[
+    { name: "userId", label: "user ID", placeholder: "pg", required: true },
+  ]}
+  defaults={{ userId: "pg" }}
+/>
+
+## Data source
+
+Uses the [HN Firebase API](https://hacker-news.firebaseio.com). No API key required. Cached 1 hour.

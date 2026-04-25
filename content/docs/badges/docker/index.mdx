@@ -1,0 +1,40 @@
+---
+title: Docker Hub
+description: Badges for Docker images — pulls, stars, version, image size.
+---
+
+Display live stats for any image on [Docker Hub](https://hub.docker.com).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Pulls | `/docker/pulls/{image}` | Total pull count |
+| Stars | `/docker/stars/{image}` | Star count |
+| Version | `/docker/v/{image}` | Latest tag |
+| Image Size | `/docker/size/{image}` | Compressed image size |
+
+## Quick examples
+
+```md
+![pulls](https://shieldcn.dev/docker/pulls/library/nginx.svg)
+![stars](https://shieldcn.dev/docker/stars/grafana/grafana.svg)
+![size](https://shieldcn.dev/docker/size/library/alpine.svg)
+```
+
+<BadgeSandbox
+  endpoint="/docker/pulls/:image.svg"
+  pathParams={[
+    { name: "image", label: "image", placeholder: "library/nginx", required: true, description: "Use library/ prefix for official images." },
+  ]}
+  defaults={{ image: "library/nginx" }}
+/>
+
+## Image naming
+
+- Official images: `library/nginx`, `library/alpine`, `library/node`
+- User images: `grafana/grafana`, `portainer/portainer`
+
+## Data source
+
+Uses [Docker Hub API v2](https://hub.docker.com/v2/repositories). No API key required. Cached 1 hour.

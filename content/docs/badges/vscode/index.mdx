@@ -1,0 +1,35 @@
+---
+title: VS Code Marketplace
+description: Badges for VS Code extensions — installs, rating, version.
+---
+
+Display live stats for any [VS Code Marketplace](https://marketplace.visualstudio.com) extension.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Installs | `/vscode/installs/{publisher}/{extension}` | Install count |
+| Rating | `/vscode/rating/{publisher}/{extension}` | Average rating |
+| Version | `/vscode/v/{publisher}/{extension}` | Latest version |
+
+## Quick examples
+
+```md
+![installs](https://shieldcn.dev/vscode/installs/esbenp/prettier-vscode.svg)
+![rating](https://shieldcn.dev/vscode/rating/esbenp/prettier-vscode.svg)
+![version](https://shieldcn.dev/vscode/v/esbenp/prettier-vscode.svg)
+```
+
+<BadgeSandbox
+  endpoint="/vscode/installs/:publisher/:extension.svg"
+  pathParams={[
+    { name: "publisher", label: "publisher", placeholder: "esbenp", required: true },
+    { name: "extension", label: "extension", placeholder: "prettier-vscode", required: true },
+  ]}
+  defaults={{ publisher: "esbenp", extension: "prettier-vscode" }}
+/>
+
+## Data source
+
+Uses [VS Code Marketplace API](https://marketplace.visualstudio.com). No API key required. Cached 1 hour.

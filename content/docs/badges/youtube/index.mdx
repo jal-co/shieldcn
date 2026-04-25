@@ -1,0 +1,40 @@
+---
+title: YouTube
+description: Badges for YouTube channels and videos — subscribers, views, likes, comments.
+---
+
+Display live stats for YouTube channels and videos.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Subscribers | `/youtube/subscribers/{channelId}` | Channel subscriber count |
+| Channel Views | `/youtube/channel-views/{channelId}` | Total channel view count |
+| Video Views | `/youtube/views/{videoId}` | Video view count |
+| Video Likes | `/youtube/likes/{videoId}` | Video like count |
+| Video Comments | `/youtube/comments/{videoId}` | Video comment count |
+
+## Quick examples
+
+```md
+![subscribers](https://shieldcn.dev/youtube/subscribers/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg)
+![views](https://shieldcn.dev/youtube/views/dQw4w9WgXcQ.svg)
+![likes](https://shieldcn.dev/youtube/likes/dQw4w9WgXcQ.svg)
+```
+
+<BadgeSandbox
+  endpoint="/youtube/subscribers/:channelId.svg"
+  pathParams={[
+    { name: "channelId", label: "channel ID", placeholder: "UC_x5XG1OV2P6uZZ5FSM9Ttw", required: true },
+  ]}
+  defaults={{ channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw" }}
+/>
+
+## Setup
+
+Requires `YOUTUBE_API_KEY` environment variable. Get one from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with YouTube Data API v3 enabled.
+
+## Data source
+
+Uses [YouTube Data API v3](https://developers.google.com/youtube/v3). Requires API key. Cached 1 hour.

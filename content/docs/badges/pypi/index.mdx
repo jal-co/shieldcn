@@ -1,0 +1,31 @@
+---
+title: PyPI
+description: Badges for Python packages — version, downloads, license, and Python version.
+---
+
+Display live stats for any package on [PyPI](https://pypi.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Version](./version) | `/pypi/{package}` | Latest version |
+| [Downloads](./downloads) | `/pypi/dm/{package}` | Download counts (day/week/month) |
+| [License](./license) | `/pypi/license/{package}` | Package license |
+| [Python Version](./python) | `/pypi/python/{package}` | Required Python version |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/pypi/requests.svg)
+![downloads](https://shieldcn.dev/pypi/dm/requests.svg)
+![license](https://shieldcn.dev/pypi/license/flask.svg)
+![python](https://shieldcn.dev/pypi/python/django.svg)
+```
+
+## Data source
+
+- Version, license, python: [pypi.org](https://pypi.org/pypi/{package}/json)
+- Downloads: [pypistats.org](https://pypistats.org)
+
+No API key required. Cached 1 hour.

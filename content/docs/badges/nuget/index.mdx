@@ -1,0 +1,32 @@
+---
+title: NuGet
+description: Badges for .NET packages — version, downloads.
+---
+
+Display live stats for any package on [NuGet](https://www.nuget.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/nuget/{package}` | Latest version |
+| Downloads | `/nuget/dt/{package}` | Total downloads |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/nuget/Newtonsoft.Json.svg)
+![downloads](https://shieldcn.dev/nuget/dt/Newtonsoft.Json.svg)
+```
+
+<BadgeSandbox
+  endpoint="/nuget/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "Newtonsoft.Json", required: true },
+  ]}
+  defaults={{ package: "Newtonsoft.Json" }}
+/>
+
+## Data source
+
+Uses [NuGet API](https://api.nuget.org). No API key required. Cached 1 hour.

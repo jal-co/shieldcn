@@ -1,0 +1,34 @@
+---
+title: JSR
+description: Badges for JSR (JavaScript Registry) packages — version, score.
+---
+
+Display live stats for any package on [JSR](https://jsr.io), the modern JavaScript registry.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/jsr/{@scope}/{name}` | Latest version |
+| Version | `/jsr/v/{@scope}/{name}` | Latest version |
+| Score | `/jsr/score/{@scope}/{name}` | Package quality score |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/jsr/@std/path.svg)
+![score](https://shieldcn.dev/jsr/score/@std/path.svg)
+```
+
+<BadgeSandbox
+  endpoint="/jsr/v/:scope/:name.svg"
+  pathParams={[
+    { name: "scope", label: "scope", placeholder: "@std", required: true },
+    { name: "name", label: "name", placeholder: "path", required: true },
+  ]}
+  defaults={{ scope: "@std", name: "path" }}
+/>
+
+## Data source
+
+Uses the [JSR API](https://jsr.io/api). No API key required. Cached 1 hour.

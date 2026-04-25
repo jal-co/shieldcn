@@ -1,0 +1,34 @@
+---
+title: PyPI Version
+description: Display the latest version of any PyPI package.
+---
+
+Show the current published version of a Python package.
+
+<BadgeSandbox
+  endpoint="/pypi/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "requests", required: true },
+  ]}
+  defaults={{ package: "requests" }}
+/>
+
+## URL formats
+
+```
+/pypi/{package}.svg
+/pypi/v/{package}.svg
+```
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/requests.svg" alt="pypi requests" description="Default variant" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=branded" alt="pypi requests" description="Branded (PyPI blue)" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=secondary" alt="pypi requests" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=outline" alt="pypi requests" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Data source
+
+Uses [pypi.org](https://pypi.org). No API key required. Cached 1 hour.

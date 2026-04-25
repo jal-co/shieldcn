@@ -1,0 +1,22 @@
+---
+title: PyPI License
+description: Display the license of any PyPI package.
+---
+
+<BadgeSandbox
+  endpoint="/pypi/license/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "flask", required: true },
+  ]}
+  defaults={{ package: "flask" }}
+/>
+
+## URL format
+
+```
+/pypi/license/{package}.svg
+```
+
+## Data source
+
+Uses [pypi.org](https://pypi.org). No API key required. Cached 1 hour.

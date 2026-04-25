@@ -1,0 +1,35 @@
+---
+title: RubyGems
+description: Badges for Ruby gems — version, downloads, license.
+---
+
+Display live stats for any gem on [RubyGems](https://rubygems.org).
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/rubygems/{gem}` | Latest version |
+| Downloads (total) | `/rubygems/dt/{gem}` | Total downloads |
+| Downloads (version) | `/rubygems/dv/{gem}` | Downloads for latest version |
+| License | `/rubygems/license/{gem}` | Gem license |
+
+## Quick examples
+
+```md
+![version](https://shieldcn.dev/rubygems/rails.svg)
+![downloads](https://shieldcn.dev/rubygems/dt/rails.svg)
+![license](https://shieldcn.dev/rubygems/license/rails.svg)
+```
+
+<BadgeSandbox
+  endpoint="/rubygems/:gem.svg"
+  pathParams={[
+    { name: "gem", label: "gem name", placeholder: "rails", required: true },
+  ]}
+  defaults={{ gem: "rails" }}
+/>
+
+## Data source
+
+Uses [RubyGems API](https://rubygems.org/api/v1/gems). No API key required. Cached 1 hour.

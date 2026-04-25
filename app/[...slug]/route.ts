@@ -60,6 +60,28 @@ import { getDiscordOnline, getDiscordByInvite } from "@/lib/providers/discord"
 import { parseStaticBadgeContent, getDynamicJsonBadge } from "@/lib/providers/badge"
 import { getRedditKarma, getRedditSubscribers } from "@/lib/providers/reddit"
 import { getMemoBadge, upsertMemoBadge } from "@/lib/providers/memo"
+import { getPyPIVersion, getPyPIDownloads, getPyPILicense, getPyPIPythonVersion } from "@/lib/providers/pypi"
+import { getCratesVersion, getCratesDownloads, getCratesLicense } from "@/lib/providers/crates"
+import { getDockerPulls, getDockerStars, getDockerVersion, getDockerSize } from "@/lib/providers/docker"
+import { getBlueskyFollowers, getBlueskyFollowing, getBlueskyPosts } from "@/lib/providers/bluesky"
+import { getJSRVersion, getJSRScore } from "@/lib/providers/jsr"
+import { getBundleMin, getBundleMinGzip, getBundleTreeShaking } from "@/lib/providers/bundlephobia"
+import { getYouTubeSubscribers, getYouTubeChannelViews, getYouTubeVideoViews, getYouTubeLikes, getYouTubeComments } from "@/lib/providers/youtube"
+import { getVSCodeInstalls, getVSCodeRating, getVSCodeVersion } from "@/lib/providers/vscode"
+import { getOCBackers, getOCSponsors, getOCContributors, getOCBalance, getOCBudget } from "@/lib/providers/opencollective"
+import { getHNKarma } from "@/lib/providers/hackernews"
+import { getMastodonFollowers, getMastodonFollowing, getMastodonPosts } from "@/lib/providers/mastodon"
+import { getLemmySubscribers, getLemmyPosts, getLemmyComments } from "@/lib/providers/lemmy"
+import { getPackagistVersion, getPackagistDownloads, getPackagistLicense } from "@/lib/providers/packagist"
+import { getRubyGemsVersion, getRubyGemsDownloads, getRubyGemsLicense } from "@/lib/providers/rubygems"
+import { getNuGetVersion, getNuGetDownloads } from "@/lib/providers/nuget"
+import { getPubVersion, getPubLikes, getPubPoints, getPubPopularity } from "@/lib/providers/pub"
+import { getHomebrewVersion, getHomebrewCaskVersion, getHomebrewInstalls } from "@/lib/providers/homebrew"
+import { getMavenVersion } from "@/lib/providers/maven"
+import { getCocoaPodsVersion } from "@/lib/providers/cocoapods"
+// import { getTwitchStatus, getTwitchFollowers } from "@/lib/providers/twitch" // disabled: needs TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET
+import { getCodecovCoverage } from "@/lib/providers/codecov"
+import { getWakaTimeCodingTime } from "@/lib/providers/wakatime"
 
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
@@ -322,6 +344,400 @@ async function fetchBadgeData(
       return null
     }
 
+    // /pypi/{topic}/{package}  or  /pypi/{package}
+    case "pypi": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const pypiTopics = new Set(["v", "dd", "dw", "dm", "license", "python"])
+      if (pypiTopics.has(rest[0])) {
+        const topic = rest[0]
+        const pkg = rest.slice(1).join("/")
+        if (!pkg) return null
+
+        switch (topic) {
+          case "v": return getPyPIVersion(pkg)
+          case "dd": return getPyPIDownloads(pkg, "day")
+          case "dw": return getPyPIDownloads(pkg, "week")
+          case "dm": return getPyPIDownloads(pkg, "month")
+          case "license": return getPyPILicense(pkg)
+          case "python": return getPyPIPythonVersion(pkg)
+          default: return null
+        }
+      }
+
+      return getPyPIVersion(rest.join("/"))
+    }
+
+    // /crates/{topic}/{crate}  or  /crates/{crate}
+    case "crates": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const cratesTopics = new Set(["v", "d", "dr", "license"])
+      if (cratesTopics.has(rest[0])) {
+        const topic = rest[0]
+        const crate = rest.slice(1).join("/")
+        if (!crate) return null
+
+        switch (topic) {
+          case "v": return getCratesVersion(crate)
+          case "d": return getCratesDownloads(crate, "total")
+          case "dr": return getCratesDownloads(crate, "recent")
+          case "license": return getCratesLicense(crate)
+          default: return null
+        }
+      }
+
+      return getCratesVersion(rest.join("/"))
+    }
+
+    // /docker/{topic}/{image...}
+    // e.g. /docker/pulls/library/nginx or /docker/pulls/grafana/grafana
+    case "docker": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const dockerTopics = new Set(["pulls", "stars", "v", "size"])
+      if (dockerTopics.has(rest[0])) {
+        const topic = rest[0]
+        const image = rest.slice(1).join("/")
+
+        switch (topic) {
+          case "pulls": return getDockerPulls(image)
+          case "stars": return getDockerStars(image)
+          case "v": return getDockerVersion(image)
+          case "size": return getDockerSize(image)
+          default: return null
+        }
+      }
+
+      // Default: /docker/{image...} → pulls
+      return getDockerPulls(rest.join("/"))
+    }
+
+    // /bluesky/{topic}/{handle}
+    // e.g. /bluesky/followers/chitvs.bsky.social
+    case "bluesky": {
+      const rest = segments.slice(1)
+      if (rest.length < 1) return null
+
+      const bskyTopics = new Set(["followers", "following", "posts"])
+      if (bskyTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "followers": return getBlueskyFollowers(rest[1])
+          case "following": return getBlueskyFollowing(rest[1])
+          case "posts": return getBlueskyPosts(rest[1])
+          default: return null
+        }
+      }
+
+      // Default: /bluesky/{handle} → followers
+      return getBlueskyFollowers(rest[0])
+    }
+
+    // /jsr/{topic}/{@scope}/{name}
+    // e.g. /jsr/v/@std/path or /jsr/@std/path
+    case "jsr": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const jsrTopics = new Set(["v", "score"])
+      if (jsrTopics.has(rest[0])) {
+        const topic = rest[0]
+        const scope = rest[1]
+        const name = rest[2]
+        if (!scope || !name) return null
+
+        switch (topic) {
+          case "v": return getJSRVersion(scope, name)
+          case "score": return getJSRScore(scope, name)
+          default: return null
+        }
+      }
+
+      // Default: /jsr/{@scope}/{name} → version
+      return getJSRVersion(rest[0], rest[1])
+    }
+
+    // /bundlephobia/{topic}/{package}
+    // e.g. /bundlephobia/min/react or /bundlephobia/minzip/lodash
+    case "bundlephobia": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const pkg = rest.slice(1).join("/")
+
+      switch (topic) {
+        case "min": return getBundleMin(pkg)
+        case "minzip": return getBundleMinGzip(pkg)
+        case "tree-shaking": return getBundleTreeShaking(pkg)
+        default: return getBundleMinGzip(rest.join("/"))
+      }
+    }
+
+    // /youtube/{topic}/{id}
+    // e.g. /youtube/subscribers/UCxxxxxx or /youtube/views/dQw4w9WgXcQ
+    case "youtube": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const id = rest[1]
+
+      switch (topic) {
+        case "subscribers": return getYouTubeSubscribers(id)
+        case "channel-views": return getYouTubeChannelViews(id)
+        case "views": return getYouTubeVideoViews(id)
+        case "likes": return getYouTubeLikes(id)
+        case "comments": return getYouTubeComments(id)
+        default: return null
+      }
+    }
+
+    // /vscode/{topic}/{publisher}/{extension}
+    // e.g. /vscode/installs/esbenp/prettier-vscode
+    case "vscode": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const publisher = rest[1]
+      const extension = rest[2]
+
+      switch (topic) {
+        case "installs": return getVSCodeInstalls(publisher, extension)
+        case "rating": return getVSCodeRating(publisher, extension)
+        case "v": return getVSCodeVersion(publisher, extension)
+        default: return null
+      }
+    }
+
+    // /opencollective/{topic}/{slug}
+    // e.g. /opencollective/backers/webpack
+    case "opencollective": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const slug = rest[1]
+
+      switch (topic) {
+        case "backers": return getOCBackers(slug)
+        case "sponsors": return getOCSponsors(slug)
+        case "contributors": return getOCContributors(slug)
+        case "balance": return getOCBalance(slug)
+        case "budget": return getOCBudget(slug)
+        default: return getOCBackers(rest.join("/"))
+      }
+    }
+
+    // /hackernews/{userId} or /hackernews/karma/{userId}
+    case "hackernews": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      if (rest[0] === "karma" && rest[1]) {
+        return getHNKarma(rest[1])
+      }
+      return getHNKarma(rest[0])
+    }
+
+    // /mastodon/{topic}/{instance}/{acct}
+    // e.g. /mastodon/followers/mastodon.social/Gargron
+    case "mastodon": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const instance = rest[1]
+      const acct = rest[2]
+
+      switch (topic) {
+        case "followers": return getMastodonFollowers(instance, acct)
+        case "following": return getMastodonFollowing(instance, acct)
+        case "posts": return getMastodonPosts(instance, acct)
+        default: return null
+      }
+    }
+
+    // /lemmy/{topic}/{instance}/{community}
+    // e.g. /lemmy/subscribers/lemmy.ml/asklemmy
+    case "lemmy": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const instance = rest[1]
+      const community = rest[2]
+
+      switch (topic) {
+        case "subscribers": return getLemmySubscribers(instance, community)
+        case "posts": return getLemmyPosts(instance, community)
+        case "comments": return getLemmyComments(instance, community)
+        default: return null
+      }
+    }
+
+    // /packagist/{topic}/{vendor}/{package}
+    // e.g. /packagist/v/laravel/framework
+    case "packagist": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const vendor = rest[1]
+      const pkg = rest[2]
+
+      switch (topic) {
+        case "v": return getPackagistVersion(vendor, pkg)
+        case "dt": return getPackagistDownloads(vendor, pkg, "total")
+        case "dm": return getPackagistDownloads(vendor, pkg, "monthly")
+        case "dd": return getPackagistDownloads(vendor, pkg, "daily")
+        case "license": return getPackagistLicense(vendor, pkg)
+        default: return null
+      }
+    }
+
+    // /rubygems/{topic}/{gem}
+    // e.g. /rubygems/v/rails
+    case "rubygems": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const rubyTopics = new Set(["v", "dt", "dv", "license", "platform"])
+      if (rubyTopics.has(rest[0]) && rest[1]) {
+        const topic = rest[0]
+        const gem = rest[1]
+
+        switch (topic) {
+          case "v": return getRubyGemsVersion(gem)
+          case "dt": return getRubyGemsDownloads(gem, "total")
+          case "dv": return getRubyGemsDownloads(gem, "version")
+          case "license": return getRubyGemsLicense(gem)
+          default: return null
+        }
+      }
+
+      return getRubyGemsVersion(rest[0])
+    }
+
+    // /nuget/{topic}/{package}
+    // e.g. /nuget/v/Newtonsoft.Json
+    case "nuget": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const nugetTopics = new Set(["v", "dt"])
+      if (nugetTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getNuGetVersion(rest[1])
+          case "dt": return getNuGetDownloads(rest[1])
+          default: return null
+        }
+      }
+
+      return getNuGetVersion(rest[0])
+    }
+
+    // /pub/{topic}/{package}
+    // e.g. /pub/v/flutter_bloc or /pub/likes/riverpod
+    case "pub": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const pubTopics = new Set(["v", "likes", "points", "popularity"])
+      if (pubTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getPubVersion(rest[1])
+          case "likes": return getPubLikes(rest[1])
+          case "points": return getPubPoints(rest[1])
+          case "popularity": return getPubPopularity(rest[1])
+          default: return null
+        }
+      }
+
+      return getPubVersion(rest[0])
+    }
+
+    // /homebrew/{topic}/{formula}
+    // e.g. /homebrew/v/node or /homebrew/cask/firefox
+    case "homebrew": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const brewTopics = new Set(["v", "cask", "installs"])
+      if (brewTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getHomebrewVersion(rest[1])
+          case "cask": return getHomebrewCaskVersion(rest[1])
+          case "installs": return getHomebrewInstalls(rest[1], rest[2] || "30")
+          default: return null
+        }
+      }
+
+      return getHomebrewVersion(rest[0])
+    }
+
+    // /maven/{topic}/{groupId}/{artifactId}
+    // e.g. /maven/v/com.google.guava/guava
+    case "maven": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      if (rest[0] === "v" && rest.length >= 3) {
+        return getMavenVersion(rest[1], rest[2])
+      }
+
+      // Default: treat as groupId/artifactId
+      return getMavenVersion(rest[0], rest[1])
+    }
+
+    // /cocoapods/{topic}/{pod}
+    // e.g. /cocoapods/v/Alamofire
+    case "cocoapods": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      if (rest[0] === "v" && rest[1]) {
+        return getCocoaPodsVersion(rest[1])
+      }
+
+      return getCocoaPodsVersion(rest[0])
+    }
+
+    // /twitch/{topic}/{login}
+    // e.g. /twitch/status/shroud or /twitch/followers/ninja
+    // Disabled: requires TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET
+    // case "twitch": {
+    //   const rest = segments.slice(1)
+    //   if (rest.length < 2) return null
+    //   switch (rest[0]) {
+    //     case "status": return getTwitchStatus(rest[1])
+    //     case "followers": return getTwitchFollowers(rest[1])
+    //     default: return getTwitchStatus(rest[0])
+    //   }
+    // }
+
+    // /codecov/{service}/{owner}/{repo}[/{branch}]
+    // e.g. /codecov/github/codecov/codecov-cli
+    case "codecov": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      return getCodecovCoverage(rest[0], rest[1], rest[2], rest[3])
+    }
+
+    // /wakatime/{username}
+    // e.g. /wakatime/willfarrell
+    case "wakatime": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      return getWakaTimeCodingTime(rest[0])
+    }
+
     // /https/{hostname}/{pathname...}
     // Proxy an HTTPS endpoint that returns { label/subject, value/status, color }
     case "https": {
@@ -370,6 +786,29 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; lucide?:
 
   if (provider === "npm") return { simpleIcon: "npm" }
   if (provider === "discord") return { simpleIcon: "discord" }
+  if (provider === "pypi") return { simpleIcon: "pypi" }
+  if (provider === "crates") return { simpleIcon: "rust" }
+  if (provider === "docker") return { simpleIcon: "docker" }
+  if (provider === "bluesky") return { simpleIcon: "bluesky" }
+  if (provider === "jsr") return { simpleIcon: "jsr" }
+  if (provider === "bundlephobia") return { lucide: "package" }
+  if (provider === "youtube") return { simpleIcon: "youtube" }
+  if (provider === "vscode") return { simpleIcon: "visualstudiocode" }
+  if (provider === "opencollective") return { simpleIcon: "opencollective" }
+  if (provider === "hackernews") return { simpleIcon: "ycombinator" }
+  if (provider === "mastodon") return { simpleIcon: "mastodon" }
+  if (provider === "lemmy") return { simpleIcon: "lemmy" }
+  if (provider === "packagist") return { simpleIcon: "packagist" }
+  if (provider === "rubygems") return { simpleIcon: "rubygems" }
+  if (provider === "nuget") return { simpleIcon: "nuget" }
+  if (provider === "pub") return { simpleIcon: "dart" }
+  if (provider === "homebrew") return { simpleIcon: "homebrew" }
+  if (provider === "maven") return { simpleIcon: "apachemaven" }
+  if (provider === "cocoapods") return { simpleIcon: "cocoapods" }
+  if (provider === "twitch") return { simpleIcon: "twitch" }
+  if (provider === "codecov") return { simpleIcon: "codecov" }
+  if (provider === "wakatime") return { simpleIcon: "wakatime" }
+  if (provider === "reddit") return { simpleIcon: "reddit" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}
@@ -571,9 +1010,18 @@ export async function GET(
 
     }
 
-    // Fallback to provider brand color if no icon brand color found
+    // Fallback to provider brand color if no icon brand color found,
+    // or if the icon brand color is black/near-black and the provider has a real color
     if (!brandColor && providerBrand) {
       brandColor = providerBrand
+    } else if (brandColor && providerBrand && brandColor !== providerBrand) {
+      // If icon brand color is very dark (e.g. Rust #000) but provider has a real color, prefer provider
+      const r = parseInt(brandColor.substring(0, 2), 16)
+      const g = parseInt(brandColor.substring(2, 4), 16)
+      const b = parseInt(brandColor.substring(4, 6), 16)
+      if (!isNaN(r) && (r + g + b) < 50) {
+        brandColor = providerBrand
+      }
     }
 
     // For branded variant, use contrast-aware icon color (after brand color is resolved)

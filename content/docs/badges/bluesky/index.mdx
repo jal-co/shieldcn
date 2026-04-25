@@ -1,0 +1,34 @@
+---
+title: Bluesky
+description: Badges for Bluesky profiles — followers, following, posts.
+---
+
+Display live stats for any [Bluesky](https://bsky.app) profile.
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Followers | `/bluesky/{handle}` | Follower count (default) |
+| Followers | `/bluesky/followers/{handle}` | Follower count |
+| Following | `/bluesky/following/{handle}` | Following count |
+| Posts | `/bluesky/posts/{handle}` | Post count |
+
+## Quick examples
+
+```md
+![followers](https://shieldcn.dev/bluesky/jay.bsky.team.svg)
+![posts](https://shieldcn.dev/bluesky/posts/jay.bsky.team.svg)
+```
+
+<BadgeSandbox
+  endpoint="/bluesky/:handle.svg"
+  pathParams={[
+    { name: "handle", label: "handle", placeholder: "jay.bsky.team", required: true },
+  ]}
+  defaults={{ handle: "jay.bsky.team" }}
+/>
+
+## Data source
+
+Uses the [Bluesky public API](https://public.api.bsky.app). No API key required. Cached 1 hour.

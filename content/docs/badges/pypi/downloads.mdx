@@ -1,0 +1,26 @@
+---
+title: PyPI Downloads
+description: Display download counts for any PyPI package.
+---
+
+Show daily, weekly, or monthly download counts.
+
+<BadgeSandbox
+  endpoint="/pypi/dm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "requests", required: true },
+  ]}
+  defaults={{ package: "requests" }}
+/>
+
+## URL formats
+
+| Period | Endpoint |
+|--------|----------|
+| Daily | `/pypi/dd/{package}` |
+| Weekly | `/pypi/dw/{package}` |
+| Monthly | `/pypi/dm/{package}` |
+
+## Data source
+
+Uses [pypistats.org](https://pypistats.org). No API key required. Cached 1 hour.
