@@ -20,8 +20,12 @@ interface Category {
 }
 
 function makeLogoBadge(slug: string, title: string, hex: string, extra = ""): ShowcaseBadge {
-  const isDark = parseInt(hex, 16) < 0x808080
-  const logoColor = isDark ? "fff" : "000"
+  // Use relative luminance for better contrast detection
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  const logoColor = luminance > 0.6 ? "000" : "fff"
   return {
     title,
     subtitle: "brand badge",
@@ -54,14 +58,14 @@ export const categories: Category[] = [
     name: "GitHub",
     description: "Best GitHub badge types for repos: social proof, release metadata, health, and maintenance signals.",
     icons: [
-      dynamicBadge("GitHub Stars", "social proof", "/github/stars/vercel/next.js.svg?variant=outline", "Great as a top-row trust signal in READMEs.", "/docs/badges/github"),
-      dynamicBadge("GitHub Forks", "social proof", "/github/forks/vercel/next.js.svg?variant=outline", "Pairs naturally with stars for project traction.", "/docs/badges/github"),
-      dynamicBadge("GitHub Release", "release metadata", "/github/release/vercel/next.js.svg", "Latest release version for product or OSS repos.", "/docs/badges/github"),
-      dynamicBadge("GitHub Last Commit", "maintenance", "/github/last-commit/vercel/next.js.svg?variant=secondary", "A good maintenance/freshness badge.", "/docs/badges/github"),
-      dynamicBadge("GitHub Open Issues", "issue tracking", "/github/open-issues/vercel/next.js.svg?variant=secondary", "Useful for contributor-facing repos.", "/docs/badges/github"),
-      dynamicBadge("GitHub Open PRs", "issue tracking", "/github/open-prs/vercel/next.js.svg?variant=secondary", "Useful when your project gets outside contributions.", "/docs/badges/github"),
-      dynamicBadge("GitHub Contributors", "community", "/github/contributors/vercel/next.js.svg?theme=emerald", "Contributor count with a warmer, community-oriented feel.", "/docs/badges/github"),
-      dynamicBadge("GitHub CI", "build health", "/github/ci/vercel/next.js.svg?variant=secondary", "Recommended default presentation for workflow status.", "/docs/badges/github"),
+      dynamicBadge("GitHub Stars", "social proof", "/github/stars/vercel/next.js.svg?variant=branded", "Great as a top-row trust signal in READMEs.", "/docs/badges/github"),
+      dynamicBadge("GitHub Forks", "social proof", "/github/forks/vercel/next.js.svg?variant=branded", "Pairs naturally with stars for project traction.", "/docs/badges/github"),
+      dynamicBadge("GitHub Release", "release metadata", "/github/release/vercel/next.js.svg?variant=branded", "Latest release version for product or OSS repos.", "/docs/badges/github"),
+      dynamicBadge("GitHub Last Commit", "maintenance", "/github/last-commit/vercel/next.js.svg?variant=outline", "A good maintenance/freshness badge.", "/docs/badges/github"),
+      dynamicBadge("GitHub Open Issues", "issue tracking", "/github/open-issues/vercel/next.js.svg?variant=outline", "Useful for contributor-facing repos.", "/docs/badges/github"),
+      dynamicBadge("GitHub Open PRs", "issue tracking", "/github/open-prs/vercel/next.js.svg?variant=outline", "Useful when your project gets outside contributions.", "/docs/badges/github"),
+      dynamicBadge("GitHub Contributors", "community", "/github/contributors/vercel/next.js.svg?variant=outline&theme=emerald", "Contributor count with a warmer, community-oriented feel.", "/docs/badges/github"),
+      dynamicBadge("GitHub CI", "build health", "/github/ci/vercel/next.js.svg?variant=outline", "Recommended default presentation for workflow status.", "/docs/badges/github"),
     ],
   },
   {
@@ -106,8 +110,8 @@ export const categories: Category[] = [
     icons: [
       dynamicBadge("GitHub CI", "workflow status", "/github/ci/vercel/next.js.svg?variant=secondary", "Default recommendation for CI badges.", "/docs/badges/github"),
       dynamicBadge("Build Passing", "status", "/badge/build-passing-brightgreen.svg?theme=green", "Bright status badge for quality rows."),
-      dynamicBadge("Vitest", "brand", "/badge/Vitest-tested-6E9F18.svg?logo=vitest&variant=branded", "Branded Vitest badge for modern TS apps."),
-      dynamicBadge("Playwright", "brand", "/badge/Playwright-e2e-2EAD33.svg?logo=playwright&variant=branded", "Branded E2E badge for browser test suites."),
+      makeLogoBadge("vitest", "Vitest", "6E9F18", "&variant=branded"),
+      makeLogoBadge("playwright", "Playwright", "2EAD33", "&variant=branded"),
       makeLogoBadge("jest", "Jest", "C21325", "&variant=branded"),
       makeLogoBadge("cypress", "Cypress", "69D3A7", "&variant=branded"),
     ],
@@ -143,6 +147,24 @@ export const categories: Category[] = [
       makeLogoBadge("anthropic", "Anthropic", "D97757", "&variant=secondary"),
       makeLogoBadge("openai", "OpenAI", "412991", "&variant=secondary"),
       makeLogoBadge("huggingface", "Hugging Face", "FFD21E", "&variant=secondary"),
+    ],
+  },
+  {
+    name: "For Fun",
+    description: "Honest badges for honest READMEs. Use responsibly.",
+    icons: [
+      dynamicBadge("Code Quality: Meh", "honesty", "/badge/code%20quality-meh-orange.svg", "For repos where the code works but you wouldn't show it to your mom."),
+      dynamicBadge("Works on My Machine", "classic", "/badge/works%20on-my%20machine-brightgreen.svg", "The only CI that matters."),
+      dynamicBadge("Vibe Coded", "disclosure", "/badge/vibe-coded-7C3AED.svg?variant=secondary", "Full transparency about the development methodology."),
+      dynamicBadge("Docs: Outdated", "honesty", "/badge/docs-outdated-red.svg?variant=destructive", "At least you're honest about it."),
+      dynamicBadge("Tests: Eventually", "aspiration", "/badge/tests-eventually-orange.svg?variant=outline", "It's on the roadmap. Somewhere."),
+      dynamicBadge("Maintained: Barely", "status", "/badge/maintained-barely-yellow.svg", "Active development, loosely defined."),
+      dynamicBadge("Coffee Powered", "fuel", "/badge/powered%20by-coffee-6F4E37.svg?logo=buymeacoffee&logoColor=fff", "The real dependency."),
+      dynamicBadge("Made at 3AM", "origin", "/badge/made%20at-3AM-blue.svg?variant=secondary", "Peak engineering hours."),
+      dynamicBadge("0 Open Issues", "suspicious", "/badge/open%20issues-0-brightgreen.svg?variant=outline", "Suspicious, but technically correct."),
+      dynamicBadge("PRs: Good Luck", "community", "/badge/PRs-good%20luck-orange.svg?variant=secondary", "Contributing guidelines: figure it out."),
+      dynamicBadge("Bug Free*", "disclaimer", "/badge/bug-free*-brightgreen.svg", "*Citation needed."),
+      dynamicBadge("Ship It", "philosophy", "/badge/%F0%9F%9A%80-ship%20it-blue.svg", "Move fast and break things responsibly."),
     ],
   },
 ]
