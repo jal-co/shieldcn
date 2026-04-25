@@ -8,18 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function bskyFetch(handle: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(handle)}`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "bluesky",
+    cacheKey: `profile:${handle}`,
+    url: `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(handle)}`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------

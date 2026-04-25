@@ -7,18 +7,15 @@
  */
 
 import type { BadgeData } from "@/lib/badges/types"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function podFetch(pod: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(
-      `https://trunk.cocoapods.org/api/v1/pods/${encodeURIComponent(pod)}`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "cocoapods",
+    cacheKey: `pod:${pod}`,
+    url: `https://trunk.cocoapods.org/api/v1/pods/${encodeURIComponent(pod)}`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------

@@ -8,15 +8,10 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function pypiFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function pypiFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "pypi", cacheKey: key, url, ttl: 3600 })
 }
 
 // ---------------------------------------------------------------------------
@@ -24,7 +19,7 @@ async function pypiFetch(url: string): Promise<Record<string, unknown> | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPyPIVersion(pkg: string): Promise<BadgeData | null> {
-  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`)
+  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`, `v:${pkg}`)
   if (!data) return null
   const info = data.info as Record<string, unknown> | undefined
   if (!info || typeof info.version !== "string") return null
@@ -42,17 +37,15 @@ export async function getPyPIVersion(pkg: string): Promise<BadgeData | null> {
 
 export async function getPyPIDownloads(pkg: string, period: string = "month"): Promise<BadgeData | null> {
   try {
-    const r = await fetch(
-      `https://pypistats.org/api/packages/${pkg.toLowerCase()}/recent`,
-      {
-        headers: { "User-Agent": "shieldcn/1.0 (badge service; https://shieldcn.com)" },
-        next: { revalidate: 3600 },
-      }
-    )
-    if (!r.ok) return null
-    const data = await r.json()
-    if (!data || !data.data) return null
-    const d = data.data as Record<string, number>
+    const data = await providerFetch({
+      provider: "pypi",
+      cacheKey: `dl:${pkg}:${period}`,
+      url: `https://pypistats.org/api/packages/${pkg.toLowerCase()}/recent`,
+      ttl: 3600,
+      headers: { "User-Agent": "shieldcn/1.0 (badge service; https://shieldcn.dev)" },
+    })
+    if (!data || !(data as Record<string, unknown>).data) return null
+    const d = (data as Record<string, unknown>).data as Record<string, number>
 
     let downloads: number
     let suffix: string
@@ -88,7 +81,7 @@ export async function getPyPIDownloads(pkg: string, period: string = "month"): P
 // ---------------------------------------------------------------------------
 
 export async function getPyPILicense(pkg: string): Promise<BadgeData | null> {
-  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`)
+  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`, `license:${pkg}`)
   if (!data) return null
   const info = data.info as Record<string, unknown> | undefined
   if (!info) return null
@@ -109,7 +102,7 @@ export async function getPyPILicense(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPyPIPythonVersion(pkg: string): Promise<BadgeData | null> {
-  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`)
+  const data = await pypiFetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/json`, `python:${pkg}`)
   if (!data) return null
   const info = data.info as Record<string, unknown> | undefined
   if (!info) return null

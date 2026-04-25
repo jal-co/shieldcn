@@ -9,15 +9,10 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function brewFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function brewFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "homebrew", cacheKey: key, url, ttl: 3600 })
 }
 
 // ---------------------------------------------------------------------------
@@ -25,7 +20,7 @@ async function brewFetch(url: string): Promise<Record<string, unknown> | null> {
 // ---------------------------------------------------------------------------
 
 export async function getHomebrewVersion(formula: string): Promise<BadgeData | null> {
-  const data = await brewFetch(`https://formulae.brew.sh/api/formula/${encodeURIComponent(formula)}.json`)
+  const data = await brewFetch(`https://formulae.brew.sh/api/formula/${encodeURIComponent(formula)}.json`, `v:${formula}`)
   if (!data) return null
 
   const versions = data.versions as Record<string, string> | undefined
@@ -43,7 +38,7 @@ export async function getHomebrewVersion(formula: string): Promise<BadgeData | n
 // ---------------------------------------------------------------------------
 
 export async function getHomebrewCaskVersion(cask: string): Promise<BadgeData | null> {
-  const data = await brewFetch(`https://formulae.brew.sh/api/cask/${encodeURIComponent(cask)}.json`)
+  const data = await brewFetch(`https://formulae.brew.sh/api/cask/${encodeURIComponent(cask)}.json`, `cask:${cask}`)
   if (!data) return null
 
   const version = data.version as string | undefined
@@ -59,7 +54,7 @@ export async function getHomebrewCaskVersion(cask: string): Promise<BadgeData | 
 // ---------------------------------------------------------------------------
 
 export async function getHomebrewInstalls(formula: string, days: string = "30"): Promise<BadgeData | null> {
-  const data = await brewFetch(`https://formulae.brew.sh/api/formula/${encodeURIComponent(formula)}.json`)
+  const data = await brewFetch(`https://formulae.brew.sh/api/formula/${encodeURIComponent(formula)}.json`, `installs:${formula}:${days}`)
   if (!data) return null
 
   const analytics = data.analytics_linux as Record<string, unknown> | undefined

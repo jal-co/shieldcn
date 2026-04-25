@@ -8,19 +8,15 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
 async function nugetFetch(pkg: string): Promise<Record<string, unknown> | null> {
-  try {
-    // Use the registration endpoint for package metadata
-    const r = await fetch(
-      `https://api.nuget.org/v3/registration5-gz-semver2/${pkg.toLowerCase()}/index.json`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+  return providerFetch({
+    provider: "nuget",
+    cacheKey: `reg:${pkg}`,
+    url: `https://api.nuget.org/v3/registration5-gz-semver2/${pkg.toLowerCase()}/index.json`,
+    ttl: 3600,
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -40,13 +36,15 @@ export async function getNuGetVersion(pkg: string): Promise<BadgeData | null> {
 
   // If items aren't inline, fetch the page
   if (!pageItems && lastPage["@id"]) {
-    try {
-      const r = await fetch(lastPage["@id"] as string, { next: { revalidate: 3600 } })
-      if (r.ok) {
-        const page = await r.json()
-        pageItems = page.items as Array<Record<string, unknown>> | undefined
-      }
-    } catch { /* ignore */ }
+    const page = await providerFetch<Record<string, unknown>>({
+      provider: "nuget",
+      cacheKey: `page:${pkg}`,
+      url: lastPage["@id"] as string,
+      ttl: 3600,
+    })
+    if (page) {
+      pageItems = page.items as Array<Record<string, unknown>> | undefined
+    }
   }
 
   if (!pageItems || pageItems.length === 0) return null
@@ -67,25 +65,21 @@ export async function getNuGetVersion(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getNuGetDownloads(pkg: string): Promise<BadgeData | null> {
-  try {
-    // Use the search endpoint which has download counts
-    const r = await fetch(
-      `https://api-v2v3search-0.nuget.org/query?q=packageid:${encodeURIComponent(pkg)}&take=1`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!r.ok) return null
-    const data = await r.json()
+  const data = await providerFetch<Record<string, unknown>>({
+    provider: "nuget",
+    cacheKey: `dl:${pkg}`,
+    url: `https://api-v2v3search-0.nuget.org/query?q=packageid:${encodeURIComponent(pkg)}&take=1`,
+    ttl: 3600,
+  })
+  if (!data) return null
 
-    const results = data.data as Array<Record<string, unknown>> | undefined
-    if (!results || results.length === 0) return null
+  const results = data.data as Array<Record<string, unknown>> | undefined
+  if (!results || results.length === 0) return null
 
-    const count = (results[0].totalDownloads as number) ?? 0
-    return {
-      label: "downloads",
-      value: formatCount(count),
-      link: `https://www.nuget.org/packages/${pkg}`,
-    }
-  } catch {
-    return null
+  const count = (results[0].totalDownloads as number) ?? 0
+  return {
+    label: "downloads",
+    value: formatCount(count),
+    link: `https://www.nuget.org/packages/${pkg}`,
   }
 }

@@ -8,15 +8,10 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function dockerFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function dockerFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "docker", cacheKey: key, url, ttl: 3600 })
 }
 
 function repoUrl(image: string): string {
@@ -36,7 +31,7 @@ function normalizeImage(image: string): string {
 
 export async function getDockerPulls(image: string): Promise<BadgeData | null> {
   const normalized = normalizeImage(image)
-  const data = await dockerFetch(`https://hub.docker.com/v2/repositories/${normalized}`)
+  const data = await dockerFetch(`https://hub.docker.com/v2/repositories/${normalized}`, `pulls:${normalized}`)
   if (!data || typeof data.pull_count !== "number") return null
 
   return {
@@ -52,7 +47,7 @@ export async function getDockerPulls(image: string): Promise<BadgeData | null> {
 
 export async function getDockerStars(image: string): Promise<BadgeData | null> {
   const normalized = normalizeImage(image)
-  const data = await dockerFetch(`https://hub.docker.com/v2/repositories/${normalized}`)
+  const data = await dockerFetch(`https://hub.docker.com/v2/repositories/${normalized}`, `stars:${normalized}`)
   if (!data || typeof data.star_count !== "number") return null
 
   return {
@@ -69,7 +64,7 @@ export async function getDockerStars(image: string): Promise<BadgeData | null> {
 export async function getDockerVersion(image: string): Promise<BadgeData | null> {
   const normalized = normalizeImage(image)
   const data = await dockerFetch(
-    `https://hub.docker.com/v2/repositories/${normalized}/tags?page_size=1&ordering=last_updated`
+    `https://hub.docker.com/v2/repositories/${normalized}/tags?page_size=1&ordering=last_updated`, `v:${normalized}`
   )
   if (!data) return null
   const results = data.results as Array<Record<string, unknown>> | undefined
@@ -89,7 +84,7 @@ export async function getDockerVersion(image: string): Promise<BadgeData | null>
 export async function getDockerSize(image: string, tag: string = "latest"): Promise<BadgeData | null> {
   const normalized = normalizeImage(image)
   const data = await dockerFetch(
-    `https://hub.docker.com/v2/repositories/${normalized}/tags/${tag}`
+    `https://hub.docker.com/v2/repositories/${normalized}/tags/${tag}`, `size:${normalized}:${tag}`
   )
   if (!data) return null
 

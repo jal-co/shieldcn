@@ -8,18 +8,16 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function cratesFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, {
-      headers: { "User-Agent": "shieldcn/1.0 (https://shieldcn.com)" },
-      next: { revalidate: 3600 },
-    })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function cratesFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({
+    provider: "crates",
+    cacheKey: key,
+    url,
+    ttl: 3600,
+    headers: { "User-Agent": "shieldcn/1.0 (https://shieldcn.dev)" },
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -27,7 +25,7 @@ async function cratesFetch(url: string): Promise<Record<string, unknown> | null>
 // ---------------------------------------------------------------------------
 
 export async function getCratesVersion(crate: string): Promise<BadgeData | null> {
-  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`)
+  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`, `v:${crate}`)
   if (!data) return null
   const c = data.crate as Record<string, unknown> | undefined
   if (!c || typeof c.max_version !== "string") return null
@@ -44,7 +42,7 @@ export async function getCratesVersion(crate: string): Promise<BadgeData | null>
 // ---------------------------------------------------------------------------
 
 export async function getCratesDownloads(crate: string, period: string = "total"): Promise<BadgeData | null> {
-  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`)
+  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`, `dl:${crate}:${period}`)
   if (!data) return null
   const c = data.crate as Record<string, unknown> | undefined
   if (!c) return null
@@ -72,7 +70,7 @@ export async function getCratesDownloads(crate: string, period: string = "total"
 // ---------------------------------------------------------------------------
 
 export async function getCratesLicense(crate: string): Promise<BadgeData | null> {
-  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`)
+  const data = await cratesFetch(`https://crates.io/api/v1/crates/${encodeURIComponent(crate)}`, `license:${crate}`)
   if (!data) return null
 
   // License is on the latest version

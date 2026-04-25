@@ -8,15 +8,10 @@
 
 import type { BadgeData } from "@/lib/badges/types"
 import { formatCount } from "@/lib/utils"
+import { providerFetch } from "@/lib/provider-fetch"
 
-async function pubFetch(url: string): Promise<Record<string, unknown> | null> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 } })
-    if (!r.ok) return null
-    return r.json()
-  } catch {
-    return null
-  }
+async function pubFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
+  return providerFetch({ provider: "pub", cacheKey: key, url, ttl: 3600 })
 }
 
 // ---------------------------------------------------------------------------
@@ -24,7 +19,7 @@ async function pubFetch(url: string): Promise<Record<string, unknown> | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPubVersion(pkg: string): Promise<BadgeData | null> {
-  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}`)
+  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}`, `v:${pkg}`)
   if (!data) return null
 
   const latest = data.latest as Record<string, unknown> | undefined
@@ -42,7 +37,7 @@ export async function getPubVersion(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPubLikes(pkg: string): Promise<BadgeData | null> {
-  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`)
+  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`, `likes:${pkg}`)
   if (!data) return null
 
   const score = data.score as Record<string, unknown> | undefined
@@ -60,7 +55,7 @@ export async function getPubLikes(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPubPoints(pkg: string): Promise<BadgeData | null> {
-  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`)
+  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`, `points:${pkg}`)
   if (!data) return null
 
   const score = data.score as Record<string, unknown> | undefined
@@ -79,7 +74,7 @@ export async function getPubPoints(pkg: string): Promise<BadgeData | null> {
 // ---------------------------------------------------------------------------
 
 export async function getPubPopularity(pkg: string): Promise<BadgeData | null> {
-  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`)
+  const data = await pubFetch(`https://pub.dev/api/packages/${encodeURIComponent(pkg)}/metrics`, `popularity:${pkg}`)
   if (!data) return null
 
   const score = data.score as Record<string, unknown> | undefined
