@@ -67,6 +67,12 @@ export function SiteFooter() {
               >
                 Generator
               </Link>
+              <Link
+                href="/docs/skill"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Agent Skill
+              </Link>
             </div>
 
             <div className="flex flex-col gap-2">

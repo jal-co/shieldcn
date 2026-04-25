@@ -139,6 +139,18 @@ Three icon libraries (40,000+ icons) plus custom SVG upload:
 - **Shields.io compatible** — same URL patterns for static/dynamic badges, same text encoding, shields.io JSON endpoint support
 - **Open source, never paywalled** — every badge type, every variant, every icon source is free
 
+## Agent skill
+
+Install the shieldcn skill to let AI coding agents (Claude Code, Cursor, Codex, and [40+ more](https://github.com/vercel-labs/skills#supported-agents)) add badges to your projects:
+
+```bash
+npx skills add jal-co/shieldcn
+```
+
+Once installed, ask your agent to _"add shieldcn badges to the README"_ — it knows all providers, URL patterns, and query parameters.
+
+Learn more in the [skill docs](https://shieldcn.dev/docs/skill).
+
 ## Local development
 
 ```bash

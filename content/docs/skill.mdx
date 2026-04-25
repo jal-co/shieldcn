@@ -1,0 +1,61 @@
+---
+title: Agent Skill
+description: Install the shieldcn agent skill to let AI coding agents add badges to your projects.
+---
+
+## What is it?
+
+The shieldcn agent skill gives AI coding agents the knowledge to add beautiful [shadcn/ui](https://ui.shadcn.com)-styled badges to README files, docs, and markdown. It works with any agent that supports the [Agent Skills](https://agentskills.io) specification — Claude Code, Cursor, Windsurf, Codex, and [40+ more](https://github.com/vercel-labs/skills#supported-agents).
+
+## Install
+
+<CodeLine language="bash" code="npx skills add jal-co/shieldcn" />
+
+This installs the `shieldcn-badges` skill to your coding agent.
+
+### Install to a specific agent
+
+<CodeLine language="bash" code="npx skills add jal-co/shieldcn -a claude-code" />
+
+<CodeLine language="bash" code="npx skills add jal-co/shieldcn -a cursor" />
+
+### Install globally (available in all projects)
+
+<CodeLine language="bash" code="npx skills add jal-co/shieldcn -g" />
+
+## Usage
+
+Once installed, ask your coding agent to add badges. The skill triggers automatically for requests like:
+
+- _"Add npm and GitHub badges to the README"_
+- _"Add a CI status badge for this repo"_
+- _"Add shieldcn badges to the docs"_
+- _"Set up a badge row with stars, license, and version"_
+
+The agent knows all shieldcn providers, URL patterns, variants, and query parameters — no manual lookup needed.
+
+## What the skill covers
+
+- **All providers** — npm, GitHub, PyPI, Crates.io, Docker Hub, Discord, Bluesky, YouTube, Codecov, and 20+ more
+- **URL patterns** — correct endpoint format for every badge type
+- **Query parameters** — variants, sizes, icons, colors, themes, split mode
+- **Markdown patterns** — proper `<img>` and `<a>` wrapping for GitHub READMEs
+- **Best practices** — centering, linking, variant selection, badge row composition
+
+## Example output
+
+An agent using this skill might produce:
+
+<CodeLine language="markdown" code={`<p align="center">
+  <a href="https://www.npmjs.com/package/your-package"><img src="https://shieldcn.dev/npm/your-package.svg" alt="npm" /></a>
+  <a href="https://github.com/you/repo/stargazers"><img src="https://shieldcn.dev/github/stars/you/repo.svg" alt="stars" /></a>
+  <a href="https://github.com/you/repo"><img src="https://shieldcn.dev/github/license/you/repo.svg" alt="license" /></a>
+</p>`} />
+
+## Learn more
+
+- [Full docs](/docs) — all badge types, interactive sandboxes, copy-paste examples
+- [API reference](/docs/api-reference) — every endpoint and query parameter
+- [Badge builder](https://shieldcn.dev) — interactive UI for composing badges
+- [GitHub repo](https://github.com/jal-co/shieldcn) — source code and contributing guide
+- [skills.sh](https://skills.sh) — the agent skills ecosystem
