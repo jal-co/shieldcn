@@ -10,6 +10,7 @@ import { renderBadge, renderErrorBadge } from "@/lib/badges/render"
 import { resolveTheme, applyColorOverrides, statusColors } from "@/lib/badges/themes"
 import { getSimpleIcon } from "@/lib/badges/simple-icons"
 import { getProviderBrandColor } from "@/lib/badges/brand-colors"
+import { parseSvg, decodeSvgDataUri } from "@/lib/badges/svg-parser"
 import { trackEvent } from "@/lib/openpanel"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "@/lib/badges/types"
 
@@ -495,6 +496,26 @@ export async function GET(
     // Explicitly hidden — still use provider brand for branded variant
     if (style === "branded" && providerBrand) {
       brandColor = providerBrand
+    }
+  } else if (logoParam && logoParam.startsWith("data:image/svg+xml")) {
+    // Custom SVG icon via data URI
+    const svgContent = decodeSvgDataUri(logoParam)
+    if (svgContent) {
+      const parsed = parseSvg(svgContent)
+      if (parsed) {
+        iconPath = parsed.icon.path
+        iconViewBox = parsed.icon.viewBox
+        iconFillRule = parsed.icon.fillRule
+
+        if (providerBrand) brandColor = providerBrand
+
+        if (style === "branded" && !logoColor) {
+          const effectiveBg = colorOverride ?? brandColor
+          iconFill = brandedFg(effectiveBg)
+        } else if (logoColor) {
+          iconFill = `#${logoColor}`
+        }
+      }
     }
   } else if (logoParam && logoParam !== "true") {
     // Custom icon: SimpleIcons slug or lucide:name

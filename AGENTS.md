@@ -67,7 +67,7 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 | `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |
 | `split` | `true`, `false` | `false` |
 | `statusDot` | `true`, `false` | auto for CI |
-| `logo` | SimpleIcons slug, `lucide:name`, `ri:Name`, `false` | auto |
+| `logo` | SimpleIcons slug, `lucide:name`, `ri:Name`, `data:image/svg+xml;base64,...`, `false` | auto |
 | `logoColor` | hex without # | auto |
 | `color` | hex without # | — |
 | `labelColor` | hex without # | — |

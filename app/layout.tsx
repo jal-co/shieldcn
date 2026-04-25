@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s — shieldcn",
   },
   description:
-    "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui components.",
+    "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
   keywords: [
     "badges",
     "shields",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     siteName: "shieldcn",
     title: "shieldcn",
     description:
-      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui components.",
+      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
     images: [
       {
         url: ogImage,
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "shieldcn",
     description:
-      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui components.",
+      "Beautiful README badges as a service. A shields.io alternative with the visual quality of shadcn/ui. 5,000+ built-in icons and custom SVG upload.",
     images: [ogImage],
   },
   alternates: {
