@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { OpenPanelComponent } from "@openpanel/nextjs"
 
 const STORAGE_KEY = "shieldcn-no-track"
 
-export function Analytics() {
+function AnalyticsInner() {
   const [enabled, setEnabled] = useState(true)
   const searchParams = useSearchParams()
 
@@ -33,5 +33,13 @@ export function Analytics() {
       trackOutgoingLinks
       trackAttributes
     />
+  )
+}
+
+export function Analytics() {
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsInner />
+    </Suspense>
   )
 }
