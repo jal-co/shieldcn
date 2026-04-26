@@ -101,6 +101,12 @@ export function SiteFooter() {
               >
                 llms.txt
               </a>
+              <Link
+                href="/privacy"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Privacy
+              </Link>
             </div>
           </div>
         </div>
