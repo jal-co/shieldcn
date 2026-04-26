@@ -6,6 +6,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { MobileNav } from "@/components/mobile-nav"
 import { ShieldcnLogo } from "@/components/shieldcn-logo"
 import { GitHubStarsButton } from "@/components/github-stars-button"
+import { HeaderGitHubButton } from "@/components/header-github-button"
 
 export function SiteHeader() {
   return (
@@ -42,13 +43,15 @@ export function SiteHeader() {
             Sponsor
           </Link>
         </Button>
-        <GitHubStarsButton
-          owner="jal-co"
-          repo="shieldcn"
-          variant="primary"
-          size="sm"
-          showRepo
-        />
+        <HeaderGitHubButton className="shrink-0">
+          <GitHubStarsButton
+            owner="jal-co"
+            repo="shieldcn"
+            variant="primary"
+            size="sm"
+            showRepo
+          />
+        </HeaderGitHubButton>
         <ThemeSwitcher />
       </div>
     </header>
