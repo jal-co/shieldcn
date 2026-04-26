@@ -9,6 +9,7 @@ import { GenHeroInput } from "@/components/gen-hero-input"
 import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
+import { pickToken } from "@/lib/token-pool"
 
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
@@ -18,7 +19,30 @@ export const metadata: Metadata = pageMetadata({
   ogTitle: "shieldcn — Beautiful README Badges",
 })
 
-export default function Home() {
+async function getAdoptionCount(): Promise<number | null> {
+  try {
+    const token = await pickToken()
+    if (!token) return null
+    const res = await fetch(
+      "https://api.github.com/search/code?q=%22shieldcn.dev%22+language%3AMarkdown&per_page=1",
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          Authorization: `Bearer ${token}`,
+        },
+        next: { revalidate: 3600 },
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    return typeof data.total_count === "number" ? data.total_count : null
+  } catch {
+    return null
+  }
+}
+
+export default async function Home() {
+  const adoptionCount = await getAdoptionCount()
   return (
     <SiteShell>
       <script
@@ -42,6 +66,21 @@ export default function Home() {
                 A shields.io alternative with the visual quality of shadcn/ui.
                 6 variants, 16 themes, 5,000+ built-in icons, and custom SVG upload — unlimited combinations.
               </p>
+
+              {adoptionCount !== null && adoptionCount > 0 && (
+                <p className="text-sm text-muted-foreground/70">
+                  Used in{" "}
+                  <a
+                    href="https://github.com/search?q=%22shieldcn.dev%22+language%3AMarkdown&type=code&l=Markdown"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors"
+                  >
+                    {adoptionCount} {adoptionCount === 1 ? "repo" : "repos"}
+                  </a>{" "}
+                  and counting.
+                </p>
+              )}
 
               <GenHeroInput />
 
