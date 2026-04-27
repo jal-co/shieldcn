@@ -69,6 +69,7 @@ const THEMES = [
 interface State {
   provider: string
   input: string
+  format: "png" | "svg"
   variant: string
   size: string
   theme: string
@@ -80,6 +81,7 @@ interface State {
   logoColor: string
   label: string
   color: string
+  gradient: string
   valueColor: string
   labelTextColor: string
   labelOpacity: string
@@ -90,16 +92,17 @@ interface State {
 function buildUrl(s: State, baseUrl: string): string {
   if (!s.input.trim()) return ""
 
+  const ext = s.format === "svg" ? ".svg" : ".png"
   let path = ""
   switch (s.provider) {
-    case "npm":            path = `/npm/${s.input}.svg`; break
-    case "npm-downloads":  path = `/npm/${s.input}/downloads.svg`; break
-    case "github-stars":   path = `/github/${s.input}/stars.svg`; break
-    case "github-release": path = `/github/${s.input}/release.svg`; break
-    case "github-ci":      path = `/github/${s.input}/ci.svg`; break
-    case "github-license": path = `/github/${s.input}/license.svg`; break
-    case "discord":        path = `/discord/${s.input}.svg`; break
-    case "static":         path = `/badge/${s.input}.svg`; break
+    case "npm":            path = `/npm/${s.input}${ext}`; break
+    case "npm-downloads":  path = `/npm/${s.input}/downloads${ext}`; break
+    case "github-stars":   path = `/github/${s.input}/stars${ext}`; break
+    case "github-release": path = `/github/${s.input}/release${ext}`; break
+    case "github-ci":      path = `/github/${s.input}/ci${ext}`; break
+    case "github-license": path = `/github/${s.input}/license${ext}`; break
+    case "discord":        path = `/discord/${s.input}${ext}`; break
+    case "static":         path = `/badge/${s.input}${ext}`; break
   }
 
   const p = new URLSearchParams()
@@ -123,6 +126,7 @@ function buildUrl(s: State, baseUrl: string): string {
   if (s.valueColor) p.set("valueColor", s.valueColor)
   if (s.labelTextColor) p.set("labelTextColor", s.labelTextColor)
   if (s.labelOpacity) p.set("labelOpacity", s.labelOpacity)
+  if (s.gradient) p.set("gradient", s.gradient)
 
   const q = p.toString()
   return `${baseUrl}${path}${q ? `?${q}` : ""}`
@@ -135,6 +139,7 @@ function buildUrl(s: State, baseUrl: string): string {
 const defaults: State = {
   provider: "npm",
   input: "react",
+  format: "png",
   variant: "default",
   size: "sm",
   theme: "_none",
@@ -146,6 +151,7 @@ const defaults: State = {
   logoColor: "",
   label: "",
   color: "",
+  gradient: "",
   valueColor: "",
   labelTextColor: "",
   labelOpacity: "",
@@ -280,6 +286,24 @@ export function BadgeBuilder() {
               <SelectItem value="geist-mono">Geist Mono</SelectItem>
             </SelectContent>
           </Select>
+        </Field>
+      </div>
+
+      {/* ── Row 4: Format + Gradient ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Format">
+          <Select value={s.format} onValueChange={v => set("format", v as "png" | "svg")}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png">PNG</SelectItem>
+              <SelectItem value="svg">SVG</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Gradient">
+          <Input value={s.gradient} onChange={e => set("gradient", e.target.value)} placeholder="ff6b6b,4ecdc4" />
+          <p className="text-[10px] text-muted-foreground">Comma-separated hex colors, optional angle last (e.g. ff6b6b,4ecdc4,135)</p>
         </Field>
       </div>
 

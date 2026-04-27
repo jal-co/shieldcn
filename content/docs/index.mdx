@@ -11,33 +11,35 @@ shieldcn serves SVG badge images that look like **shadcn/ui Button components** 
 
 Add a badge to your README:
 
-<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.svg)" />
+<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.png)" />
 
-That's it. No configuration, no API keys, no build step.
+That's it. No configuration, no API keys, no build step. Both `.png` and `.svg` extensions are supported — just swap the extension.
 
 ## Badge types
 
 | Badge | URL pattern |
 |-------|------------|
-| npm version | `/npm/{package}.svg` |
-| npm downloads | `/npm/dw/{package}.svg` |
-| npm license | `/npm/license/{package}.svg` |
-| npm types | `/npm/types/{package}.svg` |
-| GitHub stars | `/github/stars/{owner}/{repo}.svg` |
-| GitHub forks | `/github/forks/{owner}/{repo}.svg` |
-| GitHub release | `/github/release/{owner}/{repo}.svg` |
-| GitHub CI | `/github/ci/{owner}/{repo}.svg` |
-| GitHub license | `/github/license/{owner}/{repo}.svg` |
-| GitHub issues | `/github/issues/{owner}/{repo}.svg` |
-| GitHub PRs | `/github/prs/{owner}/{repo}.svg` |
-| GitHub commits | `/github/commits/{owner}/{repo}.svg` |
-| Discord online | `/discord/{serverId}.svg` |
-| Discord members | `/discord/members/{inviteCode}.svg` |
-| Reddit karma | `/reddit/{type}/u/{user}.svg` |
-| Static | `/badge/{label}-{message}-{color}.svg` |
-| Dynamic JSON | `/badge/dynamic/json.svg?url=...&query=...` |
-| HTTPS endpoint | `/https/{hostname}/{path}.svg` |
-| Memo | `/memo/{key}.svg` |
+| npm version | `/npm/{package}` |
+| npm downloads | `/npm/dw/{package}` |
+| npm license | `/npm/license/{package}` |
+| npm types | `/npm/types/{package}` |
+| GitHub stars | `/github/stars/{owner}/{repo}` |
+| GitHub forks | `/github/forks/{owner}/{repo}` |
+| GitHub release | `/github/release/{owner}/{repo}` |
+| GitHub CI | `/github/ci/{owner}/{repo}` |
+| GitHub license | `/github/license/{owner}/{repo}` |
+| GitHub issues | `/github/issues/{owner}/{repo}` |
+| GitHub PRs | `/github/prs/{owner}/{repo}` |
+| GitHub commits | `/github/commits/{owner}/{repo}` |
+| Discord online | `/discord/{serverId}` |
+| Discord members | `/discord/members/{inviteCode}` |
+| Reddit karma | `/reddit/{type}/u/{user}` |
+| Static | `/badge/{label}-{message}-{color}` |
+| Dynamic JSON | `/badge/dynamic/json?url=...&query=...` |
+| HTTPS endpoint | `/https/{hostname}/{path}` |
+| Memo | `/memo/{key}` |
+
+Append `.png` or `.svg` to any endpoint (e.g. `/npm/react.png` or `/npm/react.svg`).
 
 ## Variants
 
@@ -66,9 +68,12 @@ Badges auto-detect icons per provider. Override with any [Simple Icons](https://
 
 ## Response formats
 
-- **`.svg`** — SVG image (default, for `<img>` tags and markdown)
+- **`.png`** — PNG image (recommended for GitHub READMEs and most use cases)
+- **`.svg`** — SVG image (scalable, smaller file size)
 - **`.json`** — raw badge data
 - **`/shields.json`** — shields.io-compatible endpoint
+
+Both `.png` and `.svg` work everywhere GitHub renders images. Use `.png` for maximum compatibility across platforms.
 
 ## Built with
 

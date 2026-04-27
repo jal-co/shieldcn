@@ -128,10 +128,12 @@ Three icon libraries (40,000+ icons) plus custom SVG upload:
 
 ## Response formats
 
-- **`.svg`** — SVG image (default, for READMEs and docs)
-- **`.png`** — rasterized PNG
+- **`.png`** — PNG image (recommended for GitHub READMEs and maximum compatibility)
+- **`.svg`** — SVG image (scalable, smaller file size)
 - **`.json`** — raw badge data
 - **`/shields.json`** — shields.io-compatible endpoint
+
+Both `.png` and `.svg` work everywhere GitHub renders images. Just swap the extension.
 
 ## Design principles
 

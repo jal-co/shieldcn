@@ -46,6 +46,28 @@ function getFonts(font: BadgeFont = "inter") {
   return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
 }
 
+/** Check if a hex color (with #) is light enough to need dark text. */
+function isLightColor(hex: string): boolean {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+}
+
+/**
+ * Determine the best foreground color for a gradient background.
+ * Extracts hex stops from the CSS linear-gradient value and checks
+ * the average luminance to pick white or dark text.
+ */
+function gradientFg(gradient: string): string {
+  const stops = gradient.match(/#[0-9a-fA-F]{3,8}/g)
+  if (!stops || stops.length === 0) return "#ffffff"
+  const lightCount = stops.filter(isLightColor).length
+  return lightCount > stops.length / 2 ? "#18181b" : "#ffffff"
+}
+
 /** Hex → rgba with baked-in opacity */
 function rgba(hex: string, opacity: number): string {
   if (opacity >= 1) return hex
@@ -95,6 +117,9 @@ interface ResolvedBadge {
   leftBg: string                  // split left background
   rightBg: string                 // split right background
   rightFg: string                 // split right text color
+
+  // Gradient
+  gradient: string | undefined     // CSS linear-gradient value
 
   // Icon data (pass-through)
   icon: string | undefined
@@ -153,6 +178,14 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     labelFgBase = bs.fg
   }
 
+  // When gradient is active, override text colors for contrast
+  // unless the user has explicitly set them
+  if (config.gradient && !config.valueColor && !config.labelTextColor) {
+    const gfg = gradientFg(config.gradient)
+    fg = gfg
+    labelFgBase = gfg
+  }
+
   // Apply overrides
   const finalValueColor = config.valueColor
     ? `#${config.valueColor}`
@@ -173,7 +206,9 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   // Split colors
   const leftBg = hasTheme ? config.colors.labelBg : mode.secondary
   const rightBg = config.statusColor || config.colors.valueBg || mode.primary
-  const rightFg = config.colors.valueFg || mode.primaryForeground
+  const rightFg = config.gradient
+    ? gradientFg(config.gradient)
+    : (config.colors.valueFg || mode.primaryForeground)
 
   return {
     label: config.label,
@@ -197,6 +232,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     leftBg,
     rightBg,
     rightFg,
+    gradient: config.gradient,
     icon: config.icon,
     iconViewBox: config.iconViewBox,
     iconFillRule: config.iconFillRule,
@@ -347,6 +383,11 @@ function DotEl({ r }: { r: ResolvedBadge }) {
 // ---------------------------------------------------------------------------
 
 function renderSingle(r: ResolvedBadge): React.ReactElement {
+  // Gradient overrides backgroundColor when present
+  const bgStyles = r.gradient
+    ? { backgroundImage: r.gradient }
+    : r.bg ? { backgroundColor: r.bg } : {}
+
   return (
     <div style={{
       display: "flex",
@@ -358,7 +399,7 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       fontFamily: r.fontFamily,
       fontSize: r.fontSize,
       fontWeight: 500,
-      ...(r.bg ? { backgroundColor: r.bg } : {}),
+      ...bgStyles,
       ...(r.border ? { border: `1px solid ${r.border}` } : {}),
     }}>
       <DotEl r={r} />
@@ -382,6 +423,9 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
 // ---------------------------------------------------------------------------
 
 function renderSplit(r: ResolvedBadge): React.ReactElement {
+  // When gradient is active, it spans the full badge and inner segments are transparent
+  const hasGradient = !!r.gradient
+
   return (
     <div style={{
       display: "flex",
@@ -392,13 +436,14 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
       fontSize: r.fontSize,
       fontWeight: 500,
       overflow: "hidden",
+      ...(hasGradient ? { backgroundImage: r.gradient } : {}),
     }}>
       {/* Left segment */}
       <div style={{
         display: "flex",
         alignItems: "center",
         height: r.height,
-        backgroundColor: r.leftBg,
+        ...(hasGradient ? {} : { backgroundColor: r.leftBg }),
         paddingLeft: r.paddingX,
         paddingRight: r.paddingX,
       }}>
@@ -412,7 +457,7 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
         display: "flex",
         alignItems: "center",
         height: r.height,
-        backgroundColor: r.rightBg,
+        ...(hasGradient ? {} : { backgroundColor: r.rightBg }),
         paddingLeft: r.paddingX,
         paddingRight: r.paddingX,
       }}>

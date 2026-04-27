@@ -332,6 +332,24 @@ export const categories: Category[] = [
     ],
   },
   {
+    name: "Gradients",
+    description: "Gradient background badges — use ?gradient=color1,color2 or add a third value for the angle.",
+    icons: [
+      dynamicBadge("Sunset", "gradient", "/badge/sunset-vibes-ff6b6b.svg?gradient=ff6b6b,feca57&logoColor=fff&logo=ri:GoSunFill", "Warm sunset gradient with a sun icon."),
+      dynamicBadge("Ocean", "gradient", "/badge/ocean-deep-667eea.svg?gradient=667eea,764ba2&logoColor=fff&logo=ri:GoDropletFill", "Cool purple-to-indigo gradient."),
+      dynamicBadge("Mint", "gradient", "/badge/fresh-mint-00b09b.svg?gradient=00b09b,96c93d&logoColor=fff&logo=ri:GoSparklesFill", "Fresh green gradient for eco or health themes."),
+      dynamicBadge("Aurora", "gradient", "/badge/aurora-borealis-a18cd1.svg?gradient=a18cd1,fbc2eb&logoColor=fff&logo=ri:GoStarFill", "Soft pink-to-lavender aurora gradient."),
+      dynamicBadge("Fire", "gradient", "/badge/on-fire-ff0844.svg?gradient=ff0844,ffb199&logoColor=fff&logo=ri:GoFlame", "Hot red-to-peach fire gradient."),
+      dynamicBadge("Neon", "gradient", "/badge/neon-glow-08AEEA.svg?gradient=08AEEA,2AF598&logoColor=fff&logo=ri:GoZap", "Electric cyan-to-green neon gradient."),
+      dynamicBadge("Gradient + Split", "gradient", "/npm/react.svg?gradient=667eea,764ba2&split=true&logoColor=fff", "Gradient flowing across a split badge."),
+      dynamicBadge("3-Stop Rainbow", "gradient", "/badge/rainbow-vibes-ff6b6b.svg?gradient=ff6b6b,feca57,4ecdc4&logoColor=fff", "Three-color gradient for a playful look."),
+      dynamicBadge("Diagonal", "gradient", "/badge/diagonal-gradient-667eea.svg?gradient=667eea,764ba2,135&logoColor=fff", "135° diagonal gradient."),
+      dynamicBadge("GitHub + Gradient", "gradient", "/github/stars/vercel/next.js.svg?gradient=667eea,764ba2&logoColor=fff", "Real data badge with a gradient background."),
+      dynamicBadge("npm + Gradient", "gradient", "/npm/react.svg?gradient=ff6b6b,feca57&logoColor=fff", "npm version badge with a warm gradient."),
+      dynamicBadge("Outline + Gradient", "gradient", "/badge/outline-gradient-667eea.svg?variant=outline&gradient=667eea,764ba2&logoColor=fff", "Gradient fills the outline variant background."),
+    ],
+  },
+  {
     name: "For Fun",
     description: "Honest badges for honest READMEs. Use responsibly.",
     icons: [

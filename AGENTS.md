@@ -75,6 +75,7 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 | `labelTextColor` | hex without # | — |
 | `label` | string | auto |
 | `labelOpacity` | 0–1 | 0.7 |
+| `gradient` | comma-separated hex colors, optional angle last (e.g. `ff6b6b,4ecdc4,135`) | — |
 | `height`, `fontSize`, `radius`, `padX`, `iconSize`, `gap`, `labelGap` | number (px) | per size preset |
 
 ## Rules
