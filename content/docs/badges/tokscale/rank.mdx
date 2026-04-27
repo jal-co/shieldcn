@@ -1,0 +1,38 @@
+---
+title: Tokscale Rank
+description: Display the global leaderboard rank for a Tokscale user.
+badge: "/tokscale/rank/junhoyeo.svg?variant=branded"
+---
+
+Show the user's position on the Tokscale global leaderboard.
+
+<BadgeSandbox
+  endpoint="/tokscale/rank/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/tokscale/rank/{username}.svg" hideCopy />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg" alt="rank" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=branded" alt="rank branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=secondary" alt="rank secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=outline" alt="rank outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/tokscale/rank/junhoyeo.svg" alt="tokscale rank" description="Default — global leaderboard position" />
+
+<BadgePreview src="/tokscale/rank/junhoyeo.svg?variant=branded" alt="tokscale rank" description="Branded — Tokscale blue background" />
+
+## Data source
+
+Uses the [Tokscale User API](https://tokscale.ai). Rank is based on total token consumption by default. Cached 10 minutes.

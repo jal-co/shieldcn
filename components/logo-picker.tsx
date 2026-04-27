@@ -22,7 +22,7 @@ import iconList from "@/lib/badges/icon-list.json"
 interface IconEntry {
   slug: string
   title: string
-  source: "simple" | "lucide"
+  source: "simple"
 }
 
 const allIcons = iconList as IconEntry[]
@@ -153,7 +153,7 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
                         <Check className={cn("mr-1.5 size-3", value === icon.slug ? "opacity-100" : "opacity-0")} />
                         <span>{icon.title}</span>
                         <span className="ml-auto text-[10px] font-mono text-muted-foreground">
-                          {icon.source === "lucide" ? icon.slug : icon.slug}
+                          {icon.slug}
                         </span>
                       </CommandItem>
                     ))}

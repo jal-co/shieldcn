@@ -1,0 +1,79 @@
+---
+title: GitHub Downloads
+description: Display download counts for GitHub release assets — all assets or specific files, across all releases or a specific tag.
+badge: "/github/downloads/atom/atom.svg?variant=branded"
+---
+
+Show download counts for release assets with granular control over scope.
+
+<BadgeSandbox
+  endpoint="/github/downloads/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "atom", required: true },
+    { name: "repo", label: "repository name", placeholder: "atom", required: true },
+  ]}
+  defaults={{ owner: "atom", repo: "atom" }}
+/>
+
+## URL formats
+
+### All assets, all releases
+
+<CodeLine language="bash" code="/github/downloads/{owner}/{repo}.svg" hideCopy />
+
+Total downloads across every asset in every release.
+
+### All assets, latest release
+
+<CodeLine language="bash" code="/github/downloads/{owner}/{repo}/latest.svg" hideCopy />
+
+Total downloads across all assets in the latest release only.
+
+### All assets, specific tag
+
+<CodeLine language="bash" code="/github/downloads/{owner}/{repo}/{tag}.svg" hideCopy />
+
+Total downloads across all assets for a specific release tag.
+
+### Specific asset, all releases
+
+<CodeLine language="bash" code="/github/downloads-asset/{owner}/{repo}/{assetName}.svg" hideCopy />
+
+Downloads of a single asset file summed across all releases.
+
+### Specific asset, latest release
+
+<CodeLine language="bash" code="/github/downloads-asset/{owner}/{repo}/{assetName}/latest.svg" hideCopy />
+
+Downloads of a single asset in the latest release only.
+
+### Specific asset, specific tag
+
+<CodeLine language="bash" code="/github/downloads-asset/{owner}/{repo}/{assetName}/{tag}.svg" hideCopy />
+
+Downloads of a single asset in a specific release tag.
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/downloads/atom/atom.svg" alt="downloads" description="All assets, all releases" />
+  <BadgePreviewCard src="/github/downloads/atom/atom/latest.svg" alt="downloads latest" description="All assets, latest release" />
+  <BadgePreviewCard src="/github/downloads/atom/atom.svg?variant=branded" alt="downloads branded" description="Branded variant" />
+  <BadgePreviewCard src="/github/downloads-asset/atom/atom/atom-amd64.deb.svg?variant=secondary" alt="specific asset" description="Specific asset" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/github/downloads/atom/atom.svg" alt="github downloads" description="Default — total downloads across all releases and assets" />
+
+<BadgePreview src="/github/downloads/atom/atom/latest.svg?variant=branded" alt="github downloads latest" description="Branded — downloads for the latest release" />
+
+<BadgePreview src="/github/downloads-asset/atom/atom/atom-amd64.deb.svg" alt="github asset downloads" description="Specific asset — downloads of atom-amd64.deb across all releases" />
+
+## Legacy endpoint
+
+The older `/github/assets-dl/{owner}/{repo}` and `/github/dt/{owner}/{repo}` endpoints still work and return downloads for the latest release (or a specific tag). The new `/github/downloads/` endpoints offer more flexibility.
+
+## Data source
+
+Uses the [GitHub Releases API](https://docs.github.com/en/rest/releases/releases). Uses the [token pool](/token-pool) for distributed rate limiting. Cached 1 hour. For "all releases" badges, paginates through up to 50 pages (5,000 releases).

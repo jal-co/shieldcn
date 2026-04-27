@@ -1,0 +1,38 @@
+---
+title: Tokscale Active Days
+description: Display the number of active coding days for a Tokscale user.
+badge: "/tokscale/active-days/junhoyeo.svg?variant=branded"
+---
+
+Show how many days the user had at least one AI interaction.
+
+<BadgeSandbox
+  endpoint="/tokscale/active-days/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/tokscale/active-days/{username}.svg" hideCopy />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg" alt="active days" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=branded" alt="active days branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=secondary" alt="active days secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=outline" alt="active days outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/tokscale/active-days/junhoyeo.svg" alt="tokscale active days" description="Default — total days with AI activity" />
+
+<BadgePreview src="/tokscale/active-days/junhoyeo.svg?variant=branded" alt="tokscale active days" description="Branded — Tokscale blue background" />
+
+## Data source
+
+Uses the [Tokscale User API](https://tokscale.ai). Counts days with at least one recorded AI interaction. Cached 10 minutes.

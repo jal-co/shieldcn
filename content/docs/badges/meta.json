@@ -26,6 +26,7 @@
     "opencollective",
     "codecov",
     "wakatime",
+    "tokscale",
     "static",
     "dynamic-json",
     "https-endpoint"

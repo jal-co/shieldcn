@@ -55,7 +55,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | **RubyGems** | version, downloads, license | `/rubygems/{gem}` |
 | **NuGet** | version, downloads | `/nuget/{package}` |
 | **Pub.dev** | version, likes, points, popularity | `/pub/{package}` |
-| **Homebrew** | version (formula + cask), installs | `/homebrew/{formula}` |
+| **Homebrew** | version (formula + cask), installs, downloads | `/homebrew/{formula}` |
 | **Maven Central** | version | `/maven/{groupId}/{artifactId}` |
 | **CocoaPods** | version | `/cocoapods/{pod}` |
 | **JSR** | version, score | `/jsr/{@scope}/{name}` |
@@ -65,7 +65,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 
 | Provider | Badges | Endpoint |
 |----------|--------|----------|
-| **GitHub** | stars, forks, watchers, license, release, CI, checks, issues, PRs, milestones, commits, downloads, dependabot, and more | `/github/{owner}/{repo}/{topic}` |
+| **GitHub** | stars, forks, watchers, license, release, CI, checks, issues, PRs, milestones, commits, downloads (all/specific asset, all/latest/tag), dependabot, and more | `/github/{owner}/{repo}/{topic}` |
 | **Codecov** | coverage percentage (color-coded) | `/codecov/{service}/{owner}/{repo}` |
 | **VS Code Marketplace** | installs, rating, version | `/vscode/installs/{publisher}/{extension}` |
 
@@ -88,6 +88,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 |----------|--------|----------|
 | **Open Collective** | backers, sponsors, contributors, balance, budget | `/opencollective/backers/{slug}` |
 | **WakaTime** | coding time | `/wakatime/{username}` |
+| **Tokscale** | tokens, cost, rank, active days | `/tokscale/{username}` |
 
 ### Custom badges
 
