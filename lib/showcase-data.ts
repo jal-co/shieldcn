@@ -374,6 +374,13 @@ export const categories: Category[] = [
       dynamicBadge("Type Safety: Eventual", "aspiration", "/badge/type%20safety-eventual-orange.svg?variant=outline", "any any any any any."),
     ],
   },
+  {
+    name: "Community",
+    description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
+    icons: [
+      dynamicBadge("first community badge", "by @jal-co", "/badge/my-cool_badge-blue.svg", "the first ever badge submitted by the community"),
+    ],
+  },
 ]
 
 /** All unique badge paths from all categories. */
