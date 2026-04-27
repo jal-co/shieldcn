@@ -1,0 +1,51 @@
+# badgetizr-shieldcn — shadcn-styled PR badges
+# Powered by shieldcn (https://shieldcn.com)
+
+shieldcn:
+  variant: "default"
+  mode: "dark"
+  size: "sm"
+
+badge_wip:
+  enabled: "true"
+  settings:
+    color: "EAB308"
+    label: "WIP"
+    logo: "lucide:construction"
+
+badge_hotfix:
+  enabled: "true"
+  settings:
+    color: "EF4444"
+    label: "HOTFIX"
+    logo: "lucide:flame"
+    variant: "destructive"
+    production_branch: "main"
+
+badge_base_branch:
+  enabled: "true"
+  settings:
+    base_branch: "main"
+    color: "F97316"
+    label: "Target"
+    logo: "lucide:git-branch"
+
+badge_ci:
+  enabled: "true"
+  settings:
+    label: "Build"
+    logo: "github"
+    color: "7C3AED"
+
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    color: "22C55E"
+    label: "Ready"
+    logo: "lucide:check-circle"
+
+badge_ticket:
+  enabled: "false"
+
+badge_dynamic:
+  enabled: "false"
