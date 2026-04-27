@@ -206,7 +206,7 @@ export function BadgeModal({
                 <Input
                   value={logo.startsWith("data:") ? "" : logo}
                   onChange={(e) => setLogo(e.target.value)}
-                  placeholder="slug or lucide:name"
+                  placeholder="slug or ri:Name"
                   className="h-8 text-xs"
                 />
                 <SvgIconUpload value={logo} onChange={setLogo} className="w-full" />

@@ -774,12 +774,12 @@ async function fetchBadgeData(
 
 /**
  * Map a provider/badge combination to a SimpleIcons slug and optional
- * Lucide icon name for the default icon.
+ * React Icons name for the default icon.
  *
- * Returns { simpleIcon, lucide } — one or both may be set.
- * simpleIcon is tried first, lucide is fallback.
+ * Returns { simpleIcon, reactIcon } — one or both may be set.
+ * simpleIcon is tried first, reactIcon is fallback.
  */
-function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; lucide?: string; reactIcon?: string } | null {
+function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIcon?: string } | null {
   const provider = segments[0]
 
   // Static / dynamic badges have no default icon
@@ -792,7 +792,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; lucide?:
   if (provider === "docker") return { simpleIcon: "docker" }
   if (provider === "bluesky") return { simpleIcon: "bluesky" }
   if (provider === "jsr") return { simpleIcon: "jsr" }
-  if (provider === "bundlephobia") return { lucide: "package" }
+  if (provider === "bundlephobia") return { reactIcon: "GoPackage" }
   if (provider === "youtube") return { simpleIcon: "youtube" }
   if (provider === "vscode") return { simpleIcon: "visualstudiocode" }
   if (provider === "opencollective") return { simpleIcon: "opencollective" }
@@ -820,16 +820,16 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; lucide?:
       "last-commit","assets-dl","dt","dependents-repo","dependents-pkg","dependabot"])
     const topic = knownTopics.has(rest[0]) ? rest[0] : rest[2]
 
-    if (topic === "stars") return { lucide: "star" }
-    if (topic === "forks") return { lucide: "git-fork" }
-    if (topic === "release" || topic === "tag") return { lucide: "tag" }
+    if (topic === "stars") return { reactIcon: "GoStarFill" }
+    if (topic === "forks") return { reactIcon: "GoRepoForked" }
+    if (topic === "release" || topic === "tag") return { reactIcon: "GoTag" }
     if (topic === "ci" || topic === "checks") return null // uses status dot
     if (topic === "license") return { reactIcon: "FaBalanceScale" }
-    if (topic === "contributors") return { lucide: "users" }
-    if (topic === "issues" || topic === "open-issues" || topic === "closed-issues" || topic === "label-issues") return { lucide: "circle-dot" }
-    if (topic === "prs" || topic === "open-prs" || topic === "closed-prs" || topic === "merged-prs") return { lucide: "git-pull-request" }
-    if (topic === "commits" || topic === "last-commit") return { lucide: "git-commit-horizontal" }
-    if (topic === "assets-dl" || topic === "dt") return { lucide: "download" }
+    if (topic === "contributors") return { reactIcon: "GoPeople" }
+    if (topic === "issues" || topic === "open-issues" || topic === "closed-issues" || topic === "label-issues") return { reactIcon: "GoIssueDraft" }
+    if (topic === "prs" || topic === "open-prs" || topic === "closed-prs" || topic === "merged-prs") return { reactIcon: "GoGitPullRequest" }
+    if (topic === "commits" || topic === "last-commit") return { reactIcon: "GoGitCommit" }
+    if (topic === "assets-dl" || topic === "dt") return { reactIcon: "GoDownload" }
     return { simpleIcon: "github" }
   }
 
@@ -958,7 +958,7 @@ export async function GET(
       }
     }
   } else if (logoParam && logoParam !== "true") {
-    // Custom icon: SimpleIcons slug or lucide:name
+    // Custom icon: SimpleIcons slug or ri:Name
     const si = await getSimpleIcon(logoParam, logoColor)
     if (si) {
       iconPath = si.icon.path
@@ -987,10 +987,9 @@ export async function GET(
     // Default provider icon
     const defaultLogo = getDefaultLogoSlug(cleanSegments)
     if (defaultLogo) {
-      // Try sources in order: SimpleIcons > Lucide > React Icons
+      // Try sources in order: SimpleIcons > React Icons
       const sources = [
         defaultLogo.simpleIcon,
-        defaultLogo.lucide ? `lucide:${defaultLogo.lucide}` : null,
         defaultLogo.reactIcon ? `ri:${defaultLogo.reactIcon}` : null,
       ].filter(Boolean) as string[]
 

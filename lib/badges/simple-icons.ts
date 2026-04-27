@@ -4,7 +4,7 @@
  *
  * Icon resolution for badges. Supports:
  * - SimpleIcons slugs: ?logo=react, ?logo=typescript
- * - Lucide icons: ?logo=lucide:star, ?logo=lucide:github
+ * - React Icons: ?logo=ri:FaReact, ?logo=ri:MdHome
  *
  * Returns SVG path data for inline rendering in badge SVGs.
  */
@@ -12,20 +12,15 @@
 import type { IconData } from "./icons"
 
 /**
- * Look up an icon by slug. Supports SimpleIcons and Lucide.
+ * Look up an icon by slug. Supports SimpleIcons and React Icons.
  *
- * @param slug - "react" (SimpleIcons) or "lucide:star" (Lucide)
+ * @param slug - "react" (SimpleIcons) or "ri:FaReact" (React Icons)
  * @param logoColor - optional override color
  */
 export async function getSimpleIcon(
   slug: string,
   logoColor?: string
 ): Promise<{ icon: IconData; defaultColor: string } | null> {
-  // Lucide icons: ?logo=lucide:icon-name
-  if (slug.startsWith("lucide:")) {
-    return getLucideIcon(slug.slice(7))
-  }
-
   // React Icons: ?logo=ri:FaReact or ?logo=ri:AiFillAccountBook
   if (slug.startsWith("ri:")) {
     return getReactIcon(slug.slice(3))
@@ -58,81 +53,6 @@ async function getSimpleIconBySlug(
         path: icon.path,
       },
       defaultColor: icon.hex,
-    }
-  } catch {
-    return null
-  }
-}
-
-/**
- * Look up a Lucide icon by name.
- *
- * Lucide icons are stroke-based SVGs. We extract all `d` attributes from
- * path/circle/line/polyline/rect elements and combine them into a single
- * compound path string that Satori can render as a single <path> element.
- *
- * Since Lucide icons are stroke-based (not filled), we mark them with
- * fillRule="__lucide__" so the renderer can apply stroke instead of fill.
- */
-async function getLucideIcon(
-  name: string
-): Promise<{ icon: IconData; defaultColor: string } | null> {
-  try {
-    const pascalName = name
-      .split("-")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join("")
-
-    const lucide = await import("lucide-static")
-    const svgString = (lucide as unknown as Record<string, string>)[pascalName]
-
-    if (!svgString) return null
-
-    // Extract all d="..." attributes from path elements
-    const pathDs: string[] = []
-    const pathRegex = /d="([^"]+)"/g
-    let match: RegExpExecArray | null
-    while ((match = pathRegex.exec(svgString)) !== null) {
-      pathDs.push(match[1])
-    }
-
-    // Also handle <circle cx="X" cy="Y" r="R" /> → convert to path
-    const circleRegex = /<circle\s+cx="([^"]+)"\s+cy="([^"]+)"\s+r="([^"]+)"/g
-    while ((match = circleRegex.exec(svgString)) !== null) {
-      const cx = parseFloat(match[1])
-      const cy = parseFloat(match[2])
-      const r = parseFloat(match[3])
-      // Circle as two arcs
-      pathDs.push(`M${cx - r},${cy}a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 -${r * 2},0`)
-    }
-
-    // Also handle <line x1 y1 x2 y2 />
-    const lineRegex = /<line\s+x1="([^"]+)"\s+y1="([^"]+)"\s+x2="([^"]+)"\s+y2="([^"]+)"/g
-    while ((match = lineRegex.exec(svgString)) !== null) {
-      pathDs.push(`M${match[1]},${match[2]}L${match[3]},${match[4]}`)
-    }
-
-    // Also handle <polyline points="..." />
-    const polylineRegex = /points="([^"]+)"/g
-    while ((match = polylineRegex.exec(svgString)) !== null) {
-      const pts = match[1].trim().split(/\s+/)
-      if (pts.length >= 2) {
-        pathDs.push("M" + pts.join("L"))
-      }
-    }
-
-    if (pathDs.length === 0) return null
-
-    // Combine all paths into one compound path
-    const combinedPath = pathDs.join(" ")
-
-    return {
-      icon: {
-        viewBox: "0 0 24 24",
-        path: combinedPath,
-        fillRule: "__lucide__",
-      },
-      defaultColor: "currentColor",
     }
   } catch {
     return null
@@ -251,8 +171,7 @@ async function getReactIcon(
       icon: {
         viewBox,
         path: pathDs.join(" "),
-        // Stroke-based icons (Feather/fi) use __lucide__ marker for stroke rendering
-        fillRule: isStroke ? "__lucide__" : undefined,
+        fillRule: undefined,
       },
       defaultColor: "currentColor",
     }

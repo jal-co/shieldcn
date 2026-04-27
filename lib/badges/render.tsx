@@ -312,17 +312,6 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   const vb = r.iconViewBox || "0 0 16 16"
   const color = r.iconFill || r.iconColor
 
-  if (r.iconFillRule === "__lucide__") {
-    return (
-      <svg viewBox={vb} width={r.iconSize} height={r.iconSize}
-        fill="none"
-        style={{ flexShrink: 0 }}>
-        <path d={r.icon} fill="none" stroke={color} strokeWidth="2"
-          strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  }
-
   const fr = r.iconFillRule as "nonzero" | "evenodd" | undefined
   return (
     <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
