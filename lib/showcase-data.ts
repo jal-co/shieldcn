@@ -381,5 +381,12 @@ export const allBadgePaths: string[] = Array.from(
   new Set([
     ...featuredBadges.map(b => b.badgePath),
     ...categories.flatMap(c => c.icons.map(b => b.badgePath)),
-  ])
+    {
+    name: "Community",
+    description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
+    icons: [
+      dynamicBadge("First Community Badge", "by @jal-co", "/badge/created-with_showcase-blue.svg", "The first community badge, hopefully of many."),
+    ],
+  },
+])
 )
