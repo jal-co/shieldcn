@@ -66,6 +66,7 @@ export const categories: Category[] = [
       dynamicBadge("GitHub Open PRs", "issue tracking", "/github/open-prs/vercel/next.js.svg?variant=outline", "Useful when your project gets outside contributions.", "/docs/badges/github"),
       dynamicBadge("GitHub Contributors", "community", "/github/contributors/vercel/next.js.svg?variant=outline&theme=emerald", "Contributor count with a warmer, community-oriented feel.", "/docs/badges/github"),
       dynamicBadge("GitHub CI", "build health", "/github/ci/vercel/next.js.svg?variant=outline", "Recommended default presentation for workflow status.", "/docs/badges/github"),
+      dynamicBadge("GitHub Downloads", "downloads", "/github/downloads/atom/atom.svg?variant=secondary", "Total release asset downloads across all releases.", "/docs/badges/github/downloads"),
     ],
   },
   {
@@ -150,6 +151,7 @@ export const categories: Category[] = [
       dynamicBadge("Pub.dev", "dart/flutter", "/pub/flutter_bloc.svg?variant=branded", "Dart/Flutter package version.", "/docs/badges/pub"),
       dynamicBadge("Pub Points", "dart/flutter", "/pub/points/flutter_bloc.svg?variant=secondary", "Pub.dev quality score.", "/docs/badges/pub"),
       dynamicBadge("Homebrew", "macos", "/homebrew/node.svg?variant=branded", "Homebrew formula version.", "/docs/badges/homebrew"),
+      dynamicBadge("Homebrew Downloads", "macos", "/homebrew/dm/node.svg?variant=secondary", "Homebrew formula monthly downloads.", "/docs/badges/homebrew/downloads"),
       dynamicBadge("Maven Central", "java", "/maven/com.google.guava/guava.svg?variant=branded", "Maven Central artifact version.", "/docs/badges/maven"),
       dynamicBadge("CocoaPods", "ios", "/cocoapods/Alamofire.svg?variant=branded", "CocoaPods pod version.", "/docs/badges/cocoapods"),
       dynamicBadge("JSR Version", "javascript", "/jsr/@std/path.svg?variant=branded", "JSR package version.", "/docs/badges/jsr"),
@@ -175,6 +177,8 @@ export const categories: Category[] = [
       dynamicBadge("VS Code Installs", "marketplace", "/vscode/installs/esbenp/prettier-vscode.svg?variant=branded", "VS Code extension install count.", "/docs/badges/vscode"),
       dynamicBadge("VS Code Rating", "marketplace", "/vscode/rating/esbenp/prettier-vscode.svg?variant=secondary", "VS Code extension rating.", "/docs/badges/vscode"),
       dynamicBadge("WakaTime", "coding stats", "/wakatime/wakatime.svg?variant=branded", "WakaTime coding time badge.", "/docs/badges/wakatime"),
+      dynamicBadge("Tokscale Tokens", "ai usage", "/tokscale/tokens/junhoyeo.svg?variant=branded", "Tokscale AI token usage.", "/docs/badges/tokscale"),
+      dynamicBadge("Tokscale Rank", "ai usage", "/tokscale/rank/junhoyeo.svg?variant=secondary", "Tokscale leaderboard rank.", "/docs/badges/tokscale"),
     ],
   },
   {

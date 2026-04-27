@@ -107,6 +107,7 @@ const docsNav: NavGroup[] = [
       { title: "Open Collective", href: "/docs/badges/opencollective" },
       { title: "Codecov", href: "/docs/badges/codecov" },
       { title: "WakaTime", href: "/docs/badges/wakatime" },
+      { title: "Tokscale", href: "/docs/badges/tokscale" },
     ],
   },
   {

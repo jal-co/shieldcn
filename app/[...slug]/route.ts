@@ -56,6 +56,12 @@ import {
   getGitHubLastCommit,
   getGitHubAssetsDl,
   getGitHubDependabot,
+  getGitHubDownloadsAllAssetsAllReleases,
+  getGitHubDownloadsAllAssetsLatest,
+  getGitHubDownloadsAllAssetsTag,
+  getGitHubDownloadsAssetAllReleases,
+  getGitHubDownloadsAssetLatest,
+  getGitHubDownloadsAssetTag,
 } from "@/lib/providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "@/lib/providers/discord"
 import { parseStaticBadgeContent, getDynamicJsonBadge } from "@/lib/providers/badge"
@@ -77,12 +83,13 @@ import { getPackagistVersion, getPackagistDownloads, getPackagistLicense } from 
 import { getRubyGemsVersion, getRubyGemsDownloads, getRubyGemsLicense } from "@/lib/providers/rubygems"
 import { getNuGetVersion, getNuGetDownloads } from "@/lib/providers/nuget"
 import { getPubVersion, getPubLikes, getPubPoints, getPubPopularity } from "@/lib/providers/pub"
-import { getHomebrewVersion, getHomebrewCaskVersion, getHomebrewInstalls } from "@/lib/providers/homebrew"
+import { getHomebrewVersion, getHomebrewCaskVersion, getHomebrewInstalls, getHomebrewFormulaDownloads, getHomebrewCaskDownloads } from "@/lib/providers/homebrew"
 import { getMavenVersion } from "@/lib/providers/maven"
 import { getCocoaPodsVersion } from "@/lib/providers/cocoapods"
 // import { getTwitchStatus, getTwitchFollowers } from "@/lib/providers/twitch" // disabled: needs TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET
 import { getCodecovCoverage } from "@/lib/providers/codecov"
 import { getWakaTimeCodingTime } from "@/lib/providers/wakatime"
+import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "@/lib/providers/tokscale"
 
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
@@ -208,6 +215,7 @@ async function fetchBadgeData(
         "prs", "open-prs", "closed-prs", "merged-prs",
         "milestones", "commits", "last-commit",
         "assets-dl", "dt",
+        "downloads", "downloads-all", "downloads-asset",
         "dependents-repo", "dependents-pkg", "dependabot",
       ])
 
@@ -284,10 +292,35 @@ async function fetchBadgeData(
         case "commits":     return getGitHubCommits(owner, repo, extra[0])
         case "last-commit": return getGitHubLastCommit(owner, repo, extra[0])
 
-        // Downloads
+        // Downloads (legacy)
         case "assets-dl":
         case "dt":
           return getGitHubAssetsDl(owner, repo, extra[0])
+
+        // Downloads — granular
+        // /github/downloads/{owner}/{repo}              → all assets, all releases
+        // /github/downloads/{owner}/{repo}/latest       → all assets, latest release
+        // /github/downloads/{owner}/{repo}/{tag}        → all assets, specific tag
+        // /github/downloads-all/{owner}/{repo}          → all assets, all releases (alias)
+        // /github/downloads-all/{owner}/{repo}/latest   → all assets, latest release
+        // /github/downloads-all/{owner}/{repo}/{tag}    → all assets, specific tag
+        case "downloads":
+        case "downloads-all": {
+          if (!extra[0]) return getGitHubDownloadsAllAssetsAllReleases(owner, repo)
+          if (extra[0] === "latest") return getGitHubDownloadsAllAssetsLatest(owner, repo)
+          return getGitHubDownloadsAllAssetsTag(owner, repo, extra[0])
+        }
+
+        // /github/downloads-asset/{owner}/{repo}/{assetName}           → specific asset, all releases
+        // /github/downloads-asset/{owner}/{repo}/{assetName}/latest    → specific asset, latest release
+        // /github/downloads-asset/{owner}/{repo}/{assetName}/{tag}     → specific asset, specific tag
+        case "downloads-asset": {
+          if (!extra[0]) return null
+          const assetName = extra[0]
+          if (!extra[1]) return getGitHubDownloadsAssetAllReleases(owner, repo, assetName)
+          if (extra[1] === "latest") return getGitHubDownloadsAssetLatest(owner, repo, assetName)
+          return getGitHubDownloadsAssetTag(owner, repo, extra[1], assetName)
+        }
 
         default: return null
       }
@@ -668,12 +701,20 @@ async function fetchBadgeData(
       const rest = segments.slice(1)
       if (rest.length === 0) return null
 
-      const brewTopics = new Set(["v", "cask", "installs"])
+      const brewTopics = new Set(["v", "cask", "installs", "dm", "dq", "dy", "cask-dm", "cask-dq", "cask-dy"])
       if (brewTopics.has(rest[0]) && rest[1]) {
         switch (rest[0]) {
           case "v": return getHomebrewVersion(rest[1])
           case "cask": return getHomebrewCaskVersion(rest[1])
           case "installs": return getHomebrewInstalls(rest[1], rest[2] || "30")
+          // Formula downloads: /homebrew/dm/{formula}, /homebrew/dq/{formula}, /homebrew/dy/{formula}
+          case "dm": return getHomebrewFormulaDownloads(rest[1], "dm")
+          case "dq": return getHomebrewFormulaDownloads(rest[1], "dq")
+          case "dy": return getHomebrewFormulaDownloads(rest[1], "dy")
+          // Cask downloads: /homebrew/cask-dm/{cask}, /homebrew/cask-dq/{cask}, /homebrew/cask-dy/{cask}
+          case "cask-dm": return getHomebrewCaskDownloads(rest[1], "dm")
+          case "cask-dq": return getHomebrewCaskDownloads(rest[1], "dq")
+          case "cask-dy": return getHomebrewCaskDownloads(rest[1], "dy")
           default: return null
         }
       }
@@ -737,6 +778,28 @@ async function fetchBadgeData(
       if (rest.length === 0) return null
 
       return getWakaTimeCodingTime(rest[0])
+    }
+
+    // /tokscale/{topic}/{username}
+    // e.g. /tokscale/tokens/junhoyeo or /tokscale/cost/junhoyeo
+    case "tokscale": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const tokTopics = new Set(["tokens", "cost", "rank", "active-days", "stats"])
+      if (tokTopics.has(rest[0])) {
+        switch (rest[0]) {
+          case "tokens": return rest[1] ? getTokscaleTokens(rest[1]) : null
+          case "cost": return rest[1] ? getTokscaleCost(rest[1]) : null
+          case "rank": return rest[1] ? getTokscaleRank(rest[1]) : null
+          case "active-days": return rest[1] ? getTokscaleActiveDays(rest[1]) : null
+          case "stats": return getTokscaleStats()
+          default: return null
+        }
+      }
+
+      // Default: /tokscale/{username} → tokens
+      return getTokscaleTokens(rest[0])
     }
 
     // /https/{hostname}/{pathname...}
@@ -810,6 +873,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "codecov") return { simpleIcon: "codecov" }
   if (provider === "wakatime") return { simpleIcon: "wakatime" }
   if (provider === "reddit") return { simpleIcon: "reddit" }
+  if (provider === "tokscale") return { reactIcon: "GoRocket" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}
@@ -817,7 +881,8 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
     const knownTopics = new Set(["stars","forks","watchers","branches","releases","tags","tag",
       "license","release","contributors","ci","checks","issues","open-issues","closed-issues",
       "label-issues","prs","open-prs","closed-prs","merged-prs","milestones","commits",
-      "last-commit","assets-dl","dt","dependents-repo","dependents-pkg","dependabot"])
+      "last-commit","assets-dl","dt","downloads","downloads-all","downloads-asset",
+      "dependents-repo","dependents-pkg","dependabot"])
     const topic = knownTopics.has(rest[0]) ? rest[0] : rest[2]
 
     if (topic === "stars") return { reactIcon: "GoStarFill" }
@@ -829,7 +894,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
     if (topic === "issues" || topic === "open-issues" || topic === "closed-issues" || topic === "label-issues") return { reactIcon: "GoIssueDraft" }
     if (topic === "prs" || topic === "open-prs" || topic === "closed-prs" || topic === "merged-prs") return { reactIcon: "GoGitPullRequest" }
     if (topic === "commits" || topic === "last-commit") return { reactIcon: "GoGitCommit" }
-    if (topic === "assets-dl" || topic === "dt") return { reactIcon: "GoDownload" }
+    if (topic === "assets-dl" || topic === "dt" || topic === "downloads" || topic === "downloads-all" || topic === "downloads-asset") return { reactIcon: "GoDownload" }
     return { simpleIcon: "github" }
   }
 

@@ -1,0 +1,42 @@
+---
+title: Tokscale Tokens
+description: Display the total AI token consumption for a Tokscale user.
+badge: "/tokscale/tokens/junhoyeo.svg?variant=branded"
+---
+
+Show the total number of tokens consumed across all AI coding agents.
+
+<BadgeSandbox
+  endpoint="/tokscale/tokens/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/tokscale/tokens/{username}.svg" hideCopy />
+
+<CodeLine language="bash" code="/tokscale/{username}.svg" hideCopy />
+
+Both formats return the same badge. The default endpoint shows token count.
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg" alt="tokens" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=branded" alt="tokens branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=secondary" alt="tokens secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=outline" alt="tokens outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/tokscale/tokens/junhoyeo.svg" alt="tokscale tokens" description="Default — total token consumption" />
+
+<BadgePreview src="/tokscale/tokens/junhoyeo.svg?variant=branded" alt="tokscale tokens" description="Branded — Tokscale blue background" />
+
+## Data source
+
+Uses the [Tokscale User API](https://tokscale.ai). Returns all-time total token count. Cached 10 minutes.

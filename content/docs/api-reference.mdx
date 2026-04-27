@@ -27,6 +27,12 @@ description: Complete URL specification, query parameters, and response formats.
 | `/github/{owner}/{repo}/release.svg` | Latest release tag |
 | `/github/{owner}/{repo}/ci.svg` | CI workflow status |
 | `/github/{owner}/{repo}/license.svg` | SPDX license identifier |
+| `/github/downloads/{owner}/{repo}.svg` | Downloads — all assets, all releases |
+| `/github/downloads/{owner}/{repo}/latest.svg` | Downloads — all assets, latest release |
+| `/github/downloads/{owner}/{repo}/{tag}.svg` | Downloads — all assets, specific tag |
+| `/github/downloads-asset/{owner}/{repo}/{asset}.svg` | Downloads — specific asset, all releases |
+| `/github/downloads-asset/{owner}/{repo}/{asset}/latest.svg` | Downloads — specific asset, latest release |
+| `/github/downloads-asset/{owner}/{repo}/{asset}/{tag}.svg` | Downloads — specific asset, specific tag |
 
 ### Discord
 
@@ -35,6 +41,30 @@ description: Complete URL specification, query parameters, and response formats.
 | `/discord/{serverId}.svg` | Online member count |
 | `/discord/members/{inviteCode}.svg` | Approximate member count from invite |
 | `/discord/online-members/{inviteCode}.svg` | Approximate online member count from invite |
+
+### Homebrew
+
+| Endpoint | Description |
+|----------|-------------|
+| `/homebrew/{formula}.svg` | Formula version |
+| `/homebrew/cask/{cask}.svg` | Cask version |
+| `/homebrew/dm/{formula}.svg` | Formula downloads (monthly) |
+| `/homebrew/dq/{formula}.svg` | Formula downloads (quarterly) |
+| `/homebrew/dy/{formula}.svg` | Formula downloads (yearly) |
+| `/homebrew/cask-dm/{cask}.svg` | Cask downloads (monthly) |
+| `/homebrew/cask-dq/{cask}.svg` | Cask downloads (quarterly) |
+| `/homebrew/cask-dy/{cask}.svg` | Cask downloads (yearly) |
+
+### Tokscale
+
+| Endpoint | Description |
+|----------|-------------|
+| `/tokscale/{username}.svg` | Total token count (default) |
+| `/tokscale/tokens/{username}.svg` | Total token count |
+| `/tokscale/cost/{username}.svg` | Estimated total cost |
+| `/tokscale/rank/{username}.svg` | Global leaderboard rank |
+| `/tokscale/active-days/{username}.svg` | Days with AI activity |
+| `/tokscale/stats.svg` | Global user count |
 
 ### Static
 

@@ -10,7 +10,9 @@ Display live stats for [Homebrew](https://brew.sh) formulae and casks.
 <BadgePreviewGroup>
   <BadgePreviewCard src="/homebrew/node.svg?variant=branded" alt="homebrew" description="Formula (branded)" />
   <BadgePreviewCard src="/homebrew/cask/firefox.svg?variant=branded" alt="homebrew cask" description="Cask (branded)" />
+  <BadgePreviewCard src="/homebrew/dm/node.svg?variant=branded" alt="homebrew downloads" description="Downloads (branded)" />
   <BadgePreviewCard src="/homebrew/node.svg?variant=secondary" alt="homebrew" description="Formula (secondary)" />
+  <BadgePreviewCard src="/homebrew/cask-dm/firefox.svg?variant=secondary" alt="homebrew cask downloads" description="Cask downloads" />
   <BadgePreviewCard src="/homebrew/node.svg?variant=outline" alt="homebrew" description="Formula (outline)" />
 </BadgePreviewGroup>
 
@@ -21,12 +23,18 @@ Display live stats for [Homebrew](https://brew.sh) formulae and casks.
 | Formula Version | `/homebrew/{formula}` | Latest stable version |
 | Cask Version | `/homebrew/cask/{cask}` | Latest cask version |
 | Installs | `/homebrew/installs/{formula}[/{days}]` | Install count (30/90/365 days) |
+| [Formula Downloads](./downloads) | `/homebrew/dm/{formula}` | Monthly/quarterly/yearly downloads |
+| [Cask Downloads](./downloads) | `/homebrew/cask-dm/{cask}` | Monthly/quarterly/yearly cask downloads |
 
 ## Quick examples
 
 <CodeLine language="markdown" code='![version](https://shieldcn.dev/homebrew/node.svg)' />
 
 <CodeLine language="markdown" code='![cask](https://shieldcn.dev/homebrew/cask/firefox.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/homebrew/dm/node.svg)' />
+
+<CodeLine language="markdown" code='![cask downloads](https://shieldcn.dev/homebrew/cask-dm/firefox.svg)' />
 
 <BadgeSandbox
   endpoint="/homebrew/:formula.svg"

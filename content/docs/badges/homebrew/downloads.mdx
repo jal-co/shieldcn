@@ -1,0 +1,62 @@
+---
+title: Homebrew Downloads
+description: Display download counts for Homebrew formulae and casks — monthly, quarterly, or yearly.
+badge: "/homebrew/dm/node.svg?variant=branded"
+---
+
+Show install counts for Homebrew formulae and casks over different time periods.
+
+<BadgeSandbox
+  endpoint="/homebrew/dm/:formula.svg"
+  pathParams={[
+    { name: "formula", label: "formula name", placeholder: "node", required: true },
+  ]}
+  defaults={{ formula: "node" }}
+/>
+
+## URL formats
+
+### Formula downloads
+
+<CodeLine language="bash" code="/homebrew/dm/{formula}.svg" hideCopy />
+<CodeLine language="bash" code="/homebrew/dq/{formula}.svg" hideCopy />
+<CodeLine language="bash" code="/homebrew/dy/{formula}.svg" hideCopy />
+
+Monthly (`dm`), quarterly (`dq`), or yearly (`dy`) install counts for a formula.
+
+### Cask downloads
+
+<CodeLine language="bash" code="/homebrew/cask-dm/{cask}.svg" hideCopy />
+<CodeLine language="bash" code="/homebrew/cask-dq/{cask}.svg" hideCopy />
+<CodeLine language="bash" code="/homebrew/cask-dy/{cask}.svg" hideCopy />
+
+Monthly (`cask-dm`), quarterly (`cask-dq`), or yearly (`cask-dy`) install counts for a cask.
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/homebrew/dm/node.svg?variant=branded" alt="formula monthly" description="Formula monthly (branded)" />
+  <BadgePreviewCard src="/homebrew/dy/node.svg?variant=secondary" alt="formula yearly" description="Formula yearly" />
+  <BadgePreviewCard src="/homebrew/cask-dm/firefox.svg?variant=branded" alt="cask monthly" description="Cask monthly (branded)" />
+  <BadgePreviewCard src="/homebrew/cask-dy/firefox.svg?variant=outline" alt="cask yearly" description="Cask yearly (outline)" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/homebrew/dm/node.svg" alt="homebrew downloads" description="Default — monthly installs for a formula" />
+
+<BadgePreview src="/homebrew/cask-dm/firefox.svg?variant=branded" alt="homebrew cask downloads" description="Branded — monthly installs for a cask" />
+
+<BadgePreview src="/homebrew/dy/node.svg" alt="homebrew yearly" description="Yearly installs for a formula" />
+
+## Interval reference
+
+| Code | Period | Description |
+|------|--------|-------------|
+| `dm` | Monthly | Last 30 days |
+| `dq` | Quarterly | Last 90 days |
+| `dy` | Yearly | Last 365 days |
+
+## Data source
+
+Uses [Homebrew Formulae API](https://formulae.brew.sh/api) analytics data (`install_on_request` for formulae, `install` for casks). No API key required. Cached 1 hour.

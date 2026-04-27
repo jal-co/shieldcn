@@ -355,6 +355,121 @@ export async function getGitHubAssetsDl(owner: string, repo: string, tag?: strin
 }
 
 // ---------------------------------------------------------------------------
+// Downloads — all assets, all releases
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAllAssetsAllReleases(owner: string, repo: string): Promise<BadgeData | null> {
+  // Paginate through all releases to sum every asset download
+  let total = 0
+  let page = 1
+  const perPage = 100
+  while (true) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
+    const d = await githubJson(url)
+    if (!d || !Array.isArray(d) || d.length === 0) break
+    for (const release of d) {
+      const assets = release.assets as Record<string, unknown>[] | undefined
+      if (assets) {
+        for (const a of assets) {
+          total += (a.download_count as number) || 0
+        }
+      }
+    }
+    if (d.length < perPage) break
+    page++
+    if (page > 50) break // safety cap
+  }
+  return { label: "downloads", value: formatCount(total), link: link(owner, repo, "/releases") }
+}
+
+// ---------------------------------------------------------------------------
+// Downloads — all assets, latest release
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAllAssetsLatest(owner: string, repo: string): Promise<BadgeData | null> {
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+  if (!d) return null
+  const assets = d.assets as Record<string, unknown>[] | undefined
+  if (!assets) return null
+  const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
+  const tag = d.tag_name as string | undefined
+  return { label: `downloads@${tag ?? "latest"}`, value: formatCount(total), link: link(owner, repo, "/releases/latest") }
+}
+
+// ---------------------------------------------------------------------------
+// Downloads — all assets, specific tag
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAllAssetsTag(owner: string, repo: string, tag: string): Promise<BadgeData | null> {
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
+  if (!d) return null
+  const assets = d.assets as Record<string, unknown>[] | undefined
+  if (!assets) return null
+  const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
+  return { label: `downloads@${tag}`, value: formatCount(total), link: link(owner, repo, `/releases/tag/${tag}`) }
+}
+
+// ---------------------------------------------------------------------------
+// Downloads — specific asset, all releases
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAssetAllReleases(owner: string, repo: string, assetName: string): Promise<BadgeData | null> {
+  let total = 0
+  let page = 1
+  const perPage = 100
+  while (true) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
+    const d = await githubJson(url)
+    if (!d || !Array.isArray(d) || d.length === 0) break
+    for (const release of d) {
+      const assets = release.assets as Record<string, unknown>[] | undefined
+      if (assets) {
+        for (const a of assets) {
+          if ((a.name as string) === assetName) {
+            total += (a.download_count as number) || 0
+          }
+        }
+      }
+    }
+    if (d.length < perPage) break
+    page++
+    if (page > 50) break
+  }
+  return { label: `downloads [${assetName}]`, value: formatCount(total), link: link(owner, repo, "/releases") }
+}
+
+// ---------------------------------------------------------------------------
+// Downloads — specific asset, latest release
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAssetLatest(owner: string, repo: string, assetName: string): Promise<BadgeData | null> {
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+  if (!d) return null
+  const assets = d.assets as Record<string, unknown>[] | undefined
+  if (!assets) return null
+  const asset = assets.find(a => (a.name as string) === assetName)
+  if (!asset) return { label: `downloads [${assetName}]`, value: "0", link: link(owner, repo, "/releases/latest") }
+  const count = (asset.download_count as number) || 0
+  const tag = d.tag_name as string | undefined
+  return { label: `downloads@${tag ?? "latest"} [${assetName}]`, value: formatCount(count), link: link(owner, repo, "/releases/latest") }
+}
+
+// ---------------------------------------------------------------------------
+// Downloads — specific asset, specific tag
+// ---------------------------------------------------------------------------
+
+export async function getGitHubDownloadsAssetTag(owner: string, repo: string, tag: string, assetName: string): Promise<BadgeData | null> {
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
+  if (!d) return null
+  const assets = d.assets as Record<string, unknown>[] | undefined
+  if (!assets) return null
+  const asset = assets.find(a => (a.name as string) === assetName)
+  if (!asset) return { label: `downloads@${tag} [${assetName}]`, value: "0", link: link(owner, repo, `/releases/tag/${tag}`) }
+  const count = (asset.download_count as number) || 0
+  return { label: `downloads@${tag} [${assetName}]`, value: formatCount(count), link: link(owner, repo, `/releases/tag/${tag}`) }
+}
+
+// ---------------------------------------------------------------------------
 // Dependabot
 // ---------------------------------------------------------------------------
 

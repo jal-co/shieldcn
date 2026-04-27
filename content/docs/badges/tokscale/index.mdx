@@ -1,0 +1,51 @@
+---
+title: Tokscale
+description: Badges for Tokscale — AI token usage, cost, rank, and active days from the global leaderboard.
+badge: "/tokscale/tokens/junhoyeo.svg?variant=branded"
+---
+
+Display live stats from [Tokscale](https://tokscale.ai), the AI token usage leaderboard for developers using Claude Code, OpenCode, Codex, Cursor, Pi, and more.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=branded" alt="tokens" description="Tokens (branded)" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=secondary" alt="cost" description="Cost" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=branded" alt="rank" description="Rank (branded)" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=outline" alt="active days" description="Active days" />
+  <BadgePreviewCard src="/tokscale/stats.svg?variant=secondary" alt="stats" description="Global stats" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Tokens](./tokens) | `/tokscale/tokens/{username}` | Total token consumption |
+| [Cost](./cost) | `/tokscale/cost/{username}` | Estimated total cost |
+| [Rank](./rank) | `/tokscale/rank/{username}` | Global leaderboard rank |
+| [Active Days](./active-days) | `/tokscale/active-days/{username}` | Days with AI activity |
+| Stats | `/tokscale/stats` | Global user count |
+
+The default endpoint `/tokscale/{username}` returns the token count.
+
+## Quick examples
+
+<CodeLine language="markdown" code='![tokens](https://shieldcn.dev/tokscale/tokens/junhoyeo.svg)' />
+
+<CodeLine language="markdown" code='![cost](https://shieldcn.dev/tokscale/cost/junhoyeo.svg?variant=branded)' />
+
+<CodeLine language="markdown" code='![rank](https://shieldcn.dev/tokscale/rank/junhoyeo.svg)' />
+
+<CodeLine language="markdown" code='![active days](https://shieldcn.dev/tokscale/active-days/junhoyeo.svg)' />
+
+## Finding your username
+
+Your Tokscale username is your GitHub username. To appear on the leaderboard:
+
+1. Install the CLI: `bunx tokscale`
+2. Login: `bunx tokscale login`
+3. Submit your usage: `bunx tokscale submit`
+
+Visit your profile at `https://tokscale.ai/u/{username}` to verify.
+
+## Data source
+
+Uses the [Tokscale API](https://tokscale.ai). Returns data from the user's profile including all-time stats. No API key required. Cached 10 minutes.

@@ -1,0 +1,38 @@
+---
+title: Tokscale Cost
+description: Display the estimated total AI cost for a Tokscale user.
+badge: "/tokscale/cost/junhoyeo.svg?variant=branded"
+---
+
+Show the estimated total cost of AI token usage based on LiteLLM pricing data.
+
+<BadgeSandbox
+  endpoint="/tokscale/cost/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/tokscale/cost/{username}.svg" hideCopy />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg" alt="cost" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=branded" alt="cost branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=secondary" alt="cost secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=outline" alt="cost outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/tokscale/cost/junhoyeo.svg" alt="tokscale cost" description="Default — estimated total cost" />
+
+<BadgePreview src="/tokscale/cost/junhoyeo.svg?variant=branded" alt="tokscale cost" description="Branded — Tokscale blue background" />
+
+## Data source
+
+Uses the [Tokscale User API](https://tokscale.ai). Cost is estimated using LiteLLM pricing data. Cached 10 minutes.

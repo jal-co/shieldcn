@@ -37,6 +37,7 @@ export const providerBrandColors: Record<string, string> = {
   twitch: "9146FF",
   codecov: "F01F7A",
   wakatime: "000000",
+  tokscale: "0073FF",
 }
 
 /**
