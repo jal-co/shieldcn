@@ -1,5 +1,5 @@
 # badgetizr-shieldcn — shadcn-styled PR badges
-# Powered by shieldcn (https://shieldcn.com)
+# Powered by shieldcn (https://shieldcn.dev)
 
 shieldcn:
   variant: "default"
@@ -11,14 +11,14 @@ badge_wip:
   settings:
     color: "EAB308"
     label: "WIP"
-    logo: "lucide:construction"
+    logo: "ri:RiAlertFill"
 
 badge_hotfix:
   enabled: "true"
   settings:
     color: "EF4444"
     label: "HOTFIX"
-    logo: "lucide:flame"
+    logo: "ri:RiFireFill"
     variant: "destructive"
     production_branch: "main"
 
@@ -28,7 +28,7 @@ badge_base_branch:
     base_branch: "main"
     color: "F97316"
     label: "Target"
-    logo: "lucide:git-branch"
+    logo: "ri:RiGitBranchFill"
 
 badge_ci:
   enabled: "true"
@@ -42,7 +42,7 @@ badge_ready_for_approval:
   settings:
     color: "22C55E"
     label: "Ready"
-    logo: "lucide:check-circle"
+    logo: "ri:RiCheckFill"
 
 badge_ticket:
   enabled: "false"
