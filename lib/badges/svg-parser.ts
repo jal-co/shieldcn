@@ -29,7 +29,7 @@ export function parseSvg(svg: string): ParsedSvg | null {
   const vbMatch = svg.match(/viewBox="([^"]+)"/)
   const viewBox = vbMatch ? vbMatch[1] : inferViewBox(svg)
 
-  // Detect stroke-based SVGs (like Feather/Lucide icons)
+  // Detect stroke-based SVGs
   const isStroke =
     (svg.includes('fill="none"') || svg.includes("fill='none'")) &&
     (svg.includes('stroke="currentColor"') || svg.includes("stroke="))
@@ -138,7 +138,7 @@ export function parseSvg(svg: string): ParsedSvg | null {
     icon: {
       viewBox,
       path: pathDs.join(" "),
-      fillRule: isStroke ? "__lucide__" : undefined,
+      fillRule: undefined,
     },
     isStroke,
   }

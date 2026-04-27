@@ -8,7 +8,7 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 
 - **Badge renderer** (`lib/badges/render.tsx`) — React components → SVG via Satori. Uses Inter Medium font. Every badge goes through one `resolve()` function then one `renderSingle()` or `renderSplit()` function. No variant-specific render paths.
 - **Button tokens** (`lib/badges/button-tokens.ts`) — Exact shadcn Button design tokens (bg, fg, border per variant) resolved to hex values for both dark and light mode.
-- **Icon resolution** (`lib/badges/simple-icons.ts`) — Three sources: SimpleIcons (2400+), Lucide (1900+), React Icons (40,000+). Prefix convention: bare slug = SimpleIcons, `lucide:name` = Lucide, `ri:ComponentName` = React Icons.
+- **Icon resolution** (`lib/badges/simple-icons.ts`) — Two sources: SimpleIcons (2400+) and React Icons (40,000+). Prefix convention: bare slug = SimpleIcons, `ri:ComponentName` = React Icons.
 - **Data providers** (`lib/providers/`) — npm, GitHub, Discord, Reddit, static badges, dynamic JSON, HTTPS endpoint, memo badges. Each returns `{ label, value, color?, link? }`.
 - **Token pool** (`lib/token-pool.ts`) — GitHub OAuth token pool stored in Postgres. Distributes API requests across many user-donated tokens to stay under rate limits. Inspired by shields.io.
 - **Route handler** (`app/[...slug]/route.ts`) — Single catch-all that parses URLs, fetches data, resolves icons/colors/variants, renders SVG/PNG/JSON.
@@ -67,7 +67,7 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 | `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |
 | `split` | `true`, `false` | `false` |
 | `statusDot` | `true`, `false` | auto for CI |
-| `logo` | SimpleIcons slug, `lucide:name`, `ri:Name`, `data:image/svg+xml;base64,...`, `false` | auto |
+| `logo` | SimpleIcons slug, `ri:Name`, `data:image/svg+xml;base64,...`, `false` | auto |
 | `logoColor` | hex without # | auto |
 | `color` | hex without # | — |
 | `labelColor` | hex without # | — |

@@ -121,7 +121,7 @@ Every badge supports shadcn Button variants and sizes:
 Three icon libraries (40,000+ icons) plus custom SVG upload:
 
 - **[Simple Icons](https://simpleicons.org)** — `?logo=react`
-- **[Lucide](https://lucide.dev/icons)** — `?logo=lucide:star`
+- **[React Icons](https://react-icons.github.io/react-icons/)** — `?logo=ri:GoStarFill`
 - **[React Icons](https://react-icons.github.io/react-icons/)** — `?logo=ri:FaReact`
 - **Custom SVG** — `?logo=data:image/svg+xml;base64,...` — upload any SVG icon via the Badge Builder or encode it yourself
 

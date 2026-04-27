@@ -118,7 +118,7 @@ Append to any badge URL as `?key=value&key2=value2`.
 | `size` | `xs`, `sm`, `default`, `lg` | `sm` | Badge size |
 | `mode` | `dark`, `light` | `dark` | Color mode |
 | `split` | `true`, `false` | `false` | Two-tone label/value split |
-| `logo` | SimpleIcons slug, `lucide:name`, `ri:Name`, `false` | auto | Icon source |
+| `logo` | SimpleIcons slug, `ri:Name`, `false` | auto | Icon source |
 | `logoColor` | hex (no `#`) | auto | Icon color |
 | `label` | string | auto | Override label text |
 | `color` | hex (no `#`) | — | Background color |
@@ -168,7 +168,7 @@ Append to any badge URL as `?key=value&key2=value2`.
 
 ```md
 ![badge](https://shieldcn.dev/npm/react.svg?logo=typescript)
-![badge](https://shieldcn.dev/github/stars/owner/repo.svg?logo=lucide:star)
+![badge](https://shieldcn.dev/github/stars/owner/repo.svg?logo=ri:GoStarFill)
 ```
 
 ### No icon

@@ -13,6 +13,7 @@
     "*.{ts,tsx}": "eslint --no-warn-ignored --max-warnings 0"
   },
   "dependencies": {
+    "@davestewart/outliner": "^1.2.0",
     "@openpanel/nextjs": "^1.5.0",
     "@resvg/resvg-wasm": "^2.6.2",
     "@types/mdx": "^2.0.13",
@@ -26,7 +27,6 @@
     "jsonpath-plus": "^10.4.0",
     "lru-cache": "^11.3.5",
     "lucide-react": "^1.8.0",
-    "lucide-static": "^1.8.0",
     "motion": "^12.38.0",
     "next": "16.2.4",
     "next-themes": "^0.4.6",

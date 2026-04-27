@@ -825,7 +825,7 @@ function BadgeItem({
                     Logo
                   </Label>
                   <Input
-                    placeholder="slug or lucide:name"
+                    placeholder="slug or ri:Name"
                     value={
                       typeof badge.overrides.logo === "string" && !String(badge.overrides.logo).startsWith("data:")
                         ? badge.overrides.logo
