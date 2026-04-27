@@ -23,7 +23,7 @@ import { SignJWT, importPKCS8 } from "jose"
 const OWNER = "jal-co"
 const REPO = "shieldcn"
 const FILE_PATH = "lib/showcase-data.ts"
-const BRANCH_PREFIX = "community-badge"
+const BRANCH_PREFIX = "feat/community-badge"
 
 // ---------------------------------------------------------------------------
 // GitHub App auth — generate an installation token
