@@ -114,10 +114,10 @@ export default function PrivacyPage() {
                 </a>{" "}
                 or reach out at{" "}
                 <a
-                  href="mailto:hello@justinlevine.me"
+                  href="mailto:github@fwdtojustin.com"
                   className="underline underline-offset-2 hover:text-foreground"
                 >
-                  hello@justinlevine.me
+                  github@fwdtojustin.com
                 </a>
                 .
               </p>

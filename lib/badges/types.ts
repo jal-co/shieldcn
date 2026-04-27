@@ -86,6 +86,8 @@ export interface BadgeConfig {
   brandColor?: string
   /** Font family for badge text. */
   font?: "inter" | "geist" | "geist-mono"
+  /** CSS linear-gradient value for badge background. */
+  gradient?: string
 }
 
 /** Raw badge data returned by data providers. */

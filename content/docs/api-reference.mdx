@@ -5,6 +5,7 @@ description: Complete URL specification, query parameters, and response formats.
 
 ## URL format
 
+<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.png" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.svg" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.json" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}/shields.json" />
@@ -138,6 +139,12 @@ description: Complete URL specification, query parameters, and response formats.
       default: "0.7",
       description: "Label text opacity (0-1). Set to 1 for full visibility.",
     },
+    {
+      name: "gradient",
+      type: "string",
+      default: "\u2014",
+      description: "Comma-separated hex colors for a linear gradient background. Optionally append an angle (0\u2013360) as the last value. Example: ff6b6b,4ecdc4 or ff6b6b,4ecdc4,135.",
+    },
   ]}
 />
 
@@ -220,9 +227,17 @@ description: Complete URL specification, query parameters, and response formats.
 
 ## Response formats
 
-### SVG (default)
+### PNG
+
+<CodeBlock language="http" code={"Content-Type: image/png\nCache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"} />
+
+PNG badges are rasterized at the exact badge dimensions. Recommended for GitHub READMEs and maximum cross-platform compatibility.
+
+### SVG
 
 <CodeBlock language="http" code={"Content-Type: image/svg+xml\nCache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"} />
+
+SVG badges are scalable and have smaller file sizes. Use `.svg` when you need crisp rendering at any scale.
 
 ### JSON
 

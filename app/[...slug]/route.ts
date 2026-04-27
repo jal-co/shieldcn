@@ -94,6 +94,45 @@ import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveD
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
 
+/**
+ * Parse gradient query param into a CSS linear-gradient value.
+ *
+ * Formats:
+ *   ?gradient=ff6b6b,4ecdc4           → linear-gradient(90deg, #ff6b6b, #4ecdc4)
+ *   ?gradient=ff6b6b,4ecdc4,135       → linear-gradient(135deg, #ff6b6b, #4ecdc4)
+ *   ?gradient=ff6b6b,feca57,4ecdc4    → linear-gradient(90deg, #ff6b6b, #feca57, #4ecdc4)
+ *   ?gradient=ff6b6b,feca57,4ecdc4,45 → linear-gradient(45deg, #ff6b6b, #feca57, #4ecdc4)
+ *
+ * The last segment is treated as an angle (degrees) if it parses as a number
+ * between 0 and 360. Otherwise it's treated as another color stop.
+ */
+function parseGradient(raw: string | null): string | undefined {
+  if (!raw) return undefined
+  const parts = raw.split(",").map(s => s.trim()).filter(Boolean)
+  if (parts.length < 2) return undefined
+
+  // Check if last part is an angle (number 0-360)
+  const lastNum = parseFloat(parts[parts.length - 1])
+  let angle = 90
+  let colorParts: string[]
+
+  if (!isNaN(lastNum) && lastNum >= 0 && lastNum <= 360 && /^\d+(\.\d+)?$/.test(parts[parts.length - 1])) {
+    angle = lastNum
+    colorParts = parts.slice(0, -1)
+  } else {
+    colorParts = parts
+  }
+
+  if (colorParts.length < 2) return undefined
+
+  // Validate each color is a valid hex (3, 4, 6, or 8 hex chars)
+  const hexRegex = /^[0-9a-fA-F]{3,8}$/
+  if (!colorParts.every(c => hexRegex.test(c))) return undefined
+
+  const stops = colorParts.map(c => `#${c}`).join(", ")
+  return `linear-gradient(${angle}deg, ${stops})`
+}
+
 /** Cache headers for responses. */
 const CACHE_HEADERS = {
   "Cache-Control":
@@ -1118,6 +1157,9 @@ export async function GET(
     return isNaN(n) ? undefined : n
   }
 
+  // Parse gradient
+  const gradient = parseGradient(searchParams.get("gradient"))
+
   const svg = await renderBadge({
     label,
     value: data.value,
@@ -1135,6 +1177,7 @@ export async function GET(
     hasThemeOverride,
     brandColor,
     font,
+    gradient,
     valueColor: searchParams.get("valueColor") ?? undefined,
     labelTextColor: searchParams.get("labelTextColor") ?? undefined,
     labelOpacity: num("labelOpacity"),
@@ -1160,6 +1203,7 @@ export async function GET(
       hasLogo: !!iconPath,
       hasThemeOverride,
       hasBrandColor: !!brandColor,
+      hasGradient: !!gradient,
       font: font ?? "inter",
     },
   })

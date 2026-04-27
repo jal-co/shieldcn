@@ -77,6 +77,7 @@ export function BadgeSandbox({
   })
 
   // Standard styling params (same for every badge)
+  const [imageFormat, setImageFormat] = useState<"png" | "svg">("png")
   const [variant, setVariant] = useState("default")
   const [size, setSize] = useState("sm")
   const [mode, setMode] = useState("dark")
@@ -90,6 +91,7 @@ export function BadgeSandbox({
   // Advanced
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [color, setColor] = useState("")
+  const [gradient, setGradient] = useState("")
   const [valueColor, setValueColor] = useState("")
   const [labelTextColor, setLabelTextColor] = useState("")
   const [labelOpacity, setLabelOpacity] = useState("")
@@ -108,7 +110,8 @@ export function BadgeSandbox({
 
   // Build URL
   const builtUrl = useMemo(() => {
-    let path = endpoint
+    // Replace .svg extension with selected format
+    let path = endpoint.replace(/\.svg$/, imageFormat === "svg" ? ".svg" : ".png")
     for (const p of pathParams) {
       const val = values[p.name]
       if (!val) return null
@@ -131,13 +134,14 @@ export function BadgeSandbox({
     if (showStatusDot && !statusDot) qp.set("statusDot", "false")
     if (label) qp.set("label", label)
     if (color) qp.set("color", color)
+    if (gradient) qp.set("gradient", gradient)
     if (valueColor) qp.set("valueColor", valueColor)
     if (labelTextColor) qp.set("labelTextColor", labelTextColor)
     if (labelOpacity) qp.set("labelOpacity", labelOpacity)
 
     const qs = qp.toString()
     return `${baseUrl}${path}${qs ? `?${qs}` : ""}`
-  }, [endpoint, pathParams, extraParams, values, variant, size, mode, theme, logo, logoColor, split, statusDot, showStatusDot, label, color, valueColor, labelTextColor, labelOpacity, baseUrl])
+  }, [endpoint, pathParams, extraParams, values, imageFormat, variant, size, mode, theme, logo, logoColor, split, statusDot, showStatusDot, label, color, gradient, valueColor, labelTextColor, labelOpacity, baseUrl])
 
   const formattedOutput = useMemo(() => {
     if (!builtUrl) return ""
@@ -219,7 +223,17 @@ export function BadgeSandbox({
         <Separator />
 
         {/* Standard styling params */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <SField label="format">
+            <Select value={imageFormat} onValueChange={v => setImageFormat(v as "png" | "svg")}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="png">PNG</SelectItem>
+                <SelectItem value="svg">SVG</SelectItem>
+              </SelectContent>
+            </Select>
+          </SField>
+
           <SField label="variant">
             <Select value={variant} onValueChange={setVariant}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -308,6 +322,9 @@ export function BadgeSandbox({
         {showAdvanced && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <SField label="color"><ColorInput value={color} onChange={setColor} placeholder="hex" /></SField>
+            <SField label="gradient">
+              <Input value={gradient} onChange={e => setGradient(e.target.value)} placeholder="ff6b6b,4ecdc4" />
+            </SField>
             <SField label="valueColor"><ColorInput value={valueColor} onChange={setValueColor} placeholder="hex" /></SField>
             <SField label="labelTextColor"><ColorInput value={labelTextColor} onChange={setLabelTextColor} placeholder="hex" /></SField>
             <SField label="labelOpacity"><Input value={labelOpacity} onChange={e => setLabelOpacity(e.target.value)} placeholder="0–1" /></SField>
