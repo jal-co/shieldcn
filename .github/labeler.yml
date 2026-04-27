@@ -38,3 +38,6 @@ perf:
 
 test:
   - head-branch: ["^test/"]
+
+community-badge:
+  - head-branch: ["^feat/community-badge/"]

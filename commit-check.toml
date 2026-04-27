@@ -1,10 +1,10 @@
 [commit]
 conventional_commits = true
 subject_capitalized = false
-subject_imperative = true
+subject_imperative = false
 subject_max_length = 80
 subject_min_length = 5
-allow_commit_types = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "ci", "build", "revert"]
+allow_commit_types = ["feat", "fix", "docs", "style", "refactor", "test", "chore", "ci"]
 allow_merge_commits = true
 allow_revert_commits = true
 allow_empty_commits = false
@@ -12,10 +12,10 @@ allow_fixup_commits = true
 allow_wip_commits = false
 require_body = false
 require_signed_off_by = false
-ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "github-actions[bot]"]
+ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "shieldcn-dev[bot]"]
 
 [branch]
 conventional_branch = true
-allow_branch_types = ["feat", "feature", "fix", "bugfix", "hotfix", "docs", "refactor", "style", "test", "perf", "ci", "build", "chore", "release"]
+allow_branch_types = ["feature", "bugfix", "hotfix", "release", "chore", "feat", "fix"]
 require_rebase_target = "origin/main"
-ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "github-actions[bot]"]
+ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "shieldcn-dev[bot]"]

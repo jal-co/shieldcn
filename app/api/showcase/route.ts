@@ -23,7 +23,7 @@ import { SignJWT, importPKCS8 } from "jose"
 const OWNER = "jal-co"
 const REPO = "shieldcn"
 const FILE_PATH = "lib/showcase-data.ts"
-const BRANCH_PREFIX = "community-badge"
+const BRANCH_PREFIX = "feat/community-badge"
 
 // ---------------------------------------------------------------------------
 // GitHub App auth — generate an installation token
@@ -163,8 +163,10 @@ export async function POST(req: NextRequest) {
       const needsComma = before.trimEnd().endsWith(")") || before.trimEnd().endsWith(",")
       updatedContent = before + (needsComma && !before.trimEnd().endsWith(",") ? "," : "") + "\n    " + newEntry + "\n    " + after
     } else {
-      // Add a new Community category at the end of the categories array
-      const closingBracket = content.lastIndexOf("]")
+      // Add a new Community category at the end of the categories array.
+      // Find the closing `]` of `export const categories` — it's the `]` before `allBadgePaths`.
+      const allBadgePathsIdx = content.indexOf("allBadgePaths")
+      const closingBracket = content.lastIndexOf("]", allBadgePathsIdx)
       const communityCategory = `  {
     name: "Community",
     description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
