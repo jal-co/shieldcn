@@ -44,13 +44,13 @@ const POPULAR_ICONS = [
   { value: "vercel", label: "Vercel", group: "Popular" },
   { value: "nextdotjs", label: "Next.js", group: "Popular" },
   { value: "tailwindcss", label: "Tailwind CSS", group: "Popular" },
-  // Popular Lucide
-  { value: "lucide:star", label: "Star", group: "Lucide" },
-  { value: "lucide:heart", label: "Heart", group: "Lucide" },
-  { value: "lucide:check", label: "Check", group: "Lucide" },
-  { value: "lucide:download", label: "Download", group: "Lucide" },
-  { value: "lucide:rocket", label: "Rocket", group: "Lucide" },
-  { value: "lucide:zap", label: "Zap", group: "Lucide" },
+  // Popular React Icons
+  { value: "ri:GoStarFill", label: "Star", group: "React Icons" },
+  { value: "ri:GoHeartFill", label: "Heart", group: "React Icons" },
+  { value: "ri:GoCheckFill", label: "Check", group: "React Icons" },
+  { value: "ri:GoDownload", label: "Download", group: "React Icons" },
+  { value: "ri:GoRocket", label: "Rocket", group: "React Icons" },
+  { value: "ri:GoZap", label: "Zap", group: "React Icons" },
 ]
 
 interface LogoPickerProps {
@@ -164,7 +164,7 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
               // Popular icons mode
               <>
                 <div className="px-3 py-2 text-[10px] text-muted-foreground">
-                  Type to search 5,000+ icons from SimpleIcons & Lucide
+                  Type to search 40,000+ icons from SimpleIcons & React Icons
                 </div>
                 <CommandSeparator />
                 {Array.from(popularGroups.entries()).map(([group, opts]) => (

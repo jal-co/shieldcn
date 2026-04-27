@@ -241,7 +241,7 @@ export const categories: Category[] = [
       dynamicBadge("Deprecated", "lifecycle", "/badge/status-deprecated-red.svg?variant=destructive", "Deprecated badge — this project is no longer maintained."),
       dynamicBadge("Experimental", "lifecycle", "/badge/status-experimental-7C3AED.svg?variant=secondary", "Experimental badge — exploring new ideas, not production-ready."),
       dynamicBadge("Actively Maintained", "maintenance", "/badge/maintained-yes-brightgreen.svg?variant=secondary", "Signal that the project is actively maintained."),
-      dynamicBadge("Contributions Welcome", "community", "/badge/contributions-welcome-brightgreen.svg?variant=secondary&logo=lucide:heart-handshake", "Invite contributors with a friendly badge."),
+      dynamicBadge("Contributions Welcome", "community", "/badge/contributions-welcome-brightgreen.svg?variant=secondary&logo=ri:GoHeartFill", "Invite contributors with a friendly badge."),
       dynamicBadge("Semantic Versioning", "standards", "/badge/semver-2.0.0-blue.svg?variant=outline", "Indicate that the project follows semantic versioning."),
       dynamicBadge("Conventional Commits", "standards", "/badge/Conventional%20Commits-FE5196.svg?logo=conventionalcommits&logoColor=fff&variant=branded", "Show that your project follows the Conventional Commits spec."),
     ],
@@ -263,7 +263,7 @@ export const categories: Category[] = [
       dynamicBadge("Sponsor This Project", "funding", "/badge/%E2%9D%A4%EF%B8%8F%20Sponsor-this%20project-FF69B4.svg?variant=secondary", "Sponsorship call-to-action badge."),
       dynamicBadge("Made with Love", "meta", "/badge/made%20with-%E2%9D%A4-red.svg", "The classic 'made with love' badge."),
       dynamicBadge("Ask Me Anything", "community", "/badge/Ask%20me-anything-blue.svg?variant=secondary", "Open Q&A signal for personal repos and profiles."),
-      dynamicBadge("Cross Platform", "compatibility", "/badge/cross-platform-brightgreen.svg?variant=outline&logo=lucide:monitor-smartphone", "Cross-platform support badge with a device icon."),
+      dynamicBadge("Cross Platform", "compatibility", "/badge/cross-platform-brightgreen.svg?variant=outline&logo=ri:GoDeviceDesktop", "Cross-platform support badge with a device icon."),
     ],
   },
   {

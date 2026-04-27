@@ -90,7 +90,7 @@ export const BRANDS: Record<string, Brand> = {
   firebase: { slug: 'firebase', color: 'DD2C00', label: 'Firebase' },
   '@firebase/app': { slug: 'firebase', color: 'DD2C00', label: 'Firebase' },
   convex: { slug: 'convex', color: 'EE342F', label: 'Convex' },
-  'better-auth': { slug: 'lucide:lock-keyhole', color: '000000', label: 'Better Auth' },
+  'better-auth': { slug: 'ri:RiShieldKeyholeFill', color: '000000', label: 'Better Auth' },
 
   // Payment
   stripe: { slug: 'stripe', color: '635BFF', label: 'Stripe' },
