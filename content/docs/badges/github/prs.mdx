@@ -1,6 +1,7 @@
 ---
 title: GitHub Pull Requests
 description: Display pull request counts by state for GitHub repositories.
+badge: "/github/prs/vercel/next.js.svg?variant=branded"
 ---
 
 Show open, closed, or merged pull request counts.
@@ -18,51 +19,20 @@ Show open, closed, or merged pull request counts.
 
 ### Open PRs
 
-```
-/github/prs/{owner}/{repo}.svg
-/github/open-prs/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/prs/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/open-prs/{owner}/{repo}.svg" hideCopy />
 
 ### Closed PRs
 
-```
-/github/closed-prs/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/closed-prs/{owner}/{repo}.svg" hideCopy />
 
 ### Merged PRs
 
-```
-/github/merged-prs/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/merged-prs/{owner}/{repo}.svg" hideCopy />
 
-## Examples
+## Copy-paste examples
 
-```md
-<!-- Open PRs -->
-![prs](https://shieldcn.dev/github/prs/vercel/next.js.svg)
+<BadgePreview src="/github/open-prs/vercel/next.js.svg?variant=outline" alt="open prs" description="Outline — works well in contributor-facing repos" />
 
-<!-- Closed PRs -->
-![closed](https://shieldcn.dev/github/closed-prs/vercel/next.js.svg)
-
-<!-- Merged PRs -->
-![merged](https://shieldcn.dev/github/merged-prs/vercel/next.js.svg)
-```
-
-## Styling examples
-
-```md
-<!-- Purple theme for merged -->
-![merged](https://shieldcn.dev/github/merged-prs/vercel/next.js.svg?theme=purple)
-
-<!-- With git-pull-request icon -->
-![prs](https://shieldcn.dev/github/prs/vercel/next.js.svg?logo=lucide:git-pull-request)
-
-<!-- Green for open -->
-![open](https://shieldcn.dev/github/open-prs/vercel/next.js.svg?theme=green)
-```
-
-## Use cases
-
-- Show project activity with open PR count
-- Highlight merged contributions
-- Track review backlog
+<BadgePreview src="/github/merged-prs/vercel/next.js.svg?variant=secondary" alt="merged prs" description="Secondary — highlight merged contributions" />

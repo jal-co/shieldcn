@@ -1,6 +1,7 @@
 ---
 title: GitHub Repository
 description: Display watchers, branches, contributors, and other repository metadata.
+badge: "/github/contributors/vercel/next.js.svg?variant=branded"
 ---
 
 Show various repository statistics and metadata.
@@ -19,72 +20,45 @@ Show various repository statistics and metadata.
 
 ### Watchers
 
-```
-/github/watchers/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/watchers/{owner}/{repo}.svg" hideCopy />
 
 Shows the number of people watching the repository.
 
 ### Branches
 
-```
-/github/branches/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/branches/{owner}/{repo}.svg" hideCopy />
 
 Shows the total number of branches.
 
 ### Contributors
 
-```
-/github/contributors/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/contributors/{owner}/{repo}.svg" hideCopy />
 
 Shows the number of contributors.
 
 ### Dependabot
 
-```
-/github/dependabot/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/dependabot/{owner}/{repo}.svg" hideCopy />
 
 Shows whether Dependabot is enabled.
 
 ### Milestones
 
-```
-/github/milestones/{owner}/{repo}/{number}.svg
-```
+<CodeLine language="bash" code="/github/milestones/{owner}/{repo}/{number}.svg" hideCopy />
 
 Shows completion percentage for a specific milestone.
 
 ## Examples
 
-```md
-<!-- Watchers -->
-![watchers](https://shieldcn.dev/github/watchers/vercel/next.js.svg)
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/watchers/vercel/next.js.svg" alt="watchers" description="Watchers" />
+  <BadgePreviewCard src="/github/contributors/vercel/next.js.svg" alt="contributors" description="Contributors" />
+  <BadgePreviewCard src="/github/branches/vercel/next.js.svg?variant=secondary" alt="branches" description="Branches (secondary)" />
+  <BadgePreviewCard src="/github/contributors/vercel/next.js.svg?variant=outline&theme=emerald" alt="contributors" description="Contributors (emerald)" />
+</BadgePreviewGroup>
 
-<!-- Branches -->
-![branches](https://shieldcn.dev/github/branches/vercel/next.js.svg)
+## Copy-paste examples
 
-<!-- Contributors -->
-![contributors](https://shieldcn.dev/github/contributors/vercel/next.js.svg)
+<BadgePreview src="/github/contributors/vercel/next.js.svg" alt="contributors" description="Default — contributor count for community sections" />
 
-<!-- Dependabot status -->
-![dependabot](https://shieldcn.dev/github/dependabot/ubuntu/yaru.svg)
-
-<!-- Milestone progress -->
-![milestone](https://shieldcn.dev/github/milestones/chrislgarry/Apollo-11/1.svg)
-```
-
-## Styling examples
-
-```md
-<!-- Contributors with users icon -->
-![contributors](https://shieldcn.dev/github/contributors/vercel/next.js.svg?logo=lucide:users)
-
-<!-- Cyan theme for watchers -->
-![watchers](https://shieldcn.dev/github/watchers/vercel/next.js.svg?theme=cyan)
-
-<!-- Green for milestone progress -->
-![milestone](https://shieldcn.dev/github/milestones/chrislgarry/Apollo-11/1.svg?theme=green)
-```
+<BadgePreview src="/github/watchers/vercel/next.js.svg?variant=secondary" alt="watchers" description="Secondary — watcher count for social proof" />

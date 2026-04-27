@@ -1,6 +1,7 @@
 ---
 title: GitHub Commits
 description: Display commit counts and last commit time for GitHub repositories.
+badge: "/github/last-commit/vercel/next.js.svg?variant=branded"
 ---
 
 Show total commits or how recently a repository was updated.
@@ -18,53 +19,22 @@ Show total commits or how recently a repository was updated.
 
 ### Total commits
 
-```
-/github/commits/{owner}/{repo}.svg
-/github/commits/{owner}/{repo}/{branch}.svg
-```
+<CodeLine language="bash" code="/github/commits/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/commits/{owner}/{repo}/{branch}.svg" hideCopy />
 
 Shows the total number of commits. Optionally specify a branch.
 
 ### Last commit
 
-```
-/github/last-commit/{owner}/{repo}.svg
-/github/last-commit/{owner}/{repo}/{branch}.svg
-```
+<CodeLine language="bash" code="/github/last-commit/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/last-commit/{owner}/{repo}/{branch}.svg" hideCopy />
 
 Shows relative time since the last commit (e.g., "2 hours ago", "3 days ago").
 
-## Examples
+## Copy-paste examples
 
-```md
-<!-- Total commits (default branch) -->
-![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg)
+<BadgePreview src="/github/last-commit/vercel/next.js.svg" alt="last commit" description="Default — great maintenance signal for READMEs" />
 
-<!-- Commits on specific branch -->
-![commits](https://shieldcn.dev/github/commits/vercel/next.js/canary.svg)
-
-<!-- Last commit time -->
-![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js.svg)
-
-<!-- Last commit on branch -->
-![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js/canary.svg)
-```
-
-## Styling examples
-
-```md
-<!-- With git-commit icon -->
-![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg?logo=lucide:git-commit-horizontal)
-
-<!-- Blue theme -->
-![commits](https://shieldcn.dev/github/commits/vercel/next.js.svg?theme=blue)
-
-<!-- Custom label -->
-![last commit](https://shieldcn.dev/github/last-commit/vercel/next.js.svg?label=updated)
-```
-
-## Use cases
-
-- Show project maturity with total commit count
-- Indicate active maintenance with "last commit" time
-- Compare activity across branches
+<BadgePreview src="/github/commits/vercel/next.js.svg?variant=secondary" alt="commits" description="Secondary — total commit count showing project maturity" />

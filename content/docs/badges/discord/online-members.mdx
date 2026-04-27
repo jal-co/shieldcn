@@ -1,6 +1,7 @@
 ---
 title: Discord Online Members
 description: Display the online member count for a Discord server via invite.
+badge: "/discord/online-members/reactiflux.svg?variant=branded"
 ---
 
 Show the approximate online member count using a public invite code.
@@ -15,17 +16,22 @@ Show the approximate online member count using a public invite code.
 
 ## URL format
 
-```
-/discord/online-members/{inviteCode}.svg
-```
+<CodeLine language="bash" code="/discord/online-members/{inviteCode}.svg" hideCopy />
 
 ## Examples
 
-```md
-![online](https://shieldcn.dev/discord/online-members/reactiflux.svg)
-![online](https://shieldcn.dev/discord/online-members/reactiflux.svg?variant=branded)
-![online](https://shieldcn.dev/discord/online-members/typescript.svg?theme=green)
-```
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/discord/online-members/reactiflux.svg" alt="discord online" description="Default variant" />
+  <BadgePreviewCard src="/discord/online-members/reactiflux.svg?variant=branded" alt="discord online" description="Branded (blurple)" />
+  <BadgePreviewCard src="/discord/online-members/reactiflux.svg?variant=secondary" alt="discord online" description="Secondary variant" />
+  <BadgePreviewCard src="/discord/online-members/reactiflux.svg?variant=outline" alt="discord online" description="Outline variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/discord/online-members/reactiflux.svg" alt="discord online members" description="Default — approximate online count via invite" />
+
+<BadgePreview src="/discord/online-members/reactiflux.svg?variant=branded" alt="discord online members" description="Branded — Discord blurple background" />
 
 ## When to use this vs widget API
 

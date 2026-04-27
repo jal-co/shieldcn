@@ -1,6 +1,7 @@
 ---
 title: GitHub CI Status
 description: Display GitHub Actions workflow status and check results.
+badge: "/github/ci/vercel/next.js.svg?variant=branded"
 ---
 
 Show the status of GitHub Actions workflows and commit checks.
@@ -23,22 +24,23 @@ Show the status of GitHub Actions workflows and commit checks.
 
 ### Workflow status
 
-```
-/github/ci/{owner}/{repo}.svg
-/github/ci/{owner}/{repo}.svg?workflow=ci.yml
-/github/ci/{owner}/{repo}.svg?branch=main
-/github/ci/{owner}/{repo}.svg?workflow=ci.yml&branch=main
-```
+<CodeLine language="bash" code="/github/ci/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/ci/{owner}/{repo}.svg?workflow=ci.yml" hideCopy />
+
+<CodeLine language="bash" code="/github/ci/{owner}/{repo}.svg?branch=main" hideCopy />
+
+<CodeLine language="bash" code="/github/ci/{owner}/{repo}.svg?workflow=ci.yml&branch=main" hideCopy />
 
 Shows the conclusion of the most recent workflow run. Filter by workflow file or branch using query parameters.
 
 ### Commit checks
 
-```
-/github/checks/{owner}/{repo}.svg
-/github/checks/{owner}/{repo}/{ref}.svg
-/github/checks/{owner}/{repo}/{ref}/{check_name}.svg
-```
+<CodeLine language="bash" code="/github/checks/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/checks/{owner}/{repo}/{ref}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/checks/{owner}/{repo}/{ref}/{check_name}.svg" hideCopy />
 
 Shows the combined check status for a commit. Optionally specify a branch/tag ref or individual check name.
 
@@ -52,39 +54,15 @@ Shows the combined check status for a commit. Optionally specify a branch/tag re
 | `cancelled` | Gray | Workflow was cancelled |
 | `skipped` | Gray | Workflow was skipped |
 
-## Examples
+## Copy-paste examples
 
-```md
-<!-- Default workflow status -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
+<BadgePreview src="/github/ci/vercel/next.js.svg" alt="ci status" description="Default — status dot shows pass/fail at a glance" />
 
-<!-- Specific workflow -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?workflow=build_and_deploy.yml)
+<BadgePreview src="/github/ci/vercel/next.js.svg?variant=secondary" alt="ci status" description="Secondary — softer CI badge for README rows" />
 
-<!-- Specific branch -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?branch=canary)
+## Styling notes
 
-<!-- Combined checks -->
-![checks](https://shieldcn.dev/github/checks/nodejs/node.svg)
-
-<!-- Checks for specific branch -->
-![checks](https://shieldcn.dev/github/checks/nodejs/node/main.svg)
-```
-
-## Styling examples
-
-CI badges automatically show a **colored status dot** based on the result. You can also use split mode for a two-tone background:
-
-```md
-<!-- Status dot (default) -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
-
-<!-- Split background -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?split=true)
-
-<!-- Hide status dot -->
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg?statusDot=false)
-```
+CI badges automatically show a **colored status dot** based on the result. You can also use split mode for a two-tone background, or hide the dot entirely with `?statusDot=false`.
 
 ## Caching
 

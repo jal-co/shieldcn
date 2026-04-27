@@ -1,9 +1,18 @@
 ---
 title: YouTube
 description: Badges for YouTube channels and videos — subscribers, views, likes, comments.
+badge: "/youtube/subscribers/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg?variant=branded"
 ---
 
+
 Display live stats for YouTube channels and videos.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/youtube/subscribers/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg?variant=branded" alt="subscribers" description="Subscribers (branded)" />
+  <BadgePreviewCard src="/youtube/channel-views/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg?variant=secondary" alt="channel views" description="Channel views" />
+  <BadgePreviewCard src="/youtube/views/dQw4w9WgXcQ.svg?variant=outline" alt="video views" description="Video views (outline)" />
+  <BadgePreviewCard src="/youtube/likes/dQw4w9WgXcQ.svg?variant=secondary" alt="likes" description="Video likes" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -17,11 +26,27 @@ Display live stats for YouTube channels and videos.
 
 ## Quick examples
 
-```md
-![subscribers](https://shieldcn.dev/youtube/subscribers/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg)
-![views](https://shieldcn.dev/youtube/views/dQw4w9WgXcQ.svg)
-![likes](https://shieldcn.dev/youtube/likes/dQw4w9WgXcQ.svg)
-```
+<CodeLine language="markdown" code='![subscribers](https://shieldcn.dev/youtube/subscribers/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg)' />
+
+<CodeLine language="markdown" code='![channel views](https://shieldcn.dev/youtube/channel-views/UC_x5XG1OV2P6uZZ5FSM9Ttw.svg)' />
+
+<CodeLine language="markdown" code='![views](https://shieldcn.dev/youtube/views/dQw4w9WgXcQ.svg)' />
+
+<CodeLine language="markdown" code='![likes](https://shieldcn.dev/youtube/likes/dQw4w9WgXcQ.svg)' />
+
+<CodeLine language="markdown" code='![comments](https://shieldcn.dev/youtube/comments/dQw4w9WgXcQ.svg)' />
+
+## Finding channel IDs
+
+YouTube channel IDs start with `UC` and are 24 characters long. You can find yours by going to your YouTube channel page and copying the ID from the URL, or by using the [YouTube Channel ID Finder](https://commentpicker.com/youtube-channel-id.php).
+
+Some well-known channel IDs:
+- **Google Developers** — `UC_x5XG1OV2P6uZZ5FSM9Ttw`
+- **Fireship** — `UCsBjURrPoezykLs9EqgamOA`
+- **Theo** — `UCbRP3c757lWg9M-U7TyEkXA`
+- **Traversy Media** — `UC29ju8bIPH5as8OGnQzwJyA`
+
+## Subscribers
 
 <BadgeSandbox
   endpoint="/youtube/subscribers/:channelId.svg"
@@ -29,6 +54,46 @@ Display live stats for YouTube channels and videos.
     { name: "channelId", label: "channel ID", placeholder: "UC_x5XG1OV2P6uZZ5FSM9Ttw", required: true },
   ]}
   defaults={{ channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw" }}
+/>
+
+## Channel views
+
+<BadgeSandbox
+  endpoint="/youtube/channel-views/:channelId.svg"
+  pathParams={[
+    { name: "channelId", label: "channel ID", placeholder: "UC_x5XG1OV2P6uZZ5FSM9Ttw", required: true },
+  ]}
+  defaults={{ channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw" }}
+/>
+
+## Video views
+
+<BadgeSandbox
+  endpoint="/youtube/views/:videoId.svg"
+  pathParams={[
+    { name: "videoId", label: "video ID", placeholder: "dQw4w9WgXcQ", required: true },
+  ]}
+  defaults={{ videoId: "dQw4w9WgXcQ" }}
+/>
+
+## Video likes
+
+<BadgeSandbox
+  endpoint="/youtube/likes/:videoId.svg"
+  pathParams={[
+    { name: "videoId", label: "video ID", placeholder: "dQw4w9WgXcQ", required: true },
+  ]}
+  defaults={{ videoId: "dQw4w9WgXcQ" }}
+/>
+
+## Video comments
+
+<BadgeSandbox
+  endpoint="/youtube/comments/:videoId.svg"
+  pathParams={[
+    { name: "videoId", label: "video ID", placeholder: "dQw4w9WgXcQ", required: true },
+  ]}
+  defaults={{ videoId: "dQw4w9WgXcQ" }}
 />
 
 ## Setup

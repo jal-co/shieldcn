@@ -1,6 +1,7 @@
 ---
 title: Python Version
 description: Display the required Python version for a PyPI package.
+badge: "/pypi/python/django.svg?variant=branded"
 ---
 
 <BadgeSandbox
@@ -13,9 +14,22 @@ description: Display the required Python version for a PyPI package.
 
 ## URL format
 
-```
-/pypi/python/{package}.svg
-```
+<CodeLine language="bash" code="/pypi/python/{package}.svg" hideCopy />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/python/django.svg" alt="python version" description="Default variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=secondary" alt="python version" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=outline" alt="python version" description="Outline variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=branded" alt="python version" description="Branded variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/pypi/python/django.svg?variant=secondary" alt="python version" description="Secondary — required Python version" />
+
+<BadgePreview src="/pypi/python/django.svg?variant=branded" alt="python version" description="Branded — PyPI brand color" />
 
 ## Data source
 

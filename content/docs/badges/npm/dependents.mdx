@@ -1,6 +1,7 @@
 ---
 title: npm Dependents
 description: Display the number of packages that depend on an npm package.
+badge: "/npm/dependents/react.svg?variant=branded"
 ---
 
 Show how many other packages depend on this package.
@@ -15,36 +16,13 @@ Show how many other packages depend on this package.
 
 ## URL format
 
-```
-/npm/dependents/{package}.svg
-```
+<CodeLine language="bash" code="/npm/dependents/{package}.svg" hideCopy />
 
-## Examples
+## Copy-paste examples
 
-```md
-![dependents](https://shieldcn.dev/npm/dependents/react.svg)
-![dependents](https://shieldcn.dev/npm/dependents/lodash.svg)
-![dependents](https://shieldcn.dev/npm/dependents/typescript.svg)
-```
+<BadgePreview src="/npm/dependents/react.svg" alt="dependents" description="Default — ecosystem adoption signal" />
 
-## Styling examples
-
-```md
-<!-- Outline variant -->
-![dependents](https://shieldcn.dev/npm/dependents/react.svg?variant=outline)
-
-<!-- Purple theme -->
-![dependents](https://shieldcn.dev/npm/dependents/react.svg?theme=purple)
-
-<!-- Custom label -->
-![dependents](https://shieldcn.dev/npm/dependents/react.svg?label=used%20by)
-```
-
-## Use cases
-
-- Show ecosystem adoption
-- Highlight library stability
-- Social proof for package pages
+<BadgePreview src="/npm/dependents/react.svg?variant=outline&label=used%20by" alt="dependents" description="Outline with custom label — social proof for package pages" />
 
 ## Data source
 

@@ -1,9 +1,18 @@
 ---
 title: Codecov
 description: Badges for code coverage — coverage percentage with color coding.
+badge: "/codecov/github/codecov/codecov-cli.svg?variant=branded"
 ---
 
+
 Display code coverage for any repository tracked by [Codecov](https://codecov.io).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/codecov/github/codecov/codecov-cli.svg?variant=branded" alt="codecov" description="Coverage (branded)" />
+  <BadgePreviewCard src="/codecov/github/codecov/codecov-cli.svg?variant=secondary" alt="codecov" description="Coverage (secondary)" />
+  <BadgePreviewCard src="/codecov/github/codecov/codecov-cli.svg?variant=outline" alt="codecov" description="Coverage (outline)" />
+  <BadgePreviewCard src="/codecov/github/codecov/codecov-cli.svg" alt="codecov" description="Coverage (default)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -16,10 +25,9 @@ The `service` parameter can be `github`, `gitlab`, or `bitbucket`.
 
 ## Quick examples
 
-```md
-![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli.svg)
-![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli/main.svg)
-```
+<CodeLine language="markdown" code='![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli.svg)' />
+
+<CodeLine language="markdown" code='![coverage](https://shieldcn.dev/codecov/github/codecov/codecov-cli/main.svg)' />
 
 <BadgeSandbox
   endpoint="/codecov/github/:owner/:repo.svg"

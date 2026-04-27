@@ -1,9 +1,18 @@
 ---
 title: Mastodon
 description: Badges for Mastodon profiles — followers, following, posts.
+badge: "/mastodon/followers/mastodon.social/Gargron.svg?variant=branded"
 ---
 
+
 Display live stats for any [Mastodon](https://joinmastodon.org) profile on any instance.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/mastodon/followers/mastodon.social/Gargron.svg?variant=branded" alt="followers" description="Followers (branded)" />
+  <BadgePreviewCard src="/mastodon/posts/mastodon.social/Gargron.svg?variant=secondary" alt="posts" description="Posts" />
+  <BadgePreviewCard src="/mastodon/following/mastodon.social/Gargron.svg?variant=outline" alt="following" description="Following (outline)" />
+  <BadgePreviewCard src="/mastodon/followers/mastodon.social/Gargron.svg?variant=outline" alt="followers" description="Followers (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -15,10 +24,9 @@ Display live stats for any [Mastodon](https://joinmastodon.org) profile on any i
 
 ## Quick examples
 
-```md
-![followers](https://shieldcn.dev/mastodon/followers/mastodon.social/Gargron.svg)
-![posts](https://shieldcn.dev/mastodon/posts/mastodon.social/Gargron.svg)
-```
+<CodeLine language="markdown" code='![followers](https://shieldcn.dev/mastodon/followers/mastodon.social/Gargron.svg)' />
+
+<CodeLine language="markdown" code='![posts](https://shieldcn.dev/mastodon/posts/mastodon.social/Gargron.svg)' />
 
 <BadgeSandbox
   endpoint="/mastodon/followers/:instance/:acct.svg"

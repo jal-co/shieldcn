@@ -1,6 +1,7 @@
 ---
 title: GitHub Forks
 description: Display the fork count for any GitHub repository.
+badge: "/github/forks/vercel/next.js.svg?variant=branded"
 ---
 
 Show how many times a repository has been forked.
@@ -16,32 +17,12 @@ Show how many times a repository has been forked.
 
 ## URL format
 
-```
-/github/forks/{owner}/{repo}.svg
-/github/{owner}/{repo}/forks.svg
-```
+<CodeLine language="bash" code="/github/forks/{owner}/{repo}.svg" hideCopy />
 
-## Examples
+<CodeLine language="bash" code="/github/{owner}/{repo}/forks.svg" hideCopy />
 
-```md
-![Next.js forks](https://shieldcn.dev/github/forks/vercel/next.js.svg)
-![React forks](https://shieldcn.dev/github/forks/facebook/react.svg)
-![TensorFlow forks](https://shieldcn.dev/github/forks/tensorflow/tensorflow.svg)
-```
+## Copy-paste examples
 
-## Styling examples
+<BadgePreview src="/github/forks/vercel/next.js.svg" alt="forks" description="Default — pairs naturally with stars for project traction" />
 
-```md
-<!-- With git-fork icon -->
-![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?logo=lucide:git-fork)
-
-<!-- Green theme -->
-![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?theme=green)
-
-<!-- Outline variant -->
-![forks](https://shieldcn.dev/github/forks/vercel/next.js.svg?variant=outline)
-```
-
-## Response format
-
-The badge shows the fork count formatted with k/M suffixes for large numbers.
+<BadgePreview src="/github/forks/vercel/next.js.svg?variant=branded" alt="forks" description="Branded — GitHub brand color" />

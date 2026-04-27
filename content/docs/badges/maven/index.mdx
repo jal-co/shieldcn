@@ -1,9 +1,18 @@
 ---
 title: Maven Central
 description: Badges for Java/Kotlin artifacts — version.
+badge: "/maven/com.google.guava/guava.svg?variant=branded"
 ---
 
+
 Display the latest version for any artifact on [Maven Central](https://search.maven.org).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/maven/com.google.guava/guava.svg?variant=branded" alt="maven" description="Version (branded)" />
+  <BadgePreviewCard src="/maven/com.google.guava/guava.svg?variant=secondary" alt="maven" description="Version (secondary)" />
+  <BadgePreviewCard src="/maven/com.google.guava/guava.svg?variant=outline" alt="maven" description="Version (outline)" />
+  <BadgePreviewCard src="/maven/org.springframework/spring-core.svg?variant=branded" alt="maven" description="Spring Core (branded)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -14,10 +23,9 @@ Display the latest version for any artifact on [Maven Central](https://search.ma
 
 ## Quick examples
 
-```md
-![version](https://shieldcn.dev/maven/com.google.guava/guava.svg)
-![version](https://shieldcn.dev/maven/org.springframework/spring-core.svg)
-```
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/maven/com.google.guava/guava.svg)' />
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/maven/org.springframework/spring-core.svg)' />
 
 <BadgeSandbox
   endpoint="/maven/:groupId/:artifactId.svg"

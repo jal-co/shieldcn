@@ -1,9 +1,18 @@
 ---
 title: Twitch
 description: Badges for Twitch channels — live status, followers.
+badge: "/twitch/status/shroud.svg?variant=branded"
 ---
 
+
 Display live stats for any [Twitch](https://twitch.tv) channel.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/twitch/status/shroud.svg?variant=branded" alt="twitch status" description="Status (branded)" />
+  <BadgePreviewCard src="/twitch/followers/ninja.svg?variant=branded" alt="twitch followers" description="Followers (branded)" />
+  <BadgePreviewCard src="/twitch/status/shroud.svg?variant=secondary" alt="twitch status" description="Status (secondary)" />
+  <BadgePreviewCard src="/twitch/status/shroud.svg?variant=outline" alt="twitch status" description="Status (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -14,10 +23,9 @@ Display live stats for any [Twitch](https://twitch.tv) channel.
 
 ## Quick examples
 
-```md
-![status](https://shieldcn.dev/twitch/status/shroud.svg)
-![followers](https://shieldcn.dev/twitch/followers/ninja.svg)
-```
+<CodeLine language="markdown" code='![status](https://shieldcn.dev/twitch/status/shroud.svg)' />
+
+<CodeLine language="markdown" code='![followers](https://shieldcn.dev/twitch/followers/ninja.svg)' />
 
 <BadgeSandbox
   endpoint="/twitch/status/:login.svg"
