@@ -24,6 +24,7 @@
     "fumadocs-core": "^16.8.2",
     "fumadocs-mdx": "^14.3.1",
     "fumadocs-ui": "npm:@fumadocs/base-ui@^16.8.2",
+    "jose": "^6.2.3",
     "jsonpath-plus": "^10.4.0",
     "lru-cache": "^11.3.5",
     "lucide-react": "^1.8.0",

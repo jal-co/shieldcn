@@ -6,6 +6,7 @@ import { BadgeCard } from "@/components/badge-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { ShowcaseSubmitDialog } from "@/components/showcase-submit-dialog"
 import { featuredBadges, categories } from "@/lib/showcase-data"
 
 const ALL_CATEGORY_NAMES = ["All", ...categories.map((c) => c.name)]
@@ -43,9 +44,12 @@ export default function ShowcasePage() {
             A curated set of shieldcn badge examples designed to look good in real-world README rows,
             docs pages, package pages, and community sections. Click any card to tweak it and copy the exact output.
           </p>
-          <p className="text-xs text-muted-foreground">
-            {totalIconCount}+ curated examples · focused on useful, polished badge patterns
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              {totalIconCount}+ curated examples · focused on useful, polished badge patterns
+            </p>
+            <ShowcaseSubmitDialog />
+          </div>
         </div>
 
         <div className="space-y-3">
