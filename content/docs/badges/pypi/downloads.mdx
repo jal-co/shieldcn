@@ -1,6 +1,7 @@
 ---
 title: PyPI Downloads
 description: Display download counts for any PyPI package.
+badge: "/pypi/dm/requests.svg?variant=branded"
 ---
 
 Show daily, weekly, or monthly download counts.
@@ -20,6 +21,21 @@ Show daily, weekly, or monthly download counts.
 | Daily | `/pypi/dd/{package}` |
 | Weekly | `/pypi/dw/{package}` |
 | Monthly | `/pypi/dm/{package}` |
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/dm/requests.svg" alt="monthly downloads" description="Monthly (default)" />
+  <BadgePreviewCard src="/pypi/dm/requests.svg?variant=secondary" alt="monthly downloads" description="Monthly (secondary)" />
+  <BadgePreviewCard src="/pypi/dw/requests.svg?variant=outline" alt="weekly downloads" description="Weekly (outline)" />
+  <BadgePreviewCard src="/pypi/dm/requests.svg?variant=branded" alt="monthly downloads" description="Monthly (branded)" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/pypi/dm/requests.svg?variant=secondary" alt="pypi downloads" description="Secondary — monthly download count from pypistats" />
+
+<BadgePreview src="/pypi/dm/requests.svg?variant=branded" alt="pypi downloads" description="Branded — PyPI brand color" />
 
 ## Data source
 

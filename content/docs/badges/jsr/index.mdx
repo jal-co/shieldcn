@@ -1,9 +1,18 @@
 ---
 title: JSR
 description: Badges for JSR (JavaScript Registry) packages — version, score.
+badge: "/jsr/@std/path.svg?variant=branded"
 ---
 
+
 Display live stats for any package on [JSR](https://jsr.io), the modern JavaScript registry.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/jsr/@std/path.svg?variant=branded" alt="jsr version" description="Version (branded)" />
+  <BadgePreviewCard src="/jsr/score/@std/path.svg?variant=secondary" alt="jsr score" description="Score (secondary)" />
+  <BadgePreviewCard src="/jsr/@std/path.svg?variant=outline" alt="jsr version" description="Version (outline)" />
+  <BadgePreviewCard src="/jsr/@std/path.svg?variant=secondary" alt="jsr version" description="Version (secondary)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -15,10 +24,9 @@ Display live stats for any package on [JSR](https://jsr.io), the modern JavaScri
 
 ## Quick examples
 
-```md
-![version](https://shieldcn.dev/jsr/@std/path.svg)
-![score](https://shieldcn.dev/jsr/score/@std/path.svg)
-```
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/jsr/@std/path.svg)' />
+
+<CodeLine language="markdown" code='![score](https://shieldcn.dev/jsr/score/@std/path.svg)' />
 
 <BadgeSandbox
   endpoint="/jsr/v/:scope/:name.svg"

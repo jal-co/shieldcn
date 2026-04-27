@@ -93,6 +93,99 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 10. **Update the README** badge type table
 11. **Update the landing page** URL reference table in `app/page.tsx`
 
+### Badge docs page format (`content/docs/badges/`):
+
+Every badge provider docs page MUST follow this structure and order. Use the Discord index page as the canonical reference.
+
+#### Index pages (`content/docs/badges/{provider}/index.mdx`)
+
+```mdx
+---
+title: Provider Name
+description: Badges for {provider} — {list of badge types}.
+badge: "/{provider}/{best-example}.svg?variant=branded"
+---
+
+{One-line description of what the provider does.}
+
+<BadgePreviewGroup>
+  <BadgePreviewCard ... />  {4–6 variant examples, branded first}
+</BadgePreviewGroup>
+
+## Available badges
+
+{Table with Badge, Endpoint, Description columns. Link sub-pages if they exist.}
+
+## Quick examples
+
+{Markdown code block with 2–5 copy-paste img URLs.}
+
+## {Optional sections — setup, naming, scoped packages, etc.}
+
+## Data source
+
+{API link, auth requirements, cache duration.}
+```
+
+Rules:
+- The `badge` frontmatter field renders an inline badge next to the page title in the docs layout. Use `?variant=branded` for providers that have a SimpleIcons slug. Every badge docs page MUST have this field.
+- `<BadgePreviewGroup>` with 4–6 `<BadgePreviewCard>` examples goes between the description and the "Available badges" table. Show the branded variant first, then secondary, outline, and other badge types.
+- "Available badges" table comes after the preview group.
+- "Quick examples" with raw markdown code block comes next.
+- Provider-specific sections (setup, naming conventions, finding IDs) come after quick examples.
+- "Data source" is always the last section.
+- Use `<BadgeSandbox>` for interactive try-it widgets — place after the available badges table or in sub-pages.
+
+#### Sub-pages (`content/docs/badges/{provider}/{topic}.mdx`)
+
+```mdx
+---
+title: Provider Topic
+description: {One-line description.}
+badge: "/{provider}/{topic-example}.svg?variant=branded"
+---
+
+{One-line description.}
+
+<BadgeSandbox ... />
+
+## URL format
+
+{Code block with URL patterns.}
+
+## Examples (or Copy-paste examples)
+
+<BadgePreviewGroup>
+  <BadgePreviewCard ... />  {4–6 variant examples}
+</BadgePreviewGroup>
+
+<BadgePreview ... />  {2–3 full BadgePreview blocks with descriptions}
+
+## Data source
+
+{API link, cache duration.}
+```
+
+Rules:
+- The `badge` frontmatter field is required on ALL badge docs pages (index and sub-pages). It renders inline next to the page title.
+- Sub-pages lead with `<BadgeSandbox>` (interactive) in the body.
+- Show 4–6 variants in a `<BadgePreviewGroup>` grid in the examples section.
+- Include 2–3 `<BadgePreview>` blocks with `description` props for common copy-paste patterns.
+- "Data source" is always the last section.
+
+#### Available MDX components
+
+| Component | Use for | Props |
+|-----------|---------|-------|
+| `<BadgePreview>` | Single hero badge with copy button | `src`, `alt`, `description?`, `code?` |
+| `<BadgePreviewGroup>` | Grid wrapper for variant examples | `children` |
+| `<BadgePreviewCard>` | Compact badge card inside a grid | `src`, `alt`, `description?` |
+| `<BadgeSandbox>` | Interactive builder with path params | `endpoint`, `pathParams`, `defaults`, `extraParams?` |
+| `<CodeBlock>` | Code with syntax highlighting | — |
+| `<CodeLine>` | Inline code snippet | `language`, `code` |
+| `<ApiRefTable>` | API reference props table | `title`, `props` |
+| `<InstallBlock>` | Package install command | — |
+
 ### When modifying the badge renderer:
 
 - ALL variants MUST go through the same `resolve()` → `renderSingle()`/`renderSplit()` pipeline

@@ -1,9 +1,18 @@
 ---
 title: Hacker News
 description: Badges for Hacker News users — karma.
+badge: "/hackernews/pg.svg?variant=branded"
 ---
 
+
 Display karma for any [Hacker News](https://news.ycombinator.com) user.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/hackernews/pg.svg?variant=branded" alt="karma" description="Karma (branded)" />
+  <BadgePreviewCard src="/hackernews/pg.svg?variant=secondary" alt="karma" description="Karma (secondary)" />
+  <BadgePreviewCard src="/hackernews/pg.svg?variant=outline" alt="karma" description="Karma (outline)" />
+  <BadgePreviewCard src="/hackernews/dang.svg?variant=branded" alt="karma" description="dang (branded)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -14,10 +23,9 @@ Display karma for any [Hacker News](https://news.ycombinator.com) user.
 
 ## Quick examples
 
-```md
-![karma](https://shieldcn.dev/hackernews/pg.svg)
-![karma](https://shieldcn.dev/hackernews/dang.svg?variant=branded)
-```
+<CodeLine language="markdown" code='![karma](https://shieldcn.dev/hackernews/pg.svg)' />
+
+<CodeLine language="markdown" code='![karma](https://shieldcn.dev/hackernews/dang.svg?variant=branded)' />
 
 <BadgeSandbox
   endpoint="/hackernews/:userId.svg"

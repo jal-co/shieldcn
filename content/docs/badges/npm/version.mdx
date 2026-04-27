@@ -1,6 +1,7 @@
 ---
 title: npm Version
 description: Display the latest version of any npm package.
+badge: "/npm/react.svg?variant=branded"
 ---
 
 Show the current published version of a package.
@@ -15,22 +16,11 @@ Show the current published version of a package.
 
 ## URL formats
 
-```
-/npm/{package}.svg
-/npm/v/{package}.svg
-/npm/v/{package}/{tag}.svg
-```
+<CodeLine language="bash" code="/npm/{package}.svg" hideCopy />
 
-## Examples
+<CodeLine language="bash" code="/npm/v/{package}.svg" hideCopy />
 
-<BadgePreviewGroup>
-  <BadgePreviewCard src="/npm/react.svg" alt="npm react" description="Default variant" />
-  <BadgePreviewCard src="/npm/react.svg?variant=secondary" alt="npm react" description="Secondary variant" />
-  <BadgePreviewCard src="/npm/react.svg?variant=branded" alt="npm react" description="Branded (npm red)" />
-  <BadgePreviewCard src="/npm/react.svg?variant=outline" alt="npm react" description="Outline variant" />
-  <BadgePreviewCard src="/npm/react.svg?theme=blue" alt="npm react" description="Blue theme" />
-  <BadgePreviewCard src="/npm/react.svg?label=react" alt="npm react" description="Custom label" />
-</BadgePreviewGroup>
+<CodeLine language="bash" code="/npm/v/{package}/{tag}.svg" hideCopy />
 
 ## Copy-paste examples
 

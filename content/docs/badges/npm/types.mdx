@@ -1,6 +1,7 @@
 ---
 title: npm Types
 description: Display the TypeScript types status for any npm package.
+badge: "/npm/types/react.svg?variant=branded"
 ---
 
 Show whether a package includes TypeScript types or has types available via DefinitelyTyped.
@@ -15,17 +16,15 @@ Show whether a package includes TypeScript types or has types available via Defi
 
 ## URL format
 
-```
-/npm/types/{package}.svg
-```
+<CodeLine language="bash" code="/npm/types/{package}.svg" hideCopy />
 
 ## Examples
 
-```md
-![types](https://shieldcn.dev/npm/types/react.svg)
-![types](https://shieldcn.dev/npm/types/typescript.svg)
-![types](https://shieldcn.dev/npm/types/zod.svg)
-```
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/react.svg)' />
+
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/typescript.svg)' />
+
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/zod.svg)' />
 
 ## Type status values
 
@@ -35,18 +34,11 @@ Show whether a package includes TypeScript types or has types available via Defi
 | `@types/{pkg}` | Types available via DefinitelyTyped |
 | `none` | No TypeScript types available |
 
-## Styling examples
+## Copy-paste examples
 
-```md
-<!-- Blue theme for TypeScript -->
-![types](https://shieldcn.dev/npm/types/react.svg?theme=blue)
+<BadgePreview src="/npm/types/react.svg?theme=blue" alt="types" description="Blue theme — highlights TS support clearly" />
 
-<!-- With TypeScript logo -->
-![types](https://shieldcn.dev/npm/types/react.svg?logo=typescript)
-
-<!-- Branded variant -->
-![types](https://shieldcn.dev/npm/types/zod.svg?variant=branded&logo=typescript)
-```
+<BadgePreview src="/npm/types/zod.svg?variant=branded&logo=typescript" alt="types" description="Branded with TypeScript logo — strong developer experience signal" />
 
 ## Data source
 

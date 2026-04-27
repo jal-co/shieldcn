@@ -1,6 +1,7 @@
 ---
 title: GitHub Releases & Tags
 description: Display release versions, tag counts, and asset downloads for GitHub repositories.
+badge: "/github/release/vercel/next.js.svg?variant=branded"
 ---
 
 Show release information, tags, and download counts.
@@ -18,78 +19,53 @@ Show release information, tags, and download counts.
 
 ### Latest release
 
-```
-/github/release/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/release/{owner}/{repo}.svg" hideCopy />
 
 Shows the latest release tag (including prereleases).
 
 ### Stable release only
 
-```
-/github/release/{owner}/{repo}/stable.svg
-```
+<CodeLine language="bash" code="/github/release/{owner}/{repo}/stable.svg" hideCopy />
 
 Shows the latest non-prerelease version.
 
 ### Release count
 
-```
-/github/releases/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/releases/{owner}/{repo}.svg" hideCopy />
 
 Shows total number of releases.
 
 ### Tag count
 
-```
-/github/tags/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/tags/{owner}/{repo}.svg" hideCopy />
 
 Shows total number of tags.
 
 ### Latest tag
 
-```
-/github/tag/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/tag/{owner}/{repo}.svg" hideCopy />
 
 Shows the name of the most recent tag.
 
 ### Asset downloads
 
-```
-/github/assets-dl/{owner}/{repo}.svg
-/github/assets-dl/{owner}/{repo}/{tag}.svg
-```
+<CodeLine language="bash" code="/github/assets-dl/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/assets-dl/{owner}/{repo}/{tag}.svg" hideCopy />
 
 Shows download count for release assets. Use a specific tag or omit for latest release.
 
 ## Examples
 
-```md
-<!-- Latest release -->
-![release](https://shieldcn.dev/github/release/vercel/next.js.svg)
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/release/vercel/next.js.svg" alt="release" description="Latest release (default)" />
+  <BadgePreviewCard src="/github/release/vercel/next.js.svg?variant=secondary" alt="release" description="Secondary variant" />
+  <BadgePreviewCard src="/github/release/vercel/next.js.svg?variant=branded" alt="release" description="Branded variant" />
+  <BadgePreviewCard src="/github/release/vercel/next.js.svg?variant=outline" alt="release" description="Outline variant" />
+</BadgePreviewGroup>
 
-<!-- Stable only -->
-![stable](https://shieldcn.dev/github/release/electron/electron/stable.svg)
+## Copy-paste examples
 
-<!-- Release count -->
-![releases](https://shieldcn.dev/github/releases/microsoft/vscode.svg)
+<BadgePreview src="/github/release/vercel/next.js.svg" alt="release" description="Default — latest release version for product or OSS repos" />
 
-<!-- Downloads -->
-![downloads](https://shieldcn.dev/github/assets-dl/electron/electron.svg)
-
-<!-- Downloads for specific version -->
-![downloads](https://shieldcn.dev/github/assets-dl/electron/electron/v28.0.0.svg)
-```
-
-## Styling examples
-
-```md
-<!-- Green theme for releases -->
-![release](https://shieldcn.dev/github/release/vercel/next.js.svg?theme=green)
-
-<!-- With tag icon -->
-![release](https://shieldcn.dev/github/release/vercel/next.js.svg?logo=lucide:tag)
-```
+<BadgePreview src="/github/release/vercel/next.js.svg?variant=branded" alt="release" description="Branded — GitHub brand color" />

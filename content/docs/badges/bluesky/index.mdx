@@ -1,9 +1,18 @@
 ---
 title: Bluesky
 description: Badges for Bluesky profiles — followers, following, posts.
+badge: "/bluesky/jay.bsky.team.svg?variant=branded"
 ---
 
+
 Display live stats for any [Bluesky](https://bsky.app) profile.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/bluesky/jay.bsky.team.svg?variant=branded" alt="bluesky followers" description="Followers (branded)" />
+  <BadgePreviewCard src="/bluesky/posts/jay.bsky.team.svg?variant=secondary" alt="bluesky posts" description="Posts" />
+  <BadgePreviewCard src="/bluesky/following/jay.bsky.team.svg?variant=outline" alt="bluesky following" description="Following (outline)" />
+  <BadgePreviewCard src="/bluesky/jay.bsky.team.svg?variant=outline" alt="bluesky followers" description="Followers (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -16,10 +25,9 @@ Display live stats for any [Bluesky](https://bsky.app) profile.
 
 ## Quick examples
 
-```md
-![followers](https://shieldcn.dev/bluesky/jay.bsky.team.svg)
-![posts](https://shieldcn.dev/bluesky/posts/jay.bsky.team.svg)
-```
+<CodeLine language="markdown" code='![followers](https://shieldcn.dev/bluesky/jay.bsky.team.svg)' />
+
+<CodeLine language="markdown" code='![posts](https://shieldcn.dev/bluesky/posts/jay.bsky.team.svg)' />
 
 <BadgeSandbox
   endpoint="/bluesky/:handle.svg"

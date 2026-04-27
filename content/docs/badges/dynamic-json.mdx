@@ -1,7 +1,9 @@
 ---
 title: Dynamic JSON
 description: Create a badge from any JSON API using JSONPath queries.
+badge: "/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count"
 ---
+
 
 <BadgeSandbox
   endpoint="/badge/dynamic/json.svg"
@@ -23,6 +25,21 @@ description: Create a badge from any JSON API using JSONPath queries.
 | `$.nested.key` | Nested field |
 | `$.array[0]` | First array element |
 | `$.array.length` | Array length |
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count" alt="stars" description="GitHub stars count" />
+  <BadgePreviewCard src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count&variant=secondary" alt="stars" description="Secondary variant" />
+  <BadgePreviewCard src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count&variant=outline" alt="stars" description="Outline variant" />
+  <BadgePreviewCard src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.open_issues_count&label=open%20issues" alt="issues" description="Custom label" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count" alt="dynamic json" description="Default — pull any value from any public JSON API" />
+
+<BadgePreview src="/badge/dynamic/json.svg?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fvercel%2Fnext.js&query=%24.stargazers_count&variant=secondary" alt="dynamic json" description="Secondary — softer look for README rows" />
 
 ## Caching
 

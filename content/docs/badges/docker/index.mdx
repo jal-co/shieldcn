@@ -1,9 +1,18 @@
 ---
 title: Docker Hub
 description: Badges for Docker images — pulls, stars, version, image size.
+badge: "/docker/pulls/library/nginx.svg?variant=branded"
 ---
 
+
 Display live stats for any image on [Docker Hub](https://hub.docker.com).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/docker/pulls/library/nginx.svg?variant=branded" alt="docker pulls" description="Pulls (branded)" />
+  <BadgePreviewCard src="/docker/stars/library/nginx.svg?variant=secondary" alt="docker stars" description="Stars" />
+  <BadgePreviewCard src="/docker/size/library/alpine.svg?variant=outline" alt="docker size" description="Image size (outline)" />
+  <BadgePreviewCard src="/docker/pulls/library/nginx.svg?variant=outline" alt="docker pulls" description="Pulls (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -16,11 +25,11 @@ Display live stats for any image on [Docker Hub](https://hub.docker.com).
 
 ## Quick examples
 
-```md
-![pulls](https://shieldcn.dev/docker/pulls/library/nginx.svg)
-![stars](https://shieldcn.dev/docker/stars/grafana/grafana.svg)
-![size](https://shieldcn.dev/docker/size/library/alpine.svg)
-```
+<CodeLine language="markdown" code='![pulls](https://shieldcn.dev/docker/pulls/library/nginx.svg)' />
+
+<CodeLine language="markdown" code='![stars](https://shieldcn.dev/docker/stars/grafana/grafana.svg)' />
+
+<CodeLine language="markdown" code='![size](https://shieldcn.dev/docker/size/library/alpine.svg)' />
 
 <BadgeSandbox
   endpoint="/docker/pulls/:image.svg"

@@ -34,12 +34,21 @@ export default async function Page(props: {
       />
       <div className="mx-auto flex w-full items-start gap-14 py-10 px-6 md:px-10">
       <div className="min-w-0 flex-1">
-        <div className="flex flex-col gap-12 w-full">
+        <div className="flex flex-col gap-6 w-full">
           {/* Title + description */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">
-              {page.data.title}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">
+                {page.data.title}
+              </h1>
+              {(() => {
+                const badge = (page.data as unknown as Record<string, unknown>).badge
+                return typeof badge === "string" ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={badge} alt="" className="h-6 shrink-0" />
+                ) : null
+              })()}
+            </div>
             {page.data.description && (
               <p className="text-xl text-muted-foreground leading-relaxed">
                 {page.data.description}

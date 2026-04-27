@@ -1,7 +1,9 @@
 ---
 title: HTTPS Endpoint
 description: Create a badge from any HTTPS endpoint that returns JSON.
+badge: "/https/cal-badge-icd0onfvrxx6.runkit.sh.svg"
 ---
+
 
 <BadgeSandbox
   endpoint="/https/:url.svg"
@@ -58,6 +60,21 @@ The endpoint must return JSON with these fields (all optional except `value`/`st
     { name: "color", type: "string", description: "Badge color (hex or named color)." },
   ]}
 />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg" alt="endpoint" description="Default variant" />
+  <BadgePreviewCard src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg?variant=secondary" alt="endpoint" description="Secondary variant" />
+  <BadgePreviewCard src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg?variant=outline" alt="endpoint" description="Outline variant" />
+  <BadgePreviewCard src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg?variant=branded" alt="endpoint" description="Branded variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg" alt="https endpoint" description="Default — pull badge data from any HTTPS endpoint" />
+
+<BadgePreview src="/https/cal-badge-icd0onfvrxx6.runkit.sh.svg?variant=secondary" alt="https endpoint" description="Secondary — softer look for README rows" />
 
 ## Caching
 

@@ -1,9 +1,18 @@
 ---
 title: Lemmy
 description: Badges for Lemmy communities — subscribers, posts, comments.
+badge: "/lemmy/subscribers/lemmy.world/technology.svg?variant=branded"
 ---
 
+
 Display live stats for any [Lemmy](https://join-lemmy.org) community on any instance.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/lemmy/subscribers/lemmy.world/technology.svg?variant=branded" alt="subscribers" description="Subscribers (branded)" />
+  <BadgePreviewCard src="/lemmy/posts/lemmy.world/technology.svg?variant=secondary" alt="posts" description="Posts" />
+  <BadgePreviewCard src="/lemmy/comments/lemmy.world/technology.svg?variant=outline" alt="comments" description="Comments (outline)" />
+  <BadgePreviewCard src="/lemmy/subscribers/lemmy.world/technology.svg?variant=outline" alt="subscribers" description="Subscribers (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -15,10 +24,9 @@ Display live stats for any [Lemmy](https://join-lemmy.org) community on any inst
 
 ## Quick examples
 
-```md
-![subscribers](https://shieldcn.dev/lemmy/subscribers/lemmy.world/technology.svg)
-![posts](https://shieldcn.dev/lemmy/posts/lemmy.world/technology.svg)
-```
+<CodeLine language="markdown" code='![subscribers](https://shieldcn.dev/lemmy/subscribers/lemmy.world/technology.svg)' />
+
+<CodeLine language="markdown" code='![posts](https://shieldcn.dev/lemmy/posts/lemmy.world/technology.svg)' />
 
 <BadgeSandbox
   endpoint="/lemmy/subscribers/:instance/:community.svg"

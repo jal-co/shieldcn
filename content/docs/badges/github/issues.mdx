@@ -1,7 +1,15 @@
 ---
 title: GitHub Issues
 description: Display issue counts by state or label for GitHub repositories.
+badge: "/github/issues/vercel/next.js.svg?variant=branded"
 ---
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/issues/vercel/next.js.svg?variant=branded" alt="issues" description="Issues (branded)" />
+  <BadgePreviewCard src="/github/issues/vercel/next.js.svg" alt="issues" description="Open issues (default)" />
+  <BadgePreviewCard src="/github/open-issues/vercel/next.js.svg?variant=outline" alt="open issues" description="Open issues (outline)" />
+  <BadgePreviewCard src="/github/closed-issues/vercel/next.js.svg?variant=secondary" alt="closed issues" description="Closed issues" />
+</BadgePreviewGroup>
 
 Show open, closed, or labeled issue counts.
 
@@ -18,61 +26,26 @@ Show open, closed, or labeled issue counts.
 
 ### All open issues
 
-```
-/github/issues/{owner}/{repo}.svg
-/github/open-issues/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/issues/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/open-issues/{owner}/{repo}.svg" hideCopy />
 
 ### Closed issues
 
-```
-/github/closed-issues/{owner}/{repo}.svg
-```
+<CodeLine language="bash" code="/github/closed-issues/{owner}/{repo}.svg" hideCopy />
 
 ### Issues by label
 
-```
-/github/label-issues/{owner}/{repo}/{label}.svg
-/github/label-issues/{owner}/{repo}/{label}/open.svg
-/github/label-issues/{owner}/{repo}/{label}/closed.svg
-```
+<CodeLine language="bash" code="/github/label-issues/{owner}/{repo}/{label}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/label-issues/{owner}/{repo}/{label}/open.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/label-issues/{owner}/{repo}/{label}/closed.svg" hideCopy />
 
 Filter issues by GitHub label. URL-encode labels with spaces (e.g., `help%20wanted`).
 
-## Examples
+## Copy-paste examples
 
-```md
-<!-- Open issues -->
-![issues](https://shieldcn.dev/github/issues/vercel/next.js.svg)
+<BadgePreview src="/github/open-issues/vercel/next.js.svg?variant=outline" alt="open issues" description="Outline — useful for contributor-facing repos" />
 
-<!-- Closed issues -->
-![closed](https://shieldcn.dev/github/closed-issues/vercel/next.js.svg)
-
-<!-- Issues by label -->
-![bugs](https://shieldcn.dev/github/label-issues/vercel/next.js/bug.svg)
-
-<!-- Help wanted (open only) -->
-![help wanted](https://shieldcn.dev/github/label-issues/nodejs/node/help%20wanted/open.svg)
-
-<!-- Good first issues -->
-![good first issue](https://shieldcn.dev/github/label-issues/microsoft/vscode/good%20first%20issue.svg)
-```
-
-## Styling examples
-
-```md
-<!-- Orange theme for bugs -->
-![bugs](https://shieldcn.dev/github/label-issues/vercel/next.js/bug.svg?theme=orange)
-
-<!-- Green for closed -->
-![closed](https://shieldcn.dev/github/closed-issues/vercel/next.js.svg?theme=green)
-
-<!-- Custom icon -->
-![issues](https://shieldcn.dev/github/issues/vercel/next.js.svg?logo=lucide:circle-dot)
-```
-
-## Use cases
-
-- Show how active a project is with open issue count
-- Highlight "good first issue" or "help wanted" labels for contributors
-- Track bug counts or feature requests
+<BadgePreview src="/github/closed-issues/vercel/next.js.svg?variant=secondary" alt="closed issues" description="Secondary — track resolved issue volume" />

@@ -1,9 +1,18 @@
 ---
 title: NuGet
 description: Badges for .NET packages — version, downloads.
+badge: "/nuget/Newtonsoft.Json.svg?variant=branded"
 ---
 
+
 Display live stats for any package on [NuGet](https://www.nuget.org).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/nuget/Newtonsoft.Json.svg?variant=branded" alt="nuget" description="Version (branded)" />
+  <BadgePreviewCard src="/nuget/dt/Newtonsoft.Json.svg?variant=secondary" alt="nuget downloads" description="Downloads" />
+  <BadgePreviewCard src="/nuget/Newtonsoft.Json.svg?variant=outline" alt="nuget" description="Version (outline)" />
+  <BadgePreviewCard src="/nuget/Newtonsoft.Json.svg?variant=secondary" alt="nuget" description="Version (secondary)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -14,10 +23,9 @@ Display live stats for any package on [NuGet](https://www.nuget.org).
 
 ## Quick examples
 
-```md
-![version](https://shieldcn.dev/nuget/Newtonsoft.Json.svg)
-![downloads](https://shieldcn.dev/nuget/dt/Newtonsoft.Json.svg)
-```
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/nuget/Newtonsoft.Json.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/nuget/dt/Newtonsoft.Json.svg)' />
 
 <BadgeSandbox
   endpoint="/nuget/:package.svg"

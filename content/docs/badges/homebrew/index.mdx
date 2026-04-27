@@ -1,9 +1,18 @@
 ---
 title: Homebrew
 description: Badges for Homebrew formulae and casks — version, installs.
+badge: "/homebrew/node.svg?variant=branded"
 ---
 
+
 Display live stats for [Homebrew](https://brew.sh) formulae and casks.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/homebrew/node.svg?variant=branded" alt="homebrew" description="Formula (branded)" />
+  <BadgePreviewCard src="/homebrew/cask/firefox.svg?variant=branded" alt="homebrew cask" description="Cask (branded)" />
+  <BadgePreviewCard src="/homebrew/node.svg?variant=secondary" alt="homebrew" description="Formula (secondary)" />
+  <BadgePreviewCard src="/homebrew/node.svg?variant=outline" alt="homebrew" description="Formula (outline)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -15,10 +24,9 @@ Display live stats for [Homebrew](https://brew.sh) formulae and casks.
 
 ## Quick examples
 
-```md
-![version](https://shieldcn.dev/homebrew/node.svg)
-![cask](https://shieldcn.dev/homebrew/cask/firefox.svg)
-```
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/homebrew/node.svg)' />
+
+<CodeLine language="markdown" code='![cask](https://shieldcn.dev/homebrew/cask/firefox.svg)' />
 
 <BadgeSandbox
   endpoint="/homebrew/:formula.svg"

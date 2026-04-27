@@ -1,6 +1,7 @@
 ---
 title: GitHub License
 description: Display the license type for any GitHub repository.
+badge: "/github/license/vercel/next.js.svg?variant=branded"
 ---
 
 Show which open source license a repository uses.
@@ -16,31 +17,15 @@ Show which open source license a repository uses.
 
 ## URL format
 
-```
-/github/license/{owner}/{repo}.svg
-/github/{owner}/{repo}/license.svg
-```
+<CodeLine language="bash" code="/github/license/{owner}/{repo}.svg" hideCopy />
 
-## Examples
+<CodeLine language="bash" code="/github/{owner}/{repo}/license.svg" hideCopy />
 
-```md
-![Next.js license](https://shieldcn.dev/github/license/vercel/next.js.svg)
-![React license](https://shieldcn.dev/github/license/facebook/react.svg)
-![Linux license](https://shieldcn.dev/github/license/torvalds/linux.svg)
-```
+## Copy-paste examples
 
-## Styling examples
+<BadgePreview src="/github/license/vercel/next.js.svg" alt="license" description="Default — clean license badge for repo headers" />
 
-```md
-<!-- Violet theme -->
-![license](https://shieldcn.dev/github/license/vercel/next.js.svg?theme=violet)
-
-<!-- Secondary variant -->
-![license](https://shieldcn.dev/github/license/vercel/next.js.svg?variant=secondary)
-
-<!-- Custom label -->
-![license](https://shieldcn.dev/github/license/vercel/next.js.svg?label=open%20source)
-```
+<BadgePreview src="/github/license/vercel/next.js.svg?variant=ghost" alt="license" description="Ghost — subtle metadata badge for footer rows" />
 
 ## Response format
 

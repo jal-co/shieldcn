@@ -1,9 +1,18 @@
 ---
 title: Packagist
 description: Badges for PHP/Composer packages — version, downloads, license.
+badge: "/packagist/v/laravel/framework.svg?variant=branded"
 ---
 
+
 Display live stats for any package on [Packagist](https://packagist.org).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/packagist/v/laravel/framework.svg?variant=branded" alt="packagist" description="Version (branded)" />
+  <BadgePreviewCard src="/packagist/dt/laravel/framework.svg?variant=secondary" alt="packagist downloads" description="Total downloads" />
+  <BadgePreviewCard src="/packagist/license/laravel/framework.svg?variant=outline" alt="packagist license" description="License (outline)" />
+  <BadgePreviewCard src="/packagist/dm/laravel/framework.svg?variant=secondary" alt="packagist downloads" description="Monthly downloads" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -17,10 +26,9 @@ Display live stats for any package on [Packagist](https://packagist.org).
 
 ## Quick examples
 
-```md
-![version](https://shieldcn.dev/packagist/v/laravel/framework.svg)
-![downloads](https://shieldcn.dev/packagist/dt/laravel/framework.svg)
-```
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/packagist/v/laravel/framework.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/packagist/dt/laravel/framework.svg)' />
 
 <BadgeSandbox
   endpoint="/packagist/v/:vendor/:package.svg"

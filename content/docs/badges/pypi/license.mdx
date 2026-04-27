@@ -1,6 +1,7 @@
 ---
 title: PyPI License
 description: Display the license of any PyPI package.
+badge: "/pypi/license/flask.svg?variant=branded"
 ---
 
 <BadgeSandbox
@@ -13,9 +14,22 @@ description: Display the license of any PyPI package.
 
 ## URL format
 
-```
-/pypi/license/{package}.svg
-```
+<CodeLine language="bash" code="/pypi/license/{package}.svg" hideCopy />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/license/flask.svg" alt="license" description="Default variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=secondary" alt="license" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=outline" alt="license" description="Outline variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=ghost" alt="license" description="Ghost variant" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/pypi/license/flask.svg?variant=outline" alt="pypi license" description="Outline — subtle license badge for package metadata" />
+
+<BadgePreview src="/pypi/license/flask.svg?variant=ghost" alt="pypi license" description="Ghost — minimal metadata badge for footer rows" />
 
 ## Data source
 

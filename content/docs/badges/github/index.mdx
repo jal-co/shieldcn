@@ -1,18 +1,28 @@
 ---
 title: GitHub
 description: Badges for GitHub repositories — stars, forks, releases, CI, issues, PRs, and more.
+badge: "/github/stars/vercel/next.js.svg?variant=branded"
 ---
 
+
 Display live stats from any public GitHub repository.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/stars/vercel/next.js.svg?variant=branded" alt="stars" description="Stars (branded)" />
+  <BadgePreviewCard src="/github/release/vercel/next.js.svg?variant=secondary" alt="release" description="Release" />
+  <BadgePreviewCard src="/github/ci/vercel/next.js.svg?variant=outline" alt="ci" description="CI status" />
+  <BadgePreviewCard src="/github/license/vercel/next.js.svg?variant=outline" alt="license" description="License" />
+  <BadgePreviewCard src="/github/last-commit/vercel/next.js.svg?variant=secondary" alt="last commit" description="Last commit" />
+  <BadgePreviewCard src="/github/forks/vercel/next.js.svg?variant=branded" alt="forks" description="Forks (branded)" />
+</BadgePreviewGroup>
 
 ## URL formats
 
 All GitHub badges support both URL formats:
 
-```
-/github/{topic}/{owner}/{repo}.svg
-/github/{owner}/{repo}/{topic}.svg
-```
+<CodeLine language="bash" code="/github/{topic}/{owner}/{repo}.svg" hideCopy />
+
+<CodeLine language="bash" code="/github/{owner}/{repo}/{topic}.svg" hideCopy />
 
 ## Available badges
 
@@ -30,12 +40,13 @@ All GitHub badges support both URL formats:
 
 ## Quick examples
 
-```md
-![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg)
-![release](https://shieldcn.dev/github/release/vercel/next.js.svg)
-![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)
-![license](https://shieldcn.dev/github/license/vercel/next.js.svg)
-```
+<CodeLine language="markdown" code='![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg)' />
+
+<CodeLine language="markdown" code='![release](https://shieldcn.dev/github/release/vercel/next.js.svg)' />
+
+<CodeLine language="markdown" code='![ci](https://shieldcn.dev/github/ci/vercel/next.js.svg)' />
+
+<CodeLine language="markdown" code='![license](https://shieldcn.dev/github/license/vercel/next.js.svg)' />
 
 ## Data source
 

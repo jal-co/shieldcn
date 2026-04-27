@@ -1,7 +1,9 @@
 ---
 title: Static Badge
 description: Create a badge with any custom text and color.
+badge: "/badge/build-passing-green.svg"
 ---
+
 
 <BadgeSandbox
   endpoint="/badge/:badgeContent.svg"
@@ -22,3 +24,22 @@ description: Create a badge with any custom text and color.
 ## Named colors
 
 `brightgreen`, `green`, `yellow`, `orange`, `red`, `blue`, `purple`, `violet`, `grey`, `lightgrey` — or any hex value.
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/badge/build-passing-green.svg" alt="build passing" description="Named color (green)" />
+  <BadgePreviewCard src="/badge/version-2.0-blue.svg?variant=secondary" alt="version" description="Secondary variant" />
+  <BadgePreviewCard src="/badge/license-MIT-green.svg?variant=outline" alt="license" description="Outline variant" />
+  <BadgePreviewCard src="/badge/PRs-welcome-brightgreen.svg?variant=secondary" alt="PRs welcome" description="Community badge" />
+  <BadgePreviewCard src="/badge/status-beta-blue.svg?variant=outline" alt="beta" description="Status badge" />
+  <BadgePreviewCard src="/badge/coverage-95%25-blue.svg?theme=blue" alt="coverage" description="Blue theme" />
+</BadgePreviewGroup>
+
+## Copy-paste examples
+
+<BadgePreview src="/badge/build-passing-green.svg" alt="build passing" description="Classic build badge for status rows" />
+
+<BadgePreview src="/badge/license-MIT-green.svg?variant=outline" alt="license MIT" description="Outline — subtle metadata badge for repo headers" />
+
+<BadgePreview src="/badge/PRs-welcome-brightgreen.svg?variant=secondary" alt="PRs welcome" description="Secondary — contributor-friendly signal" />

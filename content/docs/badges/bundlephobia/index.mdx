@@ -1,9 +1,18 @@
 ---
 title: Bundlephobia
 description: Badges for npm package bundle size — minified, gzipped, tree-shaking.
+badge: "/bundlephobia/minzip/react.svg?variant=secondary"
 ---
 
+
 Display bundle size stats for any npm package via [Bundlephobia](https://bundlephobia.com).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/bundlephobia/minzip/react.svg?variant=secondary" alt="minzip" description="Minzipped (secondary)" />
+  <BadgePreviewCard src="/bundlephobia/min/lodash.svg?variant=outline" alt="min" description="Minified (outline)" />
+  <BadgePreviewCard src="/bundlephobia/tree-shaking/lodash-es.svg?variant=secondary" alt="tree-shaking" description="Tree-shaking" />
+  <BadgePreviewCard src="/bundlephobia/minzip/react.svg" alt="minzip" description="Minzipped (default)" />
+</BadgePreviewGroup>
 
 ## Available badges
 
@@ -15,11 +24,11 @@ Display bundle size stats for any npm package via [Bundlephobia](https://bundlep
 
 ## Quick examples
 
-```md
-![minzip](https://shieldcn.dev/bundlephobia/minzip/react.svg)
-![min](https://shieldcn.dev/bundlephobia/min/lodash.svg)
-![tree-shaking](https://shieldcn.dev/bundlephobia/tree-shaking/lodash-es.svg)
-```
+<CodeLine language="markdown" code='![minzip](https://shieldcn.dev/bundlephobia/minzip/react.svg)' />
+
+<CodeLine language="markdown" code='![min](https://shieldcn.dev/bundlephobia/min/lodash.svg)' />
+
+<CodeLine language="markdown" code='![tree-shaking](https://shieldcn.dev/bundlephobia/tree-shaking/lodash-es.svg)' />
 
 <BadgeSandbox
   endpoint="/bundlephobia/minzip/:package.svg"
