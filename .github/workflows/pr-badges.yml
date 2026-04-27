@@ -1,0 +1,22 @@
+name: PR Badges
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jal-co/badgetizr-shieldcn@feat/shieldcn-badges
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          configuration: .badgetizr.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
