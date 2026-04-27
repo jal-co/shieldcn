@@ -46,26 +46,28 @@ function getFonts(font: BadgeFont = "inter") {
   return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
 }
 
-/** Check if a hex color (with #) is light enough to need dark text. */
-function isLightColor(hex: string): boolean {
+/** Relative luminance of a hex color (0 = black, 1 = white). */
+function luminance(hex: string): number {
   const h = hex.replace("#", "")
   const r = parseInt(h.substring(0, 2), 16)
   const g = parseInt(h.substring(2, 4), 16)
   const b = parseInt(h.substring(4, 6), 16)
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return 0
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255
 }
 
 /**
  * Determine the best foreground color for a gradient background.
- * Extracts hex stops from the CSS linear-gradient value and checks
- * the average luminance to pick white or dark text.
+ * Uses average luminance across all color stops. Threshold at 0.7
+ * biases toward white text — white is more readable on saturated
+ * colors than dark text, which gets muddy. Only truly light/pastel
+ * gradients get dark text.
  */
 function gradientFg(gradient: string): string {
   const stops = gradient.match(/#[0-9a-fA-F]{3,8}/g)
   if (!stops || stops.length === 0) return "#ffffff"
-  const lightCount = stops.filter(isLightColor).length
-  return lightCount > stops.length / 2 ? "#18181b" : "#ffffff"
+  const avg = stops.reduce((sum, s) => sum + luminance(s), 0) / stops.length
+  return avg > 0.7 ? "#18181b" : "#ffffff"
 }
 
 /** Hex → rgba with baked-in opacity */
@@ -148,7 +150,9 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   const gap = config.gap ?? bz.gap
   const iconSize = config.iconSize ?? bz.iconSize
   const labelGap = config.labelGap ?? gap
-  const labelOpacity = config.labelOpacity ?? 0.7
+  // Gradient badges need higher label opacity for readability — semi-transparent
+  // text on colored backgrounds kills contrast far more than on solid dark/light bg
+  const labelOpacity = config.labelOpacity ?? (config.gradient ? 0.9 : 0.7)
 
   // --- Resolve colors ---
   const isFilled = bs.bg !== "transparent"
@@ -356,6 +360,14 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   )
 }
 
+/**
+ * Shared text style for label and value spans.
+ * lineHeight: 1 removes descender padding from the text bounding box,
+ * so flexbox alignItems:center aligns the visible glyphs (not the full
+ * line box) with the icon.
+ */
+const textStyle = { lineHeight: 1 } as const
+
 // ---------------------------------------------------------------------------
 // Status dot (same for all variants)
 // ---------------------------------------------------------------------------
@@ -407,11 +419,11 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       {r.icon && <div style={{ width: r.gap }} />}
       {r.label && (
         <>
-          <span style={{ color: r.labelFg }}>{r.label}</span>
+          <span style={{ color: r.labelFg, ...textStyle }}>{r.label}</span>
           <div style={{ width: r.labelGap }} />
         </>
       )}
-      <span style={{ color: r.fg }}>{r.value}</span>
+      <span style={{ color: r.fg, ...textStyle }}>{r.value}</span>
     </div>
   )
 }
@@ -450,7 +462,7 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
         <DotEl r={r} />
         <IconEl r={r} />
         {r.icon && <div style={{ width: r.gap }} />}
-        {r.label && <span style={{ color: r.labelFg }}>{r.label}</span>}
+        {r.label && <span style={{ color: r.labelFg, ...textStyle }}>{r.label}</span>}
       </div>
       {/* Right segment */}
       <div style={{
@@ -461,7 +473,7 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
         paddingLeft: r.paddingX,
         paddingRight: r.paddingX,
       }}>
-        <span style={{ color: r.rightFg }}>{r.value}</span>
+        <span style={{ color: r.rightFg, ...textStyle }}>{r.value}</span>
       </div>
     </div>
   )

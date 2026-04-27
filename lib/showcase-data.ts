@@ -338,7 +338,7 @@ export const categories: Category[] = [
       dynamicBadge("Sunset", "gradient", "/badge/sunset-vibes-ff6b6b.svg?gradient=ff6b6b,feca57&logoColor=fff&logo=ri:GoSunFill", "Warm sunset gradient with a sun icon."),
       dynamicBadge("Ocean", "gradient", "/badge/ocean-deep-667eea.svg?gradient=667eea,764ba2&logoColor=fff&logo=ri:GoDropletFill", "Cool purple-to-indigo gradient."),
       dynamicBadge("Mint", "gradient", "/badge/fresh-mint-00b09b.svg?gradient=00b09b,96c93d&logoColor=fff&logo=ri:GoSparklesFill", "Fresh green gradient for eco or health themes."),
-      dynamicBadge("Aurora", "gradient", "/badge/aurora-borealis-a18cd1.svg?gradient=a18cd1,fbc2eb&logoColor=fff&logo=ri:GoStarFill", "Soft pink-to-lavender aurora gradient."),
+      dynamicBadge("Aurora", "gradient", "/badge/aurora-borealis-7b2ff7.svg?gradient=7b2ff7,c084fc&logoColor=fff&logo=ri:GoStarFill", "Purple aurora gradient with deeper tones."),
       dynamicBadge("Fire", "gradient", "/badge/on-fire-ff0844.svg?gradient=ff0844,ffb199&logoColor=fff&logo=ri:GoFlame", "Hot red-to-peach fire gradient."),
       dynamicBadge("Neon", "gradient", "/badge/neon-glow-08AEEA.svg?gradient=08AEEA,2AF598&logoColor=fff&logo=ri:GoZap", "Electric cyan-to-green neon gradient."),
       dynamicBadge("Gradient + Split", "gradient", "/npm/react.svg?gradient=667eea,764ba2&split=true&logoColor=fff", "Gradient flowing across a split badge."),
