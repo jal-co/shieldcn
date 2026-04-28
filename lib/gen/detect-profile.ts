@@ -5,6 +5,7 @@
 import type { Badge } from "./shieldcn"
 import { staticBadgePath } from "./shieldcn"
 import { matchBrand } from "./brands"
+import { proxyFetch } from "./proxy-fetch"
 
 export type ProfileInspectResult = {
   source: { username: string; url: string }
@@ -69,7 +70,7 @@ async function fetchJson<T = unknown>(
   signal?: AbortSignal,
 ): Promise<T | null> {
   try {
-    const res = await fetch(url, { signal })
+    const res = await proxyFetch(url, signal)
     if (!res.ok) return null
     return (await res.json()) as T
   } catch (e) {
@@ -83,7 +84,7 @@ async function fetchText(
   signal?: AbortSignal,
 ): Promise<string | null> {
   try {
-    const res = await fetch(url, { signal })
+    const res = await proxyFetch(url, signal)
     if (!res.ok) return null
     return await res.text()
   } catch (e) {
@@ -326,7 +327,7 @@ function profileBadges(
       "profile.repos",
       "Public Repos",
       staticBadgePath("Repos", String(user.public_repos), "2563eb"),
-      { logo: "github", variant: "outline" },
+      { logo: "github", variant: "secondary" },
       `https://github.com/${username}?tab=repositories`,
     ),
   )
@@ -420,8 +421,8 @@ function socialBadges(
       mk(
         "social.website",
         "Website",
-        staticBadgePath("Website", displayUrl, "4f46e5"),
-        { logo: "safari", variant: "outline" },
+        staticBadgePath("Website", displayUrl, "181717"),
+        { logo: "ri:LuLink", variant: "branded" },
         blog,
       ),
     )

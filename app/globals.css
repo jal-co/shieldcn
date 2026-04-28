@@ -184,6 +184,18 @@
     display: none;
   }
 
+  /* Shiki dual-theme: light mode uses --shiki-light, dark mode uses --shiki-dark */
+  .shiki,
+  .shiki span {
+    color: var(--shiki-light) !important;
+    background-color: var(--shiki-light-bg) !important;
+  }
+  .dark .shiki,
+  .dark .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+
   .bg-grid-pattern {
     background-image:
       linear-gradient(to right, oklch(0 0 0 / 0.05) 1px, transparent 1px),

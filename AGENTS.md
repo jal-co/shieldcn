@@ -194,6 +194,20 @@ Rules:
 - Test all variants produce consistent font weight, spacing, and opacity
 - Use `rgba()` for opacity instead of CSS `opacity` property (Satori bug)
 
+### Light / dark mode accessibility:
+
+- Every badge MUST be readable in both `mode=light` and `mode=dark`. Test both.
+- **Outline/ghost + custom color**: label text uses mode-aware foreground (`bs.fg`), NOT the color-derived fg. The custom color is used for border and value text only. In light mode, `ensureLightModeContrast()` darkens colors that have poor contrast against white.
+- **Branded**: `isLightHex()` uses WCAG contrast ratios (not a simple luminance threshold) to pick white or dark text — whichever has better contrast against the brand color.
+- When adding showcase badges, verify label text is visible on both light and dark backgrounds:
+  ```bash
+  # Quick test — label fill should be dark rgba on light, light rgba on dark:
+  curl -s "http://localhost:3000/badge/label-value-COLOR.svg?variant=outline&mode=light" | grep -oE 'fill="[^"]*"'
+  curl -s "http://localhost:3000/badge/label-value-COLOR.svg?variant=outline&mode=dark" | grep -oE 'fill="[^"]*"'
+  ```
+- All site components that render badge `<img>` tags MUST use `useBadgeMode()` to adapt URLs to the current site theme. The hook appends `mode=light` or `mode=dark` explicitly so the URL changes when the theme toggles (preventing browser cache issues).
+- Components MUST gate badge image rendering behind a `mounted` state to avoid SSR hydration mismatch (next-themes resolves `undefined` on the server).
+
 ### When adding shadcn components:
 
 - Install via `pnpm dlx shadcn@latest add {component}`

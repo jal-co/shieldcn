@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 
 interface BadgePreviewProps {
   /** Badge URL path (e.g., "/npm/react.svg?variant=secondary") */
@@ -17,7 +18,12 @@ interface BadgePreviewProps {
 
 export function BadgePreview({ src, alt, description, code }: BadgePreviewProps) {
   const [copied, setCopied] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { adaptUrl } = useBadgeMode()
 
+  useEffect(() => { setMounted(true) }, [])
+
+  const adaptedSrc = adaptUrl(src)
   const fullUrl = `https://shieldcn.dev${src}`
   const displayCode = code ?? `![${alt || "badge"}](${fullUrl})`
 
@@ -32,7 +38,11 @@ export function BadgePreview({ src, alt, description, code }: BadgePreviewProps)
       {/* Preview area */}
       <div className="flex items-center justify-center bg-muted/30 px-6 py-6">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt || "badge preview"} className="h-8" />
+        {mounted ? (
+          <img src={adaptedSrc} alt={alt || "badge preview"} className="h-8" />
+        ) : (
+          <div className="h-8" />
+        )}
       </div>
       {/* Code area */}
       <div className="relative border-t border-border bg-muted/50">
@@ -72,7 +82,9 @@ export function BadgePreviewGroup({ children }: { children: React.ReactNode }) {
  */
 export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
   const [copied, setCopied] = useState(false)
+  const { adaptUrl } = useBadgeMode()
 
+  const adaptedSrc = adaptUrl(src)
   const fullUrl = `https://shieldcn.dev${src}`
   const displayCode = `![${alt || "badge"}](${fullUrl})`
 
@@ -86,7 +98,7 @@ export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
     <div className="rounded-lg border border-border overflow-hidden">
       <div className="flex items-center justify-center bg-muted/30 px-4 py-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt || "badge preview"} className="h-7" />
+        <img src={adaptedSrc} alt={alt || "badge preview"} className="h-7" />
       </div>
       <div className="flex items-center gap-2 border-t border-border bg-muted/50 px-3 py-2.5">
         <span className="flex-1 text-[11px] text-muted-foreground truncate">

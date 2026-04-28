@@ -70,6 +70,34 @@ function gradientFg(gradient: string): string {
   return avg > 0.7 ? "#18181b" : "#ffffff"
 }
 
+/**
+ * Darken a hex color by mixing toward black.
+ * `amount` 0 = unchanged, 1 = fully black.
+ */
+function darken(hex: string, amount: number): string {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return hex
+  const dr = Math.round(r * (1 - amount))
+  const dg = Math.round(g * (1 - amount))
+  const db = Math.round(b * (1 - amount))
+  return `#${dr.toString(16).padStart(2, "0")}${dg.toString(16).padStart(2, "0")}${db.toString(16).padStart(2, "0")}`
+}
+
+/**
+ * Ensure a color has sufficient contrast against a white background.
+ * If the color is too light (luminance > 0.45), darken it until it's readable.
+ */
+function ensureLightModeContrast(hex: string): string {
+  const lum = luminance(hex)
+  if (lum <= 0.45) return hex
+  // Darken proportionally — the lighter the color, the more darkening needed
+  const amount = Math.min((lum - 0.3) * 0.7, 0.55)
+  return darken(hex, amount)
+}
+
 /** Hex → rgba with baked-in opacity */
 function rgba(hex: string, opacity: number): string {
   if (opacity >= 1) return hex
@@ -182,10 +210,17 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     fg = bs.fg
     labelFgBase = bs.fg
   } else if (hasTheme) {
+    // Outline/ghost with custom color: color becomes the border & value text,
+    // but label text should use the mode-aware foreground (dark text on light bg,
+    // light text on dark bg) — not the color-derived fg which assumes a filled bg.
+    // In light mode, ensure the accent color has enough contrast against white.
+    const accentColor = config.mode === "light"
+      ? ensureLightModeContrast(config.colors.labelBg)
+      : config.colors.labelBg
     bg = undefined
-    border = config.colors.labelBg
-    fg = config.colors.labelBg
-    labelFgBase = config.colors.labelFg
+    border = accentColor
+    fg = accentColor
+    labelFgBase = bs.fg
   } else {
     bg = undefined
     fg = bs.fg

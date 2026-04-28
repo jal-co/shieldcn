@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BadgeModal } from "@/components/badge-modal"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
@@ -13,7 +13,10 @@ interface BadgeCardProps {
 
 export function BadgeCard({ badge }: BadgeCardProps) {
   const [modalOpen, setModalOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { adaptUrl } = useBadgeMode()
+
+  useEffect(() => { setMounted(true) }, [])
 
   return (
     <>
@@ -24,12 +27,16 @@ export function BadgeCard({ badge }: BadgeCardProps) {
       >
         <div className="flex w-full justify-center overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={adaptUrl(badge.badgePath)}
-            alt={badge.title}
-            className="inline-block h-8 max-w-full"
-            loading="lazy"
-          />
+          {mounted ? (
+            <img
+              src={adaptUrl(badge.badgePath)}
+              alt={badge.title}
+              className="inline-block h-8 max-w-full"
+              loading="lazy"
+            />
+          ) : (
+            <div className="h-8" />
+          )}
         </div>
 
         <div className="w-full text-center">
