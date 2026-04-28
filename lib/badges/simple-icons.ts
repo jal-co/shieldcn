@@ -234,7 +234,11 @@ async function getReactIcon(
     return {
       icon: {
         viewBox,
+        // For fill-based icons, joining paths is fine.
+        // For stroke-based icons, keep individual paths separate so each
+        // renders as its own <path> element with correct coordinate space.
         path: pathDs.join(" "),
+        paths: isStroke ? pathDs : undefined,
         fillRule: undefined,
         isStroke,
         strokeWidth,

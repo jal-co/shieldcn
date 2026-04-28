@@ -39,6 +39,8 @@ export interface BadgeConfig {
   iconFillRule?: string
   /** Override fill color for the icon (e.g. SimpleIcons brand color). */
   iconFill?: string
+  /** Individual path d strings for stroke-based multi-path icons. */
+  iconPaths?: string[]
   /** Whether the icon is stroke-based (e.g. Lucide, Feather). */
   iconIsStroke?: boolean
   /** Stroke width for stroke-based icons. */

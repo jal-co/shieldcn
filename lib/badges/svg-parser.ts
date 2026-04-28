@@ -151,6 +151,7 @@ export function parseSvg(svg: string): ParsedSvg | null {
     icon: {
       viewBox,
       path: pathDs.join(" "),
+      paths: isStroke ? pathDs : undefined,
       fillRule: undefined,
       isStroke,
       strokeWidth,

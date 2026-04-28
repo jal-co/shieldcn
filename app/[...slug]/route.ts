@@ -1027,6 +1027,7 @@ export async function GET(
   // Resolve icon
   // Priority: ?logo=<simpleicon-slug> > ?logo=false (hide) > default provider icon
   let iconPath: string | undefined
+  let iconPaths: string[] | undefined
   let iconViewBox: string | undefined
   let iconFillRule: string | undefined
   let iconFill: string | undefined
@@ -1052,6 +1053,7 @@ export async function GET(
       const parsed = parseSvg(svgContent)
       if (parsed) {
         iconPath = parsed.icon.path
+        iconPaths = parsed.icon.paths
         iconViewBox = parsed.icon.viewBox
         iconFillRule = parsed.icon.fillRule
         iconIsStroke = parsed.icon.isStroke
@@ -1074,6 +1076,7 @@ export async function GET(
     const si = await getSimpleIcon(logoParam, logoColor)
     if (si) {
       iconPath = si.icon.path
+      iconPaths = si.icon.paths
       iconViewBox = si.icon.viewBox
       iconFillRule = si.icon.fillRule
       iconIsStroke = si.icon.isStroke
@@ -1113,6 +1116,7 @@ export async function GET(
         const si = await getSimpleIcon(source, logoColor)
         if (si) {
           iconPath = si.icon.path
+          iconPaths = si.icon.paths
           iconViewBox = si.icon.viewBox
           iconFillRule = si.icon.fillRule
           iconIsStroke = si.icon.isStroke
@@ -1183,6 +1187,7 @@ export async function GET(
     iconViewBox,
     iconFillRule,
     iconFill,
+    iconPaths,
     iconIsStroke,
     iconStrokeWidth,
     iconStrokeLinecap,

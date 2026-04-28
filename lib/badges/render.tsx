@@ -125,6 +125,7 @@ interface ResolvedBadge {
 
   // Icon data (pass-through)
   icon: string | undefined
+  iconPaths: string[] | undefined
   iconViewBox: string | undefined
   iconFillRule: string | undefined
   iconFill: string | undefined
@@ -244,6 +245,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     rightFg,
     gradient: config.gradient,
     icon: config.icon,
+    iconPaths: config.iconPaths,
     iconViewBox: config.iconViewBox,
     iconFillRule: config.iconFillRule,
     iconFill: config.iconFill,
@@ -283,6 +285,10 @@ function optimizeSvg(svg: string): string {
             overrides: {
               // Keep IDs — Satori uses mask IDs for clipping
               cleanupIds: false,
+              // Don't merge separate <path> elements — stroke-based icons
+              // (Lucide, Feather) need each path separate to preserve
+              // relative coordinate spaces (m commands).
+              mergePaths: false,
             },
           },
         },
@@ -372,17 +378,24 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   const color = r.iconFill || r.iconColor
 
   if (r.iconIsStroke) {
-    // Stroke-based icons (Lucide, Feather, etc.) — render with stroke, not fill
+    // Stroke-based icons (Lucide, Feather, etc.) — render with stroke, not fill.
+    // Each original SVG element becomes its own <path> to preserve relative
+    // coordinate spaces. Joining them into one `d` would break `m` (relative
+    // move-to) commands that are relative to the previous element's end point.
+    const paths = r.iconPaths && r.iconPaths.length > 0 ? r.iconPaths : [r.icon]
     return (
       <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
-        <path
-          d={r.icon}
-          fill="none"
-          stroke={color}
-          strokeWidth={r.iconStrokeWidth}
-          strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
-          strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
-        />
+        {paths.map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke={color}
+            strokeWidth={r.iconStrokeWidth}
+            strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
+            strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
+          />
+        ))}
       </svg>
     )
   }

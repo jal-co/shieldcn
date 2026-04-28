@@ -9,8 +9,14 @@
 export interface IconData {
   /** SVG viewBox attribute. */
   viewBox: string
-  /** SVG path `d` attribute. */
+  /** SVG path `d` attribute (single path or joined paths for fill icons). */
   path: string
+  /**
+   * Individual path `d` strings — one per original SVG element.
+   * Used for stroke-based icons where each path must remain separate
+   * to preserve relative coordinate spaces.
+   */
+  paths?: string[]
   /** Fill rule (defaults to "nonzero"). */
   fillRule?: string
   /** Whether this icon is stroke-based (e.g. Lucide, Feather). */
