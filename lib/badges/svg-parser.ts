@@ -32,7 +32,20 @@ export function parseSvg(svg: string): ParsedSvg | null {
   // Detect stroke-based SVGs
   const isStroke =
     (svg.includes('fill="none"') || svg.includes("fill='none'")) &&
-    (svg.includes('stroke="currentColor"') || svg.includes("stroke="))
+    (svg.includes('stroke="currentColor"') || svg.includes('stroke="'))
+
+  // Extract stroke properties
+  let strokeWidth: number | undefined
+  let strokeLinecap: string | undefined
+  let strokeLinejoin: string | undefined
+  if (isStroke) {
+    const swMatch = svg.match(/stroke-width="([^"]+)"/)
+    if (swMatch) strokeWidth = parseFloat(swMatch[1])
+    const lcMatch = svg.match(/stroke-linecap="([^"]+)"/)
+    if (lcMatch) strokeLinecap = lcMatch[1]
+    const ljMatch = svg.match(/stroke-linejoin="([^"]+)"/)
+    if (ljMatch) strokeLinejoin = ljMatch[1]
+  }
 
   const pathDs: string[] = []
 
@@ -138,7 +151,12 @@ export function parseSvg(svg: string): ParsedSvg | null {
     icon: {
       viewBox,
       path: pathDs.join(" "),
+      paths: isStroke ? pathDs : undefined,
       fillRule: undefined,
+      isStroke,
+      strokeWidth,
+      strokeLinecap,
+      strokeLinejoin,
     },
     isStroke,
   }

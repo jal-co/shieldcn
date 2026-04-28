@@ -39,6 +39,16 @@ export interface BadgeConfig {
   iconFillRule?: string
   /** Override fill color for the icon (e.g. SimpleIcons brand color). */
   iconFill?: string
+  /** Individual path d strings for stroke-based multi-path icons. */
+  iconPaths?: string[]
+  /** Whether the icon is stroke-based (e.g. Lucide, Feather). */
+  iconIsStroke?: boolean
+  /** Stroke width for stroke-based icons. */
+  iconStrokeWidth?: number
+  /** Stroke linecap for stroke-based icons. */
+  iconStrokeLinecap?: string
+  /** Stroke linejoin for stroke-based icons. */
+  iconStrokeLinejoin?: string
   /** Visual style (shadcn Button variant). */
   style: BadgeStyle
   /** Size preset (shadcn Button size). Overrides individual dimension params. */

@@ -125,9 +125,16 @@ interface ResolvedBadge {
 
   // Icon data (pass-through)
   icon: string | undefined
+  iconPaths: string[] | undefined
   iconViewBox: string | undefined
   iconFillRule: string | undefined
   iconFill: string | undefined
+
+  // Stroke-based icon rendering (Lucide, Feather, etc.)
+  iconIsStroke: boolean
+  iconStrokeWidth: number
+  iconStrokeLinecap: string | undefined
+  iconStrokeLinejoin: string | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -238,9 +245,14 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     rightFg,
     gradient: config.gradient,
     icon: config.icon,
+    iconPaths: config.iconPaths,
     iconViewBox: config.iconViewBox,
     iconFillRule: config.iconFillRule,
     iconFill: config.iconFill,
+    iconIsStroke: !!config.iconIsStroke,
+    iconStrokeWidth: config.iconStrokeWidth ?? 2,
+    iconStrokeLinecap: config.iconStrokeLinecap,
+    iconStrokeLinejoin: config.iconStrokeLinejoin,
   }
 }
 
@@ -273,11 +285,24 @@ function optimizeSvg(svg: string): string {
             overrides: {
               // Keep IDs — Satori uses mask IDs for clipping
               cleanupIds: false,
+              // Don't merge separate <path> elements — stroke-based icons
+              // (Lucide, Feather) need each path separate to preserve
+              // relative coordinate spaces (m commands).
+              mergePaths: false,
             },
           },
         },
-        // Aggressively round path coordinates (badge text doesn't need 8 decimals)
-        { name: "convertPathData", params: { floatPrecision: 1 } },
+        // Round path coordinates but keep absolute commands.
+        // Stroke-based icons (Lucide, Feather) join multiple subpaths into
+        // one `d` attribute — converting M (absolute move) to m (relative)
+        // breaks them because each subpath needs absolute positioning.
+        {
+          name: "convertPathData",
+          params: {
+            floatPrecision: 1,
+            forceAbsolutePath: true,
+          },
+        },
       ],
     })
     return result.data
@@ -351,6 +376,29 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   if (!r.icon) return null
   const vb = r.iconViewBox || "0 0 16 16"
   const color = r.iconFill || r.iconColor
+
+  if (r.iconIsStroke) {
+    // Stroke-based icons (Lucide, Feather, etc.) — render with stroke, not fill.
+    // Each original SVG element becomes its own <path> to preserve relative
+    // coordinate spaces. Joining them into one `d` would break `m` (relative
+    // move-to) commands that are relative to the previous element's end point.
+    const paths = r.iconPaths && r.iconPaths.length > 0 ? r.iconPaths : [r.icon]
+    return (
+      <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
+        {paths.map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke={color}
+            strokeWidth={r.iconStrokeWidth}
+            strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
+            strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
+          />
+        ))}
+      </svg>
+    )
+  }
 
   const fr = r.iconFillRule as "nonzero" | "evenodd" | undefined
   return (

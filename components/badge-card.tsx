@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BadgeModal } from "@/components/badge-modal"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 
 import type { ShowcaseBadge } from "@/lib/showcase-data"
 export type { ShowcaseBadge }
@@ -12,6 +13,7 @@ interface BadgeCardProps {
 
 export function BadgeCard({ badge }: BadgeCardProps) {
   const [modalOpen, setModalOpen] = useState(false)
+  const { adaptUrl } = useBadgeMode()
 
   return (
     <>
@@ -23,7 +25,7 @@ export function BadgeCard({ badge }: BadgeCardProps) {
         <div className="flex w-full justify-center overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={badge.badgePath}
+            src={adaptUrl(badge.badgePath)}
             alt={badge.title}
             className="inline-block h-8 max-w-full"
             loading="lazy"

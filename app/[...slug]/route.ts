@@ -1027,9 +1027,14 @@ export async function GET(
   // Resolve icon
   // Priority: ?logo=<simpleicon-slug> > ?logo=false (hide) > default provider icon
   let iconPath: string | undefined
+  let iconPaths: string[] | undefined
   let iconViewBox: string | undefined
   let iconFillRule: string | undefined
   let iconFill: string | undefined
+  let iconIsStroke: boolean | undefined
+  let iconStrokeWidth: number | undefined
+  let iconStrokeLinecap: string | undefined
+  let iconStrokeLinejoin: string | undefined
   let brandColor: string | undefined
 
   // For branded variant, get provider brand color as fallback
@@ -1048,8 +1053,13 @@ export async function GET(
       const parsed = parseSvg(svgContent)
       if (parsed) {
         iconPath = parsed.icon.path
+        iconPaths = parsed.icon.paths
         iconViewBox = parsed.icon.viewBox
         iconFillRule = parsed.icon.fillRule
+        iconIsStroke = parsed.icon.isStroke
+        iconStrokeWidth = parsed.icon.strokeWidth
+        iconStrokeLinecap = parsed.icon.strokeLinecap
+        iconStrokeLinejoin = parsed.icon.strokeLinejoin
 
         if (providerBrand) brandColor = providerBrand
 
@@ -1066,8 +1076,13 @@ export async function GET(
     const si = await getSimpleIcon(logoParam, logoColor)
     if (si) {
       iconPath = si.icon.path
+      iconPaths = si.icon.paths
       iconViewBox = si.icon.viewBox
       iconFillRule = si.icon.fillRule
+      iconIsStroke = si.icon.isStroke
+      iconStrokeWidth = si.icon.strokeWidth
+      iconStrokeLinecap = si.icon.strokeLinecap
+      iconStrokeLinejoin = si.icon.strokeLinejoin
 
       // Track brand color: icon's color > provider's color
       if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1101,8 +1116,13 @@ export async function GET(
         const si = await getSimpleIcon(source, logoColor)
         if (si) {
           iconPath = si.icon.path
+          iconPaths = si.icon.paths
           iconViewBox = si.icon.viewBox
           iconFillRule = si.icon.fillRule
+          iconIsStroke = si.icon.isStroke
+          iconStrokeWidth = si.icon.strokeWidth
+          iconStrokeLinecap = si.icon.strokeLinecap
+          iconStrokeLinejoin = si.icon.strokeLinejoin
 
           // Track brand color: icon's color > provider's color
           if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1167,6 +1187,11 @@ export async function GET(
     iconViewBox,
     iconFillRule,
     iconFill,
+    iconPaths,
+    iconIsStroke,
+    iconStrokeWidth,
+    iconStrokeLinecap,
+    iconStrokeLinejoin,
     style,
     size,
     mode,
