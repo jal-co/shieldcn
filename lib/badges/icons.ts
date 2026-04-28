@@ -27,6 +27,8 @@ export interface IconData {
   strokeLinecap?: string
   /** Stroke linejoin for stroke-based icons. */
   strokeLinejoin?: string
+  /** Rotation in degrees (applied around viewBox center). */
+  rotation?: number
 }
 
 export const icons: Record<string, IconData> = {

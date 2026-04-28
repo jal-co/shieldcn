@@ -135,6 +135,9 @@ interface ResolvedBadge {
   iconStrokeWidth: number
   iconStrokeLinecap: string | undefined
   iconStrokeLinejoin: string | undefined
+
+  // Icon rotation (degrees, applied around center)
+  iconRotation: number | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -253,6 +256,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     iconStrokeWidth: config.iconStrokeWidth ?? 2,
     iconStrokeLinecap: config.iconStrokeLinecap,
     iconStrokeLinejoin: config.iconStrokeLinejoin,
+    iconRotation: config.iconRotation,
   }
 }
 
@@ -289,6 +293,9 @@ function optimizeSvg(svg: string): string {
               // (Lucide, Feather) need each path separate to preserve
               // relative coordinate spaces (m commands).
               mergePaths: false,
+              // Don't collapse <g> elements — rotation transforms on icon
+              // groups must be preserved.
+              collapseGroups: false,
             },
           },
         },
@@ -339,6 +346,10 @@ function inlineDataUriImages(svg: string): string {
     const viewBox = vbMatch ? vbMatch[1].split(/\s+/).map(Number) : [0, 0, 24, 24]
     const [, , vbWidth, vbHeight] = viewBox
 
+    // Extract any <g transform="..."> wrapper from inner SVG (e.g. rotation)
+    const gTransformMatch = innerSvg.match(/<g\s+transform="([^"]+)">/)
+    const innerTransform = gTransformMatch ? gTransformMatch[1] : null
+
     // Extract path(s) from inner SVG
     const paths: string[] = []
     const pathRegex = /<path\s+([^>]+)>/g
@@ -355,7 +366,11 @@ function inlineDataUriImages(svg: string): string {
     const scale = Math.min(scaleX, scaleY)
 
     // Create a group with transform to position and scale the paths
-    return `<g transform="translate(${x},${y}) scale(${scale})">${paths.join("")}</g>`
+    // If inner SVG had a transform (e.g. rotation), nest it inside
+    const pathContent = innerTransform
+      ? `<g transform="${innerTransform}">${paths.join("")}</g>`
+      : paths.join("")
+    return `<g transform="translate(${x},${y}) scale(${scale})">${pathContent}</g>`
   })
 }
 
@@ -377,25 +392,34 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   const vb = r.iconViewBox || "0 0 16 16"
   const color = r.iconFill || r.iconColor
 
+  // Compute rotation transform string if needed
+  const rotTransform = r.iconRotation
+    ? (() => {
+        const [, , w, h] = vb.split(" ").map(Number)
+        return `rotate(${r.iconRotation}, ${w / 2}, ${h / 2})`
+      })()
+    : undefined
+
   if (r.iconIsStroke) {
     // Stroke-based icons (Lucide, Feather, etc.) — render with stroke, not fill.
     // Each original SVG element becomes its own <path> to preserve relative
     // coordinate spaces. Joining them into one `d` would break `m` (relative
     // move-to) commands that are relative to the previous element's end point.
     const paths = r.iconPaths && r.iconPaths.length > 0 ? r.iconPaths : [r.icon]
+    const pathEls = paths.map((d, i) => (
+      <path
+        key={i}
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth={r.iconStrokeWidth}
+        strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
+        strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
+      />
+    ))
     return (
       <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
-        {paths.map((d, i) => (
-          <path
-            key={i}
-            d={d}
-            fill="none"
-            stroke={color}
-            strokeWidth={r.iconStrokeWidth}
-            strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
-            strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
-          />
-        ))}
+        {rotTransform ? <g transform={rotTransform}>{pathEls}</g> : pathEls}
       </svg>
     )
   }
@@ -403,7 +427,10 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   const fr = r.iconFillRule as "nonzero" | "evenodd" | undefined
   return (
     <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
-      <path fill={color} d={r.icon} fillRule={fr} />
+      {rotTransform
+        ? <g transform={rotTransform}><path fill={color} d={r.icon} fillRule={fr} /></g>
+        : <path fill={color} d={r.icon} fillRule={fr} />
+      }
     </svg>
   )
 }

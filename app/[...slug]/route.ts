@@ -1045,6 +1045,7 @@ export async function GET(
   let iconStrokeWidth: number | undefined
   let iconStrokeLinecap: string | undefined
   let iconStrokeLinejoin: string | undefined
+  let iconRotation: number | undefined
   let brandColor: string | undefined
 
   // For branded variant, get provider brand color as fallback
@@ -1070,6 +1071,7 @@ export async function GET(
         iconStrokeWidth = parsed.icon.strokeWidth
         iconStrokeLinecap = parsed.icon.strokeLinecap
         iconStrokeLinejoin = parsed.icon.strokeLinejoin
+        iconRotation = parsed.icon.rotation
 
         if (providerBrand) brandColor = providerBrand
 
@@ -1093,6 +1095,7 @@ export async function GET(
       iconStrokeWidth = si.icon.strokeWidth
       iconStrokeLinecap = si.icon.strokeLinecap
       iconStrokeLinejoin = si.icon.strokeLinejoin
+      iconRotation = si.icon.rotation
 
       // Track brand color: icon's color > provider's color
       if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1133,6 +1136,7 @@ export async function GET(
           iconStrokeWidth = si.icon.strokeWidth
           iconStrokeLinecap = si.icon.strokeLinecap
           iconStrokeLinejoin = si.icon.strokeLinejoin
+          iconRotation = si.icon.rotation
 
           // Track brand color: icon's color > provider's color
           if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1202,6 +1206,7 @@ export async function GET(
     iconStrokeWidth,
     iconStrokeLinecap,
     iconStrokeLinejoin,
+    iconRotation,
     style,
     size,
     mode,

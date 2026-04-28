@@ -30,6 +30,7 @@ const customIcons: Record<string, CustomIcon> = {
       strokeWidth: 2,
       strokeLinecap: "round",
       strokeLinejoin: "round",
+      rotation: 45,
     },
     color: "818CF8", // indigo-400
   },
