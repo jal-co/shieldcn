@@ -18,7 +18,16 @@ export function GenHeroInput() {
   const handleSubmit = () => {
     const trimmed = value.trim()
     if (!trimmed) return
-    router.push(`/gen?url=${encodeURIComponent(trimmed)}`)
+
+    // Smart routing: if it looks like a username (no slash, no URL), go to profile
+    // If it contains a slash (owner/repo) or is a full URL, go to repo generator
+    const isRepo =
+      trimmed.includes("/") || trimmed.startsWith("http")
+    if (isRepo) {
+      router.push(`/gen?url=${encodeURIComponent(trimmed)}`)
+    } else {
+      router.push(`/gen/profile?user=${encodeURIComponent(trimmed)}`)
+    }
   }
 
   // Dismiss on Escape
@@ -46,7 +55,7 @@ export function GenHeroInput() {
         )}
       >
         <span className="rounded-full border border-border/60 bg-white px-3 py-1 text-xs font-semibold text-zinc-600 shadow-sm group-hover:text-zinc-900 group-hover:border-border transition-colors dark:bg-white dark:text-zinc-600 dark:group-hover:text-zinc-900">
-          Try it yourself — paste a GitHub repo
+          Try it — username for profile, owner/repo for badges
         </span>
         {/* Tail */}
         <svg
@@ -70,7 +79,7 @@ export function GenHeroInput() {
         <Input
           ref={inputRef}
           type="text"
-          placeholder="vercel/next.js"
+          placeholder="sindresorhus or vercel/next.js"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setFocused(true)}

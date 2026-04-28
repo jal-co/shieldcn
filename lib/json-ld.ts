@@ -56,6 +56,41 @@ export function softwareAppJsonLd() {
   }
 }
 
+/** WebApplication schema for profile README generator — rich SEO signal */
+export function profileReadmeJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "GitHub Profile README Badge Generator",
+    url: `${SITE_URL}/gen/profile`,
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any",
+    description:
+      "Generate beautiful badges for your GitHub profile README. Auto-detects skills, languages, social links, and top repos. Styled as shadcn/ui buttons with 6 variants, 16 themes, and 40,000+ icons.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    author: {
+      "@type": "Person",
+      name: "Justin Levine",
+      url: "https://justinlevine.me",
+    },
+    isAccessibleForFree: true,
+    keywords: [
+      "github profile readme",
+      "github profile readme badges",
+      "github profile readme generator",
+      "profile readme badges",
+      "readme badge generator",
+      "github badges",
+      "developer profile",
+      "shadcn badges",
+    ],
+  }
+}
+
 /** TechArticle schema for doc pages */
 export function techArticleJsonLd({
   title,

@@ -62,6 +62,8 @@ import {
   getGitHubDownloadsAssetAllReleases,
   getGitHubDownloadsAssetLatest,
   getGitHubDownloadsAssetTag,
+  getGitHubFollowers,
+  getGitHubUserStars,
 } from "@/lib/providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "@/lib/providers/discord"
 import { parseStaticBadgeContent, getDynamicJsonBadge } from "@/lib/providers/badge"
@@ -245,6 +247,18 @@ async function fetchBadgeData(
     // Support both: /github/stars/owner/repo AND /github/owner/repo/stars
     case "github": {
       const rest = segments.slice(1)
+
+      // User-level endpoints (2 segments: topic + username)
+      const userTopics = new Set(["followers", "user-stars"])
+      if (rest.length >= 2 && userTopics.has(rest[0])) {
+        const username = rest[1]
+        switch (rest[0]) {
+          case "followers":  return getGitHubFollowers(username)
+          case "user-stars": return getGitHubUserStars(username)
+          default: return null
+        }
+      }
+
       if (rest.length < 3) return null
 
       // Detect format: is rest[0] a known topic or an owner?

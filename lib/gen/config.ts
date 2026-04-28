@@ -1,9 +1,13 @@
 import type { Badge, BadgeGroup, GlobalSettings } from './shieldcn';
 import { DEFAULT_GLOBAL } from './shieldcn';
 
+export type RepoSource = { type: 'github'; url: string; owner: string; repo: string };
+export type ProfileSource = { type: 'profile'; url: string; username: string };
+export type ConfigSource = RepoSource | ProfileSource;
+
 export type Config = {
   version: 1;
-  source: { type: 'github'; url: string; owner: string; repo: string };
+  source: ConfigSource;
   global: GlobalSettings;
   badges: Badge[];
   generatedAt: string;
@@ -16,6 +20,10 @@ const VALID_GROUPS: BadgeGroup[] = [
   'stack',
   'modern',
   'community',
+  'profile',
+  'social',
+  'skills',
+  'repos',
 ];
 
 export function serialize(config: Config): string {
@@ -76,9 +84,19 @@ export function deserialize(raw: string):
   if (parsed.version !== 1) {
     return { ok: false, error: `Unsupported config version: ${parsed.version ?? 'missing'}` };
   }
-  const source = parsed.source as Partial<Config['source']> | undefined;
-  if (!isPlainObject(source) || typeof source.owner !== 'string' || typeof source.repo !== 'string') {
-    return { ok: false, error: 'Missing source.owner / source.repo' };
+  const source = parsed.source as Record<string, unknown> | undefined;
+  if (!isPlainObject(source)) {
+    return { ok: false, error: 'Missing source object' };
+  }
+  // Profile sources need username, repo sources need owner/repo
+  if (source.type === 'profile') {
+    if (typeof source.username !== 'string') {
+      return { ok: false, error: 'Missing source.username for profile config' };
+    }
+  } else {
+    if (typeof source.owner !== 'string' || typeof source.repo !== 'string') {
+      return { ok: false, error: 'Missing source.owner / source.repo' };
+    }
   }
   if (!Array.isArray(parsed.badges)) {
     return { ok: false, error: 'badges must be an array' };
@@ -92,13 +110,21 @@ export function deserialize(raw: string):
     else droppedCount++;
   }
 
+  const sourceType = source.type === 'profile' ? 'profile' : 'github';
+  const sOwner = typeof source.owner === 'string' ? source.owner : '';
+  const sRepo = typeof source.repo === 'string' ? source.repo : '';
+  const sUsername = typeof source.username === 'string' ? source.username : sOwner;
   const safeUrl = typeof source.url === 'string'
-    ? safeLinkUrl(source.url) ?? `https://github.com/${source.owner}/${source.repo}`
-    : `https://github.com/${source.owner}/${source.repo}`;
+    ? safeLinkUrl(source.url) ?? `https://github.com/${sOwner || sUsername}`
+    : `https://github.com/${sOwner || sUsername}`;
+
+  const resolvedSource: Config['source'] = sourceType === 'profile'
+    ? { type: 'profile', username: sUsername, url: safeUrl }
+    : { type: 'github', owner: sOwner, repo: sRepo, url: safeUrl };
 
   const config: Config = {
     version: 1,
-    source: { type: 'github', owner: source.owner, repo: source.repo, url: safeUrl },
+    source: resolvedSource,
     global: { ...DEFAULT_GLOBAL, ...(isPlainObject(parsed.global) ? parsed.global : {}) },
     badges,
     generatedAt:
@@ -122,7 +148,7 @@ export function deserialize(raw: string):
  */
 export function mergeRefresh(
   saved: Config,
-  fresh: { badges: Badge[]; source: Config['source'] },
+  fresh: { badges: Badge[]; source: ConfigSource },
 ): { config: Config; diff: { added: string[]; refreshed: string[]; missing: string[] } } {
   const freshMap = new Map(fresh.badges.map((b) => [b.id, b]));
   const savedMap = new Map(saved.badges.map((b) => [b.id, b]));

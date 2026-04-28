@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import { useQueryStates } from "nuqs"
+import { useOpenPanel } from "@openpanel/nextjs"
 import { Copy, Download, FileUp, RefreshCw, Trash2, X } from "lucide-react"
 import {
   badgeHtml,
@@ -79,7 +80,7 @@ const THEMES: Theme[] = [
   "emerald",
 ]
 
-const GROUP_TITLES: Record<BadgeGroup, string> = {
+const GROUP_TITLES: Partial<Record<BadgeGroup, string>> = {
   github: "GitHub",
   package: "Package",
   tooling: "Tooling",
@@ -98,6 +99,7 @@ const GROUP_ORDER: BadgeGroup[] = [
 ]
 
 export default function GeneratorApp() {
+  const { track } = useOpenPanel()
   const [qs, setQs] = useQueryStates(genSearchParams, {
     history: "replace",
   })
@@ -237,7 +239,18 @@ export default function GeneratorApp() {
     })
     setNotes(result.notes)
     setShieldsIoUrls(result.existingShieldsIoUrls)
-  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme])
+    const enabledCount = result.badges.filter((b) => b.enabled).length
+    track("generator_generate", {
+      type: "repo",
+      target: `${result.source.owner}/${result.source.repo}`,
+      badge_count: enabledCount,
+    })
+    fetch("/api/gen-count", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ count: enabledCount }),
+    }).catch(() => {})
+  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, track])
 
   const handleConfigUpload = useCallback(async (file: File) => {
     setError(null)
@@ -523,7 +536,10 @@ function ResultsPanel({
   }, [config.badges])
 
   const downloadConfig = useCallback(() => {
-    const safeName = `${config.source.owner}-${config.source.repo}.shieldcngen.json`
+    const src = config.source
+    const safeName = src.type === "profile"
+      ? `${src.username}.shieldcngen.json`
+      : `${src.owner}-${src.repo}.shieldcngen.json`
     onDownload(serialize(config), safeName, "application/json")
   }, [config, onDownload])
 
@@ -538,7 +554,9 @@ function ResultsPanel({
         Detected <strong className="text-foreground">{enabledBadges.length}</strong> badge
         {enabledBadges.length === 1 ? "" : "s"} for{" "}
         <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-          {config.source.owner}/{config.source.repo}
+          {config.source.type === "profile"
+            ? config.source.username
+            : `${config.source.owner}/${config.source.repo}`}
         </code>
         {refreshDiff && (
           <>
