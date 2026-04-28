@@ -90,6 +90,7 @@ import { getCocoaPodsVersion } from "@/lib/providers/cocoapods"
 import { getCodecovCoverage } from "@/lib/providers/codecov"
 import { getWakaTimeCodingTime } from "@/lib/providers/wakatime"
 import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "@/lib/providers/tokscale"
+import { getIndieDevsUser } from "@/lib/providers/indiedevs"
 
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
@@ -841,6 +842,14 @@ async function fetchBadgeData(
       return getTokscaleTokens(rest[0])
     }
 
+    // /indiedevs/{username}
+    // e.g. /indiedevs/jalco
+    case "indiedevs": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+      return getIndieDevsUser(rest[0])
+    }
+
     // /https/{hostname}/{pathname...}
     // Proxy an HTTPS endpoint that returns { label/subject, value/status, color }
     case "https": {
@@ -913,6 +922,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "wakatime") return { simpleIcon: "wakatime" }
   if (provider === "reddit") return { simpleIcon: "reddit" }
   if (provider === "tokscale") return { reactIcon: "GoRocket" }
+  if (provider === "indiedevs") return { simpleIcon: "indiedevs" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}
