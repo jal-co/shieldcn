@@ -286,8 +286,17 @@ function optimizeSvg(svg: string): string {
             },
           },
         },
-        // Aggressively round path coordinates (badge text doesn't need 8 decimals)
-        { name: "convertPathData", params: { floatPrecision: 1 } },
+        // Round path coordinates but keep absolute commands.
+        // Stroke-based icons (Lucide, Feather) join multiple subpaths into
+        // one `d` attribute — converting M (absolute move) to m (relative)
+        // breaks them because each subpath needs absolute positioning.
+        {
+          name: "convertPathData",
+          params: {
+            floatPrecision: 1,
+            forceAbsolutePath: true,
+          },
+        },
       ],
     })
     return result.data
