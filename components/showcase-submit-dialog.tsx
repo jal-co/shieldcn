@@ -3,22 +3,19 @@
  * components/showcase-submit-dialog
  *
  * Dialog for building and submitting a badge to the community showcase.
- * Includes a full badge builder so users can create their badge visually.
+ * Uses the shared BadgeBuilderCore for the builder step.
  */
 
 "use client"
 
 import { useState, useCallback, useMemo, useEffect } from "react"
-import { Send, Loader2, Check, RotateCcw, ChevronDown, ExternalLink } from "lucide-react"
+import { Send, Loader2, Check, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
-import { LogoPicker } from "@/components/logo-picker"
-import { ColorInput } from "@/components/color-input"
-import { SvgIconUpload } from "@/components/svg-icon-upload"
+import { BadgeBuilderCore } from "@/components/badge-builder-core"
 import {
   Dialog,
   DialogContent,
@@ -28,143 +25,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-
-// ---------------------------------------------------------------------------
-// Builder options (same as badge-builder)
-// ---------------------------------------------------------------------------
-
-const PROVIDERS = [
-  { value: "npm", label: "npm version", placeholder: "react", inputLabel: "Package" },
-  { value: "npm-downloads", label: "npm downloads", placeholder: "react", inputLabel: "Package" },
-  { value: "github-stars", label: "GitHub stars", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-release", label: "GitHub release", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-ci", label: "CI status", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-license", label: "License", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "discord", label: "Discord online", placeholder: "1316199667142496307", inputLabel: "Server ID" },
-  { value: "static", label: "Static badge", placeholder: "build-passing-green", inputLabel: "Text (label-message-color)" },
-] as const
-
-const VARIANTS = [
-  { value: "default", label: "Default" },
-  { value: "secondary", label: "Secondary" },
-  { value: "outline", label: "Outline" },
-  { value: "ghost", label: "Ghost" },
-  { value: "destructive", label: "Destructive" },
-  { value: "branded", label: "Branded" },
-] as const
-
-const SIZES = [
-  { value: "xs", label: "Extra small" },
-  { value: "sm", label: "Small" },
-  { value: "default", label: "Default" },
-  { value: "lg", label: "Large" },
-] as const
-
-const THEMES = [
-  { value: "_none", label: "None" },
-  { value: "zinc", label: "Zinc" },
-  { value: "slate", label: "Slate" },
-  { value: "blue", label: "Blue" },
-  { value: "green", label: "Green" },
-  { value: "rose", label: "Rose" },
-  { value: "orange", label: "Orange" },
-  { value: "violet", label: "Violet" },
-  { value: "purple", label: "Purple" },
-  { value: "cyan", label: "Cyan" },
-] as const
-
-// ---------------------------------------------------------------------------
-// State + URL builder
-// ---------------------------------------------------------------------------
-
-interface BuilderState {
-  provider: string
-  input: string
-  variant: string
-  size: string
-  theme: string
-  mode: string
-  split: boolean
-  font: string
-  logo: string
-  logoColor: string
-  label: string
-  color: string
-  gradient: string
-  valueColor: string
-  labelTextColor: string
-  labelOpacity: string
-  leftBg: string
-  rightBg: string
-}
-
-const builderDefaults: BuilderState = {
-  provider: "static",
-  input: "my-badge-blue",
-  variant: "default",
-  size: "sm",
-  theme: "_none",
-  mode: "dark",
-  split: false,
-  font: "inter",
-  logo: "",
-  logoColor: "",
-  label: "",
-  color: "",
-  gradient: "",
-  valueColor: "",
-  labelTextColor: "",
-  labelOpacity: "",
-  leftBg: "",
-  rightBg: "",
-}
-
-function buildPath(s: BuilderState): string {
-  if (!s.input.trim()) return ""
-
-  let path = ""
-  switch (s.provider) {
-    case "npm":            path = `/npm/${s.input}.svg`; break
-    case "npm-downloads":  path = `/npm/${s.input}/downloads.svg`; break
-    case "github-stars":   path = `/github/${s.input}/stars.svg`; break
-    case "github-release": path = `/github/${s.input}/release.svg`; break
-    case "github-ci":      path = `/github/${s.input}/ci.svg`; break
-    case "github-license": path = `/github/${s.input}/license.svg`; break
-    case "discord":        path = `/discord/${s.input}.svg`; break
-    case "static":         path = `/badge/${s.input}.svg`; break
-  }
-
-  const p = new URLSearchParams()
-  if (s.variant !== "default") p.set("variant", s.variant)
-  if (s.size !== "sm") p.set("size", s.size)
-  if (s.theme && s.theme !== "_none") p.set("theme", s.theme)
-  if (s.mode !== "dark") p.set("mode", s.mode)
-  if (s.split) p.set("split", "true")
-  if (s.font && s.font !== "inter") p.set("font", s.font)
-  if (s.logo) p.set("logo", s.logo)
-  if (s.logoColor) p.set("logoColor", s.logoColor)
-  if (s.label) p.set("label", s.label)
-  if (s.split) {
-    if (s.leftBg) p.set("labelColor", s.leftBg)
-    if (s.rightBg) p.set("color", s.rightBg)
-  } else {
-    if (s.color) p.set("color", s.color)
-  }
-  if (s.valueColor) p.set("valueColor", s.valueColor)
-  if (s.labelTextColor) p.set("labelTextColor", s.labelTextColor)
-  if (s.labelOpacity) p.set("labelOpacity", s.labelOpacity)
-  if (s.gradient) p.set("gradient", s.gradient)
-
-  const q = p.toString()
-  return `${path}${q ? `?${q}` : ""}`
-}
+  BUILDER_DEFAULTS,
+  buildBadgePath,
+  buildBadgeUrl,
+  type BuilderState,
+} from "@/lib/badge-builder-shared"
 
 // ---------------------------------------------------------------------------
 // Component
@@ -173,8 +38,10 @@ function buildPath(s: BuilderState): string {
 export function ShowcaseSubmitDialog() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<"build" | "submit">("build")
-  const [s, setS] = useState<BuilderState>(builderDefaults)
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [s, setS] = useState<BuilderState>({
+    ...BUILDER_DEFAULTS,
+    path: "/badge/my-badge-blue.svg",
+  })
 
   // Submit fields
   const [title, setTitle] = useState("")
@@ -184,19 +51,11 @@ export function ShowcaseSubmitDialog() {
   const [errorMsg, setErrorMsg] = useState("")
   const [prUrl, setPrUrl] = useState("")
 
-  const badgePath = useMemo(() => buildPath(s), [s])
+  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
+  useEffect(() => { setBaseUrl(window.location.origin) }, [])
 
-  const set = useCallback(<K extends keyof BuilderState>(key: K, val: BuilderState[K]) => {
-    setS(prev => ({ ...prev, [key]: val }))
-  }, [])
-
-  const currentProvider = PROVIDERS.find(p => p.value === s.provider)
-  const isDefault = JSON.stringify(s) === JSON.stringify(builderDefaults)
-
-  function handleReset() {
-    setS(builderDefaults)
-    setShowAdvanced(false)
-  }
+  const badgeUrl = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
+  const badgePath = useMemo(() => buildBadgePath(s), [s])
 
   function handleNext() {
     setStep("submit")
@@ -245,14 +104,13 @@ export function ShowcaseSubmitDialog() {
     if (!open) {
       setTimeout(() => {
         setStep("build")
-        setS(builderDefaults)
+        setS({ ...BUILDER_DEFAULTS, path: "/badge/my-badge-blue.svg" })
         setTitle("")
         setDescription("")
         setGithubUser("")
         setSubmitStatus("idle")
         setErrorMsg("")
         setPrUrl("")
-        setShowAdvanced(false)
       }, 200)
     }
   }, [open])
@@ -265,8 +123,8 @@ export function ShowcaseSubmitDialog() {
           Submit your badge
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>{step === "build" ? "Create your badge" : "Submit to showcase"}</DialogTitle>
           <DialogDescription>
             {step === "build"
@@ -277,171 +135,26 @@ export function ShowcaseSubmitDialog() {
         </DialogHeader>
 
         {step === "build" ? (
-          <div className="space-y-4">
-            {/* Preview */}
-            {badgePath && (
-              <div className="flex items-center justify-center rounded-lg border border-border bg-muted/20 p-5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={badgePath} alt="Badge preview" className="h-8" />
-              </div>
-            )}
-
-            {/* Badge type + input */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Badge type">
-                <Select value={s.provider} onValueChange={v => {
-                  const p = PROVIDERS.find(x => x.value === v)
-                  set("provider", v)
-                  if (p) set("input", p.placeholder)
-                }}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PROVIDERS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label={currentProvider?.inputLabel || "Input"}>
-                <Input value={s.input} onChange={e => set("input", e.target.value)} placeholder={currentProvider?.placeholder} />
-              </Field>
-            </div>
-
-            {/* Style row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Field label="Variant">
-                <Select value={s.variant} onValueChange={v => set("variant", v)}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {VARIANTS.map(v => <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Size">
-                <Select value={s.size} onValueChange={v => set("size", v)}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SIZES.map(sz => <SelectItem key={sz.value} value={sz.value}>{sz.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Theme">
-                <Select value={s.theme} onValueChange={v => set("theme", v)}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {THEMES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Mode">
-                <Select value={s.mode} onValueChange={v => set("mode", v)}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="light">Light</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
-
-            {/* Icon + Font */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Icon">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
-                  </div>
-                  <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="shrink-0" />
-                </div>
-              </Field>
-
-              <Field label="Gradient">
-                <Input value={s.gradient} onChange={e => set("gradient", e.target.value)} placeholder="ff6b6b,4ecdc4" />
-              </Field>
-            </div>
-
-            {/* Toggles */}
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <ShadcnCheckbox checked={s.split} onCheckedChange={v => set("split", v === true)} />
-                <span className="text-sm">Split mode</span>
-              </label>
-            </div>
-
-            {/* Split colors */}
-            {s.split && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-lg border border-border/50 bg-muted/10 p-3">
-                <Field label="Left background">
-                  <ColorInput value={s.leftBg} onChange={v => set("leftBg", v)} placeholder="auto" />
-                </Field>
-                <Field label="Right background">
-                  <ColorInput value={s.rightBg} onChange={v => set("rightBg", v)} placeholder="auto" />
-                </Field>
-                <Field label="Label text">
-                  <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" />
-                </Field>
-              </div>
-            )}
-
-            {/* Advanced */}
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          <div>
+            <BadgeBuilderCore
+              state={s}
+              onChange={setS}
+              badgeUrl={badgeUrl}
+              showHeader={false}
+              showFormat={false}
             >
-              <ChevronDown className={cn("size-3 transition-transform", showAdvanced && "rotate-180")} />
-              Advanced options
-            </button>
-
-            {showAdvanced && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-lg border border-border/50 bg-muted/10 p-3">
-                <Field label="Background color">
-                  <ColorInput value={s.color} onChange={v => set("color", v)} placeholder="auto" />
-                </Field>
-                <Field label="Value text color">
-                  <ColorInput value={s.valueColor} onChange={v => set("valueColor", v)} placeholder="auto" />
-                </Field>
-                <Field label="Label text color">
-                  <ColorInput value={s.labelTextColor} onChange={v => set("labelTextColor", v)} placeholder="auto" />
-                </Field>
-                <Field label="Icon color">
-                  <ColorInput value={s.logoColor} onChange={v => set("logoColor", v)} placeholder="auto" />
-                </Field>
-                <Field label="Label opacity">
-                  <Input value={s.labelOpacity} onChange={e => set("labelOpacity", e.target.value)} placeholder="0.7" />
-                </Field>
-                <Field label="Font">
-                  <Select value={s.font} onValueChange={v => set("font", v)}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inter">Inter</SelectItem>
-                      <SelectItem value="geist">Geist</SelectItem>
-                      <SelectItem value="geist-mono">Geist Mono</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* Actions */}
-            <div className="flex items-center justify-between">
-              {!isDefault ? (
-                <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs gap-1.5 text-muted-foreground">
-                  <RotateCcw className="size-3" />
-                  Reset
+              <Separator />
+              {/* Actions */}
+              <div className="flex items-center justify-end">
+                <Button onClick={handleNext} disabled={!badgePath} className="gap-2">
+                  Next: Add details
+                  <Send className="size-3.5" />
                 </Button>
-              ) : <div />}
-              <Button onClick={handleNext} disabled={!badgePath} className="gap-2">
-                Next: Add details
-                <Send className="size-3.5" />
-              </Button>
-            </div>
+              </div>
+            </BadgeBuilderCore>
           </div>
         ) : submitStatus === "success" ? (
-          <div className="flex flex-col items-center gap-4 py-10">
+          <div className="flex flex-col items-center gap-4 py-10 px-6">
             <div className="flex size-12 items-center justify-center rounded-full bg-green-500/10">
               <Check className="size-6 text-green-500" />
             </div>
@@ -463,12 +176,12 @@ export function ShowcaseSubmitDialog() {
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 px-6 pb-6">
             {/* Badge preview */}
             <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
               <div className="flex items-center gap-3 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={badgePath} alt="Badge preview" className="h-7 max-w-[240px]" />
+                <img src={badgeUrl} alt="Badge preview" className="h-7 max-w-[240px]" />
               </div>
               <button
                 type="button"
@@ -550,18 +263,5 @@ export function ShowcaseSubmitDialog() {
         )}
       </DialogContent>
     </Dialog>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Field helper
-// ---------------------------------------------------------------------------
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      {children}
-    </div>
   )
 }
