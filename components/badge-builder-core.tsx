@@ -10,13 +10,18 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import { ChevronDown, RotateCcw } from "lucide-react"
+import { ChevronDown, RotateCcw, ChevronsUpDown } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -187,23 +192,10 @@ export function BadgeBuilderCore({
                 ))}
               </div>
             ))}
-            <Select onValueChange={v => set("path", v)}>
-              <SelectTrigger className="h-7 w-auto gap-1 border-border/60 text-[11px] text-muted-foreground px-2.5">
-                <span>More…</span>
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from(presetGroups.entries()).map(([group, presets]) => (
-                  <div key={group}>
-                    <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{group}</div>
-                    {presets.map(p => (
-                      <SelectItem key={p.path} value={p.path} className="text-xs">
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
+            <MorePresetsDropdown
+              presetGroups={presetGroups}
+              onSelect={v => set("path", v)}
+            />
           </div>
         </div>
 
@@ -343,5 +335,47 @@ function ColorField({
       <Label className="text-xs text-muted-foreground">{label}</Label>
       <ColorInput value={value} onChange={onChange} placeholder="auto" />
     </div>
+  )
+}
+
+function MorePresetsDropdown({
+  presetGroups,
+  onSelect,
+}: {
+  presetGroups: Map<string, typeof BADGE_PRESETS[number][]>
+  onSelect: (path: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+        >
+          More…
+          <ChevronsUpDown className="size-2.5 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-1" align="start">
+        {Array.from(presetGroups.entries()).map(([group, presets]) => (
+          <div key={group}>
+            <div className="px-2 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              {group}
+            </div>
+            {presets.map(p => (
+              <button
+                key={p.path}
+                type="button"
+                onClick={() => { onSelect(p.path); setOpen(false) }}
+                className="w-full rounded-sm px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-muted"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        ))}
+      </PopoverContent>
+    </Popover>
   )
 }
