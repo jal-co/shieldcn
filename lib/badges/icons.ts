@@ -13,6 +13,14 @@ export interface IconData {
   path: string
   /** Fill rule (defaults to "nonzero"). */
   fillRule?: string
+  /** Whether this icon is stroke-based (e.g. Lucide, Feather). */
+  isStroke?: boolean
+  /** Stroke width for stroke-based icons. */
+  strokeWidth?: number
+  /** Stroke linecap for stroke-based icons. */
+  strokeLinecap?: string
+  /** Stroke linejoin for stroke-based icons. */
+  strokeLinejoin?: string
 }
 
 export const icons: Record<string, IconData> = {

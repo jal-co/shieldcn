@@ -1030,6 +1030,10 @@ export async function GET(
   let iconViewBox: string | undefined
   let iconFillRule: string | undefined
   let iconFill: string | undefined
+  let iconIsStroke: boolean | undefined
+  let iconStrokeWidth: number | undefined
+  let iconStrokeLinecap: string | undefined
+  let iconStrokeLinejoin: string | undefined
   let brandColor: string | undefined
 
   // For branded variant, get provider brand color as fallback
@@ -1050,6 +1054,10 @@ export async function GET(
         iconPath = parsed.icon.path
         iconViewBox = parsed.icon.viewBox
         iconFillRule = parsed.icon.fillRule
+        iconIsStroke = parsed.icon.isStroke
+        iconStrokeWidth = parsed.icon.strokeWidth
+        iconStrokeLinecap = parsed.icon.strokeLinecap
+        iconStrokeLinejoin = parsed.icon.strokeLinejoin
 
         if (providerBrand) brandColor = providerBrand
 
@@ -1068,6 +1076,10 @@ export async function GET(
       iconPath = si.icon.path
       iconViewBox = si.icon.viewBox
       iconFillRule = si.icon.fillRule
+      iconIsStroke = si.icon.isStroke
+      iconStrokeWidth = si.icon.strokeWidth
+      iconStrokeLinecap = si.icon.strokeLinecap
+      iconStrokeLinejoin = si.icon.strokeLinejoin
 
       // Track brand color: icon's color > provider's color
       if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1103,6 +1115,10 @@ export async function GET(
           iconPath = si.icon.path
           iconViewBox = si.icon.viewBox
           iconFillRule = si.icon.fillRule
+          iconIsStroke = si.icon.isStroke
+          iconStrokeWidth = si.icon.strokeWidth
+          iconStrokeLinecap = si.icon.strokeLinecap
+          iconStrokeLinejoin = si.icon.strokeLinejoin
 
           // Track brand color: icon's color > provider's color
           if (si.defaultColor && si.defaultColor !== "currentColor") {
@@ -1167,6 +1183,10 @@ export async function GET(
     iconViewBox,
     iconFillRule,
     iconFill,
+    iconIsStroke,
+    iconStrokeWidth,
+    iconStrokeLinecap,
+    iconStrokeLinejoin,
     style,
     size,
     mode,

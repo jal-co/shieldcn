@@ -128,6 +128,12 @@ interface ResolvedBadge {
   iconViewBox: string | undefined
   iconFillRule: string | undefined
   iconFill: string | undefined
+
+  // Stroke-based icon rendering (Lucide, Feather, etc.)
+  iconIsStroke: boolean
+  iconStrokeWidth: number
+  iconStrokeLinecap: string | undefined
+  iconStrokeLinejoin: string | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -241,6 +247,10 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     iconViewBox: config.iconViewBox,
     iconFillRule: config.iconFillRule,
     iconFill: config.iconFill,
+    iconIsStroke: !!config.iconIsStroke,
+    iconStrokeWidth: config.iconStrokeWidth ?? 2,
+    iconStrokeLinecap: config.iconStrokeLinecap,
+    iconStrokeLinejoin: config.iconStrokeLinejoin,
   }
 }
 
@@ -351,6 +361,22 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   if (!r.icon) return null
   const vb = r.iconViewBox || "0 0 16 16"
   const color = r.iconFill || r.iconColor
+
+  if (r.iconIsStroke) {
+    // Stroke-based icons (Lucide, Feather, etc.) — render with stroke, not fill
+    return (
+      <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
+        <path
+          d={r.icon}
+          fill="none"
+          stroke={color}
+          strokeWidth={r.iconStrokeWidth}
+          strokeLinecap={r.iconStrokeLinecap as "round" | "butt" | "square" | undefined}
+          strokeLinejoin={r.iconStrokeLinejoin as "round" | "miter" | "bevel" | undefined}
+        />
+      </svg>
+    )
+  }
 
   const fr = r.iconFillRule as "nonzero" | "evenodd" | undefined
   return (

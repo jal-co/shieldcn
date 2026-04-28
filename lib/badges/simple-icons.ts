@@ -12,15 +12,25 @@
 import type { IconData } from "./icons"
 
 /**
- * Look up an icon by slug. Supports SimpleIcons and React Icons.
+ * Look up an icon by slug. Supports SimpleIcons, React Icons, and Lucide shorthand.
  *
- * @param slug - "react" (SimpleIcons) or "ri:FaReact" (React Icons)
+ * @param slug - "react" (SimpleIcons) or "ri:FaReact" (React Icons) or "lu:Check" (Lucide)
  * @param logoColor - optional override color
  */
 export async function getSimpleIcon(
   slug: string,
   logoColor?: string
 ): Promise<{ icon: IconData; defaultColor: string } | null> {
+  // Lucide shorthand: ?logo=lu:Check → react-icons/lu LuCheck
+  if (slug.startsWith("lu:")) {
+    const name = slug.slice(3)
+    // Normalize: lu:Check → LuCheck, lu:arrow-right → LuArrowRight
+    const componentName = name.startsWith("Lu")
+      ? name
+      : "Lu" + name.replace(/(^|-)([a-zA-Z])/g, (_, _p, c) => c.toUpperCase())
+    return getReactIcon(componentName)
+  }
+
   // React Icons: ?logo=ri:FaReact or ?logo=ri:AiFillAccountBook
   if (slug.startsWith("ri:")) {
     return getReactIcon(slug.slice(3))
@@ -131,19 +141,32 @@ async function getReactIcon(
     const vbMatch = svg.match(/viewBox="([^"]+)"/) 
     const viewBox = vbMatch ? vbMatch[1] : "0 0 24 24"
 
-    // Check if it's stroke-based (like Feather icons via react-icons/fi)
+    // Check if it's stroke-based (like Lucide/Feather icons)
     const isStroke = svg.includes('fill="none"') && svg.includes('stroke="currentColor"')
 
-    // Extract path d attributes, skipping bounding-box paths (fill="none" rects)
+    // Extract stroke properties for stroke-based icons
+    let strokeWidth: number | undefined
+    let strokeLinecap: string | undefined
+    let strokeLinejoin: string | undefined
+    if (isStroke) {
+      const swMatch = svg.match(/stroke-width="([^"]+)"/)
+      if (swMatch) strokeWidth = parseFloat(swMatch[1])
+      const lcMatch = svg.match(/stroke-linecap="([^"]+)"/)
+      if (lcMatch) strokeLinecap = lcMatch[1]
+      const ljMatch = svg.match(/stroke-linejoin="([^"]+)"/)
+      if (ljMatch) strokeLinejoin = ljMatch[1]
+    }
+
+    // Extract path d attributes
     const pathDs: string[] = []
-    // Match <path ...d="..."> but skip paths with fill="none"
     const pathElRe = /<path[^>]*>/g
     let m: RegExpExecArray | null
     while ((m = pathElRe.exec(svg)) !== null) {
       const el = m[0]
-      // Skip bounding box paths (fill="none" or d is just a rectangle)
-      if (el.includes('fill="none"')) continue
-      const dMatch = el.match(/d="([^"]+)"/) 
+      // For stroke-based SVGs, include ALL paths (they use fill="none" globally)
+      // For fill-based SVGs, skip paths with fill="none" (bounding boxes)
+      if (!isStroke && /fill\s*=\s*["']none["']/i.test(el)) continue
+      const dMatch = el.match(/d="([^"]+)"/) || el.match(/d='([^']+)'/)
       if (dMatch) {
         const d = dMatch[1]
         // Skip simple bounding-box rectangles like "M0 0h24v24H0z"
@@ -156,13 +179,54 @@ async function getReactIcon(
     const circleRe = /<circle[^>]*cx="([^"]+)"[^>]*cy="([^"]+)"[^>]*r="([^"]+)"/g
     while ((m = circleRe.exec(svg)) !== null) {
       const cx = parseFloat(m[1]), cy = parseFloat(m[2]), r = parseFloat(m[3])
-      pathDs.push(`M${cx - r},${cy}a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 -${r * 2},0`)
+      if (isStroke) {
+        // For stroke-based, keep as circle path (will be rendered with stroke)
+        pathDs.push(`M${cx - r},${cy}a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 -${r * 2},0`)
+      } else {
+        pathDs.push(`M${cx - r},${cy}a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 -${r * 2},0`)
+      }
     }
 
     // Extract lines
     const lineRe = /<line[^>]*x1="([^"]+)"[^>]*y1="([^"]+)"[^>]*x2="([^"]+)"[^>]*y2="([^"]+)"/g
     while ((m = lineRe.exec(svg)) !== null) {
       pathDs.push(`M${m[1]},${m[2]}L${m[3]},${m[4]}`)
+    }
+
+    // Extract polylines and polygons
+    const polyRe = /<poly(line|gon)[^>]*points="([^"]+)"[^>]*>/gi
+    while ((m = polyRe.exec(svg)) !== null) {
+      const isPolygon = m[1].toLowerCase() === "gon"
+      const pts = m[2].trim().split(/[\s,]+/)
+      if (pts.length >= 4) {
+        const pairs: string[] = []
+        for (let i = 0; i < pts.length - 1; i += 2) {
+          pairs.push(`${pts[i]},${pts[i + 1]}`)
+        }
+        pathDs.push("M" + pairs.join("L") + (isPolygon ? "Z" : ""))
+      }
+    }
+
+    // Extract rects (common in some icon sets)
+    const rectRe = /<rect[^>]*>/gi
+    while ((m = rectRe.exec(svg)) !== null) {
+      const el = m[0]
+      if (!isStroke && /fill\s*=\s*["']none["']/i.test(el)) continue
+      const x = extractNumAttr(el, "x") ?? 0
+      const y = extractNumAttr(el, "y") ?? 0
+      const w = extractNumAttr(el, "width")
+      const h = extractNumAttr(el, "height")
+      if (w !== null && h !== null && (w > 1 || h > 1)) {
+        const rx = extractNumAttr(el, "rx") ?? 0
+        const ry = extractNumAttr(el, "ry") ?? rx
+        if (rx > 0 || ry > 0) {
+          pathDs.push(
+            `M${x + rx},${y}h${w - 2 * rx}a${rx},${ry} 0 0 1 ${rx},${ry}v${h - 2 * ry}a${rx},${ry} 0 0 1 -${rx},${ry}h-${w - 2 * rx}a${rx},${ry} 0 0 1 -${rx},-${ry}v-${h - 2 * ry}a${rx},${ry} 0 0 1 ${rx},-${ry}z`
+          )
+        } else {
+          pathDs.push(`M${x},${y}h${w}v${h}h-${w}z`)
+        }
+      }
     }
 
     if (pathDs.length === 0) return null
@@ -172,10 +236,23 @@ async function getReactIcon(
         viewBox,
         path: pathDs.join(" "),
         fillRule: undefined,
+        isStroke,
+        strokeWidth,
+        strokeLinecap,
+        strokeLinejoin,
       },
       defaultColor: "currentColor",
     }
   } catch {
     return null
   }
+}
+
+/** Extract a numeric attribute from an HTML element string. */
+function extractNumAttr(el: string, name: string): number | null {
+  const re = new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`)
+  const m = el.match(re)
+  if (!m) return null
+  const n = parseFloat(m[1])
+  return isNaN(n) ? null : n
 }
