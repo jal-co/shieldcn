@@ -46,6 +46,6 @@ export async function initDB() {
       id TEXT PRIMARY KEY DEFAULT 'badges',
       count BIGINT NOT NULL DEFAULT 0
     );
-    INSERT INTO gen_counter (id, count) VALUES ('badges', 0) ON CONFLICT DO NOTHING;
+    INSERT INTO gen_counter (id, count) VALUES ('badges', 16000) ON CONFLICT DO NOTHING;
   `)
 }
