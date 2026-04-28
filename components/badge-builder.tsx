@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { Copy, Check, ChevronDown, RotateCcw } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorInput } from "@/components/color-input"
@@ -15,114 +15,116 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
 
-const PROVIDERS = [
-  { value: "npm", label: "npm version", placeholder: "react", inputLabel: "Package" },
-  { value: "npm-downloads", label: "npm downloads", placeholder: "react", inputLabel: "Package" },
-  { value: "github-stars", label: "GitHub stars", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-release", label: "GitHub release", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-ci", label: "CI status", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "github-license", label: "License", placeholder: "vercel/next.js", inputLabel: "Repository" },
-  { value: "discord", label: "Discord online", placeholder: "1316199667142496307", inputLabel: "Server ID" },
-  { value: "static", label: "Static badge", placeholder: "build-passing-green", inputLabel: "Text (label-message-color)" },
+const BADGE_PRESETS = [
+  { label: "npm version", path: "/npm/react.svg", group: "Package" },
+  { label: "npm downloads", path: "/npm/react/dm.svg", group: "Package" },
+  { label: "npm license", path: "/npm/react/license.svg", group: "Package" },
+  { label: "npm types", path: "/npm/react/types.svg", group: "Package" },
+  { label: "PyPI version", path: "/pypi/django/v.svg", group: "Package" },
+  { label: "Crates.io version", path: "/crates/serde/v.svg", group: "Package" },
+  { label: "JSR score", path: "/jsr/@std/path/score.svg", group: "Package" },
+  { label: "Docker pulls", path: "/docker/library/nginx/pulls.svg", group: "Package" },
+  { label: "GitHub stars", path: "/github/vercel/next.js/stars.svg", group: "GitHub" },
+  { label: "GitHub release", path: "/github/vercel/next.js/release.svg", group: "GitHub" },
+  { label: "GitHub CI", path: "/github/vercel/next.js/ci.svg", group: "GitHub" },
+  { label: "GitHub license", path: "/github/vercel/next.js/license.svg", group: "GitHub" },
+  { label: "GitHub forks", path: "/github/vercel/next.js/forks.svg", group: "GitHub" },
+  { label: "GitHub issues", path: "/github/vercel/next.js/issues.svg", group: "GitHub" },
+  { label: "GitHub contributors", path: "/github/vercel/next.js/contributors.svg", group: "GitHub" },
+  { label: "GitHub last commit", path: "/github/vercel/next.js/last-commit.svg", group: "GitHub" },
+  { label: "GitHub downloads", path: "/github/vercel/next.js/downloads.svg", group: "GitHub" },
+  { label: "Discord online", path: "/discord/1316199667142496307.svg", group: "Social" },
+  { label: "Reddit subscribers", path: "/reddit/typescript.svg", group: "Social" },
+  { label: "YouTube subscribers", path: "/youtube/UCsBjURrPoezykLs9EqgamOA/subscribers.svg", group: "Social" },
+  { label: "Twitch status", path: "/twitch/shroud.svg", group: "Social" },
+  { label: "Static badge", path: "/badge/build-passing-22c55e.svg", group: "Custom" },
 ] as const
 
-const VARIANTS = [
-  { value: "default", label: "Default" },
-  { value: "secondary", label: "Secondary" },
-  { value: "outline", label: "Outline" },
-  { value: "ghost", label: "Ghost" },
-  { value: "destructive", label: "Destructive" },
-  { value: "branded", label: "Branded" },
-] as const
-
-const SIZES = [
-  { value: "xs", label: "Extra small" },
-  { value: "sm", label: "Small" },
-  { value: "default", label: "Default" },
-  { value: "lg", label: "Large" },
-] as const
+const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"] as const
+const SIZES = ["xs", "sm", "default", "lg"] as const
+const MODES = ["dark", "light"] as const
+const FONTS = ["inter", "geist", "geist-mono"] as const
+const FORMATS = ["svg", "png"] as const
 
 const THEMES = [
-  { value: "_none", label: "None" },
-  { value: "zinc", label: "Zinc" },
-  { value: "slate", label: "Slate" },
-  { value: "blue", label: "Blue" },
-  { value: "green", label: "Green" },
-  { value: "rose", label: "Rose" },
-  { value: "orange", label: "Orange" },
-  { value: "violet", label: "Violet" },
-  { value: "purple", label: "Purple" },
-  { value: "cyan", label: "Cyan" },
+  "_none", "zinc", "slate", "stone", "neutral", "gray",
+  "blue", "green", "rose", "orange", "amber",
+  "violet", "purple", "red", "cyan", "emerald",
 ] as const
 
 // ---------------------------------------------------------------------------
-// URL builder
+// State
 // ---------------------------------------------------------------------------
 
 interface State {
-  provider: string
-  input: string
-  format: "png" | "svg"
+  path: string
   variant: string
   size: string
   theme: string
   mode: string
-  split: boolean
-  statusDot: "auto" | "true" | "false"
   font: string
+  format: string
+  split: boolean
   logo: string
   logoColor: string
   label: string
   color: string
+  labelColor: string
   gradient: string
   valueColor: string
   labelTextColor: string
   labelOpacity: string
-  leftBg: string
-  rightBg: string
+}
+
+const defaults: State = {
+  path: "/npm/react.svg",
+  variant: "default",
+  size: "sm",
+  theme: "_none",
+  mode: "dark",
+  font: "inter",
+  format: "svg",
+  split: false,
+  logo: "",
+  logoColor: "",
+  label: "",
+  color: "",
+  labelColor: "",
+  gradient: "",
+  valueColor: "",
+  labelTextColor: "",
+  labelOpacity: "",
 }
 
 function buildUrl(s: State, baseUrl: string): string {
-  if (!s.input.trim()) return ""
+  if (!s.path.trim()) return ""
 
-  const ext = s.format === "svg" ? ".svg" : ".png"
-  let path = ""
-  switch (s.provider) {
-    case "npm":            path = `/npm/${s.input}${ext}`; break
-    case "npm-downloads":  path = `/npm/${s.input}/downloads${ext}`; break
-    case "github-stars":   path = `/github/${s.input}/stars${ext}`; break
-    case "github-release": path = `/github/${s.input}/release${ext}`; break
-    case "github-ci":      path = `/github/${s.input}/ci${ext}`; break
-    case "github-license": path = `/github/${s.input}/license${ext}`; break
-    case "discord":        path = `/discord/${s.input}${ext}`; break
-    case "static":         path = `/badge/${s.input}${ext}`; break
-  }
+  // Ensure path has correct extension
+  let path = s.path.trim()
+  if (!path.startsWith("/")) path = "/" + path
+  // Replace extension if format changed
+  path = path.replace(/\.(svg|png)$/, `.${s.format}`)
+  if (!/\.(svg|png)$/.test(path)) path += `.${s.format}`
 
   const p = new URLSearchParams()
   if (s.variant !== "default") p.set("variant", s.variant)
   if (s.size !== "sm") p.set("size", s.size)
   if (s.theme && s.theme !== "_none") p.set("theme", s.theme)
   if (s.mode !== "dark") p.set("mode", s.mode)
+  if (s.font !== "inter") p.set("font", s.font)
   if (s.split) p.set("split", "true")
-  if (s.statusDot === "true") p.set("statusDot", "true")
-  if (s.statusDot === "false") p.set("statusDot", "false")
-  if (s.font && s.font !== "inter") p.set("font", s.font)
   if (s.logo) p.set("logo", s.logo)
   if (s.logoColor) p.set("logoColor", s.logoColor)
   if (s.label) p.set("label", s.label)
-  if (s.split) {
-    if (s.leftBg) p.set("labelColor", s.leftBg)
-    if (s.rightBg) p.set("color", s.rightBg)
-  } else {
-    if (s.color) p.set("color", s.color)
-  }
+  if (s.color) p.set("color", s.color)
+  if (s.labelColor) p.set("labelColor", s.labelColor)
   if (s.valueColor) p.set("valueColor", s.valueColor)
   if (s.labelTextColor) p.set("labelTextColor", s.labelTextColor)
   if (s.labelOpacity) p.set("labelOpacity", s.labelOpacity)
@@ -133,72 +135,96 @@ function buildUrl(s: State, baseUrl: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Copy format helpers
+// ---------------------------------------------------------------------------
+
+type CopyFormat = "markdown" | "html" | "url" | "rst"
+
+function formatOutput(url: string, format: CopyFormat): string {
+  switch (format) {
+    case "markdown": return `![badge](${url})`
+    case "html": return `<img alt="badge" src="${url}">`
+    case "url": return url
+    case "rst": return `.. image:: ${url}\n   :alt: badge`
+  }
+}
+
+const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
+  { value: "markdown", label: "Markdown" },
+  { value: "html", label: "HTML" },
+  { value: "url", label: "URL" },
+  { value: "rst", label: "RST" },
+]
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-const defaults: State = {
-  provider: "npm",
-  input: "react",
-  format: "png",
-  variant: "default",
-  size: "sm",
-  theme: "_none",
-  mode: "dark",
-  split: false,
-  statusDot: "auto",
-  font: "inter",
-  logo: "",
-  logoColor: "",
-  label: "",
-  color: "",
-  gradient: "",
-  valueColor: "",
-  labelTextColor: "",
-  labelOpacity: "",
-  leftBg: "",
-  rightBg: "",
-}
-
-import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
-
 export function BadgeBuilder() {
   const [s, setS] = useState<State>(defaults)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copyFormat, setCopyFormat] = useState<CopyFormat>("markdown")
+  const [showStyle, setShowStyle] = useState(false)
   const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
+  const [imgError, setImgError] = useState(false)
+  const [imgKey, setImgKey] = useState(0)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   useEffect(() => { setBaseUrl(window.location.origin) }, [])
 
   const set = useCallback(<K extends keyof State>(key: K, val: State[K]) => {
     setS(prev => ({ ...prev, [key]: val }))
+    setImgError(false)
   }, [])
 
+  // Debounced path update for the text input
+  const [pathInput, setPathInput] = useState(defaults.path)
+  const handlePathInput = useCallback((val: string) => {
+    setPathInput(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setS(prev => ({ ...prev, path: val }))
+      setImgError(false)
+    }, 400)
+  }, [])
+
+  // Sync pathInput when path changes from presets
+  useEffect(() => {
+    setPathInput(s.path)
+  }, [s.path])
+
   const url = useMemo(() => buildUrl(s, baseUrl), [s, baseUrl])
-  const markdown = url ? `![badge](${url})` : ""
-
-  const currentProvider = PROVIDERS.find(p => p.value === s.provider)
-  const isCI = s.provider === "github-ci"
-
-  const handleCopy = useCallback(() => {
-    if (!markdown) return
-    navigator.clipboard.writeText(markdown)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [markdown])
-
-  const sizeHeight = { xs: "h-6", sm: "h-8", default: "h-9", lg: "h-10" }[s.size] || "h-8"
+  const output = useMemo(() => formatOutput(url, copyFormat), [url, copyFormat])
   const isDefault = JSON.stringify(s) === JSON.stringify(defaults)
 
+  const handleCopy = useCallback(() => {
+    if (!output) return
+    navigator.clipboard.writeText(output)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [output])
+
+  // Group presets
+  const presetGroups = useMemo(() => {
+    const map = new Map<string, typeof BADGE_PRESETS[number][]>()
+    for (const p of BADGE_PRESETS) {
+      if (!map.has(p.group)) map.set(p.group, [])
+      map.get(p.group)!.push(p)
+    }
+    return map
+  }, [])
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold tracking-tight">Badge Builder</h3>
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+        <h3 className="text-sm font-semibold tracking-tight">Badge Builder</h3>
         {!isDefault && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setS(defaults); setShowAdvanced(false) }}
-            className="text-muted-foreground text-xs gap-1.5"
+            onClick={() => { setS(defaults); setShowStyle(false) }}
+            className="text-muted-foreground text-xs gap-1.5 h-7"
           >
             <RotateCcw className="size-3" />
             Reset
@@ -206,215 +232,248 @@ export function BadgeBuilder() {
         )}
       </div>
 
-      {/* ── Row 1: What badge? ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Badge type">
-          <Select value={s.provider} onValueChange={v => {
-            const p = PROVIDERS.find(x => x.value === v)
-            set("provider", v)
-            if (p) set("input", p.placeholder)
-          }}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {PROVIDERS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label={currentProvider?.inputLabel || "Input"}>
-          <Input value={s.input} onChange={e => set("input", e.target.value)} placeholder={currentProvider?.placeholder} />
-        </Field>
-      </div>
-
-      {/* ── Row 2: Style ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Field label="Variant">
-          <Select value={s.variant} onValueChange={v => set("variant", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {VARIANTS.map(v => <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Size">
-          <Select value={s.size} onValueChange={v => set("size", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {SIZES.map(sz => <SelectItem key={sz.value} value={sz.value}>{sz.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Theme">
-          <Select value={s.theme} onValueChange={v => set("theme", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {THEMES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Mode">
-          <Select value={s.mode} onValueChange={v => set("mode", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="light">Light</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      {/* ── Row 3: Icon ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Icon">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
-            </div>
-            <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="shrink-0" />
-          </div>
-        </Field>
-
-        <Field label="Font">
-          <Select value={s.font} onValueChange={v => set("font", v)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="inter">Inter</SelectItem>
-              <SelectItem value="geist">Geist</SelectItem>
-              <SelectItem value="geist-mono">Geist Mono</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      {/* ── Row 4: Format + Gradient ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Format">
-          <Select value={s.format} onValueChange={v => set("format", v as "png" | "svg")}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="png">PNG</SelectItem>
-              <SelectItem value="svg">SVG</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Gradient">
-          <Input value={s.gradient} onChange={e => set("gradient", e.target.value)} placeholder="ff6b6b,4ecdc4" />
-          <p className="text-[10px] text-muted-foreground">Comma-separated hex colors, optional angle last (e.g. ff6b6b,4ecdc4,135)</p>
-        </Field>
-      </div>
-
-      {/* ── Toggles ── */}
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <ShadcnCheckbox checked={s.split} onCheckedChange={v => set("split", v === true)} />
-          <span className="text-sm">Split mode</span>
-        </label>
-        {isCI && (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <ShadcnCheckbox
-              checked={s.statusDot === "true"}
-              onCheckedChange={v => set("statusDot", v ? "true" : "false")}
-            />
-            <span className="text-sm">Status dot</span>
-          </label>
+      {/* ── Preview (always visible, top) ── */}
+      <div
+        className="flex items-center justify-center border-b border-border py-10 px-6 transition-colors"
+        style={{ backgroundColor: s.mode === "light" ? "#f4f4f5" : "#0c0c0e" }}
+      >
+        {url && !imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${url}-${imgKey}`}
+            src={url}
+            alt="badge preview"
+            className="max-h-12 select-none"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            {imgError ? "Failed to load — check your badge path" : "Enter a badge path to preview"}
+          </span>
         )}
       </div>
 
-      {/* ── Split mode colors ── */}
-      {s.split && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg border border-border/50 bg-muted/10 p-4">
-          <Field label="Left background">
-            <ColorInput value={s.leftBg} onChange={v => set("leftBg", v)} placeholder="auto" />
-          </Field>
-          <Field label="Right background">
-            <ColorInput value={s.rightBg} onChange={v => set("rightBg", v)} placeholder="auto" />
-          </Field>
-          <Field label="Label text">
-            <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" />
-          </Field>
+      <div className="p-5 space-y-5">
+        {/* ── Badge path input ── */}
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Badge path</Label>
+          <Input
+            value={pathInput}
+            onChange={e => handlePathInput(e.target.value)}
+            placeholder="/npm/react.svg"
+            className="font-mono text-sm"
+          />
         </div>
-      )}
 
-      {/* ── Advanced ── */}
-      <button
-        onClick={() => setShowAdvanced(!showAdvanced)}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronDown className={cn("size-3.5 transition-transform", showAdvanced && "rotate-180")} />
-        Advanced options
-      </button>
-
-      {showAdvanced && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 rounded-lg border border-border/50 bg-muted/10 p-4">
-          <Field label="Background color" color={s.color}>
-            <ColorInput value={s.color} onChange={v => set("color", v)} placeholder="auto" />
-          </Field>
-          <Field label="Value text color" color={s.valueColor}>
-            <ColorInput value={s.valueColor} onChange={v => set("valueColor", v)} placeholder="auto" />
-          </Field>
-          <Field label="Label text color" color={s.labelTextColor}>
-            <ColorInput value={s.labelTextColor} onChange={v => set("labelTextColor", v)} placeholder="auto" />
-          </Field>
-          <Field label="Icon color" color={s.logoColor}>
-            <ColorInput value={s.logoColor} onChange={v => set("logoColor", v)} placeholder="auto" />
-          </Field>
-          <Field label="Label opacity">
-            <Input value={s.labelOpacity} onChange={e => set("labelOpacity", e.target.value)} placeholder="0.7" />
-          </Field>
-          {!s.split && (
-            <Field label="Custom label">
-              <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" />
-            </Field>
-          )}
-        </div>
-      )}
-
-      <Separator />
-
-      {/* ── Preview + Output ── */}
-      {url && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-center rounded-lg border border-border bg-muted/20 p-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="badge preview" className={sizeHeight} />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-xs font-mono break-all text-muted-foreground">
-              {markdown}
-            </code>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0">
-              {copied ? <><Check className="size-3.5" /> Copied</> : <><Copy className="size-3.5" /> Copy</>}
-            </Button>
+        {/* ── Quick presets ── */}
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Quick start</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {Array.from(presetGroups.entries()).map(([group, presets]) => (
+              <div key={group} className="contents">
+                {presets.slice(0, group === "GitHub" ? 4 : group === "Package" ? 3 : 2).map(p => (
+                  <button
+                    key={p.path}
+                    type="button"
+                    onClick={() => set("path", p.path)}
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-[11px] transition-colors",
+                      s.path === p.path
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground",
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            ))}
+            <Select onValueChange={v => set("path", v)}>
+              <SelectTrigger className="h-7 w-auto gap-1 border-border/60 text-[11px] text-muted-foreground px-2.5">
+                <span>More…</span>
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from(presetGroups.entries()).map(([group, presets]) => (
+                  <div key={group}>
+                    <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{group}</div>
+                    {presets.map(p => (
+                      <SelectItem key={p.path} value={p.path} className="text-xs">
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      )}
+
+        {/* ── Core controls: variant + size + mode ── */}
+        <div className="grid grid-cols-3 gap-3">
+          <Ctrl label="Variant" value={s.variant} onChange={v => set("variant", v)} options={[...VARIANTS]} />
+          <Ctrl label="Size" value={s.size} onChange={v => set("size", v)} options={[...SIZES]} />
+          <Ctrl label="Mode" value={s.mode} onChange={v => set("mode", v)} options={[...MODES]} />
+        </div>
+
+        {/* ── Style & customization toggle ── */}
+        <button
+          onClick={() => setShowStyle(!showStyle)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+        >
+          <ChevronDown className={cn("size-3 transition-transform", showStyle && "rotate-180")} />
+          Customize theme, icon, colors & more
+        </button>
+
+        {showStyle && (
+          <div className="space-y-4 rounded-lg border border-border/50 bg-muted/5 p-4">
+            {/* Theme + Font + Format */}
+            <div className="grid grid-cols-3 gap-3">
+              <Ctrl label="Theme" value={s.theme} onChange={v => set("theme", v)} options={[...THEMES]} displayMap={{ _none: "None" }} />
+              <Ctrl label="Font" value={s.font} onChange={v => set("font", v)} options={[...FONTS]} />
+              <Ctrl label="Format" value={s.format} onChange={v => set("format", v)} options={[...FORMATS]} displayMap={{ svg: "SVG", png: "PNG" }} />
+            </div>
+
+            {/* Icon */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Icon</Label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
+                </div>
+                <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="shrink-0" />
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <ShadcnCheckbox checked={s.split} onCheckedChange={v => set("split", v === true)} />
+                <span className="text-xs">Split mode</span>
+              </label>
+            </div>
+
+            {/* Colors */}
+            <div className="grid grid-cols-2 gap-3">
+              <ColorField label="Background" value={s.color} onChange={v => set("color", v)} />
+              <ColorField label="Icon color" value={s.logoColor} onChange={v => set("logoColor", v)} />
+              {s.split && (
+                <ColorField label="Label background" value={s.labelColor} onChange={v => set("labelColor", v)} />
+              )}
+            </div>
+
+            {/* Text overrides */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Custom label</Label>
+                <Input value={s.label} onChange={e => set("label", e.target.value)} placeholder="auto" className="h-8 text-xs" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Gradient</Label>
+                <Input value={s.gradient} onChange={e => set("gradient", e.target.value)} placeholder="ff6b6b,4ecdc4" className="h-8 text-xs" />
+              </div>
+            </div>
+
+            {/* Fine-grain color overrides */}
+            <div className="grid grid-cols-3 gap-3">
+              <ColorField label="Value text" value={s.valueColor} onChange={v => set("valueColor", v)} />
+              <ColorField label="Label text" value={s.labelTextColor} onChange={v => set("labelTextColor", v)} />
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Label opacity</Label>
+                <Input value={s.labelOpacity} onChange={e => set("labelOpacity", e.target.value)} placeholder="0.7" className="h-8 text-xs" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Copy output ── */}
+        {url && (
+          <div className="space-y-3">
+            {/* Format tabs */}
+            <div className="flex items-center gap-1">
+              {COPY_FORMATS.map(f => (
+                <button
+                  key={f.value}
+                  onClick={() => setCopyFormat(f.value)}
+                  className={cn(
+                    "rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors",
+                    copyFormat === f.value
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Output + copy */}
+            <div className="flex items-start gap-2">
+              <code className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-[11px] font-mono break-all text-muted-foreground leading-relaxed min-h-[2.5rem]">
+                {output}
+              </code>
+              <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0 h-9">
+                {copied
+                  ? <><Check className="size-3.5 text-green-500" /> Copied</>
+                  : <><Copy className="size-3.5" /> Copy</>
+                }
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Sub-components
 // ---------------------------------------------------------------------------
 
-function Field({ label, color, children }: { label: string; color?: string; children: React.ReactNode }) {
-  const hasColor = color && /^#?[0-9a-fA-F]{3,8}$/.test(color.replace(/^#/, ""))
+function Ctrl({
+  label,
+  value,
+  onChange,
+  options,
+  displayMap,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+  displayMap?: Record<string, string>
+}) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-        {hasColor && (
-          <span
-            className="inline-block size-2.5 rounded-full border border-border/60 shrink-0"
-            style={{ backgroundColor: color.startsWith("#") ? color : `#${color}` }}
-          />
-        )}
-        {label}
-      </Label>
-      {children}
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="h-8 w-full text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(opt => (
+            <SelectItem key={opt} value={opt}>
+              {displayMap?.[opt] ?? opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <ColorInput value={value} onChange={onChange} placeholder="auto" />
     </div>
   )
 }

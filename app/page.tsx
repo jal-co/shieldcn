@@ -64,7 +64,7 @@ export default async function Home() {
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 A shields.io alternative with the visual quality of shadcn/ui.
-                6 variants, 16 themes, 5,000+ built-in icons, and custom SVG upload — unlimited combinations.
+                6 variants, 16 themes, 30,000+ built-in icons, and custom SVG upload — unlimited combinations.
               </p>
 
               {adoptionCount !== null && adoptionCount > 0 && (
