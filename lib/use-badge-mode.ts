@@ -22,11 +22,11 @@ export function withBadgeMode(badgePath: string, mode: "dark" | "light"): string
   // If the path already has an explicit mode param, don't override
   if (/[?&]mode=/.test(badgePath)) return badgePath
 
-  // Default is dark — only need to add param for light
-  if (mode === "dark") return badgePath
-
+  // Always include mode= explicitly so the URL changes when theme toggles.
+  // Without this, dark mode URLs are identical to the default (no param),
+  // and the browser serves cached dark SVGs when switching to light.
   const separator = badgePath.includes("?") ? "&" : "?"
-  return `${badgePath}${separator}mode=light`
+  return `${badgePath}${separator}mode=${mode}`
 }
 
 /**

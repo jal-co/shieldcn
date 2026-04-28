@@ -10,7 +10,7 @@
  * creating a seamless infinite loop.
  */
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { allBadgePaths } from "@/lib/showcase-data"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
@@ -43,7 +43,10 @@ function MarqueeRow({ badges, reverse, duration }: { badges: string[]; reverse: 
 }
 
 export function BadgeMarquee() {
+  const [mounted, setMounted] = useState(false)
   const { adaptUrl } = useBadgeMode()
+
+  useEffect(() => { setMounted(true) }, [])
 
   const rows = useMemo(() => {
     // Shuffle deterministically and split into rows
@@ -85,7 +88,7 @@ export function BadgeMarquee() {
         style={{ left: "calc(-50vw + 50%)", width: "100vw" }}
       >
         <div className="flex h-full flex-col justify-center gap-3 overflow-hidden opacity-[0.2] py-6">
-          {rows.map((badges, i) => (
+          {mounted && rows.map((badges, i) => (
             <MarqueeRow
               key={i}
               badges={badges.map(adaptUrl)}

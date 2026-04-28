@@ -1,6 +1,7 @@
 import type { Badge } from './shieldcn';
 import { staticBadgePath } from './shieldcn';
 import { matchBrand } from './brands';
+import { proxyFetch, proxyHead } from './proxy-fetch';
 
 export type InspectResult = {
   source: { owner: string; repo: string; url: string };
@@ -118,7 +119,7 @@ function isAbort(e: unknown): boolean {
 
 async function fetchText(url: string, signal?: AbortSignal): Promise<string | null> {
   try {
-    const res = await fetch(url, { signal });
+    const res = await proxyFetch(url, signal);
     if (!res.ok) return null;
     return await res.text();
   } catch (e) {
@@ -129,7 +130,7 @@ async function fetchText(url: string, signal?: AbortSignal): Promise<string | nu
 
 async function fetchJson<T = unknown>(url: string, signal?: AbortSignal): Promise<T | null> {
   try {
-    const res = await fetch(url, { signal });
+    const res = await proxyFetch(url, signal);
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch (e) {
@@ -140,8 +141,7 @@ async function fetchJson<T = unknown>(url: string, signal?: AbortSignal): Promis
 
 async function probeExists(url: string, signal?: AbortSignal): Promise<boolean> {
   try {
-    const res = await fetch(url, { method: 'HEAD', signal });
-    return res.ok;
+    return await proxyHead(url, signal);
   } catch (e) {
     if (isAbort(e)) throw e;
     return false;

@@ -51,6 +51,7 @@ import { Switch } from "@/components/ui/switch"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { cn } from "@/lib/utils"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 import { PROFILE_TOUR_STEP_IDS } from "@/lib/tour-constants"
 
 const VARIANTS: Variant[] = [
@@ -96,6 +97,8 @@ export default function ProfileGeneratorClient() {
   const [qs, setQs] = useQueryStates(profileSearchParams, {
     history: "replace",
   })
+
+
   const [inputUser, setInputUser] = useState(qs.user)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -115,7 +118,7 @@ export default function ProfileGeneratorClient() {
       void handleGenerate(qs.user)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [qs.user])
 
   // Sync global settings from URL params to config
   useEffect(() => {
@@ -226,6 +229,7 @@ export default function ProfileGeneratorClient() {
       const user = userOverride ?? inputUser.trim()
       if (!user) return
       if (user !== inputUser) setInputUser(user)
+      track("generator_input", { input: user, type: "profile", source: "generator" })
       void setQs({ user })
       const result = await runInspect(user)
       if (!result) return
@@ -730,9 +734,19 @@ function BadgeItem({
   tourId?: string
 }) {
   const [open, setOpen] = useState(false)
+  const { mode: siteMode } = useBadgeMode()
   const url = badgeUrl(badge, global)
   const md = badgeMarkdown(badge, global)
   const html = badgeHtml(badge, global)
+  // Preview uses site theme so badges are visible on the current background.
+  // Always include mode= explicitly so the URL changes when theme toggles.
+  const previewUrl = useMemo(() => {
+    const base = badgeUrl(badge, { ...global, mode: siteMode })
+    if (siteMode === "dark" && !/[?&]mode=/.test(base)) {
+      return `${base}${base.includes("?") ? "&" : "?"}mode=dark`
+    }
+    return base
+  }, [badge, global, siteMode])
 
   const setOverride = (
     key: keyof Overrides,
@@ -760,7 +774,7 @@ function BadgeItem({
           )}
         >
           <img
-            src={url}
+            src={previewUrl}
             alt={badge.label}
             loading="lazy"
             className="block max-h-10"

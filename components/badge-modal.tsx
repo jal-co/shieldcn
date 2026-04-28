@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check, ExternalLink } from "lucide-react"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 import {
   Dialog,
   DialogContent,
@@ -92,7 +93,8 @@ export function BadgeModal({
   const [variant, setVariant] = useState(initialParams.get("variant") ?? "default")
   const [size, setSize] = useState(initialParams.get("size") ?? "sm")
   const [theme, setTheme] = useState(initialParams.get("theme") ?? "_none")
-  const [mode, setMode] = useState(initialParams.get("mode") === "light" ? "light" : "dark")
+  const { mode: siteMode } = useBadgeMode()
+  const [mode, setMode] = useState(initialParams.get("mode") || siteMode)
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("markdown")
   const [copied, setCopied] = useState(false)
   const [showMore, setShowMore] = useState(false)
@@ -113,8 +115,8 @@ export function BadgeModal({
     setVariant(initialParams.get("variant") ?? "default")
     setSize(initialParams.get("size") ?? "sm")
     setTheme(initialParams.get("theme") ?? "_none")
-    setMode(initialParams.get("mode") === "light" ? "light" : "dark")
-  }, [initialParams, open])
+    setMode(initialParams.get("mode") || siteMode)
+  }, [initialParams, open, siteMode])
 
   const resolvedBadgePath = useMemo(
     () => withStyleParams(badgePath, {

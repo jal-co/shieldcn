@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { BadgeBuilderCore } from "@/components/badge-builder-core"
 import { cn } from "@/lib/utils"
@@ -50,8 +51,18 @@ export function BadgeBuilder() {
   const [copied, setCopied] = useState(false)
   const [copyFormat, setCopyFormat] = useState<CopyFormat>("markdown")
   const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => { setBaseUrl(window.location.origin) }, [])
+
+  // Sync mode with site theme
+  useEffect(() => {
+    if (!resolvedTheme) return
+    const siteMode = resolvedTheme === "light" ? "light" : "dark"
+    if (s.mode !== siteMode) {
+      setS((prev) => ({ ...prev, mode: siteMode }))
+    }
+  }, [resolvedTheme]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const url = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
   const output = useMemo(() => formatOutput(url, copyFormat), [url, copyFormat])

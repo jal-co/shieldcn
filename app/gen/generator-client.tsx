@@ -49,6 +49,7 @@ import { Separator } from "@/components/ui/separator"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { cn } from "@/lib/utils"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 import { TOUR_STEP_IDS } from "@/lib/tour-constants"
 
 const VARIANTS: Variant[] = [
@@ -121,7 +122,7 @@ export default function GeneratorApp() {
       void handleGenerate(qs.url)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [qs.url])
 
   // Sync global settings from URL params to config
   useEffect(() => {
@@ -223,6 +224,7 @@ export default function GeneratorApp() {
     if (!url) return
     if (url !== inputUrl) setInputUrl(url)
     void setQs({ url })
+    track("generator_input", { input: url, type: "repo", source: "generator" })
     const result = await runInspect(url)
     if (!result) return
     setConfig({
@@ -355,7 +357,7 @@ export default function GeneratorApp() {
                   <Input
                     id="url-input"
                     type="text"
-                    placeholder="vercel/next.js or https://github.com/vercel/next.js"
+                    placeholder="jal-co/ui"
                     value={inputUrl}
                     onChange={(e) => setInputUrl(e.target.value)}
                     onKeyDown={(e) => {
@@ -727,9 +729,22 @@ function BadgeItem({
   tourId?: string
 }) {
   const [open, setOpen] = useState(false)
+  const { mode: siteMode } = useBadgeMode()
   const url = badgeUrl(badge, global)
   const md = badgeMarkdown(badge, global)
   const html = badgeHtml(badge, global)
+  // Preview uses site theme so badges are visible on the current background.
+  // Always include mode= explicitly so the URL changes when theme toggles
+  // (dark is the server default, so badgeUrl omits it — but we need cache-busting).
+  const previewUrl = useMemo(() => {
+    const base = badgeUrl(badge, { ...global, mode: siteMode })
+    // If mode=dark wasn't added (it's the default), force it so the URL
+    // is distinct from the light variant and the browser refetches.
+    if (siteMode === "dark" && !/[?&]mode=/.test(base)) {
+      return `${base}${base.includes("?") ? "&" : "?"}mode=dark`
+    }
+    return base
+  }, [badge, global, siteMode])
 
   const setOverride = (key: keyof Overrides, value: string | number | boolean | undefined) => {
     if (value === "" || value === undefined) {
@@ -753,7 +768,7 @@ function BadgeItem({
             !badge.enabled && "opacity-30 grayscale-[60%]",
           )}
         >
-          <img src={url} alt={badge.label} loading="lazy" className="block max-h-10" />
+          <img src={previewUrl} alt={badge.label} loading="lazy" className="block max-h-10" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 space-y-3" align="start">

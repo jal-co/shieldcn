@@ -5,14 +5,17 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useOpenPanel } from "@openpanel/nextjs"
 import { ArrowRight, CornerDownLeft } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export function GenHeroInput() {
   const [value, setValue] = useState("")
   const [focused, setFocused] = useState(false)
   const router = useRouter()
+  const { track } = useOpenPanel()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = () => {
@@ -23,6 +26,11 @@ export function GenHeroInput() {
     // If it contains a slash (owner/repo) or is a full URL, go to repo generator
     const isRepo =
       trimmed.includes("/") || trimmed.startsWith("http")
+    track("generator_input", {
+      input: trimmed,
+      type: isRepo ? "repo" : "profile",
+      source: "homepage",
+    })
     if (isRepo) {
       router.push(`/gen?url=${encodeURIComponent(trimmed)}`)
     } else {
@@ -79,7 +87,7 @@ export function GenHeroInput() {
         <Input
           ref={inputRef}
           type="text"
-          placeholder="sindresorhus or vercel/next.js"
+          placeholder="jal-co or jal-co/ui"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setFocused(true)}
@@ -87,13 +95,24 @@ export function GenHeroInput() {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSubmit()
           }}
-          className="h-10 flex-1 !bg-background pr-24"
+          className="h-10 flex-1 !bg-background sm:pr-24"
         />
 
-        {/* Inline enter hint */}
+        {/* Mobile: visible Generate button */}
+        <Button
+          onClick={handleSubmit}
+          disabled={!value.trim()}
+          className="h-10 sm:hidden"
+          size="sm"
+        >
+          Generate
+          <ArrowRight className="size-3.5" />
+        </Button>
+
+        {/* Desktop: inline enter hint */}
         <div
           className={cn(
-            "pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-muted-foreground transition-opacity duration-150",
+            "pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground transition-opacity duration-150",
             value.trim() ? "opacity-100" : "opacity-0"
           )}
         >

@@ -78,13 +78,35 @@ export interface ButtonStyle {
   borderRadius: number   // px
 }
 
-/** Check if a hex color (without #) is light enough to need dark text. */
+/**
+ * WCAG 2.1 relative luminance.
+ * Returns 0 (black) to 1 (white).
+ */
+function wcagLuminance(hex: string): number {
+  const r = parseInt(hex.substring(0, 2), 16) / 255
+  const g = parseInt(hex.substring(2, 4), 16) / 255
+  const b = parseInt(hex.substring(4, 6), 16) / 255
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return 0
+  const sr = r <= 0.03928 ? r / 12.92 : ((r + 0.055) / 1.055) ** 2.4
+  const sg = g <= 0.03928 ? g / 12.92 : ((g + 0.055) / 1.055) ** 2.4
+  const sb = b <= 0.03928 ? b / 12.92 : ((b + 0.055) / 1.055) ** 2.4
+  return 0.2126 * sr + 0.7152 * sg + 0.0722 * sb
+}
+
+/**
+ * Check if a hex color (without #) needs dark text for WCAG AA contrast.
+ * Uses actual WCAG contrast ratio instead of a simple luminance threshold.
+ * White text (#fff) needs the bg to be dark enough; dark text (#18181b) needs it light enough.
+ */
 function isLightHex(hex: string): boolean {
-  const r = parseInt(hex.substring(0, 2), 16)
-  const g = parseInt(hex.substring(2, 4), 16)
-  const b = parseInt(hex.substring(4, 6), 16)
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return false
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+  const bgLum = wcagLuminance(hex)
+  // Contrast ratio of white text on this bg
+  const whiteContrast = (1.05) / (bgLum + 0.05)
+  // Contrast ratio of dark text (#18181b ≈ lum 0.033) on this bg
+  const darkLum = wcagLuminance("18181b")
+  const darkContrast = (bgLum + 0.05) / (darkLum + 0.05)
+  // Pick whichever gives better contrast; prefer dark text on ties
+  return darkContrast >= whiteContrast
 }
 
 export function getButtonStyle(
