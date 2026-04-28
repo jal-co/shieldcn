@@ -12,6 +12,7 @@
 
 import { useMemo } from "react"
 import { allBadgePaths } from "@/lib/showcase-data"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 
 const ROW_COUNT = 6
 const BADGES_PER_ROW = 12
@@ -42,6 +43,8 @@ function MarqueeRow({ badges, reverse, duration }: { badges: string[]; reverse: 
 }
 
 export function BadgeMarquee() {
+  const { adaptUrl } = useBadgeMode()
+
   const rows = useMemo(() => {
     // Shuffle deterministically and split into rows
     const shuffled = [...allBadgePaths].sort((a, b) => {
@@ -85,7 +88,7 @@ export function BadgeMarquee() {
           {rows.map((badges, i) => (
             <MarqueeRow
               key={i}
-              badges={badges}
+              badges={badges.map(adaptUrl)}
               reverse={i % 2 === 1}
               duration={ROW_DURATIONS[i]}
             />
