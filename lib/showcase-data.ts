@@ -375,6 +375,15 @@ export const categories: Category[] = [
     ],
   },
   {
+    name: "Friends of shieldcn",
+    description: "Projects and people in the shieldcn orbit. If you use shieldcn, you're a friend.",
+    icons: [
+      dynamicBadge("IndieDevs", "profile badge", "/indiedevs/jalco.svg?variant=branded", "Link your IndieDevs developer profile.", "/docs/badges/indiedevs"),
+      dynamicBadge("IndieDevs (outline)", "profile badge", "/indiedevs/jalco.svg?variant=outline", "Subtle IndieDevs profile badge for README rows."),
+      dynamicBadge("IndieDevs (secondary)", "profile badge", "/indiedevs/jalco.svg?variant=secondary", "IndieDevs profile badge in secondary style."),
+    ],
+  },
+  {
     name: "Community",
     description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
     icons: [

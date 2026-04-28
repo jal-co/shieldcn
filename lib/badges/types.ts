@@ -49,6 +49,8 @@ export interface BadgeConfig {
   iconStrokeLinecap?: string
   /** Stroke linejoin for stroke-based icons. */
   iconStrokeLinejoin?: string
+  /** Icon rotation in degrees (applied around center). */
+  iconRotation?: number
   /** Visual style (shadcn Button variant). */
   style: BadgeStyle
   /** Size preset (shadcn Button size). Overrides individual dimension params. */

@@ -10,9 +10,11 @@
  */
 
 import type { IconData } from "./icons"
+import { getCustomIcon } from "./custom-icons"
 
 /**
- * Look up an icon by slug. Supports SimpleIcons, React Icons, and Lucide shorthand.
+ * Look up an icon by slug. Supports SimpleIcons, React Icons, Lucide shorthand,
+ * and custom icons shipped with shieldcn.
  *
  * @param slug - "react" (SimpleIcons) or "ri:FaReact" (React Icons) or "lu:Check" (Lucide)
  * @param logoColor - optional override color
@@ -35,6 +37,10 @@ export async function getSimpleIcon(
   if (slug.startsWith("ri:")) {
     return getReactIcon(slug.slice(3))
   }
+
+  // Custom icons shipped with shieldcn (checked before SimpleIcons)
+  const custom = getCustomIcon(slug)
+  if (custom) return custom
 
   // SimpleIcons
   return getSimpleIconBySlug(slug)
