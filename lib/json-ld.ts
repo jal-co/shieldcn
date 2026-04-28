@@ -15,7 +15,7 @@ export function websiteJsonLd() {
     name: "shieldcn",
     url: SITE_URL,
     description:
-      "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
+      "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
     inLanguage: "en-US",
   }
 }
@@ -30,7 +30,7 @@ export function softwareAppJsonLd() {
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any",
     description:
-      "Beautiful README badges styled as shadcn/ui buttons. Drop-in shields.io replacement with GitHub, npm, and Discord badges. 6 variants, 16 themes, 5,000+ icons.",
+      "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
     offers: {
       "@type": "Offer",
       price: "0",

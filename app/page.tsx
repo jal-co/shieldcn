@@ -14,7 +14,7 @@ import { pickToken } from "@/lib/token-pool"
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
   description:
-    "A shields.io alternative with shadcn/ui design quality. GitHub, npm, and Discord badges with 6 variants, 16 themes, and 5,000+ icons. Free and open source.",
+    "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
   path: "/",
   ogTitle: "shieldcn — Beautiful README Badges",
 })

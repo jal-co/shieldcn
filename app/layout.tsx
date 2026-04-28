@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s — shieldcn",
   },
   description:
-    "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
+    "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
   keywords: [
     "badges",
     "shields",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     siteName: "shieldcn",
     title: "shieldcn",
     description:
-      "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
+      "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
     images: [
       {
         url: ogImage,
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "shieldcn",
     description:
-      "Beautiful README badges styled as shadcn/ui buttons. A shields.io alternative with 6 variants, 16 themes, and 5,000+ built-in icons.",
+      "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
     images: [ogImage],
   },
   alternates: {
