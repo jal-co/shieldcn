@@ -41,5 +41,11 @@ export async function initDB() {
     );
     CREATE INDEX IF NOT EXISTS idx_github_tokens_valid
       ON github_tokens (is_valid) WHERE is_valid = TRUE;
+
+    CREATE TABLE IF NOT EXISTS gen_counter (
+      id TEXT PRIMARY KEY DEFAULT 'badges',
+      count BIGINT NOT NULL DEFAULT 0
+    );
+    INSERT INTO gen_counter (id, count) VALUES ('badges', 0) ON CONFLICT DO NOTHING;
   `)
 }

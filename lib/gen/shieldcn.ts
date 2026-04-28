@@ -74,7 +74,11 @@ export type BadgeGroup =
   | 'stack'
   | 'tooling'
   | 'modern'
-  | 'community';
+  | 'community'
+  | 'profile'
+  | 'social'
+  | 'skills'
+  | 'repos';
 
 export type Badge = {
   id: string;

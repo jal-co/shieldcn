@@ -5,7 +5,8 @@
  * GitHub REST API client. Uses the token pool for distributed rate limiting.
  * Supports: stars, forks, watchers, branches, releases, tags, license,
  *           contributors, checks, issues, PRs, milestones, commits,
- *           last-commit, assets-dl, dependents, dependabot.
+ *           last-commit, assets-dl, dependents, dependabot,
+ *           followers, user-stars.
  */
 
 import type { BadgeData } from "@/lib/badges/types"
@@ -482,4 +483,37 @@ export async function getGitHubDependabot(owner: string, repo: string): Promise<
   if (r2) return { label: "dependabot", value: "enabled", color: "success" }
 
   return { label: "dependabot", value: "not found", color: "cancelled" }
+}
+
+// ---------------------------------------------------------------------------
+// User-level: followers, total stars
+// ---------------------------------------------------------------------------
+
+export async function getGitHubFollowers(username: string): Promise<BadgeData | null> {
+  const data = await githubJson(`https://api.github.com/users/${username}`)
+  if (!data || typeof data.followers !== "number") return null
+  return {
+    label: "followers",
+    value: formatCount(data.followers as number),
+    link: `https://github.com/${username}?tab=followers`,
+  }
+}
+
+export async function getGitHubUserStars(username: string): Promise<BadgeData | null> {
+  // Sum stargazers across all user-owned repos
+  const repos = await githubFetch(
+    `https://api.github.com/users/${username}/repos?per_page=100&sort=stars&type=owner`,
+  )
+  if (!repos) return null
+  const list = await repos.json() as Array<{ stargazers_count: number; fork: boolean }>
+  if (!Array.isArray(list)) return null
+  const total = list.reduce(
+    (sum, r) => sum + (r.fork ? 0 : (r.stargazers_count ?? 0)),
+    0,
+  )
+  return {
+    label: "stars",
+    value: formatCount(total),
+    link: `https://github.com/${username}?tab=repositories`,
+  }
 }

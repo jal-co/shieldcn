@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { Suspense } from "react"
+import { ArrowRight, User } from "lucide-react"
 import { SiteShell } from "@/components/site-shell"
 import GeneratorClient from "./generator-client"
 import { GeneratorTourProvider, TourReplayButton } from "./generator-tour"
@@ -58,6 +60,21 @@ export default function GeneratorPage() {
                 </span>
               </div>
             </header>
+
+            {/* Cross-link to profile generator */}
+            <Link
+              href="/gen/profile"
+              className="mb-8 flex items-center gap-3 rounded-lg border border-dashed border-border/60 bg-muted/30 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-muted/50"
+            >
+              <User className="size-4 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <span className="font-medium">Looking for profile README badges?</span>
+                <span className="ml-1.5 text-muted-foreground">
+                  Generate badges from a GitHub username instead.
+                </span>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+            </Link>
 
             <Suspense>
               <GeneratorClient />
