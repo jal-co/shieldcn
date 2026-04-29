@@ -36,6 +36,9 @@ COPY --from=builder /app/packages/engine/.next/static ./packages/engine/.next/st
 # compiled file location, so we copy fonts relative to the server output.
 COPY --from=builder /app/packages/core/src/fonts ./packages/core/src/fonts
 
+# Copy resvg WASM binary for PNG rendering without CDN fetch
+COPY --from=builder /app/node_modules/.pnpm/@resvg+resvg-wasm@*/node_modules/@resvg/resvg-wasm/index_bg.wasm ./node_modules/@resvg/resvg-wasm/index_bg.wasm
+
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME="0.0.0.0"

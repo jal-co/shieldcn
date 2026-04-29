@@ -1281,7 +1281,31 @@ export async function handleBadgeGET(
   // PNG response
   if (format === "png") {
     const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-    try { await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm")) } catch { /* already initialized */ }
+    try {
+      // Try loading WASM from a local file first (Docker/standalone),
+      // fall back to CDN fetch (Vercel/dev)
+      let wasmLoaded = false
+      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+        try {
+          const fs = await import("node:fs")
+          const path = await import("node:path")
+          // In standalone mode, WASM is copied to node_modules/@resvg/resvg-wasm/
+          const candidates = [
+            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
+          ]
+          for (const p of candidates) {
+            if (fs.existsSync(p)) {
+              await initWasm(fs.readFileSync(p))
+              wasmLoaded = true
+              break
+            }
+          }
+        } catch { /* fs not available or file not found */ }
+      }
+      if (!wasmLoaded) {
+        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
+      }
+    } catch { /* already initialized */ }
     const resvg = new Resvg(svg)
     const png = resvg.render().asPng()
 
