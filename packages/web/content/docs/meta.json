@@ -1,0 +1,18 @@
+{
+  "title": "Docs",
+  "pages": [
+    "---Getting Started---",
+    "index",
+    "skill",
+    "---Badges---",
+    "...badges",
+    "---Customization---",
+    "...customization",
+    "---Registry---",
+    "...registry",
+    "---Reference---",
+    "api-reference",
+    "---Self-Hosting---",
+    "self-hosting"
+  ]
+}
