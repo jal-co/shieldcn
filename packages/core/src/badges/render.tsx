@@ -29,10 +29,28 @@ import {
 } from "./button-tokens"
 
 // Pre-load all font files
-// Use import.meta.url to resolve relative to this file, not process.cwd()
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const fontsDir = join(__dirname, "..", "fonts")
+// Try multiple paths to find fonts — Vercel, Docker standalone, and local dev
+// all resolve import.meta.url and process.cwd() differently.
+import { existsSync } from "node:fs"
+
+function findFontsDir(): string {
+  const candidates = [
+    // 1. Relative to this file via import.meta.url (works in Docker standalone)
+    join(dirname(fileURLToPath(import.meta.url)), "..", "fonts"),
+    // 2. In packages/core/src/fonts relative to cwd (works in local dev / Vercel)
+    join(process.cwd(), "packages", "core", "src", "fonts"),
+    // 3. Relative to cwd when cwd is packages/web (Vercel with root=packages/web)
+    join(process.cwd(), "..", "core", "src", "fonts"),
+    // 4. Legacy path (pre-monorepo)
+    join(process.cwd(), "lib", "fonts"),
+  ]
+  for (const dir of candidates) {
+    if (existsSync(join(dir, "inter-medium.ttf"))) return dir
+  }
+  throw new Error(`Could not find font files. Searched: ${candidates.join(", ")}`)
+}
+
+const fontsDir = findFontsDir()
 const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
 const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
 const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
