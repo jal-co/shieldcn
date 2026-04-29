@@ -9,8 +9,8 @@ node_modules
 !.yarn/versions
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
 /build
@@ -39,7 +39,7 @@ next-env.d.ts
 .turbo
 
 # fumadocs
-.source/
+.source
 
 # reddit drafts
 reddit/
