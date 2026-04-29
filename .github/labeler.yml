@@ -15,8 +15,8 @@ docs:
   - head-branch: ["^docs/"]
   - changed-files:
       - any-glob-to-any-file:
-          - "content/docs/**"
-          - "app/docs/**"
+          - "packages/web/content/docs/**"
+          - "packages/web/app/docs/**"
 
 ci:
   - head-branch: ["^ci/", "^build/"]
@@ -41,3 +41,13 @@ test:
 
 community-badge:
   - head-branch: ["^feat/community-badge/"]
+
+engine:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/engine/**"
+
+core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/core/**"
