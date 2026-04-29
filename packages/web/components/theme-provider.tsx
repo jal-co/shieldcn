@@ -1,18 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "next-themes"
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    // @ts-expect-error next-themes v0.4 ThemeProviderProps typing issue
     <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      {children}
-    </NextThemesProvider>
+      {...{
+        attribute: "class",
+        defaultTheme: "system",
+        enableSystem: true,
+        disableTransitionOnChange: true,
+        children,
+      } as ThemeProviderProps}
+    />
   )
 }
