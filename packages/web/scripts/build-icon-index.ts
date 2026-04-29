@@ -2,7 +2,7 @@
  * shieldcn
  * scripts/build-icon-index
  *
- * Generates lib/badges/icon-list.json with icons from:
+ * Generates packages/core/src/badges/icon-list.json with icons from:
  * - SimpleIcons (~3,400 brand icons)
  * - Lucide (lu: prefix, ~1,500 utility icons)
  * - FontAwesome (fa: prefix, ~1,600 icons)
@@ -259,7 +259,7 @@ async function buildIndex() {
     return entry
   })
 
-  const outPath = path.join(process.cwd(), "lib/badges/icon-list.json")
+  const outPath = path.join(process.cwd(), "..", "core", "src", "badges", "icon-list.json")
   fs.writeFileSync(outPath, JSON.stringify(compact))
   const size = fs.statSync(outPath).size
   console.log(`Written to ${outPath} (${(size / 1024).toFixed(0)}KB)`)

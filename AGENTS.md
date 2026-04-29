@@ -2,22 +2,57 @@
 
 ## What this is
 
-shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for use in GitHub READMEs, npm pages, and docs sites. It's a shields.io alternative where badges are rendered as actual shadcn/ui Button components via Satori.
+shieldcn is a Turborepo monorepo that serves styled SVG/PNG badge images for use in GitHub READMEs, npm pages, and docs sites. It's a shields.io alternative where badges are rendered as actual shadcn/ui Button components via Satori.
 
-## Architecture
+## Monorepo Structure
 
-- **Badge renderer** (`lib/badges/render.tsx`) — React components → SVG via Satori. Uses Inter Medium font. Every badge goes through one `resolve()` function then one `renderSingle()` or `renderSplit()` function. No variant-specific render paths.
-- **Button tokens** (`lib/badges/button-tokens.ts`) — Exact shadcn Button design tokens (bg, fg, border per variant) resolved to hex values for both dark and light mode.
-- **Icon resolution** (`lib/badges/simple-icons.ts`) — Two sources: SimpleIcons (2400+) and React Icons (40,000+). Prefix convention: bare slug = SimpleIcons, `ri:ComponentName` = React Icons.
-- **Data providers** (`lib/providers/`) — npm, GitHub, Discord, Reddit, static badges, dynamic JSON, HTTPS endpoint, memo badges. Each returns `{ label, value, color?, link? }`.
-- **Token pool** (`lib/token-pool.ts`) — GitHub OAuth token pool stored in Postgres. Distributes API requests across many user-donated tokens to stay under rate limits. Inspired by shields.io.
-- **Route handler** (`app/[...slug]/route.ts`) — Single catch-all that parses URLs, fetches data, resolves icons/colors/variants, renders SVG/PNG/JSON.
+```
+shieldcn/
+├── packages/
+│   ├── core/          ← @shieldcn/core — shared badge engine library
+│   ├── web/           ← @shieldcn/web — marketing site (Vercel)
+│   └── engine/        ← @shieldcn/engine — self-hosted Docker image
+├── turbo.json
+├── pnpm-workspace.yaml
+└── ...
+```
+
+### `packages/core` (`@shieldcn/core`)
+
+Shared badge engine consumed by both `web` and `engine`. No build step — raw TypeScript consumed via `transpilePackages`.
+
+- **Badge renderer** (`src/badges/render.tsx`) — React components → SVG via Satori. Uses Inter Medium font. Every badge goes through one `resolve()` function then one `renderSingle()` or `renderSplit()` function. No variant-specific render paths.
+- **Button tokens** (`src/badges/button-tokens.ts`) — Exact shadcn Button design tokens (bg, fg, border per variant) resolved to hex values for both dark and light mode.
+- **Icon resolution** (`src/badges/simple-icons.ts`) — Two sources: SimpleIcons (2400+) and React Icons (40,000+). Prefix convention: bare slug = SimpleIcons, `ri:ComponentName` = React Icons.
+- **Data providers** (`src/providers/`) — npm, GitHub, Discord, Reddit, static badges, dynamic JSON, HTTPS endpoint, memo badges. Each returns `{ label, value, color?, link? }`.
+- **Token pool** (`src/token-pool.ts`) — GitHub OAuth token pool stored in Postgres. Distributes API requests across many user-donated tokens to stay under rate limits.
+- **Route handler** (`src/route-handler.ts`) — Reusable `handleBadgeGET()` / `handleBadgePUT()` that parses URLs, fetches data, resolves icons/colors/variants, renders SVG/PNG/JSON. Accepts optional `onTrack` callback for analytics.
+- **Cache** (`src/cache.ts`) — Two-tier caching (in-memory LRU + optional Upstash Redis) with per-provider backoff and rate budgets.
+- **Format** (`src/format.ts`) — `formatCount()` number formatting (single source of truth).
+
+### `packages/web` (`@shieldcn/web`)
+
+The marketing site deployed on Vercel. Contains all UI, docs, and site-specific code.
+
 - **Docs** (`content/docs/`) — Fumadocs MDX pages under `/docs`.
 - **Landing page** (`app/page.tsx`) — Badge builder with full controls.
 - **Showcase** (`app/showcase/page.tsx`) — Live badge examples + shields.io comparison.
 - **Gallery** (`app/gallery/page.tsx`) — 130+ branded SimpleIcons badges by category.
 - **Sponsor** (`app/sponsor/page.tsx`) — GitHub Sponsors page with tier plaques + stargazers.
 - **Token pool page** (`app/token-pool/page.tsx`) — OAuth authorize flow for GitHub token donations.
+- **shadcn registry** (`registry/`, `app/r/`) — Published component registry at `/r/{name}.json`.
+- **Components** (`components/`) — shadcn/ui + custom components.
+- **Site-only lib** (`lib/`) — `utils.ts` (cn), `openpanel.ts`, `metadata.ts`, `use-badge-mode.ts`, `gen/`, etc.
+
+### `packages/engine` (`@shieldcn/engine`)
+
+Minimal self-hosted Next.js app published as a Docker image. Badge API only — no docs, gallery, or UI.
+
+- `app/[...slug]/route.ts` — Thin wrapper calling `@shieldcn/core/route-handler` (no analytics).
+- `app/api/health/route.ts` — Health check for Docker healthchecks.
+- `app/api/auth/github/` — OAuth flow for token pool.
+- `Dockerfile` — Multi-stage build with standalone output.
+- `docker-compose.yml` — Engine + Postgres sidecar.
 
 ## Key constraints
 
@@ -26,10 +61,16 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 - Text measurement is handled by Satori internally via the Inter Medium TTF font file.
 - Error states always return a valid SVG badge, never a broken image.
 - The `resolve()` function in render.tsx computes ALL colors before rendering. Variants only change bg/fg/border — nothing else.
+- `packages/core` uses relative imports internally (`../format`, `./db`, etc.) — never `@/lib/`.
+- `packages/web` uses `@shieldcn/core/*` for badge engine code and `@/lib/*` for site-only code.
+- Font files in `packages/core/src/fonts/` are loaded via `import.meta.url` (not `process.cwd()`).
 
 ## Stack
 
-- Next.js 16, React 19, deployed on Vercel
+- Turborepo monorepo with pnpm workspaces
+- Next.js 16, React 19
+- `packages/web` deployed on Vercel
+- `packages/engine` published as Docker image on ghcr.io
 - Fumadocs for docs (fumadocs-core, fumadocs-mdx, @fumadocs/base-ui aliased as fumadocs-ui)
 - Tailwind CSS v4 (CSS-first @theme config, globals.css adopted from jalco-ui)
 - Geist + Geist Mono fonts (site), Inter Medium TTF (badge rendering via Satori)
@@ -42,10 +83,11 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 
 - No semicolons in TypeScript
 - Double quotes for strings
-- `@/*` import alias
+- `@/*` import alias (resolves within each package via tsconfig paths)
+- `@shieldcn/core/*` for shared badge engine imports
 - File headers with project name and module path
-- shadcn/ui components installed via `pnpm dlx shadcn@latest add`
-- jalco-ui components installed via `pnpm dlx shadcn@latest add "https://ui.justinlevine.me/r/{name}.json"`
+- shadcn/ui components installed via `cd packages/web && pnpm dlx shadcn@latest add`
+- jalco-ui components installed via `cd packages/web && pnpm dlx shadcn@latest add "https://ui.justinlevine.me/r/{name}.json"`
 
 ## Badge URL format
 
@@ -82,23 +124,22 @@ shieldcn is a standalone Next.js app that serves styled SVG/PNG badge images for
 
 ### When adding or updating a badge category:
 
-1. **Update the provider** in `lib/providers/` with the new fetch functions
-2. **Update the route handler** in `app/[...slug]/route.ts` to wire the new endpoints
-3. **Update the default icon mapping** in `getDefaultLogoSlug()` in the route handler
-4. **Update or create docs** in `content/docs/badges/` — use `<BadgeSandbox>` for interactive examples
-5. **Update `content/docs/badges/meta.json`** to include new pages
-6. **Update the sidebar** in `components/sidebar.tsx` to include new nav items
-7. **Update the API reference** in `content/docs/api-reference.mdx` with new endpoints and params
-8. **Update the showcase** in `app/showcase/page.tsx` with example badges
-9. **Update the gallery** in `app/gallery/page.tsx` if new branded icons are relevant
-10. **Update the README** badge type table
-11. **Update the landing page** URL reference table in `app/page.tsx`
+1. **Update the provider** in `packages/core/src/providers/` with the new fetch functions
+2. **Update the route handler** in `packages/core/src/route-handler.ts` to wire the new endpoints in `fetchBadgeData()` and add a default icon in `getDefaultLogoSlug()`
+3. **Update or create docs** in `packages/web/content/docs/badges/` — use `<BadgeSandbox>` for interactive examples
+4. **Update `packages/web/content/docs/badges/meta.json`** to include new pages
+5. **Update the sidebar** in `packages/web/components/sidebar.tsx` to include new nav items
+6. **Update the API reference** in `packages/web/content/docs/api-reference.mdx` with new endpoints and params
+7. **Update the showcase** in `packages/web/app/showcase/page.tsx` with example badges
+8. **Update the gallery** in `packages/web/app/gallery/page.tsx` if new branded icons are relevant
+9. **Update the README** badge type table
+10. **Update the landing page** URL reference table in `packages/web/app/page.tsx`
 
-### Badge docs page format (`content/docs/badges/`):
+### Badge docs page format (`packages/web/content/docs/badges/`):
 
 Every badge provider docs page MUST follow this structure and order. Use the Discord index page as the canonical reference.
 
-#### Index pages (`content/docs/badges/{provider}/index.mdx`)
+#### Index pages (`packages/web/content/docs/badges/{provider}/index.mdx`)
 
 ```mdx
 ---
@@ -137,7 +178,7 @@ Rules:
 - "Data source" is always the last section.
 - Use `<BadgeSandbox>` for interactive try-it widgets — place after the available badges table or in sub-pages.
 
-#### Sub-pages (`content/docs/badges/{provider}/{topic}.mdx`)
+#### Sub-pages (`packages/web/content/docs/badges/{provider}/{topic}.mdx`)
 
 ```mdx
 ---
@@ -210,5 +251,6 @@ Rules:
 
 ### When adding shadcn components:
 
-- Install via `pnpm dlx shadcn@latest add {component}`
-- jalco-ui registry: `pnpm dlx shadcn@latest add "https://ui.justinlevine.me/r/{name}.json"`
+- Run from `packages/web/`: `cd packages/web && pnpm dlx shadcn@latest add {component}`
+- jalco-ui registry: `cd packages/web && pnpm dlx shadcn@latest add "https://ui.justinlevine.me/r/{name}.json"`
+- `components.json` lives at `packages/web/components.json`

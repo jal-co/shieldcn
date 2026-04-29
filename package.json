@@ -11,6 +11,7 @@
     "build:engine": "turbo build --filter=@shieldcn/engine",
     "prepare": "husky"
   },
+  "packageManager": "pnpm@10.30.3",
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",

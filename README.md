@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://shieldcn.dev">
-    <img src="./brand/repo-header.png" alt="shieldcn" />
+    <img src="./packages/web/brand/repo-header.png" alt="shieldcn" />
   </a>
 </p>
 
@@ -154,13 +154,41 @@ Once installed, ask your agent to _"add shieldcn badges to the README"_ — it k
 
 Learn more in the [skill docs](https://shieldcn.dev/docs/skill).
 
-## Local development
+## Self-Hosting
+
+Run your own badge engine with Docker:
 
 ```bash
-pnpm install        # install dependencies
-pnpm dev            # start dev server
-pnpm build          # next build
+git clone https://github.com/jal-co/shieldcn.git
+cd shieldcn
+docker compose -f packages/engine/docker-compose.yml up -d
+
+# Test it
+curl http://localhost:3000/badge/self--hosted-green.svg
 ```
+
+Or pull the pre-built image:
+
+```bash
+docker pull ghcr.io/jal-co/shieldcn/engine:latest
+```
+
+See the [Self-Hosting Guide](https://shieldcn.dev/docs/self-hosting) for full setup details.
+
+## Local Development
+
+```bash
+pnpm install             # install all workspace deps
+pnpm dev:web             # start the web site
+pnpm dev:engine          # start the self-hosted engine
+pnpm build:web           # build the web site
+pnpm build:engine        # build the engine
+```
+
+The repo is a Turborepo monorepo with three packages:
+- `packages/core` — shared badge engine library
+- `packages/web` — marketing site (Vercel)
+- `packages/engine` — self-hosted Docker image
 
 
 ## Token pool
@@ -179,6 +207,8 @@ shieldcn uses a [token pool](https://shieldcn.dev/token-pool) (inspired by [shie
 ## Contributing
 
 PRs welcome. See [AGENTS.md](./AGENTS.md) for architecture overview.
+
+To add shadcn components: `cd packages/web && pnpm dlx shadcn@latest add {component}`
 
 ## License
 

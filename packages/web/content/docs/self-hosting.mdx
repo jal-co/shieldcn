@@ -1,0 +1,125 @@
+---
+title: Self-Hosting
+description: Run your own shieldcn badge engine with Docker.
+---
+
+Run your own shieldcn badge engine — no reliance on shieldcn.dev infrastructure.
+
+## Quick Start
+
+```bash
+# Clone the repo
+git clone https://github.com/jal-co/shieldcn.git
+cd shieldcn
+
+# Start with Docker Compose
+docker compose -f packages/engine/docker-compose.yml up -d
+
+# Test it
+curl http://localhost:3000/badge/self--hosted-green.svg
+curl http://localhost:3000/api/health
+```
+
+Or pull the pre-built image:
+
+```bash
+docker pull ghcr.io/jal-co/shieldcn/engine:latest
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `GITHUB_TOKEN` | — | Single GitHub token fallback (5,000 req/hr) |
+| `GITHUB_OAUTH_CLIENT_ID` | — | OAuth app for token pool |
+| `GITHUB_OAUTH_CLIENT_SECRET` | — | OAuth app secret |
+| `YOUTUBE_API_KEY` | — | YouTube Data API key |
+| `UPSTASH_REDIS_REST_URL` | — | Upstash Redis for persistent cache |
+| `UPSTASH_REDIS_REST_TOKEN` | — | Upstash Redis token |
+| `NEXT_PUBLIC_URL` | — | Engine base URL (default: `http://localhost:3000`) |
+
+## What's Included
+
+The self-hosted engine serves all badge endpoints:
+
+- All 30+ badge providers (npm, GitHub, PyPI, Docker Hub, etc.)
+- SVG, PNG, and JSON output formats
+- All variants, themes, gradients, and customization options
+- GitHub token pool with OAuth flow
+- Memo badges (persistent badges with Bearer auth)
+- Health check at `/api/health`
+
+## What's Not Included
+
+The engine does **not** include:
+
+- Documentation site
+- Gallery, showcase, or landing pages
+- Analytics (OpenPanel)
+- shadcn component registry
+
+These are only in the `packages/web` site at [shieldcn.dev](https://shieldcn.dev).
+
+## Token Pool Setup
+
+The token pool distributes GitHub API requests across multiple OAuth tokens to stay under rate limits.
+
+### Option 1: Single Token (Simple)
+
+Set `GITHUB_TOKEN` to a personal access token with no scopes (public data only).
+
+### Option 2: OAuth Token Pool (Scalable)
+
+1. Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers)
+2. Set the callback URL to `{NEXT_PUBLIC_URL}/api/auth/github/callback`
+3. Set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET`
+4. Users can authorize at `{NEXT_PUBLIC_URL}/api/auth/github`
+
+## Reverse Proxy
+
+### Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name badges.example.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Caddy
+
+```
+badges.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+## Upgrading
+
+```bash
+# Pull latest image
+docker pull ghcr.io/jal-co/shieldcn/engine:latest
+
+# Restart
+docker compose -f packages/engine/docker-compose.yml up -d
+```
+
+Or if building from source:
+
+```bash
+git pull
+docker compose -f packages/engine/docker-compose.yml up -d --build
+```
+
+## Data Source
+
+The engine connects to the same upstream APIs as shieldcn.dev — npm registry, GitHub API, Docker Hub, etc. No data is proxied through shieldcn.dev.
