@@ -8,5 +8,12 @@ export const docs = defineDocs({
 })
 
 export default defineConfig({
-  mdxOptions: {},
+  mdxOptions: {
+    rehypeCodeOptions: {
+      themes: {
+        light: "min-light",
+        dark: "vesper",
+      },
+    },
+  },
 })
