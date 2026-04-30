@@ -12,6 +12,7 @@
     "./db": "./src/db.ts",
     "./token-pool": "./src/token-pool.ts",
     "./gen-counter": "./src/gen-counter.ts",
+    "./gen-users": "./src/gen-users.ts",
     "./provider-fetch": "./src/provider-fetch.ts",
     "./normalize-params": "./src/normalize-params.ts",
     "./format": "./src/format.ts",
