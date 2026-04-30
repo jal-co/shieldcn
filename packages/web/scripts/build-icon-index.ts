@@ -20,6 +20,7 @@
 
 import * as fs from "node:fs"
 import * as path from "node:path"
+import { listCustomIcons } from "@shieldcn/core/badges/custom-icons"
 
 interface IconEntry {
   /** The slug used in URLs. For SimpleIcons: bare slug. For others: prefix:Name */
@@ -27,7 +28,7 @@ interface IconEntry {
   /** Human-readable display title */
   title: string
   /** Source library */
-  source: "simple" | "lucide" | "fa" | "heroicons" | "tabler" | "phosphor" | "material" | "bootstrap" | "remix" | "feather"
+  source: "custom" | "simple" | "lucide" | "fa" | "heroicons" | "tabler" | "phosphor" | "material" | "bootstrap" | "remix" | "feather"
   /** Category tag for filtering */
   category?: string
 }
@@ -77,6 +78,18 @@ function categorize(name: string): string | undefined {
 
 async function buildIndex() {
   const icons: IconEntry[] = []
+
+  // 0. Custom icons shipped with shieldcn
+  console.log("Loading Custom icons...")
+  const customSlugs = listCustomIcons()
+  for (const slug of customSlugs) {
+    icons.push({
+      slug,
+      title: slug.charAt(0).toUpperCase() + slug.slice(1),
+      source: "custom",
+    })
+  }
+  console.log(`  Custom: ${customSlugs.length}`)
 
   // 1. SimpleIcons
   console.log("Loading SimpleIcons...")
@@ -236,6 +249,7 @@ async function buildIndex() {
 
   // Source code mapping for compact JSON
   const SOURCE_CODES: Record<string, string> = {
+    custom: "c",
     simple: "s",
     lucide: "l",
     fa: "f",
