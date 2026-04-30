@@ -384,6 +384,9 @@ export const categories: Category[] = [
       dynamicBadge("Analytics by OpenPanel", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&logoColor=fff&variant=branded", "Branded OpenPanel badge — shieldcn's analytics provider."),
       dynamicBadge("Analytics by OpenPanel (outline)", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&variant=outline", "Subtle OpenPanel analytics badge for README rows."),
       dynamicBadge("Analytics by OpenPanel (secondary)", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&logoColor=fff&variant=secondary", "OpenPanel analytics badge in secondary style."),
+      dynamicBadge("Built with shadcncraft", "components", "/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded", "Branded shadcncraft badge — production-ready shadcn/ui components and blocks."),
+      dynamicBadge("Built with shadcncraft (default)", "components", "/badge/built%20with-shadcncraft.svg?logo=shadcncraft", "shadcncraft badge in default style."),
+      dynamicBadge("Built with shadcncraft (secondary)", "components", "/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=secondary", "shadcncraft badge in secondary style."),
     ],
   },
   {

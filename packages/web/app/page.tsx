@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { SiteAnnouncement } from "@/components/site-announcement"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
@@ -37,6 +38,7 @@ export default async function Home() {
           <section className="relative min-h-[34rem] py-20 text-center space-y-6 flex flex-col justify-center">
             <BadgeMarquee />
             <div className="relative z-10 space-y-6">
+              <SiteAnnouncement />
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
                 Beautiful README badges
               </h1>

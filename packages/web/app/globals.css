@@ -50,6 +50,13 @@
   --font-geist: var(--font-geist);
   --font-sora: var(--font-sora);
   --font-fira-code: var(--font-fira-code);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border-subtle: var(--border-subtle);
 }
 
 :root {
@@ -85,6 +92,13 @@
   --sidebar-border: oklch(0.9400 0 0);
   --sidebar-ring: oklch(0 0 0);
   --radius: 0.375rem;
+  --info: hsl(201, 98%, 32%);
+  --info-foreground: hsl(204, 100%, 97%);
+  --success: hsl(155, 90%, 24%);
+  --success-foreground: hsl(145, 81%, 96%);
+  --warning: hsl(22, 92%, 37%);
+  --warning-foreground: hsl(45, 100%, 96%);
+  --border-subtle: hsl(0, 0%, 0%, 0.05);
 }
 
 .dark {
@@ -120,6 +134,13 @@
   --sidebar-border: oklch(0.3200 0 0);
   --sidebar-ring: oklch(0.7200 0 0);
   --radius: 0.375rem;
+  --info: hsl(199, 97%, 74%);
+  --info-foreground: hsl(201, 83%, 14%);
+  --success: hsl(148, 63%, 67%);
+  --success-foreground: hsl(156, 79%, 11%);
+  --warning: hsl(42, 99%, 65%);
+  --warning-foreground: hsl(17, 79%, 17%);
+  --border-subtle: hsl(0, 0%, 100%, 0.1);
 }
 
 @layer base {
@@ -172,6 +193,16 @@
   }
   code, pre {
     font-family: var(--font-mono);
+  }
+
+  /* Spacing for custom components inside prose */
+  .prose [data-slot="code-line"] {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose [data-slot="inline-hint"] {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
   }
 }
 

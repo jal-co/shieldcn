@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Monitor, Paintbrush, X, RotateCcw } from "lucide-react"
+import { Paintbrush, X, RotateCcw } from "lucide-react"
+import { motion } from "motion/react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 
@@ -125,29 +126,67 @@ export function ThemeSwitcher() {
       <button
         type="button"
         onClick={() => {
-          const next = theme === "system"
-            ? (resolvedTheme === "dark" ? "light" : "dark")
-            : theme === "light"
-              ? "dark"
-              : "system"
+          const next = resolvedTheme === "dark" ? "light" : "dark"
           setTheme(next)
         }}
-        className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className={cn(
+          "inline-flex size-8 items-center justify-center rounded-md transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+          resolvedTheme === "dark"
+            ? "text-white hover:bg-white/10"
+            : "text-black hover:bg-black/10"
+        )}
         aria-label={
-          theme === "system"
-            ? "System theme (click for light)"
-            : theme === "light"
-              ? "Light mode (click for dark)"
-              : "Dark mode (click for system)"
+          resolvedTheme === "dark"
+            ? "Dark mode (click for light)"
+            : "Light mode (click for dark)"
         }
       >
-        {theme === "system" ? (
-          <Monitor className="size-4" />
-        ) : resolvedTheme === "dark" ? (
-          <Moon className="size-4" />
-        ) : (
-          <Sun className="size-4" />
-        )}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          fill="currentColor"
+          strokeLinecap="round"
+          viewBox="0 0 32 32"
+          className="size-5"
+        >
+          <clipPath id="theme-toggle-clip">
+            <motion.path
+              animate={{
+                y: resolvedTheme === "dark" ? 10 : 0,
+                x: resolvedTheme === "dark" ? -12 : 0,
+              }}
+              transition={{ ease: "easeInOut", duration: 0.35 }}
+              d="M0-5h30a1 1 0 0 0 9 13v24H0Z"
+            />
+          </clipPath>
+          <g clipPath="url(#theme-toggle-clip)">
+            <motion.circle
+              animate={{ r: resolvedTheme === "dark" ? 10 : 8 }}
+              transition={{ ease: "easeInOut", duration: 0.35 }}
+              cx="16"
+              cy="16"
+            />
+            <motion.g
+              animate={{
+                rotate: resolvedTheme === "dark" ? -100 : 0,
+                scale: resolvedTheme === "dark" ? 0.5 : 1,
+                opacity: resolvedTheme === "dark" ? 0 : 1,
+              }}
+              transition={{ ease: "easeInOut", duration: 0.35 }}
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M16 5.5v-4" />
+              <path d="M16 30.5v-4" />
+              <path d="M1.5 16h4" />
+              <path d="M26.5 16h4" />
+              <path d="m23.4 8.6 2.8-2.8" />
+              <path d="m5.7 26.3 2.9-2.9" />
+              <path d="m5.8 5.8 2.8 2.8" />
+              <path d="m23.4 23.4 2.9 2.9" />
+            </motion.g>
+          </g>
+        </svg>
       </button>
 
       <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>

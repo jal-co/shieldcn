@@ -36,6 +36,17 @@ export function SiteFooter() {
                 OpenPanel
               </a>
             </p>
+            <p className="text-xs text-muted-foreground">
+              Built with{" "}
+              <a
+                href="https://shadcncraft.com?utm_source=shieldcn.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                shadcncraft
+              </a>
+            </p>
           </div>
 
           <div className="flex gap-10 text-sm">
