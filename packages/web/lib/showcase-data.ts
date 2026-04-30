@@ -381,6 +381,9 @@ export const categories: Category[] = [
       dynamicBadge("IndieDevs", "profile badge", "/indiedevs/jalco.svg?variant=branded", "Link your IndieDevs developer profile.", "/docs/badges/indiedevs"),
       dynamicBadge("IndieDevs (outline)", "profile badge", "/indiedevs/jalco.svg?variant=outline", "Subtle IndieDevs profile badge for README rows."),
       dynamicBadge("IndieDevs (secondary)", "profile badge", "/indiedevs/jalco.svg?variant=secondary", "IndieDevs profile badge in secondary style."),
+      dynamicBadge("Analytics by OpenPanel", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&logoColor=fff&variant=branded", "Branded OpenPanel badge — shieldcn's analytics provider."),
+      dynamicBadge("Analytics by OpenPanel (outline)", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&variant=outline", "Subtle OpenPanel analytics badge for README rows."),
+      dynamicBadge("Analytics by OpenPanel (secondary)", "analytics", "/badge/analytics%20by-OpenPanel-2564EB.svg?logo=openpanel&logoColor=fff&variant=secondary", "OpenPanel analytics badge in secondary style."),
     ],
   },
   {
