@@ -449,12 +449,18 @@ function IconEl({ r }: { r: ResolvedBadge }) {
   const vb = r.iconViewBox || "0 0 16 16"
   const color = r.iconFill || r.iconColor
 
+  // Compute aspect-ratio-aware dimensions.
+  // Most icons are square (24×24, 16×16) but custom SVGs can be any shape
+  // (e.g. openpanel is 61×35). We use iconSize as the height constraint
+  // and scale width proportionally so non-square icons aren't squished.
+  const [, , vbW, vbH] = vb.split(" ").map(Number)
+  const aspect = vbW && vbH ? vbW / vbH : 1
+  const iconH = r.iconSize
+  const iconW = Math.round(r.iconSize * Math.min(aspect, 2.5)) // cap at 2.5:1 to prevent absurdly wide icons
+
   // Compute rotation transform string if needed
   const rotTransform = r.iconRotation
-    ? (() => {
-        const [, , w, h] = vb.split(" ").map(Number)
-        return `rotate(${r.iconRotation}, ${w / 2}, ${h / 2})`
-      })()
+    ? `rotate(${r.iconRotation}, ${vbW / 2}, ${vbH / 2})`
     : undefined
 
   if (r.iconIsStroke) {
@@ -475,18 +481,26 @@ function IconEl({ r }: { r: ResolvedBadge }) {
       />
     ))
     return (
-      <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
+      <svg viewBox={vb} width={iconW} height={iconH} style={{ flexShrink: 0 }}>
         {rotTransform ? <g transform={rotTransform}>{pathEls}</g> : pathEls}
       </svg>
     )
   }
 
+  // Fill-based icons — render each path separately when we have individual
+  // paths (multi-path fill icons like openpanel). Fall back to single joined
+  // path string for SimpleIcons-style single-path icons.
   const fr = r.iconFillRule as "nonzero" | "evenodd" | undefined
+  const hasPaths = r.iconPaths && r.iconPaths.length > 0
+  const pathEls = hasPaths
+    ? r.iconPaths!.map((d, i) => <path key={i} fill={color} d={d} fillRule={fr} />)
+    : <path fill={color} d={r.icon} fillRule={fr} />
+
   return (
-    <svg viewBox={vb} width={r.iconSize} height={r.iconSize} style={{ flexShrink: 0 }}>
+    <svg viewBox={vb} width={iconW} height={iconH} style={{ flexShrink: 0 }}>
       {rotTransform
-        ? <g transform={rotTransform}><path fill={color} d={r.icon} fillRule={fr} /></g>
-        : <path fill={color} d={r.icon} fillRule={fr} />
+        ? <g transform={rotTransform}>{pathEls}</g>
+        : pathEls
       }
     </svg>
   )

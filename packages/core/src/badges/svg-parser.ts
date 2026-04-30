@@ -147,12 +147,20 @@ export function parseSvg(svg: string): ParsedSvg | null {
 
   if (pathDs.length === 0) return null
 
+  // Detect fill-rule from root SVG or first path element
+  let fillRule: string | undefined
+  const frMatch = svg.match(/fill-rule="([^"]+)"/) || svg.match(/fill-rule='([^']+)'/)
+  if (frMatch) fillRule = frMatch[1]
+
   return {
     icon: {
       viewBox,
       path: pathDs.join(" "),
-      paths: isStroke ? pathDs : undefined,
-      fillRule: undefined,
+      // Always populate paths when there are multiple — fill-based
+      // multi-path icons (e.g. openpanel) need separate <path> elements
+      // to render correctly with fill-rule.
+      paths: pathDs.length > 1 ? pathDs : undefined,
+      fillRule,
       isStroke,
       strokeWidth,
       strokeLinecap,

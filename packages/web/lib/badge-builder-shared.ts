@@ -7,33 +7,90 @@
  */
 
 // ---------------------------------------------------------------------------
-// Presets
+// Presets — template-based with fillable parameters
 // ---------------------------------------------------------------------------
 
-export const BADGE_PRESETS = [
-  { label: "npm version", path: "/npm/react.svg", group: "Package" },
-  { label: "npm downloads", path: "/npm/react/dm.svg", group: "Package" },
-  { label: "npm license", path: "/npm/react/license.svg", group: "Package" },
-  { label: "npm types", path: "/npm/react/types.svg", group: "Package" },
-  { label: "PyPI version", path: "/pypi/django/v.svg", group: "Package" },
-  { label: "Crates.io version", path: "/crates/serde/v.svg", group: "Package" },
-  { label: "JSR score", path: "/jsr/@std/path/score.svg", group: "Package" },
-  { label: "Docker pulls", path: "/docker/library/nginx/pulls.svg", group: "Package" },
-  { label: "GitHub stars", path: "/github/vercel/next.js/stars.svg", group: "GitHub" },
-  { label: "GitHub release", path: "/github/vercel/next.js/release.svg", group: "GitHub" },
-  { label: "GitHub CI", path: "/github/vercel/next.js/ci.svg", group: "GitHub" },
-  { label: "GitHub license", path: "/github/vercel/next.js/license.svg", group: "GitHub" },
-  { label: "GitHub forks", path: "/github/vercel/next.js/forks.svg", group: "GitHub" },
-  { label: "GitHub issues", path: "/github/vercel/next.js/issues.svg", group: "GitHub" },
-  { label: "GitHub contributors", path: "/github/vercel/next.js/contributors.svg", group: "GitHub" },
-  { label: "GitHub last commit", path: "/github/vercel/next.js/last-commit.svg", group: "GitHub" },
-  { label: "GitHub downloads", path: "/github/vercel/next.js/downloads.svg", group: "GitHub" },
-  { label: "Discord online", path: "/discord/1316199667142496307.svg", group: "Social" },
-  { label: "Reddit subscribers", path: "/reddit/typescript.svg", group: "Social" },
-  { label: "YouTube subscribers", path: "/youtube/UCsBjURrPoezykLs9EqgamOA/subscribers.svg", group: "Social" },
-  { label: "Twitch status", path: "/twitch/shroud.svg", group: "Social" },
-  { label: "Static badge", path: "/badge/build-passing-22c55e.svg", group: "Custom" },
-] as const
+export interface BadgePresetParam {
+  /** URL-safe key used in the path template */
+  key: string
+  /** Human-readable label */
+  label: string
+  /** Placeholder / example value */
+  placeholder: string
+  /** Default value */
+  default: string
+  /** Whether this param can be left blank */
+  optional?: boolean
+}
+
+export interface BadgePreset {
+  /** Display label */
+  label: string
+  /** URL path template with {key} placeholders */
+  template: string
+  /** Fillable parameters */
+  params: BadgePresetParam[]
+  /** Category group */
+  group: string
+  /** Custom path resolver (e.g. "static" for dash-separated format) */
+  customResolver?: string
+}
+
+export const BADGE_PRESETS: BadgePreset[] = [
+  // Package
+  { label: "npm — version", template: "/npm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package" },
+  { label: "npm — downloads", template: "/npm/{package}/dm.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package" },
+  { label: "npm — license", template: "/npm/{package}/license.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package" },
+  { label: "npm — types", template: "/npm/{package}/types.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package" },
+  { label: "PyPI — version", template: "/pypi/{package}/v.svg", params: [{ key: "package", label: "Package", placeholder: "django", default: "django" }], group: "Package" },
+  { label: "Crates.io — version", template: "/crates/{crate}/v.svg", params: [{ key: "crate", label: "Crate", placeholder: "serde", default: "serde" }], group: "Package" },
+  { label: "JSR — score", template: "/jsr/{scope}/{package}/score.svg", params: [{ key: "scope", label: "Scope", placeholder: "@std", default: "@std" }, { key: "package", label: "Package", placeholder: "path", default: "path" }], group: "Package" },
+  { label: "Docker — pulls", template: "/docker/{namespace}/{image}/pulls.svg", params: [{ key: "namespace", label: "Namespace", placeholder: "library", default: "library" }, { key: "image", label: "Image", placeholder: "nginx", default: "nginx" }], group: "Package" },
+
+  // GitHub
+  { label: "GitHub — stars", template: "/github/{owner}/{repo}/stars.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — release", template: "/github/{owner}/{repo}/release.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — CI", template: "/github/{owner}/{repo}/ci.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — license", template: "/github/{owner}/{repo}/license.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — forks", template: "/github/{owner}/{repo}/forks.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — issues", template: "/github/{owner}/{repo}/issues.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — contributors", template: "/github/{owner}/{repo}/contributors.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — last commit", template: "/github/{owner}/{repo}/last-commit.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+  { label: "GitHub — downloads", template: "/github/{owner}/{repo}/downloads.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "GitHub" },
+
+  // Social
+  { label: "Discord — online", template: "/discord/{serverId}.svg", params: [{ key: "serverId", label: "Server ID", placeholder: "1316199667142496307", default: "1316199667142496307" }], group: "Social" },
+  { label: "Reddit — subscribers", template: "/reddit/{subreddit}.svg", params: [{ key: "subreddit", label: "Subreddit", placeholder: "typescript", default: "typescript" }], group: "Social" },
+  { label: "YouTube — subscribers", template: "/youtube/{channelId}/subscribers.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social" },
+  { label: "Twitch — status", template: "/twitch/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social" },
+
+  // Custom
+  { label: "Static badge", template: "/badge/{content}.svg", params: [{ key: "label", label: "Label", placeholder: "build", default: "build", optional: true }, { key: "value", label: "Value", placeholder: "passing", default: "passing" }, { key: "color", label: "Color (hex)", placeholder: "22c55e", default: "22c55e", optional: true }], group: "Custom", customResolver: "static" },
+]
+
+/** Resolve a preset template with parameter values */
+export function resolveTemplate(preset: BadgePreset, values: Record<string, string>): string {
+  // Static badge has special dash-separated format
+  if (preset.customResolver === "static") {
+    const label = values.label?.trim() || ""
+    const value = values.value?.trim() || "badge"
+    const color = values.color?.trim() || ""
+    // Encode spaces as %20 and dashes as -- for the static badge parser
+    const encodeSegment = (s: string) => s.replace(/-/g, "--").replace(/ /g, "%20")
+    const parts = []
+    if (label) parts.push(encodeSegment(label))
+    parts.push(encodeSegment(value))
+    if (color) parts.push(color)
+    return `/badge/${parts.join("-")}.svg`
+  }
+
+  let path = preset.template
+  for (const param of preset.params) {
+    const val = values[param.key] || param.default
+    path = path.replace(`{${param.key}}`, val)
+  }
+  return path
+}
 
 // ---------------------------------------------------------------------------
 // Options

@@ -19,6 +19,7 @@ export interface IconEntry {
 }
 
 const SOURCE_LABELS: Record<string, string> = {
+  c: "shieldcn",
   s: "Simple Icons",
   l: "Lucide",
   f: "Font Awesome",
@@ -31,6 +32,7 @@ const SOURCE_LABELS: Record<string, string> = {
 }
 
 const SOURCE_NAMES: Record<string, string> = {
+  c: "custom",
   s: "simple",
   l: "lucide",
   f: "fa",
@@ -55,6 +57,7 @@ export function parseCompactIcons(data: unknown[]): IconEntry[] {
 /** All available source filters */
 export const ICON_SOURCES = [
   { value: "all", label: "All sources" },
+  { value: "custom", label: "shieldcn", description: "Custom brand icons" },
   { value: "simple", label: "Simple Icons", description: "Brand logos" },
   { value: "lucide", label: "Lucide", description: "Clean utility icons" },
   { value: "fa", label: "Font Awesome", description: "Classic web icons" },

@@ -20,7 +20,7 @@
   <a href="https://github.com/jal-co/shieldcn/graphs/contributors"><img src="https://shieldcn.dev/github/contributors/jal-co/shieldcn.svg?variant=branded" alt="contributors" /></a>
   <a href="https://github.com/jal-co/shieldcn/commits/main"><img src="https://shieldcn.dev/github/last-commit/jal-co/shieldcn.svg?variant=branded" alt="last commit" /></a>
   <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
-  <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel-2564EB.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
+  <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
 </p>
 
 ## About

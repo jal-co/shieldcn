@@ -5,49 +5,124 @@
  * Custom SVG icons shipped with shieldcn for providers/brands
  * not available in SimpleIcons or React Icons.
  *
- * Each entry uses the same IconData format as the rest of the icon pipeline.
+ * Pipeline:
+ * 1. Drop an .svg file into packages/core/src/icons/
+ * 2. Add a one-liner to the registry below: slug → { file, color }
+ * 3. Done — the SVG is parsed at startup and served as an icon.
+ *
+ * The parser handles:
+ * - Fill-based icons (normal SVGs with solid paths)
+ * - Stroke-based icons (Lucide/Feather style — auto-detected)
+ * - Non-square viewBoxes (aspect ratio preserved in rendering)
+ * - Multi-path SVGs (each <path> extracted separately)
+ * - <circle>, <rect>, <ellipse>, <line>, <polyline>, <polygon>
+ * - Rotation via `data-rotation="45"` on the root <svg>
  */
 
+import { readFileSync, readdirSync } from "node:fs"
+import { join, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
+import { existsSync } from "node:fs"
+import { parseSvg } from "./svg-parser"
 import type { IconData } from "./icons"
 
-interface CustomIcon {
-  icon: IconData
+// ---------------------------------------------------------------------------
+// Registry — one entry per custom icon
+// ---------------------------------------------------------------------------
+
+interface CustomIconEntry {
+  /** SVG filename in packages/core/src/icons/ */
+  file: string
   /** Default brand color (hex without #) */
+  color: string
+  /** Optional rotation in degrees (applied around viewBox center) */
+  rotation?: number
+}
+
+/**
+ * Custom icon registry.
+ *
+ * To add a new icon:
+ * 1. Save the SVG to packages/core/src/icons/{name}.svg
+ * 2. Add an entry here: slug → { file, color }
+ *
+ * Tips for good SVGs:
+ * - Use a proper viewBox (not width/height only)
+ * - Remove hardcoded fill colors (let the badge engine color it)
+ * - Keep it simple — no gradients, filters, or CSS classes
+ * - For stroke icons: use stroke="currentColor" and fill="none"
+ */
+const registry: Record<string, CustomIconEntry> = {
+  openpanel: { file: "openpanel.svg", color: "2564EB" },
+  indiedevs: { file: "indiedevs.svg", color: "818CF8", rotation: 45 },
+  shieldcn: { file: "shieldcn.svg", color: "000000" },
+}
+
+// ---------------------------------------------------------------------------
+// Load and cache icons at startup
+// ---------------------------------------------------------------------------
+
+interface LoadedIcon {
+  icon: IconData
   color: string
 }
 
-const customIcons: Record<string, CustomIcon> = {
-  openpanel: {
-    icon: {
-      viewBox: "0 0 61 35",
-      paths: [
-        "M34.0269 5.5413C34.0269 2.6843 36.3432 0.368164 39.2002 0.368164C42.0572 0.368164 44.3743 2.6843 44.3743 5.5413V29.4206C44.3743 32.2776 42.0572 34.594 39.2002 34.594C36.3432 34.594 34.0269 32.2776 34.0269 29.4206V5.5413Z",
-        "M49.9458 5.5413C49.9458 2.6843 52.2621 0.368164 55.1191 0.368164C57.9761 0.368164 60.2932 2.6843 60.2932 5.5413V12.7059C60.2932 15.5629 57.9761 17.8791 55.1191 17.8791C52.2621 17.8791 49.9458 15.5629 49.9458 12.7059V5.5413Z",
-        "M14.212 0C6.36293 0 0 6.36293 0 14.212V20.02C0 27.8691 6.36293 34.232 14.212 34.232C22.0611 34.232 28.424 27.8691 28.424 20.02V14.212C28.424 6.36293 22.0611 0 14.212 0ZM14.2379 8.35999C11.3805 8.35999 9.06419 10.6763 9.06419 13.5337V20.6971C9.06419 23.5545 11.3805 25.8708 14.2379 25.8708C17.0953 25.8708 19.4116 23.5545 19.4116 20.6971V13.5337C19.4116 10.6763 17.0953 8.35999 14.2379 8.35999Z",
-      ],
-      path: "",
-      fillRule: "evenodd",
-    },
-    color: "2564EB",
-  },
-  indiedevs: {
-    icon: {
-      viewBox: "0 0 24 24",
-      paths: [
-        "m18 16 4-4-4-4",
-        "m6 8-4 4 4 4",
-        "m14.5 4-5 16",
-      ],
-      path: "m18 16 4-4-4-4 m6 8-4 4 4 4 m14.5 4-5 16",
-      isStroke: true,
-      strokeWidth: 2,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-      rotation: 45,
-    },
-    color: "818CF8", // indigo-400
-  },
+let iconCache: Map<string, LoadedIcon> | null = null
+
+function findIconsDir(): string {
+  const candidates = [
+    join(dirname(fileURLToPath(import.meta.url)), "..", "icons"),
+    join(process.cwd(), "packages", "core", "src", "icons"),
+    join(process.cwd(), "..", "core", "src", "icons"),
+  ]
+  for (const dir of candidates) {
+    if (existsSync(dir)) return dir
+  }
+  throw new Error(`Could not find icons directory. Searched: ${candidates.join(", ")}`)
 }
+
+function loadIcons(): Map<string, LoadedIcon> {
+  if (iconCache) return iconCache
+
+  const iconsDir = findIconsDir()
+  const cache = new Map<string, LoadedIcon>()
+
+  for (const [slug, entry] of Object.entries(registry)) {
+    const filePath = join(iconsDir, entry.file)
+    if (!existsSync(filePath)) {
+      console.warn(`[shieldcn] Custom icon file not found: ${filePath} (slug: ${slug})`)
+      continue
+    }
+
+    try {
+      const svgContent = readFileSync(filePath, "utf-8")
+      const parsed = parseSvg(svgContent)
+      if (!parsed) {
+        console.warn(`[shieldcn] Failed to parse SVG: ${entry.file} (slug: ${slug})`)
+        continue
+      }
+
+      // Apply rotation override from registry
+      if (entry.rotation) {
+        parsed.icon.rotation = entry.rotation
+      }
+
+      cache.set(slug, {
+        icon: parsed.icon,
+        color: entry.color,
+      })
+    } catch (err) {
+      console.warn(`[shieldcn] Error loading custom icon ${entry.file}:`, err)
+    }
+  }
+
+  iconCache = cache
+  return cache
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 /**
  * Look up a custom icon by slug.
@@ -56,7 +131,8 @@ const customIcons: Record<string, CustomIcon> = {
 export function getCustomIcon(
   slug: string
 ): { icon: IconData; defaultColor: string } | null {
-  const entry = customIcons[slug.toLowerCase()]
+  const cache = loadIcons()
+  const entry = cache.get(slug.toLowerCase())
   if (!entry) return null
 
   return {
@@ -69,5 +145,80 @@ export function getCustomIcon(
  * Check if a slug matches a custom icon.
  */
 export function hasCustomIcon(slug: string): boolean {
-  return slug.toLowerCase() in customIcons
+  const cache = loadIcons()
+  return cache.has(slug.toLowerCase())
+}
+
+/**
+ * List all available custom icon slugs.
+ * Useful for documentation and validation.
+ */
+export function listCustomIcons(): string[] {
+  return Object.keys(registry)
+}
+
+/**
+ * Validate all icons in the registry.
+ * Returns a list of issues (empty = all good).
+ * Run this during development to catch problems early.
+ */
+export function validateCustomIcons(): string[] {
+  const issues: string[] = []
+  const iconsDir = findIconsDir()
+
+  // Check registry entries
+  for (const [slug, entry] of Object.entries(registry)) {
+    const filePath = join(iconsDir, entry.file)
+    if (!existsSync(filePath)) {
+      issues.push(`${slug}: file not found → ${entry.file}`)
+      continue
+    }
+
+    const svgContent = readFileSync(filePath, "utf-8")
+    const parsed = parseSvg(svgContent)
+    if (!parsed) {
+      issues.push(`${slug}: SVG parse failed — no renderable paths found`)
+      continue
+    }
+
+    // Check for common problems
+    if (!svgContent.includes("viewBox")) {
+      issues.push(`${slug}: missing viewBox — icon may render at wrong size`)
+    }
+
+    if (svgContent.includes("class=")) {
+      issues.push(`${slug}: contains CSS classes — these won't work in badge SVGs`)
+    }
+
+    if (svgContent.includes("<style")) {
+      issues.push(`${slug}: contains <style> block — inline styles only`)
+    }
+
+    if (svgContent.includes("url(") || svgContent.includes("<linearGradient") || svgContent.includes("<radialGradient")) {
+      issues.push(`${slug}: contains gradients — not supported in badge rendering`)
+    }
+
+    if (svgContent.includes("<filter")) {
+      issues.push(`${slug}: contains filters — not supported in badge rendering`)
+    }
+
+    if (!/^[0-9a-fA-F]{6}$/.test(entry.color)) {
+      issues.push(`${slug}: invalid color "${entry.color}" — must be 6-char hex without #`)
+    }
+  }
+
+  // Check for orphaned SVG files (in icons dir but not in registry)
+  try {
+    const files = readdirSync(iconsDir).filter(f => f.endsWith(".svg"))
+    const registeredFiles = new Set(Object.values(registry).map(e => e.file))
+    for (const file of files) {
+      if (!registeredFiles.has(file)) {
+        issues.push(`orphan: ${file} exists in icons/ but is not registered`)
+      }
+    }
+  } catch {
+    // Directory listing failed — not critical
+  }
+
+  return issues
 }
