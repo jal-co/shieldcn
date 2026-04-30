@@ -1,0 +1,36 @@
+---
+title: Matrix
+description: Badges for Matrix chat rooms — member count.
+badge: "/matrix/members/matrix:matrix.org.svg?variant=branded"
+---
+
+Display member counts for public Matrix chat rooms.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/matrix/members/matrix:matrix.org.svg?variant=branded" alt="matrix members" description="Members (branded)" />
+  <BadgePreviewCard src="/matrix/members/matrix:matrix.org.svg?variant=secondary" alt="matrix" description="Secondary" />
+  <BadgePreviewCard src="/matrix/members/matrix:matrix.org.svg?variant=outline" alt="matrix" description="Outline" />
+  <BadgePreviewCard src="/matrix/members/matrix:matrix.org.svg" alt="matrix" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Members | `/matrix/members/{roomAlias}` | Room member count |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![matrix](https://shieldcn.dev/matrix/members/matrix:matrix.org.svg)' />
+
+<CodeLine language="markdown" code='![matrix](https://shieldcn.dev/matrix/members/rust:matrix.org.svg?variant=branded)' />
+
+## Custom homeservers
+
+By default, rooms are looked up on `matrix.org`. For other homeservers, use the `?server=` parameter:
+
+<CodeLine language="markdown" code='![matrix](https://shieldcn.dev/matrix/members/myroom:example.com.svg?server=example.com)' />
+
+## Data source
+
+Uses the [Matrix Client API](https://spec.matrix.org/latest/client-server-api/). No API key required for public rooms. Cached 1 hour.

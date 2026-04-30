@@ -1,0 +1,37 @@
+---
+title: Chrome Web Store
+description: Badges for Chrome browser extensions — version, users, rating.
+badge: "/chrome/v/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg?variant=branded"
+---
+
+Display Chrome Web Store extension stats.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/chrome/v/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg?variant=branded" alt="chrome version" description="Version (branded)" />
+  <BadgePreviewCard src="/chrome/users/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg?variant=secondary" alt="chrome users" description="Users" />
+  <BadgePreviewCard src="/chrome/rating/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg?variant=outline" alt="chrome rating" description="Rating" />
+  <BadgePreviewCard src="/chrome/v/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg" alt="chrome default" description="Default variant" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/chrome/v/{extensionId}` | Extension version |
+| Users | `/chrome/users/{extensionId}` | User install count |
+| Rating | `/chrome/rating/{extensionId}` | Average rating |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/chrome/v/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg)' />
+
+<CodeLine language="markdown" code='![users](https://shieldcn.dev/chrome/users/cjpalhdlnbpafiamejdnhcphjbkeiagm.svg?variant=branded)' />
+
+## Finding your extension ID
+
+1. Visit your extension's page on the Chrome Web Store
+2. The extension ID is the last part of the URL: `https://chromewebstore.google.com/detail/{name}/{extensionId}`
+
+## Data source
+
+Uses the Chrome Web Store APIs. No API key required. Cached 1 hour.

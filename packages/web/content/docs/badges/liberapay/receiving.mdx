@@ -1,0 +1,33 @@
+---
+title: Liberapay Receiving
+description: Display the weekly income for a Liberapay user.
+badge: "/liberapay/receiving/Changaco.svg?variant=branded"
+---
+
+Show how much a Liberapay user receives per week in donations.
+
+<BadgeSandbox
+  endpoint="/liberapay/receiving/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/liberapay/receiving/{username}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/liberapay/receiving/Changaco.svg" alt="receiving" description="Default — weekly donation income" />
+
+<BadgePreview src="/liberapay/receiving/Changaco.svg?variant=branded" alt="receiving" description="Branded — Liberapay yellow" />
+
+## Notes
+
+Some users choose to hide their income. In that case, the badge will show "hidden".
+
+## Data source
+
+Uses the [Liberapay API](https://liberapay.com/about/api). No API key required. Cached 1 hour.

@@ -1,0 +1,34 @@
+---
+title: GitLab Repository
+description: Display contributors and last activity for GitLab projects.
+badge: "/gitlab/inkscape/inkscape/contributors.svg?variant=branded"
+---
+
+Show contributor count and last activity for a GitLab project.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/contributors.svg?variant=branded" alt="contributors" description="Contributors (branded)" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/last-commit.svg?variant=secondary" alt="last activity" description="Last activity" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/contributors.svg?variant=outline" alt="contributors" description="Contributors (outline)" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/last-commit.svg" alt="last activity" description="Last activity (default)" />
+</BadgePreviewGroup>
+
+## URL formats
+
+### Contributors
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/contributors.svg" hideCopy />
+
+### Last activity
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/last-commit.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/contributors.svg" alt="contributors" description="Default — contributor count" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/last-commit.svg?variant=secondary" alt="last activity" description="Secondary — how recently the project was active" />
+
+## Data source
+
+Uses the [GitLab API v4](https://docs.gitlab.com/ee/api/). No API key required for public projects. Cached 1 hour.

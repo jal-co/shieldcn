@@ -100,6 +100,24 @@ import { getCodecovCoverage } from "./providers/codecov"
 import { getWakaTimeCodingTime } from "./providers/wakatime"
 import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "./providers/tokscale"
 import { getIndieDevsUser } from "./providers/indiedevs"
+import { getGitLabStars, getGitLabForks, getGitLabIssues, getGitLabPipeline, getGitLabLicense, getGitLabLastCommit, getGitLabContributors, getGitLabRelease } from "./providers/gitlab"
+import { getCondaVersion, getCondaDownloads, getCondaPlatform } from "./providers/conda"
+import { getChromeVersion, getChromeUsers, getChromeRating } from "./providers/chrome"
+import { getAMOVersion, getAMOUsers, getAMORating, getAMODownloads } from "./providers/amo"
+import { getCoverallsCoverage } from "./providers/coveralls"
+import { getSonarQualityGate, getSonarBugs, getSonarVulnerabilities, getSonarCodeSmells, getSonarCoverage, getSonarDuplicatedLines, getSonarMaintainability, getSonarReliability, getSonarSecurity } from "./providers/sonar"
+import { getJsDelivrHits, getJsDelivrGHHits, getJsDelivrRank } from "./providers/jsdelivr"
+import { getChocolateyVersion, getChocolateyDownloads } from "./providers/chocolatey"
+import { getFlathubVersion, getFlathubDownloads } from "./providers/flathub"
+import { getSnapcraftVersion } from "./providers/snapcraft"
+import { getFDroidVersion } from "./providers/fdroid"
+import { getDiscourseTopics, getDiscoursePosts, getDiscourseUsers, getDiscourseLikes } from "./providers/discourse"
+import { getStackExchangeTagQuestions, getStackExchangeReputation } from "./providers/stackexchange"
+import { getModrinthDownloads, getModrinthFollowers, getModrinthVersion, getModrinthGameVersions } from "./providers/modrinth"
+import { getOpenVSXVersion, getOpenVSXDownloads, getOpenVSXRating } from "./providers/openvsx"
+import { getLiberapayReceiving, getLiberapayPatrons, getLiberapayGoal } from "./providers/liberapay"
+import { getMatrixMembers } from "./providers/matrix"
+import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
@@ -871,6 +889,322 @@ async function fetchBadgeData(
       return getIndieDevsUser(rest[0])
     }
 
+    // /gitlab/{owner}/{repo}/{topic}
+    // e.g. /gitlab/inkscape/inkscape/stars
+    case "gitlab": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const owner = rest[0]
+      const repo = rest[1]
+      const topic = rest[2]
+
+      switch (topic) {
+        case "stars": return getGitLabStars(owner, repo)
+        case "forks": return getGitLabForks(owner, repo)
+        case "issues": return getGitLabIssues(owner, repo, "opened")
+        case "open-issues": return getGitLabIssues(owner, repo, "opened")
+        case "closed-issues": return getGitLabIssues(owner, repo, "closed")
+        case "pipeline": return getGitLabPipeline(owner, repo, searchParams.get("branch") ?? undefined)
+        case "license": return getGitLabLicense(owner, repo)
+        case "last-commit": return getGitLabLastCommit(owner, repo)
+        case "contributors": return getGitLabContributors(owner, repo)
+        case "release": return getGitLabRelease(owner, repo)
+        default: return null
+      }
+    }
+
+    // /conda/{topic}/{channel}/{package}
+    // e.g. /conda/v/conda-forge/numpy
+    case "conda": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const channel = rest[1]
+      const pkg = rest[2]
+
+      switch (topic) {
+        case "v": return getCondaVersion(channel, pkg)
+        case "d": return getCondaDownloads(channel, pkg)
+        case "platform": return getCondaPlatform(channel, pkg)
+        default: return getCondaVersion(rest[0], rest[1])
+      }
+    }
+
+    // /chrome/{topic}/{extensionId}
+    // e.g. /chrome/v/cjpalhdlnbpafiamejdnhcphjbkeiagm
+    case "chrome": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const id = rest[1]
+
+      switch (topic) {
+        case "v": return getChromeVersion(id)
+        case "users": return getChromeUsers(id)
+        case "rating": return getChromeRating(id)
+        default: return getChromeVersion(rest[0])
+      }
+    }
+
+    // /amo/{topic}/{slug}
+    // e.g. /amo/v/ublock-origin
+    case "amo": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const amoTopics = new Set(["v", "users", "rating", "d"])
+      if (amoTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getAMOVersion(rest[1])
+          case "users": return getAMOUsers(rest[1])
+          case "rating": return getAMORating(rest[1])
+          case "d": return getAMODownloads(rest[1])
+          default: return null
+        }
+      }
+
+      return getAMOVersion(rest[0])
+    }
+
+    // /coveralls/{service}/{owner}/{repo}[/{branch}]
+    // e.g. /coveralls/github/lemurheavy/coveralls-ruby
+    case "coveralls": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      return getCoverallsCoverage(rest[0], rest[1], rest[2], rest[3])
+    }
+
+    // /sonar/{topic}/{component}[?server=host]
+    // e.g. /sonar/quality-gate/org.sonarsource.sonarqube:sonarqube
+    case "sonar": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const component = rest.slice(1).join("/")
+      const server = searchParams.get("server") ?? undefined
+
+      switch (topic) {
+        case "quality-gate": return getSonarQualityGate(component, server)
+        case "bugs": return getSonarBugs(component, server)
+        case "vulnerabilities": return getSonarVulnerabilities(component, server)
+        case "code-smells": return getSonarCodeSmells(component, server)
+        case "coverage": return getSonarCoverage(component, server)
+        case "duplicated-lines": return getSonarDuplicatedLines(component, server)
+        case "maintainability": return getSonarMaintainability(component, server)
+        case "reliability": return getSonarReliability(component, server)
+        case "security": return getSonarSecurity(component, server)
+        default: return null
+      }
+    }
+
+    // /jsdelivr/{topic}/{type}/{package}
+    // e.g. /jsdelivr/hits/npm/react or /jsdelivr/rank/npm/lodash
+    case "jsdelivr": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const type = rest[1]
+
+      if (topic === "hits" || topic === "dm" || topic === "dy") {
+        const period = topic === "dy" ? "year" : "month"
+        if (type === "npm") return getJsDelivrHits(rest[2], period)
+        if (type === "gh" && rest[3]) return getJsDelivrGHHits(rest[2], rest[3], period)
+        return null
+      }
+
+      if (topic === "rank" && type === "npm") {
+        return getJsDelivrRank(rest[2])
+      }
+
+      return null
+    }
+
+    // /chocolatey/{topic}/{package}
+    // e.g. /chocolatey/v/git or /chocolatey/dt/nodejs
+    case "chocolatey": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const chocoTopics = new Set(["v", "dt"])
+      if (chocoTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getChocolateyVersion(rest[1])
+          case "dt": return getChocolateyDownloads(rest[1])
+          default: return null
+        }
+      }
+
+      return getChocolateyVersion(rest[0])
+    }
+
+    // /flathub/{topic}/{appId}
+    // e.g. /flathub/v/org.gimp.GIMP
+    case "flathub": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const flatTopics = new Set(["v", "downloads"])
+      if (flatTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "v": return getFlathubVersion(rest[1])
+          case "downloads": return getFlathubDownloads(rest[1])
+          default: return null
+        }
+      }
+
+      return getFlathubVersion(rest[0])
+    }
+
+    // /snapcraft/v/{snap}
+    // e.g. /snapcraft/v/vlc
+    case "snapcraft": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      if (rest[0] === "v" && rest[1]) {
+        return getSnapcraftVersion(rest[1])
+      }
+
+      return getSnapcraftVersion(rest[0])
+    }
+
+    // /fdroid/v/{appId}
+    // e.g. /fdroid/v/org.mozilla.firefox
+    case "fdroid": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      if (rest[0] === "v" && rest[1]) {
+        return getFDroidVersion(rest[1])
+      }
+
+      return getFDroidVersion(rest[0])
+    }
+
+    // /discourse/{topic}/{server}
+    // e.g. /discourse/topics/meta.discourse.org
+    case "discourse": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const server = rest[1]
+
+      switch (topic) {
+        case "topics": return getDiscourseTopics(server)
+        case "posts": return getDiscoursePosts(server)
+        case "users": return getDiscourseUsers(server)
+        case "likes": return getDiscourseLikes(server)
+        default: return null
+      }
+    }
+
+    // /stackexchange/{topic}/{tag-or-userId}[?site=stackoverflow]
+    // e.g. /stackexchange/tag/javascript or /stackexchange/reputation/22656
+    case "stackexchange": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const topic = rest[0]
+      const site = searchParams.get("site") ?? "stackoverflow"
+
+      switch (topic) {
+        case "tag": return getStackExchangeTagQuestions(rest[1], site)
+        case "reputation": return getStackExchangeReputation(rest[1], site)
+        default: return null
+      }
+    }
+
+    // /modrinth/{topic}/{slug}
+    // e.g. /modrinth/downloads/sodium or /modrinth/v/fabric-api
+    case "modrinth": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const mrTopics = new Set(["downloads", "followers", "v", "game-versions"])
+      if (mrTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "downloads": return getModrinthDownloads(rest[1])
+          case "followers": return getModrinthFollowers(rest[1])
+          case "v": return getModrinthVersion(rest[1])
+          case "game-versions": return getModrinthGameVersions(rest[1])
+          default: return null
+        }
+      }
+
+      return getModrinthDownloads(rest[0])
+    }
+
+    // /openvsx/{topic}/{namespace}/{extension}
+    // e.g. /openvsx/v/jeanp413/open-remote-ssh
+    case "openvsx": {
+      const rest = segments.slice(1)
+      if (rest.length < 3) return null
+
+      const topic = rest[0]
+      const namespace = rest[1]
+      const extension = rest[2]
+
+      switch (topic) {
+        case "v": return getOpenVSXVersion(namespace, extension)
+        case "downloads": return getOpenVSXDownloads(namespace, extension)
+        case "rating": return getOpenVSXRating(namespace, extension)
+        default: return null
+      }
+    }
+
+    // /liberapay/{topic}/{username}
+    // e.g. /liberapay/receiving/Changaco
+    case "liberapay": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      switch (rest[0]) {
+        case "receiving": return getLiberapayReceiving(rest[1])
+        case "patrons": return getLiberapayPatrons(rest[1])
+        case "goal": return getLiberapayGoal(rest[1])
+        default: return getLiberapayPatrons(rest[0])
+      }
+    }
+
+    // /matrix/{topic}/{roomAlias}[?server=matrix.org]
+    // e.g. /matrix/members/rust:matrix.org
+    case "matrix": {
+      const rest = segments.slice(1)
+      if (rest.length < 2) return null
+
+      const server = searchParams.get("server") ?? "matrix.org"
+
+      switch (rest[0]) {
+        case "members": return getMatrixMembers(rest[1], server)
+        default: return getMatrixMembers(rest[0], server)
+      }
+    }
+
+    // /weblate/{topic}/{server}/{project}/{component}
+    // e.g. /weblate/translation/hosted.weblate.org/weblate/application
+    case "weblate": {
+      const rest = segments.slice(1)
+      if (rest.length < 4) return null
+
+      const topic = rest[0]
+      const server = rest[1]
+      const project = rest[2]
+      const component = rest[3]
+
+      switch (topic) {
+        case "translation": return getWeblateTranslation(server, project, component)
+        case "languages": return getWeblateLanguages(server, project, component)
+        default: return null
+      }
+    }
+
     // /https/{hostname}/{pathname...}
     // Proxy an HTTPS endpoint that returns { label/subject, value/status, color }
     case "https": {
@@ -944,6 +1278,24 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "reddit") return { simpleIcon: "reddit" }
   if (provider === "tokscale") return { reactIcon: "GoRocket" }
   if (provider === "indiedevs") return { simpleIcon: "indiedevs" }
+  if (provider === "gitlab") return { simpleIcon: "gitlab" }
+  if (provider === "conda") return { simpleIcon: "anaconda" }
+  if (provider === "chrome") return { simpleIcon: "googlechrome" }
+  if (provider === "amo") return { simpleIcon: "firefox" }
+  if (provider === "coveralls") return { simpleIcon: "coveralls" }
+  if (provider === "sonar") return { simpleIcon: "sonarqube" }
+  if (provider === "jsdelivr") return { simpleIcon: "jsdelivr" }
+  if (provider === "chocolatey") return { simpleIcon: "chocolatey" }
+  if (provider === "flathub") return { simpleIcon: "flathub" }
+  if (provider === "snapcraft") return { simpleIcon: "snapcraft" }
+  if (provider === "fdroid") return { simpleIcon: "fdroid" }
+  if (provider === "discourse") return { simpleIcon: "discourse" }
+  if (provider === "stackexchange") return { simpleIcon: "stackoverflow" }
+  if (provider === "modrinth") return { simpleIcon: "modrinth" }
+  if (provider === "openvsx") return { simpleIcon: "eclipse" }
+  if (provider === "liberapay") return { simpleIcon: "liberapay" }
+  if (provider === "matrix") return { simpleIcon: "matrix" }
+  if (provider === "weblate") return { simpleIcon: "weblate" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}

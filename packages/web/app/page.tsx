@@ -14,7 +14,7 @@ import { getGenCount } from "@shieldcn/core/gen-counter"
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
   description:
-    "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, Discord, and 25+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
+    "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, GitLab, Discord, and 45+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
   path: "/",
   ogTitle: "shieldcn — Beautiful README Badges",
 })

@@ -1,0 +1,31 @@
+---
+title: Weblate Languages
+description: Display the number of languages for a Weblate component.
+badge: "/weblate/languages/hosted.weblate.org/weblate/application.svg?variant=branded"
+---
+
+Show the number of languages a Weblate component is translated into.
+
+<BadgeSandbox
+  endpoint="/weblate/languages/:server/:project/:component.svg"
+  pathParams={[
+    { name: "server", label: "Weblate server", placeholder: "hosted.weblate.org", required: true },
+    { name: "project", label: "project slug", placeholder: "weblate", required: true },
+    { name: "component", label: "component slug", placeholder: "application", required: true },
+  ]}
+  defaults={{ server: "hosted.weblate.org", project: "weblate", component: "application" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/weblate/languages/{server}/{project}/{component}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/weblate/languages/hosted.weblate.org/weblate/application.svg" alt="languages" description="Default — number of target languages" />
+
+<BadgePreview src="/weblate/languages/hosted.weblate.org/weblate/application.svg?variant=branded" alt="languages" description="Branded — Weblate green" />
+
+## Data source
+
+Uses the [Weblate Statistics API](https://docs.weblate.org/en/latest/api.html). No API key required for public projects. Cached 1 hour.

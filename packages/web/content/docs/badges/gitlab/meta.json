@@ -1,0 +1,13 @@
+{
+  "title": "GitLab",
+  "pages": [
+    "index",
+    "stars",
+    "forks",
+    "pipeline",
+    "issues",
+    "release",
+    "license",
+    "repository"
+  ]
+}

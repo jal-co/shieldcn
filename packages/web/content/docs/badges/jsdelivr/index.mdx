@@ -1,0 +1,33 @@
+---
+title: jsDelivr
+description: Badges for jsDelivr CDN — monthly hits, yearly hits, rank.
+badge: "/jsdelivr/hits/npm/react.svg?variant=branded"
+---
+
+Display CDN usage stats from jsDelivr.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/jsdelivr/hits/npm/react.svg?variant=branded" alt="jsdelivr hits" description="Hits (branded)" />
+  <BadgePreviewCard src="/jsdelivr/hits/npm/lodash.svg?variant=secondary" alt="jsdelivr lodash" description="Lodash hits" />
+  <BadgePreviewCard src="/jsdelivr/rank/npm/react.svg?variant=outline" alt="jsdelivr rank" description="Rank" />
+  <BadgePreviewCard src="/jsdelivr/hits/npm/vue.svg" alt="jsdelivr vue" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Monthly Hits (npm) | `/jsdelivr/hits/npm/{package}` | CDN hits per month |
+| Yearly Hits (npm) | `/jsdelivr/dy/npm/{package}` | CDN hits per year |
+| Monthly Hits (GitHub) | `/jsdelivr/hits/gh/{owner}/{repo}` | CDN hits per month |
+| Rank | `/jsdelivr/rank/npm/{package}` | Package rank on jsDelivr |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![hits](https://shieldcn.dev/jsdelivr/hits/npm/react.svg)' />
+
+<CodeLine language="markdown" code='![rank](https://shieldcn.dev/jsdelivr/rank/npm/lodash.svg?variant=branded)' />
+
+## Data source
+
+Uses the [jsDelivr Data API](https://www.jsdelivr.com/docs/data.jsdelivr.com). No API key required. Cached 1 hour.

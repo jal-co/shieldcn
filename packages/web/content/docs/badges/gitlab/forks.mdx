@@ -1,0 +1,30 @@
+---
+title: GitLab Forks
+description: Display the fork count for any GitLab repository.
+badge: "/gitlab/inkscape/inkscape/forks.svg?variant=branded"
+---
+
+Show how many times a GitLab project has been forked.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/forks.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/forks.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/forks.svg" alt="forks" description="Default — show fork activity" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/forks.svg?variant=branded" alt="forks" description="Branded — GitLab orange" />
+
+## Data source
+
+Uses the [GitLab API v4](https://docs.gitlab.com/ee/api/projects.html). No API key required for public projects. Cached 1 hour.

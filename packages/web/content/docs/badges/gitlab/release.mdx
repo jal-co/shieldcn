@@ -1,0 +1,30 @@
+---
+title: GitLab Release
+description: Display the latest release tag for a GitLab project.
+badge: "/gitlab/inkscape/inkscape/release.svg?variant=branded"
+---
+
+Show the latest release tag from GitLab Releases.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/release.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/release.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/release.svg" alt="release" description="Default — latest release tag" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/release.svg?variant=branded" alt="release" description="Branded — GitLab orange" />
+
+## Data source
+
+Uses the [GitLab Releases API](https://docs.gitlab.com/ee/api/releases/). No API key required for public projects. Cached 1 hour.

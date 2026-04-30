@@ -1,0 +1,31 @@
+---
+title: Weblate
+description: Badges for Weblate translation platform — translation percentage, language count.
+badge: "/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=branded"
+---
+
+Display translation stats from Weblate, the open-source translation management system.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=branded" alt="weblate translation" description="Translation % (branded)" />
+  <BadgePreviewCard src="/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=secondary" alt="weblate" description="Secondary" />
+  <BadgePreviewCard src="/weblate/languages/hosted.weblate.org/weblate/application.svg?variant=outline" alt="weblate languages" description="Languages" />
+  <BadgePreviewCard src="/weblate/translation/hosted.weblate.org/weblate/application.svg" alt="weblate" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Translation](./translation) | `/weblate/translation/{server}/{project}/{component}` | Translation percentage |
+| [Languages](./languages) | `/weblate/languages/{server}/{project}/{component}` | Language count |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![translation](https://shieldcn.dev/weblate/translation/hosted.weblate.org/weblate/application.svg)' />
+
+<CodeLine language="markdown" code='![languages](https://shieldcn.dev/weblate/languages/hosted.weblate.org/weblate/application.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Weblate API](https://docs.weblate.org/en/latest/api.html). No API key required for public projects. Cached 1 hour.

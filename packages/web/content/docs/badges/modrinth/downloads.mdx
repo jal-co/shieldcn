@@ -1,0 +1,29 @@
+---
+title: Modrinth Downloads
+description: Display the total download count for a Modrinth mod.
+badge: "/modrinth/downloads/sodium.svg?variant=branded"
+---
+
+Show total downloads for a Modrinth mod or modpack.
+
+<BadgeSandbox
+  endpoint="/modrinth/downloads/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/modrinth/downloads/{slug}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/modrinth/downloads/sodium.svg" alt="downloads" description="Default — total download count" />
+
+<BadgePreview src="/modrinth/downloads/sodium.svg?variant=branded" alt="downloads" description="Branded — Modrinth green" />
+
+## Data source
+
+Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.

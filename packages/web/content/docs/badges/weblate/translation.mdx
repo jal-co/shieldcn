@@ -1,0 +1,31 @@
+---
+title: Weblate Translation
+description: Display the translation completion percentage for a Weblate component.
+badge: "/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=branded"
+---
+
+Show the overall translation progress for a Weblate component. The badge is color-coded: green for ≥90%, yellow for ≥50%, red below 50%.
+
+<BadgeSandbox
+  endpoint="/weblate/translation/:server/:project/:component.svg"
+  pathParams={[
+    { name: "server", label: "Weblate server", placeholder: "hosted.weblate.org", required: true },
+    { name: "project", label: "project slug", placeholder: "weblate", required: true },
+    { name: "component", label: "component slug", placeholder: "application", required: true },
+  ]}
+  defaults={{ server: "hosted.weblate.org", project: "weblate", component: "application" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/weblate/translation/{server}/{project}/{component}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/weblate/translation/hosted.weblate.org/weblate/application.svg" alt="translation" description="Default — color-coded translation percentage" />
+
+<BadgePreview src="/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=branded" alt="translation" description="Branded — Weblate green" />
+
+## Data source
+
+Uses the [Weblate Statistics API](https://docs.weblate.org/en/latest/api.html#get--api-components-(string-project)-(string-component)-statistics-). No API key required for public projects. Cached 1 hour.

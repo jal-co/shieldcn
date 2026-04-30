@@ -1,0 +1,38 @@
+---
+title: GitLab Issues
+description: Display issue counts by state for GitLab projects.
+badge: "/gitlab/inkscape/inkscape/issues.svg?variant=branded"
+---
+
+Show open or closed issue counts for a GitLab project.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/issues.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+## URL formats
+
+### Open issues
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/issues.svg" hideCopy />
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/open-issues.svg" hideCopy />
+
+### Closed issues
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/closed-issues.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/issues.svg" alt="issues" description="Default — open issue count" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/issues.svg?variant=branded" alt="issues" description="Branded — GitLab orange" />
+
+## Data source
+
+Uses the [GitLab Issues Statistics API](https://docs.gitlab.com/ee/api/issues_statistics.html). No API key required for public projects. Cached 1 hour.

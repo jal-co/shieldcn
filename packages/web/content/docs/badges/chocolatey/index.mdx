@@ -1,0 +1,31 @@
+---
+title: Chocolatey
+description: Badges for Chocolatey Windows packages — version, downloads.
+badge: "/chocolatey/v/git.svg?variant=branded"
+---
+
+Display package stats from the Chocolatey Windows package manager.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/chocolatey/v/git.svg?variant=branded" alt="chocolatey version" description="Version (branded)" />
+  <BadgePreviewCard src="/chocolatey/dt/git.svg?variant=secondary" alt="chocolatey downloads" description="Downloads" />
+  <BadgePreviewCard src="/chocolatey/v/nodejs.svg?variant=outline" alt="chocolatey node" description="Node.js version" />
+  <BadgePreviewCard src="/chocolatey/v/python.svg" alt="chocolatey python" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/chocolatey/v/{package}` | Latest version |
+| Downloads | `/chocolatey/dt/{package}` | Total download count |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/chocolatey/v/git.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/chocolatey/dt/nodejs.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Chocolatey Community API](https://community.chocolatey.org/api/v2/). No API key required. Cached 1 hour.

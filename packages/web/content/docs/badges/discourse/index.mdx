@@ -1,0 +1,39 @@
+---
+title: Discourse
+description: Badges for Discourse forums — topics, posts, users, likes.
+badge: "/discourse/topics/meta.discourse.org.svg?variant=branded"
+---
+
+Display live stats from public Discourse forum instances.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/discourse/topics/meta.discourse.org.svg?variant=branded" alt="discourse topics" description="Topics (branded)" />
+  <BadgePreviewCard src="/discourse/posts/meta.discourse.org.svg?variant=secondary" alt="discourse posts" description="Posts" />
+  <BadgePreviewCard src="/discourse/users/meta.discourse.org.svg?variant=outline" alt="discourse users" description="Users" />
+  <BadgePreviewCard src="/discourse/likes/meta.discourse.org.svg" alt="discourse likes" description="Likes" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Topics | `/discourse/topics/{server}` | Total topic count |
+| Posts | `/discourse/posts/{server}` | Total post count |
+| Users | `/discourse/users/{server}` | Total user count |
+| Likes | `/discourse/likes/{server}` | Total like count |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![topics](https://shieldcn.dev/discourse/topics/meta.discourse.org.svg)' />
+
+<CodeLine language="markdown" code='![users](https://shieldcn.dev/discourse/users/meta.discourse.org.svg?variant=branded)' />
+
+## Popular Discourse instances
+
+- `meta.discourse.org` — Discourse Meta
+- `users.rust-lang.org` — Rust Users Forum
+- `forum.gitlab.com` — GitLab Forum
+
+## Data source
+
+Uses the [Discourse API](https://docs.discourse.org/). No API key required for public instances. Cached 1 hour.

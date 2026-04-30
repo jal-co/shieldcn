@@ -1,0 +1,33 @@
+---
+title: Liberapay Goal
+description: Display the funding goal progress for a Liberapay user.
+badge: "/liberapay/goal/Changaco.svg?variant=branded"
+---
+
+Show the funding goal progress as a percentage of the weekly target.
+
+<BadgeSandbox
+  endpoint="/liberapay/goal/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/liberapay/goal/{username}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/liberapay/goal/Changaco.svg" alt="goal" description="Default — goal progress percentage" />
+
+<BadgePreview src="/liberapay/goal/Changaco.svg?variant=branded" alt="goal" description="Branded — Liberapay yellow" />
+
+## Notes
+
+If the user hasn't set a funding goal, the badge will show "not set".
+
+## Data source
+
+Uses the [Liberapay API](https://liberapay.com/about/api). No API key required. Cached 1 hour.

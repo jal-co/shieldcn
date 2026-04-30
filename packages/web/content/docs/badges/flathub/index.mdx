@@ -1,0 +1,35 @@
+---
+title: Flathub
+description: Badges for Flathub Linux apps — version, downloads.
+badge: "/flathub/v/org.gimp.GIMP.svg?variant=branded"
+---
+
+Display app stats from Flathub, the Linux Flatpak app store.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/flathub/v/org.gimp.GIMP.svg?variant=branded" alt="flathub version" description="Version (branded)" />
+  <BadgePreviewCard src="/flathub/downloads/org.gimp.GIMP.svg?variant=secondary" alt="flathub downloads" description="Downloads" />
+  <BadgePreviewCard src="/flathub/v/org.mozilla.firefox.svg?variant=outline" alt="flathub firefox" description="Firefox" />
+  <BadgePreviewCard src="/flathub/v/org.videolan.VLC.svg" alt="flathub vlc" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/flathub/v/{appId}` | Latest version |
+| Downloads | `/flathub/downloads/{appId}` | Total installs |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/flathub/v/org.gimp.GIMP.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/flathub/downloads/org.gimp.GIMP.svg?variant=branded)' />
+
+## Finding your app ID
+
+The app ID uses reverse domain notation, e.g. `org.gimp.GIMP`. You can find it on the Flathub app page URL.
+
+## Data source
+
+Uses the [Flathub API](https://flathub.org/api/v2/). No API key required. Cached 1 hour.
