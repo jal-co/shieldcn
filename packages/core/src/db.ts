@@ -53,5 +53,15 @@ export async function initDB() {
       count BIGINT NOT NULL DEFAULT 0
     );
     INSERT INTO gen_counter (id, count) VALUES ('badges', 16000) ON CONFLICT DO NOTHING;
+
+    CREATE TABLE IF NOT EXISTS gen_users (
+      owner TEXT PRIMARY KEY,
+      avatar_url TEXT NOT NULL,
+      repo TEXT NOT NULL,
+      badge_count INT NOT NULL DEFAULT 0,
+      last_used_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_gen_users_recent
+      ON gen_users (last_used_at DESC);
   `)
 }

@@ -5,6 +5,7 @@ import { ArrowRight, User } from "lucide-react"
 import { SiteShell } from "@/components/site-shell"
 import GeneratorClient from "./generator-client"
 import { GeneratorTourProvider, TourReplayButton } from "./generator-tour"
+import { GenUsersStack } from "./gen-users-stack"
 import { pageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = pageMetadata({
@@ -75,6 +76,8 @@ export default function GeneratorPage() {
               </div>
               <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
+
+            <GenUsersStack />
 
             <Suspense>
               <GeneratorClient />

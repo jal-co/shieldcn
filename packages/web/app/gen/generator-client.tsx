@@ -252,6 +252,15 @@ export default function GeneratorApp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ count: enabledCount }),
     }).catch(() => {})
+    fetch("/api/gen-users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        owner: result.source.owner,
+        repo: result.source.repo,
+        badgeCount: enabledCount,
+      }),
+    }).catch(() => {})
   }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, track])
 
   const handleConfigUpload = useCallback(async (file: File) => {
