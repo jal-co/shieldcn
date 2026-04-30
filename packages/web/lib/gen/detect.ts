@@ -251,9 +251,9 @@ function githubMetricBadges(owner: string, repo: string): Badge[] {
   });
   const p = (m: string) => `/github/${m}/${owner}/${repo}.svg`;
   return [
-    mk('github.stars', 'GitHub Stars', p('stars'), { variant: 'outline' }),
-    mk('github.forks', 'GitHub Forks', p('forks'), { variant: 'outline' }),
-    mk('github.watchers', 'Watchers', p('watchers'), { variant: 'outline' }),
+    mk('github.stars', 'GitHub Stars', p('stars'), { variant: 'secondary' }),
+    mk('github.forks', 'GitHub Forks', p('forks'), { variant: 'secondary' }),
+    mk('github.watchers', 'Watchers', p('watchers'), { variant: 'secondary' }),
     mk('github.branches', 'Branches', p('branches'), { variant: 'ghost' }),
     mk('github.contributors', 'Contributors', p('contributors'), {
       theme: 'emerald',
@@ -299,13 +299,13 @@ function npmBadges(pkg: string): Badge[] {
       variant: 'ghost',
     }),
     mk('npm.dt', 'npm Total Downloads', `/npm/dt/${pkg}.svg`, {
-      variant: 'outline',
+      variant: 'secondary',
     }),
     mk('npm.dependents', 'npm Dependents', `/npm/dependents/${pkg}.svg`, {
-      variant: 'outline',
+      variant: 'secondary',
     }),
     mk('npm.types', 'npm Types', `/npm/types/${pkg}.svg`, { theme: 'blue' }),
-    mk('npm.node', 'npm Node', `/npm/node/${pkg}.svg`, { variant: 'outline' }),
+    mk('npm.node', 'npm Node', `/npm/node/${pkg}.svg`, { variant: 'secondary' }),
     mk('npm.license', 'npm License', `/npm/license/${pkg}.svg`, {
       variant: 'ghost',
     }),
@@ -318,7 +318,7 @@ function privatePackageBadge(): Badge {
     group: 'package',
     label: 'Private package',
     path: staticBadgePath('Private', 'package', 'red'),
-    query: { variant: 'outline' },
+    query: { variant: 'secondary' },
     overrides: {},
     enabled: true,
   };
@@ -427,7 +427,7 @@ function modernBadges(pkg: PackageJson, probes: ProbeResult): Badge[] {
     label: string,
     message: string,
     color: string,
-    variant = 'outline',
+    variant = 'secondary',
   ) =>
     out.push({
       id,
@@ -479,7 +479,7 @@ async function communityBadges(
         group: 'community',
         label: 'Discord Members',
         path: `/discord/members/${code}.svg`,
-        query: { variant: 'outline' },
+        query: { variant: 'secondary' },
         overrides: {},
         enabled: true,
       });
@@ -511,7 +511,7 @@ async function communityBadges(
           group: 'community',
           label: 'GitHub Sponsors',
           path: staticBadgePath('Sponsor', 'GitHub', 'ea4aaa'),
-          query: { logo: 'githubsponsors', variant: 'outline' },
+          query: { logo: 'githubsponsors', variant: 'secondary' },
           overrides: {},
           enabled: true,
         });
@@ -522,7 +522,7 @@ async function communityBadges(
           group: 'community',
           label: 'Open Collective',
           path: staticBadgePath('Open Collective', 'sponsor', '7FADF2'),
-          query: { logo: 'opencollective', variant: 'outline' },
+          query: { logo: 'opencollective', variant: 'secondary' },
           overrides: {},
           enabled: true,
         });
@@ -533,7 +533,7 @@ async function communityBadges(
           group: 'community',
           label: 'Patreon',
           path: staticBadgePath('Patreon', 'sponsor', 'FF424D'),
-          query: { logo: 'patreon', variant: 'outline' },
+          query: { logo: 'patreon', variant: 'secondary' },
           overrides: {},
           enabled: true,
         });
@@ -544,7 +544,7 @@ async function communityBadges(
           group: 'community',
           label: 'Ko-fi',
           path: staticBadgePath('Ko-fi', 'sponsor', 'FF5E5B'),
-          query: { logo: 'kofi', variant: 'outline' },
+          query: { logo: 'kofi', variant: 'secondary' },
           overrides: {},
           enabled: true,
         });
