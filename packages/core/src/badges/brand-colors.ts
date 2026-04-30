@@ -39,6 +39,7 @@ export const providerBrandColors: Record<string, string> = {
   wakatime: "000000",
   tokscale: "0073FF",
   indiedevs: "818CF8",
+  openpanel: "2564EB",
 }
 
 /**
