@@ -309,7 +309,7 @@ function profileBadges(
       "profile.followers",
       "GitHub Followers",
       `/github/followers/${username}.svg`,
-      { variant: "outline" },
+      { variant: "secondary" },
       `https://github.com/${username}?tab=followers`,
     ),
   )
@@ -528,7 +528,7 @@ function repoBadges(repos: GitHubRepo[]): Badge[] {
     group: "repos" as const,
     label: `${repo.name} ⭐ ${repo.stargazers_count}`,
     path: `/github/stars/${repo.full_name}.svg`,
-    query: { variant: "outline" },
+    query: { variant: "secondary" },
     overrides: {},
     enabled: true,
     linkUrl: repo.html_url,
