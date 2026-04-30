@@ -4,6 +4,7 @@
     "---Getting Started---",
     "index",
     "skill",
+    "self-hosting",
     "---Badges---",
     "...badges",
     "---Customization---",
@@ -11,8 +12,6 @@
     "---Registry---",
     "...registry",
     "---Reference---",
-    "api-reference",
-    "---Self-Hosting---",
-    "self-hosting"
+    "api-reference"
   ]
 }

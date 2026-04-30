@@ -1,7 +1,7 @@
 import { codeToHtml } from "shiki"
 
-const lightTheme = "github-light"
-const darkTheme = "github-dark"
+const lightTheme = "min-light"
+const darkTheme = "vesper"
 
 /**
  * Highlight code with shiki.
