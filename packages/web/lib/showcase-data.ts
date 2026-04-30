@@ -388,6 +388,8 @@ export const categories: Category[] = [
     description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
     icons: [
       dynamicBadge("first community badge", "by @jal-co", "/badge/my-cool_badge-blue.svg", "the first ever badge submitted by the community"),
+    
+      dynamicBadge("built with shieldcn", "by @jal-co", "/badge/built%20with-shieldcn.svg?font=geist-mono&logo=shieldcn&logoColor=858585", "its this!"),
     ],
   },
 ]
