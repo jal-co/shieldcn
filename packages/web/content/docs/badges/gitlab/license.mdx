@@ -1,0 +1,30 @@
+---
+title: GitLab License
+description: Display the license for a GitLab repository.
+badge: "/gitlab/inkscape/inkscape/license.svg?variant=branded"
+---
+
+Show the detected license for a GitLab project.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/license.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/license.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/license.svg" alt="license" description="Default — detected license name" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/license.svg?variant=outline" alt="license" description="Outline — subtle license indicator" />
+
+## Data source
+
+Uses the [GitLab API v4](https://docs.gitlab.com/ee/api/projects.html). No API key required for public projects. Cached 1 hour.

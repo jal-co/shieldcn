@@ -1,0 +1,46 @@
+---
+title: GitLab Pipeline
+description: Display the latest CI/CD pipeline status for a GitLab project.
+badge: "/gitlab/inkscape/inkscape/pipeline.svg?variant=branded"
+---
+
+Show the status of the most recent GitLab CI/CD pipeline.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/pipeline.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  extraParams={[
+    { name: "branch", label: "branch", placeholder: "main" },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/pipeline.svg" hideCopy />
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/pipeline.svg?branch=main" hideCopy />
+
+## Status values
+
+| Status | Color | Description |
+|--------|-------|-------------|
+| `passing` | Green | Pipeline succeeded |
+| `failing` | Red | Pipeline failed |
+| `running` | Amber | Pipeline is running |
+| `pending` | Amber | Pipeline is pending |
+| `canceled` | Gray | Pipeline was canceled |
+| `skipped` | Gray | Pipeline was skipped |
+
+## Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/pipeline.svg" alt="pipeline" description="Default — shows latest pipeline status" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/pipeline.svg?variant=secondary" alt="pipeline" description="Secondary — softer CI badge" />
+
+## Data source
+
+Uses the [GitLab Pipelines API](https://docs.gitlab.com/ee/api/pipelines.html). No API key required for public projects. Cached 5 minutes.

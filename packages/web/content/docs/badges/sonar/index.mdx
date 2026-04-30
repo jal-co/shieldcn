@@ -1,0 +1,44 @@
+---
+title: SonarCloud
+description: Badges for SonarCloud / SonarQube — quality gate, bugs, vulnerabilities, coverage, maintainability, and more.
+badge: "/sonar/quality-gate/apache_commons-lang.svg?variant=branded"
+---
+
+Display code quality metrics from SonarCloud or self-hosted SonarQube.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/sonar/quality-gate/apache_commons-lang.svg?variant=branded" alt="quality gate" description="Quality Gate (branded)" />
+  <BadgePreviewCard src="/sonar/bugs/apache_commons-lang.svg?variant=secondary" alt="bugs" description="Bugs" />
+  <BadgePreviewCard src="/sonar/coverage/apache_commons-lang.svg?variant=outline" alt="coverage" description="Coverage" />
+  <BadgePreviewCard src="/sonar/maintainability/apache_commons-lang.svg" alt="maintainability" description="Maintainability" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Quality Gate | `/sonar/quality-gate/{component}` | Quality gate status |
+| Bugs | `/sonar/bugs/{component}` | Bug count |
+| Vulnerabilities | `/sonar/vulnerabilities/{component}` | Vulnerability count |
+| Code Smells | `/sonar/code-smells/{component}` | Code smell count |
+| Coverage | `/sonar/coverage/{component}` | Coverage percentage |
+| Duplicated Lines | `/sonar/duplicated-lines/{component}` | Duplicated lines % |
+| Maintainability | `/sonar/maintainability/{component}` | Maintainability rating (A–E) |
+| Reliability | `/sonar/reliability/{component}` | Reliability rating (A–E) |
+| Security | `/sonar/security/{component}` | Security rating (A–E) |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![quality gate](https://shieldcn.dev/sonar/quality-gate/apache_commons-lang.svg)' />
+
+<CodeLine language="markdown" code='![coverage](https://shieldcn.dev/sonar/coverage/apache_commons-lang.svg?variant=branded)' />
+
+## Self-hosted SonarQube
+
+For self-hosted SonarQube instances, add `?server=your-sonar.example.com`:
+
+<CodeLine language="markdown" code='![quality gate](https://shieldcn.dev/sonar/quality-gate/my-project.svg?server=sonar.mycompany.com)' />
+
+## Data source
+
+Uses the [SonarCloud API](https://sonarcloud.io/web_api) or self-hosted SonarQube API. No API key required for public projects. Cached 1 hour.

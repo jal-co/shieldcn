@@ -1,0 +1,44 @@
+---
+title: GitLab
+description: Badges for GitLab repositories — stars, forks, issues, pipeline status, releases, and more.
+badge: "/gitlab/inkscape/inkscape/stars.svg?variant=branded"
+---
+
+Display live stats from any public GitLab repository.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/stars.svg?variant=branded" alt="stars" description="Stars (branded)" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/release.svg?variant=secondary" alt="release" description="Release" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/pipeline.svg?variant=outline" alt="pipeline" description="Pipeline" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/license.svg?variant=outline" alt="license" description="License" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/last-commit.svg?variant=secondary" alt="last commit" description="Last activity" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/forks.svg?variant=branded" alt="forks" description="Forks (branded)" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Category | Topics | Description |
+|----------|--------|-------------|
+| [Stars](./stars) | `stars` | Repository star count |
+| [Forks](./forks) | `forks` | Repository fork count |
+| [Pipeline](./pipeline) | `pipeline` | Latest CI/CD pipeline status |
+| [Issues](./issues) | `issues`, `open-issues`, `closed-issues` | Issue counts by state |
+| [Release](./release) | `release` | Latest release tag |
+| [License](./license) | `license` | Repository license |
+| [Repository](./repository) | `contributors`, `last-commit` | Other project metadata |
+
+## URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/{topic}.svg" hideCopy />
+
+## Quick examples
+
+<CodeLine language="markdown" code='![stars](https://shieldcn.dev/gitlab/inkscape/inkscape/stars.svg)' />
+
+<CodeLine language="markdown" code='![pipeline](https://shieldcn.dev/gitlab/inkscape/inkscape/pipeline.svg?variant=branded)' />
+
+<CodeLine language="markdown" code='![release](https://shieldcn.dev/gitlab/inkscape/inkscape/release.svg)' />
+
+## Data source
+
+Uses the [GitLab API v4](https://docs.gitlab.com/ee/api/). No API key required for public projects. Cached 1 hour, pipeline cached 5 minutes.

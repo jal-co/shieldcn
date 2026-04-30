@@ -1,0 +1,37 @@
+---
+title: Stack Exchange
+description: Badges for Stack Overflow / Stack Exchange — tag questions, user reputation.
+badge: "/stackexchange/tag/javascript.svg?variant=branded"
+---
+
+Display stats from Stack Overflow and other Stack Exchange sites.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/stackexchange/tag/javascript.svg?variant=branded" alt="stackoverflow javascript" description="Tag questions (branded)" />
+  <BadgePreviewCard src="/stackexchange/tag/python.svg?variant=secondary" alt="stackoverflow python" description="Python tag" />
+  <BadgePreviewCard src="/stackexchange/tag/react.svg?variant=outline" alt="stackoverflow react" description="React tag" />
+  <BadgePreviewCard src="/stackexchange/reputation/22656.svg" alt="stackoverflow reputation" description="User reputation" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Tag Questions | `/stackexchange/tag/{tag}` | Question count for a tag |
+| User Reputation | `/stackexchange/reputation/{userId}` | User reputation score |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![tag](https://shieldcn.dev/stackexchange/tag/javascript.svg)' />
+
+<CodeLine language="markdown" code='![reputation](https://shieldcn.dev/stackexchange/reputation/22656.svg?variant=branded)' />
+
+## Other Stack Exchange sites
+
+By default, badges query `stackoverflow`. Use `?site=` for other sites:
+
+<CodeLine language="markdown" code='![tag](https://shieldcn.dev/stackexchange/tag/linux.svg?site=unix)' />
+
+## Data source
+
+Uses the [Stack Exchange API v2.3](https://api.stackexchange.com/docs). No API key required (limited to 300 requests/day without key). Cached 1 hour.

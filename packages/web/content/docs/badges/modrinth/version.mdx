@@ -1,0 +1,29 @@
+---
+title: Modrinth Version
+description: Display the latest version of a Modrinth mod.
+badge: "/modrinth/v/sodium.svg?variant=branded"
+---
+
+Show the latest published version for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/v/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/modrinth/v/{slug}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/modrinth/v/sodium.svg" alt="version" description="Default — latest version number" />
+
+<BadgePreview src="/modrinth/v/fabric-api.svg?variant=branded" alt="version" description="Branded — Modrinth green" />
+
+## Data source
+
+Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.

@@ -1,0 +1,37 @@
+---
+title: Mozilla Add-ons
+description: Badges for Firefox add-ons — version, users, rating, downloads.
+badge: "/amo/v/ublock-origin.svg?variant=branded"
+---
+
+Display Firefox add-on stats from addons.mozilla.org (AMO).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/amo/v/ublock-origin.svg?variant=branded" alt="amo version" description="Version (branded)" />
+  <BadgePreviewCard src="/amo/users/ublock-origin.svg?variant=secondary" alt="amo users" description="Users" />
+  <BadgePreviewCard src="/amo/rating/ublock-origin.svg?variant=outline" alt="amo rating" description="Rating" />
+  <BadgePreviewCard src="/amo/d/ublock-origin.svg" alt="amo downloads" description="Downloads" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/amo/v/{slug}` | Extension version |
+| Users | `/amo/users/{slug}` | Daily active users |
+| Rating | `/amo/rating/{slug}` | Average rating |
+| Downloads | `/amo/d/{slug}` | Weekly downloads |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/amo/v/ublock-origin.svg)' />
+
+<CodeLine language="markdown" code='![users](https://shieldcn.dev/amo/users/ublock-origin.svg?variant=branded)' />
+
+## Finding your add-on slug
+
+The slug is the last part of the add-on URL: `https://addons.mozilla.org/firefox/addon/{slug}/`
+
+## Data source
+
+Uses the [AMO API v5](https://addons-server.readthedocs.io/en/latest/topics/api/addons.html). No API key required. Cached 1 hour.

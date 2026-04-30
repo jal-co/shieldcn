@@ -1,0 +1,29 @@
+---
+title: Liberapay Patrons
+description: Display the number of patrons for a Liberapay user.
+badge: "/liberapay/patrons/Changaco.svg?variant=branded"
+---
+
+Show how many patrons support a Liberapay user.
+
+<BadgeSandbox
+  endpoint="/liberapay/patrons/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/liberapay/patrons/{username}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/liberapay/patrons/Changaco.svg" alt="patrons" description="Default — patron count" />
+
+<BadgePreview src="/liberapay/patrons/Changaco.svg?variant=branded" alt="patrons" description="Branded — Liberapay yellow" />
+
+## Data source
+
+Uses the [Liberapay API](https://liberapay.com/about/api). No API key required. Cached 1 hour.

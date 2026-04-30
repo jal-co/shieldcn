@@ -1,0 +1,29 @@
+---
+title: Modrinth Followers
+description: Display the follower count for a Modrinth mod.
+badge: "/modrinth/followers/sodium.svg?variant=branded"
+---
+
+Show the follower count for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/followers/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/modrinth/followers/{slug}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/modrinth/followers/sodium.svg" alt="followers" description="Default — follower count" />
+
+<BadgePreview src="/modrinth/followers/sodium.svg?variant=branded" alt="followers" description="Branded — Modrinth green" />
+
+## Data source
+
+Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.

@@ -1,0 +1,36 @@
+---
+title: Conda
+description: Badges for Anaconda (Conda) packages — version, downloads, platform.
+badge: "/conda/v/conda-forge/numpy.svg?variant=branded"
+---
+
+Display Conda package stats from Anaconda.org.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/conda/v/conda-forge/numpy.svg?variant=branded" alt="conda version" description="Version (branded)" />
+  <BadgePreviewCard src="/conda/d/conda-forge/numpy.svg?variant=secondary" alt="conda downloads" description="Downloads" />
+  <BadgePreviewCard src="/conda/platform/conda-forge/numpy.svg?variant=outline" alt="conda platform" description="Platform" />
+  <BadgePreviewCard src="/conda/v/conda-forge/pandas.svg" alt="conda pandas" description="Default variant" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/conda/v/{channel}/{package}` | Latest version |
+| Downloads | `/conda/d/{channel}/{package}` | Total download count |
+| Platform | `/conda/platform/{channel}/{package}` | Supported platforms |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/conda/v/conda-forge/numpy.svg)' />
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/conda/d/conda-forge/scikit-learn.svg?variant=branded)' />
+
+## Channel names
+
+The most common channel is `conda-forge`. Other channels include `bioconda`, `anaconda`, or your organization's channel.
+
+## Data source
+
+Uses the [Anaconda.org API](https://api.anaconda.org/). No API key required. Cached 1 hour.

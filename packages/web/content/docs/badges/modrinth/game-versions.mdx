@@ -1,0 +1,29 @@
+---
+title: Modrinth Game Versions
+description: Display the supported Minecraft versions for a Modrinth mod.
+badge: "/modrinth/game-versions/sodium.svg?variant=branded"
+---
+
+Show the range of supported Minecraft versions for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/game-versions/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+## URL format
+
+<CodeLine language="bash" code="/modrinth/game-versions/{slug}.svg" hideCopy />
+
+## Copy-paste examples
+
+<BadgePreview src="/modrinth/game-versions/sodium.svg" alt="game versions" description="Default — supported Minecraft version range" />
+
+<BadgePreview src="/modrinth/game-versions/sodium.svg?variant=branded" alt="game versions" description="Branded — Modrinth green" />
+
+## Data source
+
+Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.

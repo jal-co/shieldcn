@@ -1,0 +1,33 @@
+---
+title: Coveralls
+description: Badges for Coveralls code coverage — coverage percentage.
+badge: "/coveralls/github/lemurheavy/coveralls-ruby.svg?variant=branded"
+---
+
+Display code coverage stats from Coveralls.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/coveralls/github/lemurheavy/coveralls-ruby.svg?variant=branded" alt="coveralls coverage" description="Coverage (branded)" />
+  <BadgePreviewCard src="/coveralls/github/lemurheavy/coveralls-ruby.svg?variant=secondary" alt="coveralls" description="Secondary" />
+  <BadgePreviewCard src="/coveralls/github/lemurheavy/coveralls-ruby.svg?variant=outline" alt="coveralls" description="Outline" />
+  <BadgePreviewCard src="/coveralls/github/lemurheavy/coveralls-ruby.svg" alt="coveralls" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Coverage | `/coveralls/{service}/{owner}/{repo}` | Coverage percentage |
+| Coverage (branch) | `/coveralls/{service}/{owner}/{repo}/{branch}` | Coverage for a branch |
+
+The `service` parameter can be `github`, `gitlab`, or `bitbucket`.
+
+## Quick examples
+
+<CodeLine language="markdown" code='![coverage](https://shieldcn.dev/coveralls/github/lemurheavy/coveralls-ruby.svg)' />
+
+<CodeLine language="markdown" code='![coverage](https://shieldcn.dev/coveralls/github/lemurheavy/coveralls-ruby/main.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Coveralls API](https://docs.coveralls.io/api-introduction). No API key required for public repos. Cached 1 hour.

@@ -62,16 +62,33 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | **CocoaPods** | version | `/cocoapods/{pod}` |
 | **JSR** | version, score | `/jsr/{@scope}/{name}` |
 | **Bundlephobia** | min size, minzip size, tree-shaking | `/bundlephobia/minzip/{package}` |
+| **Conda** | version, downloads, platform | `/conda/v/{channel}/{package}` |
+| **jsDelivr** | CDN hits, rank | `/jsdelivr/hits/npm/{package}` |
+| **Chocolatey** | version, downloads | `/chocolatey/v/{package}` |
+| **Snapcraft** | version | `/snapcraft/v/{snap}` |
 
 ### Code platforms
 
 | Provider | Badges | Endpoint |
 |----------|--------|----------|
 | **GitHub** | stars, forks, watchers, license, release, CI, checks, issues, PRs, milestones, commits, downloads (all/specific asset, all/latest/tag), dependabot, and more | `/github/{owner}/{repo}/{topic}` |
+| **GitLab** | stars, forks, issues, pipeline, license, release, contributors | `/gitlab/{owner}/{repo}/{topic}` |
 | **Codecov** | coverage percentage (color-coded) | `/codecov/{service}/{owner}/{repo}` |
+| **Coveralls** | coverage percentage (color-coded) | `/coveralls/{service}/{owner}/{repo}` |
+| **SonarCloud** | quality gate, bugs, vulnerabilities, coverage, maintainability, reliability, security | `/sonar/{topic}/{component}` |
 | **VS Code Marketplace** | installs, rating, version | `/vscode/installs/{publisher}/{extension}` |
+| **Open VSX** | version, downloads, rating | `/openvsx/v/{namespace}/{extension}` |
 
-### Social
+### App stores
+
+| Provider | Badges | Endpoint |
+|----------|--------|----------|
+| **Chrome Web Store** | version, users, rating | `/chrome/v/{extensionId}` |
+| **Mozilla Add-ons** | version, users, rating, downloads | `/amo/v/{slug}` |
+| **Flathub** | version, downloads | `/flathub/v/{appId}` |
+| **F-Droid** | version | `/fdroid/v/{appId}` |
+
+### Social & Community
 
 | Provider | Badges | Endpoint |
 |----------|--------|----------|
@@ -83,13 +100,19 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | **Lemmy** | subscribers, posts, comments | `/lemmy/subscribers/{instance}/{community}` |
 | **Hacker News** | karma | `/hackernews/{userId}` |
 | **Twitch** | live status, followers | `/twitch/status/{login}` |
+| **Discourse** | topics, posts, users, likes | `/discourse/topics/{server}` |
+| **Matrix** | room members | `/matrix/members/{roomAlias}` |
+| **Stack Exchange** | tag questions, user reputation | `/stackexchange/tag/{tag}` |
 
 ### Funding & Tools
 
 | Provider | Badges | Endpoint |
 |----------|--------|----------|
 | **Open Collective** | backers, sponsors, contributors, balance, budget | `/opencollective/backers/{slug}` |
+| **Liberapay** | receiving, patrons, goal | `/liberapay/receiving/{username}` |
 | **WakaTime** | coding time | `/wakatime/{username}` |
+| **Weblate** | translation %, language count | `/weblate/translation/{server}/{project}/{component}` |
+| **Modrinth** | downloads, followers, version, game versions | `/modrinth/downloads/{slug}` |
 | **Tokscale** | tokens, cost, rank, active days | `/tokscale/{username}` |
 
 ### Custom badges

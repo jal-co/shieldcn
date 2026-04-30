@@ -1,0 +1,33 @@
+---
+title: Modrinth
+description: Badges for Modrinth — downloads, followers, version, game versions.
+badge: "/modrinth/downloads/sodium.svg?variant=branded"
+---
+
+Display mod stats from Modrinth, the modern Minecraft mod platform.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/modrinth/downloads/sodium.svg?variant=branded" alt="modrinth downloads" description="Downloads (branded)" />
+  <BadgePreviewCard src="/modrinth/followers/sodium.svg?variant=secondary" alt="modrinth followers" description="Followers" />
+  <BadgePreviewCard src="/modrinth/v/sodium.svg?variant=outline" alt="modrinth version" description="Version" />
+  <BadgePreviewCard src="/modrinth/game-versions/sodium.svg" alt="modrinth game versions" description="Game versions" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Downloads](./downloads) | `/modrinth/downloads/{slug}` | Total download count |
+| [Followers](./followers) | `/modrinth/followers/{slug}` | Follower count |
+| [Version](./version) | `/modrinth/v/{slug}` | Latest version |
+| [Game Versions](./game-versions) | `/modrinth/game-versions/{slug}` | Supported Minecraft versions |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![downloads](https://shieldcn.dev/modrinth/downloads/sodium.svg)' />
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/modrinth/v/fabric-api.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.

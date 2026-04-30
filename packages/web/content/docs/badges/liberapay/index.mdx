@@ -1,0 +1,32 @@
+---
+title: Liberapay
+description: Badges for Liberapay — receiving, patrons, goal.
+badge: "/liberapay/patrons/Changaco.svg?variant=branded"
+---
+
+Display funding stats from Liberapay, the open-source recurring donations platform.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/liberapay/receiving/Changaco.svg?variant=branded" alt="liberapay receiving" description="Receiving (branded)" />
+  <BadgePreviewCard src="/liberapay/patrons/Changaco.svg?variant=secondary" alt="liberapay patrons" description="Patrons" />
+  <BadgePreviewCard src="/liberapay/goal/Changaco.svg?variant=outline" alt="liberapay goal" description="Goal" />
+  <BadgePreviewCard src="/liberapay/patrons/Changaco.svg" alt="liberapay" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| [Receiving](./receiving) | `/liberapay/receiving/{username}` | Weekly income |
+| [Patrons](./patrons) | `/liberapay/patrons/{username}` | Number of patrons |
+| [Goal](./goal) | `/liberapay/goal/{username}` | Funding goal progress |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![receiving](https://shieldcn.dev/liberapay/receiving/Changaco.svg)' />
+
+<CodeLine language="markdown" code='![patrons](https://shieldcn.dev/liberapay/patrons/Changaco.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Liberapay API](https://liberapay.com/about/api). No API key required. Cached 1 hour.

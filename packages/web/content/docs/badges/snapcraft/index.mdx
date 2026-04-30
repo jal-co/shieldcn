@@ -1,0 +1,30 @@
+---
+title: Snapcraft
+description: Badges for Snap packages — version.
+badge: "/snapcraft/v/vlc.svg?variant=branded"
+---
+
+Display Snap package versions from the Snap Store.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/snapcraft/v/vlc.svg?variant=branded" alt="snap version" description="Version (branded)" />
+  <BadgePreviewCard src="/snapcraft/v/vlc.svg?variant=secondary" alt="snap vlc" description="Secondary" />
+  <BadgePreviewCard src="/snapcraft/v/vlc.svg?variant=outline" alt="snap vlc" description="Outline" />
+  <BadgePreviewCard src="/snapcraft/v/vlc.svg" alt="snap vlc" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/snapcraft/v/{snap}` | Stable channel version |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/snapcraft/v/vlc.svg)' />
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/snapcraft/v/firefox.svg?variant=branded)' />
+
+## Data source
+
+Uses the [Snap Store API](https://api.snapcraft.io/docs/). No API key required. Cached 1 hour.

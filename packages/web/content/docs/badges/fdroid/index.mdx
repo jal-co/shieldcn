@@ -1,0 +1,34 @@
+---
+title: F-Droid
+description: Badges for F-Droid open-source Android apps — version.
+badge: "/fdroid/v/org.mozilla.firefox.svg?variant=branded"
+---
+
+Display app versions from F-Droid, the open-source Android app store.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/fdroid/v/org.mozilla.firefox.svg?variant=branded" alt="f-droid version" description="Version (branded)" />
+  <BadgePreviewCard src="/fdroid/v/org.mozilla.firefox.svg?variant=secondary" alt="f-droid" description="Secondary" />
+  <BadgePreviewCard src="/fdroid/v/org.mozilla.firefox.svg?variant=outline" alt="f-droid" description="Outline" />
+  <BadgePreviewCard src="/fdroid/v/org.mozilla.firefox.svg" alt="f-droid" description="Default" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Version | `/fdroid/v/{appId}` | Latest version |
+
+## Quick examples
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/fdroid/v/org.mozilla.firefox.svg)' />
+
+<CodeLine language="markdown" code='![version](https://shieldcn.dev/fdroid/v/org.mozilla.firefox.svg?variant=branded)' />
+
+## Finding your app ID
+
+The app ID uses Java package naming (e.g. `org.mozilla.firefox`). Find it on the F-Droid app page URL: `https://f-droid.org/packages/{appId}/`
+
+## Data source
+
+Uses the [F-Droid API](https://f-droid.org/docs/All_our_APIs/). No API key required. Cached 1 hour.
