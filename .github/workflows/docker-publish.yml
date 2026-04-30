@@ -1,8 +1,8 @@
-name: Publish Docker Image
+name: Publish Engine Docker Image
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["engine@*"]
   workflow_dispatch:
 
 jobs:
@@ -22,6 +22,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#engine@}" >> "$GITHUB_OUTPUT"
+
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -29,6 +33,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/engine:latest
-            ghcr.io/${{ github.repository }}/engine:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/engine:${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
