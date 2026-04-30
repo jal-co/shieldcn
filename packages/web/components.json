@@ -19,6 +19,13 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@fonttrio": "https://www.fonttrio.xyz/r/{name}.json"
+    "@fonttrio": "https://www.fonttrio.xyz/r/{name}.json",
+    "@shadcncraft": {
+      "url": "https://shadcncraft.com/r/{style}/{name}",
+      "headers": {
+        "X-License-Key": "${SHADCNCRAFT_LICENSE_KEY}",
+        "X-Instance-Name": "${SHADCNCRAFT_INSTANCE_NAME}"
+      }
+    }
   }
 }

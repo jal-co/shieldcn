@@ -15,6 +15,8 @@ Add a badge to your README:
 
 That's it. No configuration, no API keys, no build step. Both `.png` and `.svg` extensions are supported — just swap the extension.
 
+<InlineHint variant="tip">Use `.png` for GitHub READMEs — it renders more consistently across clients than `.svg`.</InlineHint>
+
 ## Badge types
 
 | Badge | URL pattern |
@@ -61,6 +63,8 @@ Every badge supports shadcn Button variants:
 ## Icons
 
 Badges auto-detect icons per provider. Override with any [Simple Icons](https://simpleicons.org) slug or [React Icons](https://react-icons.github.io/react-icons/) component name:
+
+<InlineHint variant="tip">Use `logo=false` to remove the icon entirely, or pass a `data:image/svg+xml;base64,...` string for a fully custom icon.</InlineHint>
 
 <CodeLine language="markdown" code="![react](https://shieldcn.dev/npm/react.svg?logo=react)" />
 <CodeLine language="markdown" code="![star](https://shieldcn.dev/badge/stars-42-blue.svg?logo=ri:GoStarFill)" />

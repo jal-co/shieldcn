@@ -15,12 +15,12 @@
 
 <p align="center">
   <a href="https://github.com/jal-co/shieldcn/stargazers"><img src="https://shieldcn.dev/github/stars/jal-co/shieldcn.svg?variant=branded" alt="stars" /></a>
-  <a href="https://github.com/jal-co/shieldcn/network/members"><img src="https://shieldcn.dev/github/forks/jal-co/shieldcn.svg?variant=branded" alt="forks" /></a>
   <a href="https://github.com/jal-co/shieldcn/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/jal-co/shieldcn.svg?variant=branded" alt="license" /></a>
   <a href="https://github.com/jal-co/shieldcn/graphs/contributors"><img src="https://shieldcn.dev/github/contributors/jal-co/shieldcn.svg?variant=branded" alt="contributors" /></a>
   <a href="https://github.com/jal-co/shieldcn/commits/main"><img src="https://shieldcn.dev/github/last-commit/jal-co/shieldcn.svg?variant=branded" alt="last commit" /></a>
   <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
   <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
+  <a href="https://shadcncraft.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded" alt="built with shadcncraft" /></a>
 </p>
 
 ## About

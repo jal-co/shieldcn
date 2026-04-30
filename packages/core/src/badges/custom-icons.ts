@@ -56,6 +56,7 @@ const registry: Record<string, CustomIconEntry> = {
   openpanel: { file: "openpanel.svg", color: "2564EB" },
   indiedevs: { file: "indiedevs.svg", color: "818CF8", rotation: 45 },
   shieldcn: { file: "shieldcn.svg", color: "000000" },
+  shadcncraft: { file: "shadcncraft.svg", color: "171717" },
 }
 
 // ---------------------------------------------------------------------------

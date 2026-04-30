@@ -75,6 +75,8 @@ All [query parameters](/docs/api-reference) work — `variant`, `size`, `mode`, 
 
 ## GitHub Badges
 
+<InlineHint variant="warning">Without a `GITHUB_TOKEN`, GitHub badges are limited to 60 requests/hour. Add a token to raise this to 5,000/hour.</InlineHint>
+
 GitHub badges hit the GitHub API which has a rate limit of 60 requests/hour without authentication. To raise this to 5,000/hour, add a `GITHUB_TOKEN` to your environment:
 
 ```yaml

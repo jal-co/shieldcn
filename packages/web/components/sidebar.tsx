@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion, useReducedMotion, AnimatePresence } from "motion/react"
+import { motion, useReducedMotion, AnimatePresence, LayoutGroup } from "motion/react"
 import { useRouter } from "next/navigation"
 import { ChevronDown, ChevronRight, Search, FileText, Hash } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -15,6 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import { Kbd } from "@/components/ui/kbd"
 
 // ---------------------------------------------------------------------------
 // Data types
@@ -562,9 +563,8 @@ function DocsSearch() {
       >
         <Search className="size-3.5 shrink-0" />
         <span className="flex-1 text-left">Search docs...</span>
-        <kbd className="pointer-events-none select-none rounded border border-border px-1 font-mono text-[10px]">
-          ⌘K
-        </kbd>
+        <Kbd>⌘</Kbd>
+        <Kbd>K</Kbd>
       </button>
       <CommandDialog
         open={open}
@@ -647,17 +647,19 @@ export function Sidebar() {
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-4 pb-14 no-scrollbar"
       >
-        <nav className="flex flex-col gap-1">
-          {docsNav.map((group, i) => (
-            <CollapsibleSection
-              key={group.title}
-              group={group}
-              pathname={pathname}
-              index={i}
-              prefersReducedMotion={prefersReducedMotion}
-            />
-          ))}
-        </nav>
+        <LayoutGroup>
+          <nav className="flex flex-col gap-1">
+            {docsNav.map((group, i) => (
+              <CollapsibleSection
+                key={group.title}
+                group={group}
+                pathname={pathname}
+                index={i}
+                prefersReducedMotion={prefersReducedMotion}
+              />
+            ))}
+          </nav>
+        </LayoutGroup>
       </div>
 
       <div
