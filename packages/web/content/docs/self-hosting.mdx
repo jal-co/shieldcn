@@ -7,24 +7,58 @@ Run your own shieldcn badge engine — no reliance on shieldcn.dev infrastructur
 
 ## Quick Start
 
+Create a `docker-compose.yml` file:
+
+```yaml
+services:
+  engine:
+    image: ghcr.io/jal-co/shieldcn/engine:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://shieldcn:shieldcn@postgres:5432/shieldcn
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: shieldcn
+      POSTGRES_PASSWORD: shieldcn
+      POSTGRES_DB: shieldcn
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shieldcn"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+```
+
+Then run:
+
 ```bash
-# Clone the repo
-git clone https://github.com/jal-co/shieldcn.git
-cd shieldcn
+docker compose up -d
 
-# Start with Docker Compose
-docker compose -f packages/engine/docker-compose.yml up -d
-
-# Test it
+# Verify it's working
+curl http://localhost:3000/api/health/
 curl http://localhost:3000/badge/self--hosted-green.svg
-curl http://localhost:3000/api/health
 ```
 
-Or pull the pre-built image:
+Badges are served at `http://localhost:3000`. Use them the same way as `shieldcn.dev` — just swap the domain:
 
-```bash
-docker pull ghcr.io/jal-co/shieldcn/engine:latest
+```md
+![npm](http://localhost:3000/npm/v/react.svg)
+![stars](http://localhost:3000/github/stars/facebook/react.svg)
 ```
+
+All [query parameters](/docs/api-reference) work — `variant`, `size`, `mode`, `theme`, `logo`, `color`, `gradient`, etc.
 
 ## Environment Variables
 
@@ -39,6 +73,23 @@ docker pull ghcr.io/jal-co/shieldcn/engine:latest
 | `UPSTASH_REDIS_REST_TOKEN` | — | Upstash Redis token |
 | `NEXT_PUBLIC_URL` | — | Engine base URL (default: `http://localhost:3000`) |
 
+## GitHub Badges
+
+GitHub badges hit the GitHub API which has a rate limit of 60 requests/hour without authentication. To raise this to 5,000/hour, add a `GITHUB_TOKEN` to your environment:
+
+```yaml
+services:
+  engine:
+    image: ghcr.io/jal-co/shieldcn/engine:latest
+    environment:
+      - DATABASE_URL=postgresql://shieldcn:shieldcn@postgres:5432/shieldcn
+      - GITHUB_TOKEN=ghp_your_token_here
+```
+
+Create a token at [github.com/settings/tokens](https://github.com/settings/tokens) — no scopes needed (public data only).
+
+For higher throughput, set up the [token pool](#token-pool-setup) to distribute requests across multiple tokens.
+
 ## What's Included
 
 The self-hosted engine serves all badge endpoints:
@@ -48,7 +99,7 @@ The self-hosted engine serves all badge endpoints:
 - All variants, themes, gradients, and customization options
 - GitHub token pool with OAuth flow
 - Memo badges (persistent badges with Bearer auth)
-- Health check at `/api/health`
+- Health check at `/api/health/`
 
 ## What's Not Included
 
@@ -78,6 +129,8 @@ Set `GITHUB_TOKEN` to a personal access token with no scopes (public data only).
 
 ## Reverse Proxy
 
+If you want to serve badges from a custom domain:
+
 ### Nginx
 
 ```nginx
@@ -106,18 +159,8 @@ badges.example.com {
 ## Upgrading
 
 ```bash
-# Pull latest image
-docker pull ghcr.io/jal-co/shieldcn/engine:latest
-
-# Restart
-docker compose -f packages/engine/docker-compose.yml up -d
-```
-
-Or if building from source:
-
-```bash
-git pull
-docker compose -f packages/engine/docker-compose.yml up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 ## Data Source
