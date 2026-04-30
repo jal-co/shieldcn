@@ -192,18 +192,23 @@ export async function POST(req: NextRequest) {
 
     // 7. Open a PR
     const prBody = [
-      `## Community Badge Submission`,
+      `## Summary`,
       ``,
-      `**Badge:** \`${badgePath}\``,
-      `**Title:** ${safeTitle}`,
-      description ? `**Description:** ${safeDesc}` : "",
-      safeUser ? `**Submitted by:** @${safeUser}` : "**Submitted by:** anonymous",
+      description ? `${safeDesc}` : `Community badge submitted by ${safeUser ? `@${safeUser}` : "anonymous"}.`,
       ``,
-      `### Preview`,
+      `## Badges added`,
+      ``,
+      `| Variant | Path |`,
+      `|---------|------|`,
+      `| ${safeTitle} | \`${badgePath}\` |`,
+      ``,
+      `## Preview`,
       ``,
       `![${safeTitle}](https://shieldcn.dev${badgePath})`,
       ``,
       `---`,
+      ``,
+      safeUser ? `**Submitted by:** @${safeUser}` : "**Submitted by:** anonymous",
       `*Submitted via the [shieldcn showcase](https://shieldcn.dev/showcase) badge builder.*`,
     ].filter(Boolean).join("\n")
 
