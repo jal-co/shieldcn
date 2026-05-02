@@ -130,7 +130,7 @@ export function ThemeSwitcher() {
           setTheme(next)
         }}
         className={cn(
-          "inline-flex size-8 items-center justify-center rounded-md transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+          "inline-flex size-8 items-center justify-center rounded-lg transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
           resolvedTheme === "dark"
             ? "text-white hover:bg-white/10"
             : "text-black hover:bg-black/10"
@@ -194,7 +194,7 @@ export function ThemeSwitcher() {
           <button
             type="button"
             className={cn(
-              "inline-flex size-8 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              "hidden size-8 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 min-[360px]:inline-flex",
               hasCustom
                 ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
                 : "border-border/60 bg-muted/40 text-muted-foreground hover:text-foreground"
@@ -210,7 +210,7 @@ export function ThemeSwitcher() {
             side="bottom"
             align="end"
             sideOffset={8}
-            className="z-50 w-[360px] rounded-xl border bg-popover p-4 shadow-lg outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+            className="z-50 w-[calc(100vw-1rem)] max-w-[360px] rounded-xl border bg-popover p-4 shadow-lg outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">

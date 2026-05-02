@@ -84,8 +84,7 @@ export function BadgeMarquee() {
       `}</style>
       <div
         aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{ left: "calc(-50vw + 50%)", width: "100vw" }}
+        className="absolute inset-0 pointer-events-none overflow-hidden"
       >
         <div className="flex h-full flex-col justify-center gap-3 overflow-hidden opacity-[0.2] py-6">
           {mounted && rows.map((badges, i) => (

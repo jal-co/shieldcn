@@ -22,7 +22,7 @@ export function SiteFooter() {
             </Link>
             <p className="max-w-xs text-sm text-muted-foreground">
               Beautiful README badges styled as shadcn/ui buttons. A
-              shields.io alternative with 6 variants, 16 themes, and 5,000+
+              shields.io alternative with 6 variants, 16 themes, and 30,000+
               built-in icons.
             </p>
             <p className="text-xs text-muted-foreground">
@@ -49,7 +49,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="flex gap-10 text-sm">
+          <div className="flex gap-6 text-sm sm:gap-10">
             <div className="flex flex-col gap-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Product

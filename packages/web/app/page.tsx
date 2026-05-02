@@ -12,7 +12,6 @@ import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
 import { getGenCount } from "@shieldcn/core/gen-counter"
 
-
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
   description:
@@ -34,51 +33,48 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppJsonLd()) }}
       />
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-4xl px-6 md:px-10">
-          {/* Hero */}
-          <section className="relative min-h-[34rem] py-20 text-center space-y-6 flex flex-col justify-center">
-            <BadgeMarquee />
-            <div className="relative z-10 space-y-6">
-              <SiteAnnouncement />
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                Beautiful README badges
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                A shields.io alternative with the visual quality of shadcn/ui.
-                6 variants, 16 themes, 30,000+ built-in icons, and custom SVG upload — unlimited combinations.
+        {/* Hero */}
+        <section className="relative flex min-h-[34rem] flex-col justify-center overflow-hidden px-6 py-20 text-center md:px-10">
+          <BadgeMarquee />
+          <div className="relative z-10 mx-auto max-w-4xl space-y-6">
+            <SiteAnnouncement />
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              Beautiful README badges
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              A shields.io alternative with the visual quality of shadcn/ui.
+              6 variants, 16 themes, 30,000+ built-in icons, and custom SVG upload — unlimited combinations.
+            </p>
+
+            {genCount !== null && genCount > 0 && (
+              <p className="text-sm text-muted-foreground/70">
+                Over{" "}
+                <span className="font-medium text-foreground">
+                  {genCount.toLocaleString()}
+                </span>{" "}
+                badges generated and counting.
               </p>
+            )}
 
-              {genCount !== null && genCount > 0 && (
-                <div className="flex flex-col items-center gap-3">
-                  <p className="text-sm text-muted-foreground/70">
-                    Over{" "}
-                    <span className="font-medium text-foreground">
-                      {genCount.toLocaleString()}
-                    </span>{" "}
-                    badges generated and counting.
-                  </p>
+            <GenHeroInput />
 
-                </div>
-              )}
-
-              <GenHeroInput />
-
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <Button asChild className="w-36">
-                  <Link href="/docs">
-                    Get Started
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild className="w-36">
-                  <Link href="/showcase">
-                    Showcase
-                  </Link>
-                </Button>
-              </div>
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+              <Button asChild className="w-full sm:w-36">
+                <Link href="/docs">
+                  Get Started
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="w-full sm:w-36">
+                <Link href="/showcase">
+                  Showcase
+                </Link>
+              </Button>
             </div>
-          </section>
+          </div>
+        </section>
 
+        <div className="mx-auto max-w-4xl px-6 md:px-10">
           <Separator />
 
           {/* Badge Builder */}

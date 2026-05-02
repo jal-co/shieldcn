@@ -275,7 +275,7 @@ export function BadgeBuilderCore({
 
         {/* ── Dynamic parameters ── */}
         {selectedPreset.params.length > 0 && (
-          <div className={cn("grid gap-3", selectedPreset.params.length === 1 ? "grid-cols-1" : selectedPreset.params.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+          <div className={cn("grid gap-3 grid-cols-1", selectedPreset.params.length === 2 && "sm:grid-cols-2", selectedPreset.params.length >= 3 && "sm:grid-cols-3")}>
             {selectedPreset.params.map(param => (
               <div key={param.key} className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
@@ -294,7 +294,7 @@ export function BadgeBuilderCore({
         )}
 
         {/* ── Core controls: variant + size + mode ── */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Ctrl label="Variant" value={s.variant} onChange={v => set("variant", v)} options={[...VARIANTS]} />
           <Ctrl label="Size" value={s.size} onChange={v => set("size", v)} options={[...SIZES]} />
           <Ctrl label="Mode" value={s.mode} onChange={v => set("mode", v)} options={[...MODES]} />
@@ -312,7 +312,7 @@ export function BadgeBuilderCore({
         {showAdvanced && (
           <div className="space-y-4 rounded-lg border border-border/50 bg-muted/5 p-4">
             {/* Theme + Font + Format */}
-            <div className={cn("grid gap-3", showFormat ? "grid-cols-3" : "grid-cols-2")}>
+            <div className={cn("grid gap-3 grid-cols-1 sm:grid-cols-2", showFormat && "sm:grid-cols-3")}>
               <Ctrl label="Theme" value={s.theme} onChange={v => set("theme", v)} options={[...THEMES]} displayMap={{ _none: "None" }} />
               <Ctrl label="Font" value={s.font} onChange={v => set("font", v)} options={[...FONTS]} />
               {showFormat && (
@@ -361,7 +361,7 @@ export function BadgeBuilderCore({
             </div>
 
             {/* Fine-grain color overrides */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <ColorField label="Value text" value={s.valueColor} onChange={v => set("valueColor", v)} />
               <ColorField label="Label text" value={s.labelTextColor} onChange={v => set("labelTextColor", v)} />
               <div className="space-y-1.5">
