@@ -11,8 +11,7 @@ import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
 import { getGenCount } from "@shieldcn/core/gen-counter"
-import { getRecentGenUsers } from "@shieldcn/core/gen-users"
-import { GenUsersStack } from "@/components/gen-users-stack"
+
 
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
@@ -23,10 +22,7 @@ export const metadata: Metadata = pageMetadata({
 })
 
 export default async function Home() {
-  const [genCount, genUsers] = await Promise.all([
-    getGenCount(),
-    getRecentGenUsers(30),
-  ])
+  const [genCount] = await Promise.all([getGenCount()])
   return (
     <SiteShell>
       <script
@@ -61,7 +57,7 @@ export default async function Home() {
                     </span>{" "}
                     badges generated and counting.
                   </p>
-                  {genUsers.length > 0 && <GenUsersStack users={genUsers} />}
+
                 </div>
               )}
 
