@@ -49,7 +49,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="flex gap-10 text-sm">
+          <div className="flex gap-6 text-sm sm:gap-10">
             <div className="flex flex-col gap-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Product

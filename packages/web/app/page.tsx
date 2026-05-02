@@ -58,14 +58,14 @@ export default async function Home() {
 
             <GenHeroInput />
 
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <Button asChild className="w-36">
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+              <Button asChild className="w-full sm:w-36">
                 <Link href="/docs">
                   Get Started
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button variant="outline" asChild className="w-36">
+              <Button variant="outline" asChild className="w-full sm:w-36">
                 <Link href="/showcase">
                   Showcase
                 </Link>
