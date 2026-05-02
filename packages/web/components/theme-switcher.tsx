@@ -130,7 +130,7 @@ export function ThemeSwitcher() {
           setTheme(next)
         }}
         className={cn(
-          "inline-flex size-8 items-center justify-center rounded-md transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+          "inline-flex size-8 items-center justify-center rounded-lg transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
           resolvedTheme === "dark"
             ? "text-white hover:bg-white/10"
             : "text-black hover:bg-black/10"

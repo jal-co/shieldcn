@@ -62,7 +62,7 @@ export function GenHeroInput() {
             : "opacity-100 cursor-pointer group"
         )}
       >
-        <span className="rounded-full border border-border/60 bg-white px-3 py-1 text-xs font-semibold text-zinc-600 shadow-sm group-hover:text-zinc-900 group-hover:border-border transition-colors dark:bg-white dark:text-zinc-600 dark:group-hover:text-zinc-900">
+        <span className="rounded-full border border-border/60 bg-background px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm group-hover:text-foreground group-hover:border-border transition-colors">
           Try it — username for profile, owner/repo for badges
         </span>
         {/* Tail */}
@@ -75,11 +75,11 @@ export function GenHeroInput() {
         >
           <path
             d="M0 0L6 6L12 0"
-            fill="white"
+            fill="var(--background)"
             stroke="currentColor"
             strokeWidth="1"
           />
-          <line x1="0" y1="0" x2="12" y2="0" stroke="white" strokeWidth="2" />
+          <line x1="0" y1="0" x2="12" y2="0" stroke="var(--background)" strokeWidth="2" />
         </svg>
       </button>
 
@@ -95,7 +95,7 @@ export function GenHeroInput() {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSubmit()
           }}
-          className="h-10 flex-1 !bg-background sm:pr-24"
+          className="h-10 flex-1 bg-background dark:bg-background sm:pr-24"
         />
 
         {/* Mobile: visible Generate button */}

@@ -47,15 +47,13 @@ export default async function Home() {
             </p>
 
             {genCount !== null && genCount > 0 && (
-              <div className="flex flex-col items-center gap-3">
-                <p className="text-sm text-muted-foreground/70">
-                  Over{" "}
-                  <span className="font-medium text-foreground">
-                    {genCount.toLocaleString()}
-                  </span>{" "}
-                  badges generated and counting.
-                </p>
-              </div>
+              <p className="text-sm text-muted-foreground/70">
+                Over{" "}
+                <span className="font-medium text-foreground">
+                  {genCount.toLocaleString()}
+                </span>{" "}
+                badges generated and counting.
+              </p>
             )}
 
             <GenHeroInput />

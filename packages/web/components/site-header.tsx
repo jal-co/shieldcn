@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { GradientText } from "@/components/gradient-text"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { MobileNav } from "@/components/mobile-nav"
 import { ShieldcnLogo } from "@/components/shieldcn-logo"
@@ -28,9 +27,9 @@ export function SiteHeader() {
         <Button variant="ghost" size="sm" asChild>
           <Link href="/showcase">Showcase</Link>
         </Button>
-        <Button variant="ghost" size="sm" asChild className="focus-visible:ring-border">
+        <Button variant="ghost" size="sm" asChild>
           <Link href="/gen">
-            <GradientText>Generator</GradientText>
+            Generator
           </Link>
         </Button>
 
