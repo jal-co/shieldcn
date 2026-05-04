@@ -387,6 +387,9 @@ export const categories: Category[] = [
       dynamicBadge("Built with shadcncraft", "components", "/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded", "Branded shadcncraft badge — production-ready shadcn/ui components and blocks."),
       dynamicBadge("Built with shadcncraft (default)", "components", "/badge/built%20with-shadcncraft.svg?logo=shadcncraft", "shadcncraft badge in default style."),
       dynamicBadge("Built with shadcncraft (secondary)", "components", "/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=secondary", "shadcncraft badge in secondary style."),
+      dynamicBadge("Built with shadcnblocks", "components", "/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=branded", "Branded shadcnblocks badge — 1500+ premium shadcn/ui blocks, components, and templates."),
+      dynamicBadge("Built with shadcnblocks (default)", "components", "/badge/built%20with-shadcnblocks.svg?logo=shadcnblocks", "shadcnblocks badge in default style."),
+      dynamicBadge("Built with shadcnblocks (secondary)", "components", "/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=secondary", "shadcnblocks badge in secondary style."),
     ],
   },
   {

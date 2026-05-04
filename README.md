@@ -21,6 +21,7 @@
   <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
   <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
   <a href="https://shadcncraft.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded" alt="built with shadcncraft" /></a>
+  <a href="https://www.shadcnblocks.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=branded" alt="built with shadcnblocks" /></a>
 </p>
 
 ## About

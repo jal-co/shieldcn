@@ -46,6 +46,15 @@ export function SiteFooter() {
               >
                 shadcncraft
               </a>
+              {" "}&{" "}
+              <a
+                href="https://www.shadcnblocks.com?utm_source=shieldcn.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                shadcnblocks
+              </a>
             </p>
           </div>
 
