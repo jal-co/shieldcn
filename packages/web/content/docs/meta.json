@@ -3,6 +3,7 @@
   "pages": [
     "---Getting Started---",
     "index",
+    "cli",
     "skill",
     "self-hosting",
     "---Badges---",

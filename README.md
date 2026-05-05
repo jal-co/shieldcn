@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shieldcn.dev">Homepage</a> · <a href="https://shieldcn.dev/docs">Docs</a> · <a href="https://shieldcn.dev/docs/api-reference">API Reference</a>
+  <a href="https://shieldcn.dev">Homepage</a> · <a href="https://shieldcn.dev/docs">Docs</a> · <a href="https://shieldcn.dev/docs/cli">CLI</a> · <a href="https://shieldcn.dev/docs/api-reference">API Reference</a>
 </p>
 
 <p align="center">
@@ -31,6 +31,26 @@ shieldcn is an open-source badge service by [Justin Levine](https://justinlevine
 Badges are rendered as actual [shadcn/ui](https://ui.shadcn.com) Button components via [Satori](https://github.com/vercel/satori) — same font (Inter), same border-radius, same padding, same color tokens per variant and size. Not "inspired by" — the real thing, as SVG.
 
 Built with [jal-co/ui](https://ui.justinlevine.me) components.
+
+## CLI
+
+Generate badges from your terminal:
+
+```bash
+# Scan current repo and generate badge markdown
+npx shieldcn-cli
+
+# Scan a GitHub repo
+npx shieldcn-cli vercel/next.js --variant branded
+
+# Inject badges into README
+npx shieldcn-cli --inject
+
+# Migrate shields.io URLs to shieldcn
+npx shieldcn-cli migrate
+```
+
+See the [CLI docs](https://shieldcn.dev/docs/cli) for full usage.
 
 ## Usage
 
