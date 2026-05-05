@@ -44,6 +44,7 @@ const docsNav: NavGroup[] = [
     alwaysOpen: true,
     items: [
       { title: "Introduction", href: "/docs" },
+      { title: "CLI", href: "/docs/cli" },
       { title: "Agent Skill", href: "/docs/skill" },
       { title: "Self-Hosting", href: "/docs/self-hosting" },
       { title: "API Reference", href: "/docs/api-reference" },

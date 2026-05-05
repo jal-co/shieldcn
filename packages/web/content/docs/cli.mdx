@@ -1,0 +1,313 @@
+---
+title: CLI
+description: Generate badges from your terminal. Scans your repo, detects your stack, and outputs copy-paste markdown.
+badge: "/badge/CLI-npx%20shieldcn--cli-18181b.svg?variant=branded&logo=npm"
+---
+
+The shieldcn CLI scans a GitHub repo — local or remote — detects your stack, and generates categorized badge markdown you can paste straight into your README.
+
+```bash
+npx shieldcn-cli
+```
+
+No install required. Works with any GitHub repository.
+
+## Install
+
+```bash
+# Run without installing (recommended)
+npx shieldcn-cli
+
+# Or install globally
+npm install -g shieldcn-cli
+
+# Or with your preferred package manager
+pnpm add -g shieldcn-cli
+yarn global add shieldcn-cli
+bun add -g shieldcn-cli
+```
+
+## Generate badges
+
+### Scan current repo
+
+Run from inside any git repo to auto-detect the GitHub remote:
+
+```bash
+npx shieldcn-cli
+```
+
+The CLI reads `.git/config` to find your `owner/repo`, then scans `package.json`, config files, lockfiles, README, and `FUNDING.yml` to detect your full stack.
+
+### Scan a remote repo
+
+Pass a GitHub URL or `owner/repo` slug:
+
+```bash
+npx shieldcn-cli vercel/next.js
+npx shieldcn-cli https://github.com/shadcn-ui/ui
+```
+
+Remote scanning uses `raw.githubusercontent.com` HEAD requests to detect config files — no GitHub token required.
+
+### Customize style
+
+Override the default variant, size, theme, or mode:
+
+```bash
+# Branded badges with blue theme
+npx shieldcn-cli --variant branded --theme blue
+
+# Large outline badges in light mode
+npx shieldcn-cli --variant outline --size lg --mode light
+
+# Ghost badges with compact output
+npx shieldcn-cli --variant ghost --compact
+```
+
+## Output formats
+
+### Markdown (default)
+
+Grouped by category with headers:
+
+```bash
+npx shieldcn-cli
+```
+
+```markdown
+### GitHub
+
+![GitHub Stars](https://shieldcn.dev/github/stars/owner/repo.svg?variant=secondary)
+![License](https://shieldcn.dev/github/license/owner/repo.svg?variant=ghost)
+
+### Tooling
+
+![TypeScript](https://shieldcn.dev/badge/Language-TypeScript-3178C6.svg?logo=typescript&variant=branded)
+```
+
+### Flat
+
+All badges on one line, no headers — ready to paste into a `<p align="center">` block:
+
+```bash
+npx shieldcn-cli --format flat
+```
+
+### HTML
+
+Wrapped in `<p align="center">` with `<img>` tags:
+
+```bash
+npx shieldcn-cli --format html
+```
+
+### JSON
+
+Full config object for programmatic use or CI pipelines:
+
+```bash
+npx shieldcn-cli --json
+```
+
+### Copy to clipboard
+
+Add `--copy` to any command:
+
+```bash
+npx shieldcn-cli --variant branded --copy
+```
+
+## Inject into README
+
+Automatically insert or update badges in your README between marker comments.
+
+### Step 1: Add markers
+
+```bash
+npx shieldcn-cli init
+```
+
+This adds `<!-- shieldcn-start -->` and `<!-- shieldcn-end -->` markers to your README after the first heading. You can also add them manually:
+
+```markdown
+# My Project
+
+<!-- shieldcn-start -->
+<!-- shieldcn-end -->
+
+Description goes here...
+```
+
+### Step 2: Inject badges
+
+```bash
+npx shieldcn-cli --inject
+```
+
+Badges are inserted between the markers as flat inline markdown. Running `--inject` again replaces the content between markers — your README stays clean.
+
+### Use in CI
+
+Auto-update badges on every push to `main`:
+
+```yaml
+# .github/workflows/badges.yml
+name: Update badges
+on:
+  push:
+    branches: [main]
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx shieldcn-cli --inject --variant branded
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update badges"
+```
+
+## Migrate from shields.io
+
+Convert existing `img.shields.io` URLs in your README to shieldcn equivalents.
+
+### Preview changes
+
+```bash
+npx shieldcn-cli migrate --dry
+```
+
+```
+  Found 4 shields.io badge(s):
+
+  1. https://img.shields.io/npm/v/next.svg
+     → https://shieldcn.dev/npm/next.svg
+
+  2. https://img.shields.io/github/stars/vercel/next.js
+     → https://shieldcn.dev/github/stars/vercel/next.js.svg?variant=branded
+
+  3. https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff
+     → https://shieldcn.dev/badge/TypeScript-3178C6.svg?variant=branded&logo=typescript
+```
+
+### Apply changes
+
+```bash
+# Interactive (asks for confirmation)
+npx shieldcn-cli migrate
+
+# Skip confirmation
+npx shieldcn-cli migrate --write
+
+# Migrate a specific file
+npx shieldcn-cli migrate docs/README.md --write
+```
+
+The migrator maps shields.io query params to shieldcn equivalents:
+
+| shields.io | shieldcn |
+|------------|----------|
+| `?style=flat-square` | `?variant=secondary` |
+| `?style=for-the-badge` | `?variant=default` |
+| `?style=social` | `?variant=ghost` |
+| `?style=plastic` | `?variant=outline` |
+| `?logo=react` | `?logo=react` |
+| `?logoColor=fff` | `?logoColor=fff` |
+| `?color=blue` | `?color=blue` |
+| `?labelColor=555` | `?labelColor=555` |
+
+## What gets detected
+
+The CLI inspects your repository and generates badges across six categories:
+
+### GitHub
+
+Stars, forks, watchers, contributors, last commit, open issues, open PRs, release, CI status, and license. Always generated when a GitHub remote is found.
+
+### Package
+
+npm version, weekly/monthly/total downloads, types, and license. Only generated when `package.json` exists and the package is published to npm. Private packages get a "Private package" badge instead.
+
+### Tooling
+
+Detected from config files and lockfiles in the repo root:
+
+| Tool | Detected by |
+|------|-------------|
+| pnpm | `pnpm-lock.yaml` |
+| Yarn | `yarn.lock` |
+| Bun | `bun.lock` / `bun.lockb` |
+| npm | `package-lock.json` |
+| TypeScript | `tsconfig.json` |
+| ESLint | `.eslintrc.*` / `eslint.config.*` |
+| Prettier | `.prettierrc*` / `prettier.config.js` |
+| Biome | `biome.json` |
+| Vite | `vite.config.*` |
+| Next.js | `next.config.*` |
+| Nuxt | `nuxt.config.*` |
+| Astro | `astro.config.*` |
+| Svelte | `svelte.config.*` |
+| Tailwind CSS | `tailwind.config.*` |
+| Turborepo | `turbo.json` |
+| Nx | `nx.json` |
+| Docker | `Dockerfile` / `docker-compose.*` |
+| Vitest | `vitest.config.*` |
+| Playwright | `playwright.config.*` |
+| Jest | `jest.config.*` |
+| Cypress | `cypress.config.*` |
+| Storybook | `.storybook/main.*` |
+| Vercel | `vercel.json` |
+| Netlify | `netlify.toml` |
+| Cloudflare | `wrangler.toml` / `wrangler.jsonc` |
+| Fly.io | `fly.toml` |
+
+### Stack
+
+Matched from `dependencies`, `devDependencies`, and `peerDependencies` in `package.json`. Over 100 packages are mapped to branded badges including React, Vue, Svelte, Prisma, Drizzle, tRPC, Supabase, Stripe, OpenAI, Anthropic, and more.
+
+### Modern
+
+Detects modern project signals:
+
+| Signal | Detected by |
+|--------|-------------|
+| ESM-only | `"type": "module"` in package.json |
+| Tree-shakeable | `"sideEffects": false` |
+| Dual package | `"exports"` with both `import` and `require` |
+| Monorepo | `"workspaces"` field |
+| CLI tool | `"bin"` field |
+| Agent-friendly | `AGENTS.md` file |
+| LLM-indexed | `llms.txt` file |
+| Claude Code ready | `.claude/CLAUDE.md` file |
+| Cursor ready | `.cursor/rules` file |
+| MCP server | `mcp.json` file |
+
+### Community
+
+- **Discord** — extracted from `discord.gg` or `discord.com/invite` links in README
+- **Sponsors** — parsed from `.github/FUNDING.yml` (GitHub Sponsors, Open Collective, Patreon, Ko-fi)
+- **Homepage** — from `"homepage"` in package.json
+
+## Options reference
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--variant` | `default` · `secondary` · `outline` · `ghost` · `destructive` · `branded` | `default` |
+| `--size` | `xs` · `sm` · `default` · `lg` | `sm` |
+| `--theme` | `zinc` · `slate` · `stone` · `neutral` · `gray` · `blue` · `green` · `rose` · `orange` · `amber` · `violet` · `purple` · `red` · `cyan` · `emerald` | — |
+| `--mode` | `dark` · `light` | `dark` |
+| `--format` | `markdown` · `flat` · `html` · `json` | `markdown` |
+| `--inject` | Insert/update badges between README markers | `false` |
+| `--copy` | Copy output to clipboard | `false` |
+| `--json` | Shortcut for `--format json` | `false` |
+| `--compact` | Omit group headers from output | `false` |
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `shieldcn [target]` | Generate badges (default command) |
+| `shieldcn migrate [file]` | Convert shields.io URLs to shieldcn |
+| `shieldcn init [file]` | Add marker comments to README |
