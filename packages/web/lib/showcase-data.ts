@@ -216,6 +216,8 @@ export const categories: Category[] = [
       makeLogoBadge("bun", "Bun", "000000", "&variant=branded"),
       makeLogoBadge("yarn", "Yarn", "2C8EBB", "&variant=branded"),
       makeLogoBadge("npm", "npm", "CB3837", "&variant=branded"),
+      makeLogoBadge("uv", "uv", "DE5FE9", "&variant=branded"),
+      dynamicBadge("Cargo", "brand badge", "/badge/Cargo-E64B11.svg?logo=rust&logoColor=fff&variant=branded", "Branded Cargo badge using the Rust logo. Best for stack rows and Rust project READMEs."),
     ],
   },
   {
@@ -280,6 +282,12 @@ export const categories: Category[] = [
       makeLogoBadge("playwright", "Playwright", "2EAD33", "&variant=branded"),
       makeLogoBadge("jest", "Jest", "C21325", "&variant=branded"),
       makeLogoBadge("cypress", "Cypress", "69D3A7", "&variant=branded"),
+      makeLogoBadge("gradle", "Gradle", "02303A", "&variant=branded"),
+      makeLogoBadge("cmake", "CMake", "064F8C", "&variant=branded"),
+      makeLogoBadge("apachemaven", "Maven", "C71A36", "&variant=branded"),
+      dynamicBadge("Compiled using CMake", "build system", "/badge/Compiled%20using-CMake-064F8C.svg?logo=cmake&logoColor=fff", "Build system badge indicating a project is compiled using CMake."),
+      dynamicBadge("Compiled using Gradle", "build system", "/badge/Compiled%20using-Gradle-02303A.svg?logo=gradle&logoColor=fff", "Build system badge indicating a project is compiled using Gradle."),
+      dynamicBadge("Compiled using Maven", "build system", "/badge/Compiled%20using-Maven-C71A36.svg?logo=apachemaven&logoColor=fff", "Build system badge indicating a project is compiled using Maven."),
     ],
   },
   {
@@ -304,6 +312,8 @@ export const categories: Category[] = [
       makeLogoBadge("turborepo", "Turborepo", "FF1E56", "&variant=branded"),
       makeLogoBadge("biome", "Biome", "60A5FA", "&variant=branded"),
       makeLogoBadge("eslint", "ESLint", "4B32C3", "&variant=branded"),
+      makeLogoBadge("cplusplus", "C++", "00599C", "&variant=branded"),
+      dynamicBadge("Java", "brand badge", "/badge/Java-ED8B00.svg?logo=ri:FaJava&logoColor=fff&variant=branded", "Branded Java badge using the Java icon. Best for stack rows and JVM project READMEs."),
     ],
   },
   {
