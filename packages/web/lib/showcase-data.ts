@@ -399,6 +399,8 @@ export const categories: Category[] = [
       dynamicBadge("first community badge", "by @jal-co", "/badge/my-cool_badge-blue.svg", "the first ever badge submitted by the community"),
     
       dynamicBadge("built with shieldcn", "by @jal-co", "/badge/built%20with-shieldcn.svg?font=geist-mono&logo=shieldcn&logoColor=858585", "its this!"),
+    
+      dynamicBadge("Compiled using Maven", "by @itzzjustmateo", "/badge/Compiled%20using-Maven-F69824.svg?logo=apachemaven", "A badge indicating that a Project was compiled using Maven"),
     ],
   },
 ]
