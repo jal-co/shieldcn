@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
-import Link from "next/link"
 import { Heart, ExternalLink, Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SiteShell } from "@/components/site-shell"
@@ -263,7 +262,7 @@ export default async function SponsorPage() {
                   </div>
 
                   <div
-                    className="grid gap-2"
+                    className="grid gap-2 max-sm:grid-cols-[repeat(1,1fr)]! max-lg:grid-cols-[repeat(2,1fr)]!"
                     style={{ gridTemplateColumns: `repeat(${Math.min(tier.slots, 4)}, 1fr)` }}
                   >
                     {tier.sponsors.map((sponsor) => (
