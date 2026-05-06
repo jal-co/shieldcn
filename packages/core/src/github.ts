@@ -79,3 +79,32 @@ export function formatCount(count: number): string {
 
 /** @deprecated Use `formatCount` instead. */
 export const formatStarCount = formatCount
+
+/**
+ * Count how many public GitHub repos reference shieldcn badge URLs
+ * in their code (typically README.md files).
+ *
+ * Uses the GitHub code search API. Requires authentication for
+ * reliable results. Returns `null` on failure.
+ */
+export async function fetchShieldcnRepoCount(): Promise<number | null> {
+  try {
+    const response = await fetch(
+      `https://api.github.com/search/code?q=shieldcn.com+extension:md&per_page=1`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          ...(process.env.GITHUB_TOKEN
+            ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+            : {}),
+        },
+        next: { revalidate: 3600 },
+      },
+    )
+    if (!response.ok) return null
+    const data = await response.json()
+    return typeof data.total_count === "number" ? data.total_count : null
+  } catch {
+    return null
+  }
+}
