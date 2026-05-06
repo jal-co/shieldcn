@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
 import { SiteAnnouncement } from "@/components/site-announcement"
+import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
 import { GenHeroInput } from "@/components/gen-hero-input"
 import { HeroIconCloud } from "@/components/hero-icon-cloud"
+import { ScrollCta } from "@/components/scroll-cta"
 import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
@@ -30,10 +32,10 @@ export default async function Home() {
       />
       <main className="min-w-0 flex-1">
         {/* Hero — split layout */}
-        <section className="relative overflow-hidden px-6 py-16 md:px-10 md:py-24">
+        <section className="relative overflow-hidden px-6 py-10 md:px-10 md:py-16">
           <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
             {/* Left — text content */}
-            <div className="space-y-6 lg:w-1/2">
+            <div className="relative z-10 space-y-6 lg:w-1/2">
               <SiteAnnouncement />
 
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -44,26 +46,24 @@ export default async function Home() {
                 craves.
               </h1>
 
-              <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
-                A shields.io alternative with the visual quality of shadcn/ui.
-                Unlimited combinations.
-              </p>
+              <HeroSubtext />
 
               <GenHeroInput />
             </div>
 
-            {/* Right — 3D badge icon cloud */}
-            <div className="flex items-center justify-center lg:w-1/2">
+            {/* Right — 3D badge icon cloud (oversized, bleeds behind text) */}
+            <div className="relative z-0 flex items-center justify-center lg:w-1/2 lg:-ml-20 lg:-mt-16">
               <HeroIconCloud />
             </div>
           </div>
+          <ScrollCta targetId="builder" />
         </section>
 
         <div className="mx-auto max-w-6xl px-6 md:px-10">
           <Separator />
 
           {/* Badge Builder */}
-          <section className="py-16">
+          <section id="builder" className="py-16 scroll-mt-16">
             <BadgeBuilder />
           </section>
         </div>

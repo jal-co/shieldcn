@@ -10,7 +10,7 @@ import { useBadgeMode } from "@/lib/use-badge-mode"
 import { allBadgePaths } from "@/lib/showcase-data"
 
 /** Max badges in the cloud — enough to look full, few enough to stay readable */
-const CLOUD_SIZE = 48
+const CLOUD_SIZE = 58
 
 /**
  * Fisher-Yates shuffle + slice — random subset on each mount.
@@ -42,8 +42,8 @@ export function HeroIconCloud() {
   }
 
   return (
-    <div className="flex items-center justify-center">
-      <IconCloud images={badgeUrls} radius={180} />
+    <div className="flex items-center justify-center" style={{ isolation: "isolate" }}>
+      <IconCloud images={badgeUrls} radius={280} />
     </div>
   )
 }

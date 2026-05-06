@@ -11,8 +11,8 @@ export function SiteAnnouncement() {
     <Announcement>
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
-        <Link href="/docs" className="hover:underline underline-offset-4">
-          18 new providers — GitLab, Modrinth, Conda, and more
+        <Link href="/docs/cli" className="hover:underline underline-offset-4">
+          Introducing shieldcn-cli — generate badges from the terminal
           <ArrowRight className="size-3" />
         </Link>
       </AnnouncementContent>

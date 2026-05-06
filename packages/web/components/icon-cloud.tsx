@@ -75,9 +75,14 @@ export function IconCloud({ images, className, radius = 200 }: IconCloudProps) {
       const scale = (finalZ + radius * 1.8) / (radius * 2.5)
       const opacity = Math.max(0.1, Math.min(1, (finalZ + radius * 1.2) / (radius * 1.8)))
 
+      // Frost: badges near the edge of the sphere blur out
+      const screenDist = Math.sqrt(rotatedX * rotatedX + rotatedY * rotatedY) / radius
+      const blur = Math.max(0, (screenDist - 0.55) * 6)
+
       el.style.transform = `translate3d(${rotatedX}px, ${rotatedY}px, 0) scale(${scale})`
       el.style.opacity = String(opacity)
       el.style.zIndex = String(Math.round(finalZ + radius))
+      el.style.filter = blur > 0.1 ? `blur(${blur}px)` : "none"
     }
   }, [points, radius])
 
@@ -85,11 +90,9 @@ export function IconCloud({ images, className, radius = 200 }: IconCloudProps) {
   useEffect(() => {
     const animate = () => {
       if (!isDraggingRef.current) {
-        const mx = mousePosRef.current.x
-        const my = mousePosRef.current.y
-        // Gentle auto-rotation biased by mouse position
-        rotationRef.current.x += (my * 0.00002) + 0.001
-        rotationRef.current.y += (mx * 0.00002) + 0.002
+        // Gentle constant drift
+        rotationRef.current.x += 0.0008
+        rotationRef.current.y += 0.0015
       }
 
       updatePositions()
@@ -135,37 +138,37 @@ export function IconCloud({ images, className, radius = 200 }: IconCloudProps) {
     <div
       ref={containerRef}
       className={cn(
-        "relative select-none cursor-grab active:cursor-grabbing",
-        className,
-      )}
-      style={{
-        width: radius * 2.6,
-        height: radius * 2.6,
-        touchAction: "none",
-      }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
-      aria-label="Interactive 3D badge cloud"
-      role="img"
-    >
-      {images.map((src, i) => (
-        <div
-          key={i}
-          ref={(el) => { itemRefs.current[i] = el }}
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 will-change-transform"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt=""
-            className="h-7 w-auto shrink-0"
-            loading="eager"
-            draggable={false}
-          />
-        </div>
-      ))}
-    </div>
+          "relative select-none cursor-grab active:cursor-grabbing",
+          className,
+        )}
+        style={{
+          width: radius * 2.6,
+          height: radius * 2.6,
+          touchAction: "none",
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        aria-label="Interactive 3D badge cloud"
+        role="img"
+      >
+        {images.map((src, i) => (
+          <div
+            key={i}
+            ref={(el) => { itemRefs.current[i] = el }}
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 will-change-transform"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt=""
+              className="h-7 w-auto shrink-0"
+              loading="eager"
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
   )
 }
