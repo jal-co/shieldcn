@@ -32,6 +32,11 @@ export function SiteHeader() {
             Generator
           </Link>
         </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/migrate">
+            Migrate
+          </Link>
+        </Button>
 
       </nav>
 

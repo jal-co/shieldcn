@@ -17,7 +17,8 @@
     "./normalize-params": "./src/normalize-params.ts",
     "./format": "./src/format.ts",
     "./github": "./src/github.ts",
-    "./route-handler": "./src/route-handler.ts"
+    "./route-handler": "./src/route-handler.ts",
+    "./migrate": "./src/migrate/index.ts"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
