@@ -16,6 +16,10 @@ Add a badge to any markdown file:
 
 No configuration, no API keys, no build step.
 
+## Supported providers
+
+npm, GitHub, Discord, Reddit, PyPI, Crates.io, Docker Hub, Bluesky, JSR, Bundlephobia, YouTube, VS Code Marketplace, Open Collective, Hacker News, Mastodon, Lemmy, Packagist, RubyGems, NuGet, Pub.dev, Homebrew, Maven, CocoaPods, Codecov, WakaTime, Tokscale, IndieDevs, GitLab, Conda, Chrome Web Store, Firefox Add-ons (AMO), Coveralls, SonarQube, jsDelivr, Chocolatey, Flathub, Snapcraft, F-Droid, Discourse, Stack Exchange, Modrinth, Open VSX, Liberapay, Matrix, Weblate, static badges, dynamic JSON, HTTPS endpoint, and memo badges.
+
 ## Agent skill
 
 Install the shieldcn agent skill to let AI coding agents add badges to projects:

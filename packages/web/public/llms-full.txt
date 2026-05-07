@@ -62,11 +62,32 @@ Scoped packages: `/npm/@scope/package.svg`
 | Commits | `/github/commits/{owner}/{repo}[/ref].svg` |
 | Last commit | `/github/last-commit/{owner}/{repo}[/ref].svg` |
 | Asset downloads | `/github/assets-dl/{owner}/{repo}[/tag].svg` |
+| Downloads (all) | `/github/downloads/{owner}/{repo}[/latest|tag].svg` |
+| Downloads (asset) | `/github/downloads-asset/{owner}/{repo}/{asset}[/latest|tag].svg` |
 | Dependabot | `/github/dependabot/{owner}/{repo}.svg` |
+| Followers | `/github/followers/{username}.svg` |
+| User stars | `/github/user-stars/{username}.svg` |
 
 GitHub badges support both URL formats:
 - `/github/stars/{owner}/{repo}.svg`
 - `/github/{owner}/{repo}/stars.svg`
+
+### GitLab
+
+| Badge | URL |
+|-------|-----|
+| Stars | `/gitlab/{owner}/{repo}/stars.svg` |
+| Forks | `/gitlab/{owner}/{repo}/forks.svg` |
+| Issues | `/gitlab/{owner}/{repo}/issues.svg` |
+| Open issues | `/gitlab/{owner}/{repo}/open-issues.svg` |
+| Closed issues | `/gitlab/{owner}/{repo}/closed-issues.svg` |
+| Pipeline | `/gitlab/{owner}/{repo}/pipeline.svg` |
+| License | `/gitlab/{owner}/{repo}/license.svg` |
+| Last commit | `/gitlab/{owner}/{repo}/last-commit.svg` |
+| Contributors | `/gitlab/{owner}/{repo}/contributors.svg` |
+| Release | `/gitlab/{owner}/{repo}/release.svg` |
+
+Pipeline supports `?branch=` query param.
 
 ### Discord
 
@@ -82,6 +103,347 @@ GitHub badges support both URL formats:
 |-------|-----|
 | Karma | `/reddit/{type}/u/{user}.svg` |
 | Subscribers | `/reddit/subscribers/r/{subreddit}.svg` |
+
+### PyPI
+
+| Badge | URL |
+|-------|-----|
+| Version | `/pypi/{package}.svg` or `/pypi/v/{package}.svg` |
+| Downloads (daily) | `/pypi/dd/{package}.svg` |
+| Downloads (weekly) | `/pypi/dw/{package}.svg` |
+| Downloads (monthly) | `/pypi/dm/{package}.svg` |
+| License | `/pypi/license/{package}.svg` |
+| Python version | `/pypi/python/{package}.svg` |
+
+### Crates.io
+
+| Badge | URL |
+|-------|-----|
+| Version | `/crates/{crate}.svg` or `/crates/v/{crate}.svg` |
+| Downloads (total) | `/crates/d/{crate}.svg` |
+| Downloads (recent) | `/crates/dr/{crate}.svg` |
+| License | `/crates/license/{crate}.svg` |
+
+### Docker Hub
+
+| Badge | URL |
+|-------|-----|
+| Pulls | `/docker/pulls/{image}.svg` |
+| Stars | `/docker/stars/{image}.svg` |
+| Version | `/docker/v/{image}.svg` |
+| Size | `/docker/size/{image}.svg` |
+
+Image format: `library/nginx` or `grafana/grafana`.
+
+### Bluesky
+
+| Badge | URL |
+|-------|-----|
+| Followers | `/bluesky/followers/{handle}.svg` |
+| Following | `/bluesky/following/{handle}.svg` |
+| Posts | `/bluesky/posts/{handle}.svg` |
+
+Default (no topic): `/bluesky/{handle}.svg` → followers.
+
+### JSR
+
+| Badge | URL |
+|-------|-----|
+| Version | `/jsr/v/{@scope}/{name}.svg` |
+| Score | `/jsr/score/{@scope}/{name}.svg` |
+
+Default: `/jsr/{@scope}/{name}.svg` → version.
+
+### Bundlephobia
+
+| Badge | URL |
+|-------|-----|
+| Minified | `/bundlephobia/min/{package}.svg` |
+| Minified + gzip | `/bundlephobia/minzip/{package}.svg` |
+| Tree-shaking | `/bundlephobia/tree-shaking/{package}.svg` |
+
+### YouTube
+
+| Badge | URL |
+|-------|-----|
+| Subscribers | `/youtube/subscribers/{channelId}.svg` |
+| Channel views | `/youtube/channel-views/{channelId}.svg` |
+| Video views | `/youtube/views/{videoId}.svg` |
+| Likes | `/youtube/likes/{videoId}.svg` |
+| Comments | `/youtube/comments/{videoId}.svg` |
+
+### VS Code Marketplace
+
+| Badge | URL |
+|-------|-----|
+| Installs | `/vscode/installs/{publisher}/{extension}.svg` |
+| Rating | `/vscode/rating/{publisher}/{extension}.svg` |
+| Version | `/vscode/v/{publisher}/{extension}.svg` |
+
+### Open Collective
+
+| Badge | URL |
+|-------|-----|
+| Backers | `/opencollective/backers/{slug}.svg` |
+| Sponsors | `/opencollective/sponsors/{slug}.svg` |
+| Contributors | `/opencollective/contributors/{slug}.svg` |
+| Balance | `/opencollective/balance/{slug}.svg` |
+| Budget | `/opencollective/budget/{slug}.svg` |
+
+### Hacker News
+
+| Badge | URL |
+|-------|-----|
+| Karma | `/hackernews/{userId}.svg` or `/hackernews/karma/{userId}.svg` |
+
+### Mastodon
+
+| Badge | URL |
+|-------|-----|
+| Followers | `/mastodon/followers/{instance}/{acct}.svg` |
+| Following | `/mastodon/following/{instance}/{acct}.svg` |
+| Posts | `/mastodon/posts/{instance}/{acct}.svg` |
+
+### Lemmy
+
+| Badge | URL |
+|-------|-----|
+| Subscribers | `/lemmy/subscribers/{instance}/{community}.svg` |
+| Posts | `/lemmy/posts/{instance}/{community}.svg` |
+| Comments | `/lemmy/comments/{instance}/{community}.svg` |
+
+### Packagist
+
+| Badge | URL |
+|-------|-----|
+| Version | `/packagist/v/{vendor}/{package}.svg` |
+| Downloads (total) | `/packagist/dt/{vendor}/{package}.svg` |
+| Downloads (monthly) | `/packagist/dm/{vendor}/{package}.svg` |
+| Downloads (daily) | `/packagist/dd/{vendor}/{package}.svg` |
+| License | `/packagist/license/{vendor}/{package}.svg` |
+
+### RubyGems
+
+| Badge | URL |
+|-------|-----|
+| Version | `/rubygems/v/{gem}.svg` |
+| Downloads (total) | `/rubygems/dt/{gem}.svg` |
+| Downloads (version) | `/rubygems/dv/{gem}.svg` |
+| License | `/rubygems/license/{gem}.svg` |
+
+### NuGet
+
+| Badge | URL |
+|-------|-----|
+| Version | `/nuget/v/{package}.svg` |
+| Downloads | `/nuget/dt/{package}.svg` |
+
+### Pub.dev
+
+| Badge | URL |
+|-------|-----|
+| Version | `/pub/v/{package}.svg` |
+| Likes | `/pub/likes/{package}.svg` |
+| Points | `/pub/points/{package}.svg` |
+| Popularity | `/pub/popularity/{package}.svg` |
+
+### Homebrew
+
+| Badge | URL |
+|-------|-----|
+| Formula version | `/homebrew/v/{formula}.svg` |
+| Cask version | `/homebrew/cask/{cask}.svg` |
+| Installs (30d) | `/homebrew/installs/{formula}[/{days}].svg` |
+| Formula downloads (monthly) | `/homebrew/dm/{formula}.svg` |
+| Formula downloads (quarterly) | `/homebrew/dq/{formula}.svg` |
+| Formula downloads (yearly) | `/homebrew/dy/{formula}.svg` |
+| Cask downloads (monthly) | `/homebrew/cask-dm/{cask}.svg` |
+| Cask downloads (quarterly) | `/homebrew/cask-dq/{cask}.svg` |
+| Cask downloads (yearly) | `/homebrew/cask-dy/{cask}.svg` |
+
+### Maven
+
+| Badge | URL |
+|-------|-----|
+| Version | `/maven/v/{groupId}/{artifactId}.svg` |
+
+### CocoaPods
+
+| Badge | URL |
+|-------|-----|
+| Version | `/cocoapods/v/{pod}.svg` |
+
+### Conda
+
+| Badge | URL |
+|-------|-----|
+| Version | `/conda/v/{channel}/{package}.svg` |
+| Downloads | `/conda/d/{channel}/{package}.svg` |
+| Platform | `/conda/platform/{channel}/{package}.svg` |
+
+### Chrome Web Store
+
+| Badge | URL |
+|-------|-----|
+| Version | `/chrome/v/{extensionId}.svg` |
+| Users | `/chrome/users/{extensionId}.svg` |
+| Rating | `/chrome/rating/{extensionId}.svg` |
+
+### Firefox Add-ons (AMO)
+
+| Badge | URL |
+|-------|-----|
+| Version | `/amo/v/{slug}.svg` |
+| Users | `/amo/users/{slug}.svg` |
+| Rating | `/amo/rating/{slug}.svg` |
+| Downloads | `/amo/d/{slug}.svg` |
+
+### Codecov
+
+| Badge | URL |
+|-------|-----|
+| Coverage | `/codecov/{service}/{owner}/{repo}[/{branch}].svg` |
+
+Service: `github`, `gitlab`, `bitbucket`.
+
+### Coveralls
+
+| Badge | URL |
+|-------|-----|
+| Coverage | `/coveralls/{service}/{owner}/{repo}[/{branch}].svg` |
+
+Service: `github`, `gitlab`, `bitbucket`.
+
+### SonarQube
+
+| Badge | URL |
+|-------|-----|
+| Quality gate | `/sonar/quality-gate/{component}.svg` |
+| Bugs | `/sonar/bugs/{component}.svg` |
+| Vulnerabilities | `/sonar/vulnerabilities/{component}.svg` |
+| Code smells | `/sonar/code-smells/{component}.svg` |
+| Coverage | `/sonar/coverage/{component}.svg` |
+| Duplicated lines | `/sonar/duplicated-lines/{component}.svg` |
+| Maintainability | `/sonar/maintainability/{component}.svg` |
+| Reliability | `/sonar/reliability/{component}.svg` |
+| Security | `/sonar/security/{component}.svg` |
+
+Supports `?server=` for self-hosted instances.
+
+### jsDelivr
+
+| Badge | URL |
+|-------|-----|
+| Hits (monthly) | `/jsdelivr/hits/npm/{package}.svg` |
+| Hits (yearly) | `/jsdelivr/dy/npm/{package}.svg` |
+| GitHub hits | `/jsdelivr/hits/gh/{owner}/{repo}.svg` |
+| Rank | `/jsdelivr/rank/npm/{package}.svg` |
+
+### WakaTime
+
+| Badge | URL |
+|-------|-----|
+| Coding time | `/wakatime/{username}.svg` |
+
+### Tokscale
+
+| Badge | URL |
+|-------|-----|
+| Tokens | `/tokscale/tokens/{username}.svg` |
+| Cost | `/tokscale/cost/{username}.svg` |
+| Rank | `/tokscale/rank/{username}.svg` |
+| Active days | `/tokscale/active-days/{username}.svg` |
+| Global stats | `/tokscale/stats.svg` |
+
+### IndieDevs
+
+| Badge | URL |
+|-------|-----|
+| User | `/indiedevs/{username}.svg` |
+
+### Chocolatey
+
+| Badge | URL |
+|-------|-----|
+| Version | `/chocolatey/v/{package}.svg` |
+| Downloads | `/chocolatey/dt/{package}.svg` |
+
+### Flathub
+
+| Badge | URL |
+|-------|-----|
+| Version | `/flathub/v/{appId}.svg` |
+| Downloads | `/flathub/downloads/{appId}.svg` |
+
+### Snapcraft
+
+| Badge | URL |
+|-------|-----|
+| Version | `/snapcraft/v/{snap}.svg` |
+
+### F-Droid
+
+| Badge | URL |
+|-------|-----|
+| Version | `/fdroid/v/{appId}.svg` |
+
+### Discourse
+
+| Badge | URL |
+|-------|-----|
+| Topics | `/discourse/topics/{server}.svg` |
+| Posts | `/discourse/posts/{server}.svg` |
+| Users | `/discourse/users/{server}.svg` |
+| Likes | `/discourse/likes/{server}.svg` |
+
+### Stack Exchange
+
+| Badge | URL |
+|-------|-----|
+| Tag questions | `/stackexchange/tag/{tag}.svg` |
+| Reputation | `/stackexchange/reputation/{userId}.svg` |
+
+Supports `?site=` (default: `stackoverflow`).
+
+### Modrinth
+
+| Badge | URL |
+|-------|-----|
+| Downloads | `/modrinth/downloads/{slug}.svg` |
+| Followers | `/modrinth/followers/{slug}.svg` |
+| Version | `/modrinth/v/{slug}.svg` |
+| Game versions | `/modrinth/game-versions/{slug}.svg` |
+
+### Open VSX
+
+| Badge | URL |
+|-------|-----|
+| Version | `/openvsx/v/{namespace}/{extension}.svg` |
+| Downloads | `/openvsx/downloads/{namespace}/{extension}.svg` |
+| Rating | `/openvsx/rating/{namespace}/{extension}.svg` |
+
+### Liberapay
+
+| Badge | URL |
+|-------|-----|
+| Receiving | `/liberapay/receiving/{username}.svg` |
+| Patrons | `/liberapay/patrons/{username}.svg` |
+| Goal | `/liberapay/goal/{username}.svg` |
+
+### Matrix
+
+| Badge | URL |
+|-------|-----|
+| Members | `/matrix/members/{roomAlias}.svg` |
+
+Supports `?server=` (default: `matrix.org`).
+
+### Weblate
+
+| Badge | URL |
+|-------|-----|
+| Translation | `/weblate/translation/{server}/{project}/{component}.svg` |
+| Languages | `/weblate/languages/{server}/{project}/{component}.svg` |
 
 ### Static & dynamic
 
@@ -113,15 +475,20 @@ GitHub badges support both URL formats:
 | `valueColor` | Override value text color (hex without #) |
 | `labelTextColor` | Override label text color (hex without #) |
 | `labelOpacity` | Label text opacity, 0–1 (default: 0.7) |
+| `gradient` | Comma-separated hex colors, optional angle last (e.g. `ff6b6b,4ecdc4,135`) |
 
 ### Icons
 
 | Param | Description |
 |-------|-------------|
-| `logo` | SimpleIcons slug (`react`), Lucide (`lucide:star`), React Icons (`ri:FaReact`), base64 SVG data URI, or `false` to hide |
+| `logo` | SimpleIcons slug (`react`), Lucide (`lu:Check`), React Icons (`ri:FaReact`), base64 SVG data URI, or `false` to hide |
 | `logoColor` | Override icon color (hex without #) |
 
 Three icon libraries with 40,000+ icons total, plus custom SVG upload.
+
+- **SimpleIcons**: bare slug — `?logo=react`, `?logo=typescript`
+- **Lucide**: `lu:` prefix — `?logo=lu:Check`, `?logo=lu:CircleCheck`, `?logo=lu:ArrowRight`
+- **React Icons**: `ri:` prefix — `?logo=ri:FaReact`, `?logo=ri:MdHome`
 
 ### Layout
 
@@ -162,11 +529,26 @@ Three icon libraries with 40,000+ icons total, plus custom SVG upload.
 <!-- Light mode -->
 ![light](https://shieldcn.dev/npm/react.svg?mode=light)
 
-<!-- Custom icon -->
-![custom icon](https://shieldcn.dev/badge/status-online-green.svg?logo=lucide:circle-check)
+<!-- Custom icon with Lucide -->
+![custom icon](https://shieldcn.dev/badge/status-online-green.svg?logo=lu:CircleCheck)
+
+<!-- Gradient background -->
+![gradient](https://shieldcn.dev/badge/shieldcn-v1.0-ff6b6b.svg?gradient=ff6b6b,4ecdc4,135)
 
 <!-- Discord online count -->
 ![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
+
+<!-- PyPI version -->
+![pypi](https://shieldcn.dev/pypi/django.svg)
+
+<!-- Docker pulls -->
+![docker](https://shieldcn.dev/docker/pulls/library/nginx.svg)
+
+<!-- Bluesky followers -->
+![bluesky](https://shieldcn.dev/bluesky/followers/bsky.app.svg)
+
+<!-- GitLab stars -->
+![gitlab](https://shieldcn.dev/gitlab/inkscape/inkscape/stars.svg)
 ```
 
 ## Key differences from shields.io
@@ -174,11 +556,13 @@ Three icon libraries with 40,000+ icons total, plus custom SVG upload.
 - Badges look like shadcn/ui Button components, not flat rectangles
 - 6 variants (default, secondary, outline, ghost, destructive, branded)
 - 16 color themes from shadcn palette
+- Gradient backgrounds with custom angles
 - 40,000+ icons from SimpleIcons + Lucide + React Icons
 - Custom SVG icon upload via base64 data URI
 - Split mode with two-tone backgrounds
 - Status dots for CI badges
 - Dark and light mode
+- 45+ data providers (npm, GitHub, GitLab, PyPI, Docker, Bluesky, YouTube, and many more)
 - Free, open source, MIT licensed
 
 ## Agent skill
