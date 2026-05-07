@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shieldcn.dev">Homepage</a> · <a href="https://shieldcn.dev/docs">Docs</a> · <a href="https://shieldcn.dev/docs/cli">CLI</a> · <a href="https://shieldcn.dev/docs/api-reference">API Reference</a>
+  <a href="https://shieldcn.dev">Homepage</a> · <a href="https://shieldcn.dev/docs">Docs</a> · <a href="https://shieldcn.dev/docs/cli">CLI</a> · <a href="https://shieldcn.dev/docs/api-reference">API Reference</a> · <a href="https://x.com/jalcowastaken">𝕏</a>
 </p>
 
 <p align="center">
