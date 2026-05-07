@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { source } from "@/lib/source"
 import { getMDXComponents } from "@/mdx-components"
-import { pageMetadata } from "@/lib/metadata"
+
 import { techArticleJsonLd } from "@/lib/json-ld"
 
 export default async function Page(props: {
@@ -104,9 +104,44 @@ export async function generateMetadata(props: {
   if (!page) notFound()
 
   const slug = params.slug?.join("/") || ""
-  return pageMetadata({
+  const path = `/docs${slug ? `/${slug}` : ""}`
+  const url = `https://shieldcn.dev${path}`
+  const ogTitle = `${page.data.title} — shieldcn`
+  const description = page.data.description || "shieldcn documentation"
+  const badge = (page.data as unknown as Record<string, unknown>).badge as string | undefined
+
+  // Build dynamic OG image URL with page metadata
+  const ogParams = new URLSearchParams()
+  ogParams.set("title", page.data.title)
+  if (description) ogParams.set("description", description)
+  if (badge) ogParams.set("badge", badge)
+  ogParams.set("path", path)
+  const ogImage = `https://shieldcn.dev/api/og/docs?${ogParams.toString()}`
+
+  return {
     title: page.data.title,
-    description: page.data.description || "shieldcn documentation",
-    path: `/docs${slug ? `/${slug}` : ""}`,
-  })
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: "shieldcn",
+      title: ogTitle,
+      description,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: ogTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [ogImage],
+    },
+  }
 }
