@@ -384,6 +384,377 @@ const SHIELDS_PATTERNS: Array<[RegExp, PathTransformer]> = [
     description: `pub.dev points for ${m[1]}`,
   })],
 
+  // --- GitLab ---
+  [/^\/gitlab\/stars\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/stars`,
+    query: new URLSearchParams(),
+    description: `GitLab stars for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/forks\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/forks`,
+    query: new URLSearchParams(),
+    description: `GitLab forks for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/issues\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/issues`,
+    query: new URLSearchParams(),
+    description: `GitLab issues for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/pipeline-status\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/pipeline`,
+    query: new URLSearchParams(),
+    description: `GitLab pipeline for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/license\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/license`,
+    query: new URLSearchParams(),
+    description: `GitLab license for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/last-commit\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/last-commit`,
+    query: new URLSearchParams(),
+    description: `GitLab last commit for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/contributors\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/contributors`,
+    query: new URLSearchParams(),
+    description: `GitLab contributors for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/gitlab\/v\/release\/([^/]+)\/([^/]+)$/, (m) => ({
+    path: `/gitlab/${m[1]}/${m[2]}/release`,
+    query: new URLSearchParams(),
+    description: `GitLab release for ${m[1]}/${m[2]}`,
+  })],
+
+  // --- Open Collective ---
+  [/^\/opencollective\/backers\/(.+)$/, (m) => ({
+    path: `/opencollective/backers/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Open Collective backers for ${m[1]}`,
+  })],
+  [/^\/opencollective\/sponsors\/(.+)$/, (m) => ({
+    path: `/opencollective/sponsors/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Open Collective sponsors for ${m[1]}`,
+  })],
+  [/^\/opencollective\/all\/(.+)$/, (m) => ({
+    path: `/opencollective/contributors/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Open Collective contributors for ${m[1]}`,
+  })],
+
+  // --- Chrome Web Store ---
+  [/^\/chrome-web-store\/v\/(.+)$/, (m) => ({
+    path: `/chrome/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Chrome Web Store version for ${m[1]}`,
+  })],
+  [/^\/chrome-web-store\/users\/(.+)$/, (m) => ({
+    path: `/chrome/users/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Chrome Web Store users for ${m[1]}`,
+  })],
+  [/^\/chrome-web-store\/rating\/(.+)$/, (m) => ({
+    path: `/chrome/rating/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Chrome Web Store rating for ${m[1]}`,
+  })],
+
+  // --- Firefox Add-ons (AMO) ---
+  [/^\/amo\/v\/(.+)$/, (m) => ({
+    path: `/amo/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Firefox addon version for ${m[1]}`,
+  })],
+  [/^\/amo\/users\/(.+)$/, (m) => ({
+    path: `/amo/users/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Firefox addon users for ${m[1]}`,
+  })],
+  [/^\/amo\/rating\/(.+)$/, (m) => ({
+    path: `/amo/rating/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Firefox addon rating for ${m[1]}`,
+  })],
+  [/^\/amo\/d\/(.+)$/, (m) => ({
+    path: `/amo/d/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Firefox addon downloads for ${m[1]}`,
+  })],
+
+  // --- Chocolatey ---
+  [/^\/chocolatey\/v\/(.+)$/, (m) => ({
+    path: `/chocolatey/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Chocolatey version for ${m[1]}`,
+  })],
+  [/^\/chocolatey\/dt\/(.+)$/, (m) => ({
+    path: `/chocolatey/dt/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Chocolatey downloads for ${m[1]}`,
+  })],
+
+  // --- CocoaPods ---
+  [/^\/cocoapods\/v\/(.+)$/, (m) => ({
+    path: `/cocoapods/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `CocoaPods version for ${m[1]}`,
+  })],
+  [/^\/cocoapods\/l\/(.+)$/, (m) => ({
+    path: `/cocoapods/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `CocoaPods license for ${m[1]}`,
+  })],
+
+  // --- Conda ---
+  [/^\/conda\/v\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/conda/v/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Conda version for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/conda\/d\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/conda/d/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Conda downloads for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/conda\/pn\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/conda/platform/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Conda platform for ${m[1]}/${m[2]}`,
+  })],
+
+  // --- Coveralls ---
+  [/^\/coveralls\/([^/]+)\/([^/]+)\/([^/]+)(?:\/(.+))?$/, (m) => ({
+    path: `/coveralls/${m[1]}/${m[2]}/${m[3]}${m[4] ? `/${m[4]}` : ""}`,
+    query: new URLSearchParams(),
+    description: `Coveralls coverage for ${m[2]}/${m[3]}`,
+  })],
+
+  // --- Discourse ---
+  [/^\/discourse\/topics$/, (_m, params) => {
+    const server = params.get("server")
+    if (!server) return null
+    return {
+      path: `/discourse/topics/${server}`,
+      query: new URLSearchParams(),
+      description: `Discourse topics on ${server}`,
+    }
+  }],
+  [/^\/discourse\/posts$/, (_m, params) => {
+    const server = params.get("server")
+    if (!server) return null
+    return {
+      path: `/discourse/posts/${server}`,
+      query: new URLSearchParams(),
+      description: `Discourse posts on ${server}`,
+    }
+  }],
+  [/^\/discourse\/users$/, (_m, params) => {
+    const server = params.get("server")
+    if (!server) return null
+    return {
+      path: `/discourse/users/${server}`,
+      query: new URLSearchParams(),
+      description: `Discourse users on ${server}`,
+    }
+  }],
+  [/^\/discourse\/likes$/, (_m, params) => {
+    const server = params.get("server")
+    if (!server) return null
+    return {
+      path: `/discourse/likes/${server}`,
+      query: new URLSearchParams(),
+      description: `Discourse likes on ${server}`,
+    }
+  }],
+
+  // --- F-Droid ---
+  [/^\/f-droid\/v\/(.+)$/, (m) => ({
+    path: `/fdroid/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `F-Droid version for ${m[1]}`,
+  })],
+
+  // --- Flathub ---
+  [/^\/flathub\/v\/(.+)$/, (m) => ({
+    path: `/flathub/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Flathub version for ${m[1]}`,
+  })],
+  [/^\/flathub\/downloads\/(.+)$/, (m) => ({
+    path: `/flathub/downloads/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Flathub downloads for ${m[1]}`,
+  })],
+
+  // --- jsDelivr ---
+  [/^\/jsdelivr\/npm\/h[mwy]\/(.+)$/, (m) => ({
+    path: `/jsdelivr/hits/npm/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `jsDelivr hits for ${m[1]}`,
+  })],
+  [/^\/jsdelivr\/gh\/h[mwy]\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/jsdelivr/hits/gh/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `jsDelivr GitHub hits for ${m[1]}/${m[2]}`,
+  })],
+
+  // --- Liberapay ---
+  [/^\/liberapay\/receives\/(.+)$/, (m) => ({
+    path: `/liberapay/receiving/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Liberapay receiving for ${m[1]}`,
+  })],
+  [/^\/liberapay\/patrons\/(.+)$/, (m) => ({
+    path: `/liberapay/patrons/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Liberapay patrons for ${m[1]}`,
+  })],
+  [/^\/liberapay\/goal\/(.+)$/, (m) => ({
+    path: `/liberapay/goal/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Liberapay goal for ${m[1]}`,
+  })],
+
+  // --- Mastodon ---
+  [/^\/mastodon\/follow\/(\d+)$/, (_m, params) => {
+    const domain = params.get("domain")
+    if (!domain) return null
+    // shields.io uses user ID, we need instance + acct — best effort
+    return {
+      path: `/mastodon/followers/${domain}/${_m[1]}`,
+      query: new URLSearchParams(),
+      description: `Mastodon followers on ${domain}`,
+    }
+  }],
+
+  // --- Matrix ---
+  [/^\/matrix\/(.+)$/, (m) => {
+    const server = "matrix.org"
+    return {
+      path: `/matrix/members/${m[1]}`,
+      query: new URLSearchParams({ server }),
+      description: `Matrix members for ${m[1]}`,
+    }
+  }],
+
+  // --- Modrinth ---
+  [/^\/modrinth\/dt\/(.+)$/, (m) => ({
+    path: `/modrinth/downloads/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Modrinth downloads for ${m[1]}`,
+  })],
+  [/^\/modrinth\/v\/(.+)$/, (m) => ({
+    path: `/modrinth/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Modrinth version for ${m[1]}`,
+  })],
+  [/^\/modrinth\/game-versions\/(.+)$/, (m) => ({
+    path: `/modrinth/game-versions/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Modrinth game versions for ${m[1]}`,
+  })],
+
+  // --- Open VSX ---
+  [/^\/open-vsx\/v\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/openvsx/v/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Open VSX version for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/open-vsx\/downloads\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/openvsx/downloads/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Open VSX downloads for ${m[1]}/${m[2]}`,
+  })],
+  [/^\/open-vsx\/rating\/([^/]+)\/(.+)$/, (m) => ({
+    path: `/openvsx/rating/${m[1]}/${m[2]}`,
+    query: new URLSearchParams(),
+    description: `Open VSX rating for ${m[1]}/${m[2]}`,
+  })],
+
+  // --- Snapcraft ---
+  [/^\/snapcraft\/v\/(.+)$/, (m) => ({
+    path: `/snapcraft/v/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `Snapcraft version for ${m[1]}`,
+  })],
+
+  // --- SonarQube ---
+  [/^\/sonar\/quality_gate\/(.+)$/, (_m, params) => {
+    const server = params.get("server")
+    const q = new URLSearchParams()
+    if (server) q.set("server", server)
+    return {
+      path: `/sonar/quality-gate/${_m[1]}`,
+      query: q,
+      description: `SonarQube quality gate for ${_m[1]}`,
+    }
+  }],
+  [/^\/sonar\/bugs\/(.+)$/, (_m, params) => {
+    const server = params.get("server")
+    const q = new URLSearchParams()
+    if (server) q.set("server", server)
+    return {
+      path: `/sonar/bugs/${_m[1]}`,
+      query: q,
+      description: `SonarQube bugs for ${_m[1]}`,
+    }
+  }],
+  [/^\/sonar\/vulnerabilities\/(.+)$/, (_m, params) => {
+    const server = params.get("server")
+    const q = new URLSearchParams()
+    if (server) q.set("server", server)
+    return {
+      path: `/sonar/vulnerabilities/${_m[1]}`,
+      query: q,
+      description: `SonarQube vulnerabilities for ${_m[1]}`,
+    }
+  }],
+  [/^\/sonar\/coverage\/(.+)$/, (_m, params) => {
+    const server = params.get("server")
+    const q = new URLSearchParams()
+    if (server) q.set("server", server)
+    return {
+      path: `/sonar/coverage/${_m[1]}`,
+      query: q,
+      description: `SonarQube coverage for ${_m[1]}`,
+    }
+  }],
+
+  // --- Stack Exchange ---
+  [/^\/stackexchange\/([^/]+)\/t\/(.+)$/, (m) => ({
+    path: `/stackexchange/tag/${m[2]}`,
+    query: new URLSearchParams({ site: m[1] }),
+    description: `Stack Exchange questions for [${m[2]}] on ${m[1]}`,
+  })],
+  [/^\/stackexchange\/([^/]+)\/r\/(.+)$/, (m) => ({
+    path: `/stackexchange/reputation/${m[2]}`,
+    query: new URLSearchParams({ site: m[1] }),
+    description: `Stack Exchange reputation for ${m[2]} on ${m[1]}`,
+  })],
+
+  // --- WakaTime ---
+  [/^\/wakatime\/coding-hours\/(.+)$/, (m) => ({
+    path: `/wakatime/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `WakaTime coding time for ${m[1]}`,
+  })],
+
+  // --- Weblate ---
+  [/^\/weblate\/progress\/(.+)$/, (_m, params) => {
+    const server = params.get("server")
+    if (!server) return null
+    // shields.io uses /weblate/progress/{project}/{component}?server=
+    // shieldcn uses /weblate/translation/{server}/{project}/{component}
+    const parts = _m[1].split("/")
+    if (parts.length < 2) return null
+    return {
+      path: `/weblate/translation/${server}/${parts[0]}/${parts[1]}`,
+      query: new URLSearchParams(),
+      description: `Weblate translation for ${parts[0]}/${parts[1]}`,
+    }
+  }],
+
   // --- Static badge (shields.io format) ---
   // /badge/label-message-color or /badge/message-color
   [/^\/badge\/(.+)$/, (m) => ({

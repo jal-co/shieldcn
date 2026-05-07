@@ -99,7 +99,7 @@ export default function MigratePage() {
                 },
                 {
                   q: "What badges can be migrated?",
-                  a: "We support npm, GitHub (stars, forks, CI, releases, etc.), PyPI, crates.io, Docker, Discord, Codecov, Bundlephobia, VS Code Marketplace, YouTube, NuGet, Packagist, RubyGems, Homebrew, Maven, pub.dev, and static badges.",
+                  a: "Every badge provider shieldcn supports — npm, GitHub, GitLab, PyPI, crates.io, Docker, Discord, Codecov, Coveralls, Bundlephobia, VS Code Marketplace, Open VSX, YouTube, NuGet, Packagist, RubyGems, Homebrew, Maven, CocoaPods, pub.dev, Conda, Chrome Web Store, Firefox Add-ons, Chocolatey, Flathub, Snapcraft, F-Droid, jsDelivr, Modrinth, Open Collective, Liberapay, SonarQube, Stack Exchange, Discourse, Matrix, Mastodon, WakaTime, Weblate, and static badges.",
                 },
                 {
                   q: "What if a badge can't be mapped?",
