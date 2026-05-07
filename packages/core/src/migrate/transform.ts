@@ -6,6 +6,8 @@
  * into equivalent shieldcn badge URLs.
  */
 
+import { providerBrandColors } from "../badges/brand-colors"
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -848,6 +850,30 @@ export function transformShieldsUrl(
       const result = transformer(match, parsed.searchParams, baseUrl)
       if (result) {
         const mappedParams = mapShieldsParams(parsed.searchParams, result.query)
+
+        // Use branded variant for providers that have a brand color,
+        // unless the user explicitly set a style that mapped to a variant.
+        // For static badges (/badge/...), use branded if the logo param
+        // matches a provider with a known brand color.
+        const provider = result.path.split("/")[1] // e.g. "/npm/v/foo" → "npm"
+        if (!mappedParams.has("variant")) {
+          let useBranded = false
+          if (provider && provider !== "badge" && providerBrandColors[provider]) {
+            useBranded = true
+          } else if (provider === "badge") {
+            const logo = mappedParams.get("logo") ?? parsed.searchParams.get("logo")
+            if (logo && providerBrandColors[logo]) {
+              useBranded = true
+            }
+          }
+          if (useBranded) {
+            mappedParams.set("variant", "branded")
+            // branded auto-calculates icon color based on contrast —
+            // drop explicit logoColor so it doesn't fight the auto value
+            mappedParams.delete("logoColor")
+          }
+        }
+
         const queryString = mappedParams.toString()
         const ext = ".svg" // always output SVG
         const shieldcnUrl =

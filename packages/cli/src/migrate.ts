@@ -7,6 +7,17 @@
 
 import { SHIELDCN_BASE } from "./constants.js"
 
+/** Providers that support the branded variant (have a known brand color). */
+const BRANDED_PROVIDERS = new Set([
+  "npm", "github", "discord", "reddit", "pypi", "crates", "docker",
+  "bluesky", "jsr", "youtube", "vscode", "opencollective", "hackernews",
+  "mastodon", "lemmy", "packagist", "rubygems", "nuget", "pub", "homebrew",
+  "maven", "cocoapods", "twitch", "codecov", "wakatime", "gitlab", "conda",
+  "chrome", "amo", "coveralls", "sonar", "jsdelivr", "chocolatey", "flathub",
+  "snapcraft", "fdroid", "discourse", "stackexchange", "modrinth", "openvsx",
+  "liberapay", "matrix", "weblate",
+])
+
 export type Migration = {
   original: string
   converted: string
@@ -108,6 +119,17 @@ export function convertShieldsUrl(url: string): Migration | null {
       shieldcnPath = path
       if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg"
       provider = path.split("/")[0] || "unknown"
+    }
+
+    // Use branded variant for providers that have a brand color
+    if (!query.has("variant")) {
+      if (provider !== "badge" && BRANDED_PROVIDERS.has(provider)) {
+        query.set("variant", "branded")
+        query.delete("logoColor")
+      } else if (provider === "badge" && logo && BRANDED_PROVIDERS.has(logo)) {
+        query.set("variant", "branded")
+        query.delete("logoColor")
+      }
     }
 
     const qs = query.toString()

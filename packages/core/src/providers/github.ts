@@ -80,6 +80,22 @@ async function repoData(owner: string, repo: string) {
   return githubJson(`https://api.github.com/repos/${owner}/${repo}`)
 }
 
+/**
+ * Resolve the canonical owner/repo (follows GitHub 301 redirects for
+ * transferred or renamed repos). The Search API does NOT follow repo
+ * redirects, so any function that builds a `repo:owner/repo` search
+ * query must resolve through here first.
+ */
+async function resolveRepo(owner: string, repo: string): Promise<{ owner: string; repo: string } | null> {
+  const d = await repoData(owner, repo)
+  if (!d) return null
+  const fullName = d.full_name as string | undefined
+  if (!fullName) return null
+  const [o, r] = fullName.split("/")
+  if (!o || !r) return null
+  return { owner: o, repo: r }
+}
+
 // ---------------------------------------------------------------------------
 // Badge functions
 // ---------------------------------------------------------------------------
@@ -245,7 +261,10 @@ export async function getGitHubChecks(
 // ---------------------------------------------------------------------------
 
 async function issueCount(owner: string, repo: string, state: string, isPR: boolean): Promise<number | null> {
-  const q = `repo:${owner}/${repo} is:${isPR ? "pr" : "issue"} is:${state}`
+  // Resolve canonical owner/repo — the Search API does not follow repo redirects
+  const resolved = await resolveRepo(owner, repo)
+  if (!resolved) return null
+  const q = `repo:${resolved.owner}/${resolved.repo} is:${isPR ? "pr" : "issue"} is:${state}`
   const d = await githubJson(
     `https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=1`
   )
@@ -272,8 +291,11 @@ export async function getGitHubIssues(owner: string, repo: string, filter: strin
 export async function getGitHubLabelIssues(
   owner: string, repo: string, label: string, states?: string
 ): Promise<BadgeData | null> {
+  // Resolve canonical owner/repo — the Search API does not follow repo redirects
+  const resolved = await resolveRepo(owner, repo)
+  if (!resolved) return null
   const state = states === "closed" ? "closed" : states === "open" ? "open" : "open"
-  const q = `repo:${owner}/${repo} is:issue is:${state} label:"${label}"`
+  const q = `repo:${resolved.owner}/${resolved.repo} is:issue is:${state} label:"${label}"`
   const d = await githubJson(
     `https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=1`
   )
@@ -291,7 +313,10 @@ export async function getGitHubPRs(owner: string, repo: string, filter: string):
     case "closed-prs":
       count = await issueCount(owner, repo, "closed", true); lbl = "closed PRs"; break
     case "merged-prs": {
-      const q = `repo:${owner}/${repo} is:pr is:merged`
+      // Resolve canonical owner/repo — the Search API does not follow repo redirects
+      const resolved = await resolveRepo(owner, repo)
+      if (!resolved) return null
+      const q = `repo:${resolved.owner}/${resolved.repo} is:pr is:merged`
       const d = await githubJson(`https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=1`)
       if (!d || typeof d.total_count !== "number") return null
       return { label: "merged PRs", value: formatCount(d.total_count as number), link: link(owner, repo, "/pulls?q=is:merged") }
