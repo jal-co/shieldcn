@@ -16,8 +16,8 @@ export function SiteHeader() {
         href="/"
         className="flex items-center gap-2 rounded-md text-sm font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
-        <ShieldcnLogo className="h-8 w-auto" />
-        <span className="hidden sm:inline">shieldcn</span>
+        <ShieldcnLogo className="h-9 w-auto" />
+        <span className="hidden font-heading sm:inline">shieldcn</span>
       </Link>
 
       <nav className="ml-4 hidden items-center gap-1 text-sm md:flex">
