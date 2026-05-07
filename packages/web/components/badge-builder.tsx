@@ -3,7 +3,7 @@
  * components/badge-builder
  *
  * Landing page badge builder. Wraps BadgeBuilderCore with
- * copy output (Markdown, HTML, URL, RST).
+ * copy output (Markdown, HTML, URL, RST) slotted into the preview column.
  */
 
 "use client"
@@ -78,7 +78,7 @@ export function BadgeBuilder() {
     <BadgeBuilderCore state={s} onChange={setS} badgeUrl={url}>
       {/* ── Copy output ── */}
       {url && (
-        <div className="space-y-3 pt-2">
+        <div className="space-y-3">
           {/* Format tabs */}
           <div className="flex items-center gap-1">
             {COPY_FORMATS.map(f => (

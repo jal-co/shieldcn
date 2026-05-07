@@ -64,6 +64,12 @@ export default async function Home() {
 
           {/* Badge Builder */}
           <section id="builder" className="py-16 scroll-mt-16">
+            <div className="mb-8 max-w-lg">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Build your badge</h2>
+              <p className="mt-2 text-muted-foreground">
+                Pick a type, customize the look, copy the output.
+              </p>
+            </div>
             <BadgeBuilder />
           </section>
         </div>

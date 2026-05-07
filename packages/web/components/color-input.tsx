@@ -107,6 +107,63 @@ export function ColorInput({
 }
 
 // ---------------------------------------------------------------------------
+// ColorSwatch — swatch-only picker (no text input)
+// ---------------------------------------------------------------------------
+
+export function ColorSwatch({
+  value,
+  onChange,
+  label,
+}: {
+  value: string
+  onChange: (v: string) => void
+  label?: string
+}) {
+  const [open, setOpen] = useState(false)
+
+  const displayColor = value && isValidHex(value) ? `#${value}` : undefined
+
+  return (
+    <div className="flex items-center gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "size-7 shrink-0 cursor-pointer rounded-md border border-input transition-colors hover:border-ring",
+              !displayColor && "bg-transparent",
+            )}
+            style={displayColor ? { backgroundColor: displayColor } : undefined}
+            aria-label={label ? `Pick ${label} color` : "Pick color"}
+          >
+            {!displayColor && (
+              <span className="flex size-full items-center justify-center text-[9px] text-muted-foreground">
+                —
+              </span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3" align="start">
+          <ColorPicker value={value} onChange={onChange} />
+        </PopoverContent>
+      </Popover>
+      {label && (
+        <span className="text-xs text-muted-foreground">{label}</span>
+      )}
+      {displayColor && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+        >
+          clear
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // ColorPicker — HSL canvas + hue slider + eyedropper + presets
 // ---------------------------------------------------------------------------
 
