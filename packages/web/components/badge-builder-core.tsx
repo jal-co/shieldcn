@@ -311,36 +311,36 @@ export function BadgeBuilderCore({
           {/* ── Row 1: Badge type + params ── */}
           <div className="space-y-3">
             <SectionLabel>Badge type</SectionLabel>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Type</Label>
-                <Select value={String(selectedPresetIndex)} onValueChange={handlePresetChange}>
-                  <SelectTrigger className="w-full text-sm h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRESET_GROUP_ORDER.map(group => {
-                      const presets = PRESET_GROUPS.get(group)
-                      if (!presets) return null
-                      return (
-                        <SelectGroup key={group}>
-                          <SelectLabel className="text-xs text-muted-foreground font-medium">{group}</SelectLabel>
-                          {presets.map(preset => {
-                            const idx = BADGE_PRESETS.indexOf(preset)
-                            return (
-                              <SelectItem key={idx} value={String(idx)}>
-                                {preset.label}
-                              </SelectItem>
-                            )
-                          })}
-                        </SelectGroup>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select value={String(selectedPresetIndex)} onValueChange={handlePresetChange}>
+                <SelectTrigger className="w-full text-sm h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESET_GROUP_ORDER.map(group => {
+                    const presets = PRESET_GROUPS.get(group)
+                    if (!presets) return null
+                    return (
+                      <SelectGroup key={group}>
+                        <SelectLabel className="text-xs text-muted-foreground font-medium">{group}</SelectLabel>
+                        {presets.map(preset => {
+                          const idx = BADGE_PRESETS.indexOf(preset)
+                          return (
+                            <SelectItem key={idx} value={String(idx)}>
+                              {preset.label}
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectGroup>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={cn("grid gap-3 pt-3", selectedPreset.params.length >= 2 ? "grid-cols-2" : "grid-cols-1")}>
               {selectedPreset.params.map(param => (
-                <div key={param.key} className="space-y-1">
+                <div key={param.key} className="space-y-1 animate-in fade-in-0 duration-200">
                   <Label className="text-xs text-muted-foreground">
                     {param.label}
                     {param.optional && <span className="text-muted-foreground/50 ml-1">(opt)</span>}
