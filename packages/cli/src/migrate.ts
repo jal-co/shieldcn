@@ -11,7 +11,7 @@ import { SHIELDCN_BASE } from "./constants.js"
 const BRANDED_PROVIDERS = new Set([
   "npm", "github", "discord", "reddit", "pypi", "crates", "docker",
   "bluesky", "jsr", "youtube", "vscode", "opencollective", "hackernews",
-  "mastodon", "lemmy", "packagist", "rubygems", "nuget", "pub", "homebrew",
+  "x", "twitter", "mastodon", "lemmy", "packagist", "rubygems", "nuget", "pub", "homebrew",
   "maven", "cocoapods", "twitch", "codecov", "wakatime", "gitlab", "conda",
   "chrome", "amo", "coveralls", "sonar", "jsdelivr", "chocolatey", "flathub",
   "snapcraft", "fdroid", "discourse", "stackexchange", "modrinth", "openvsx",
@@ -114,6 +114,15 @@ export function convertShieldsUrl(url: string): Migration | null {
       shieldcnPath = path
       if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg"
       provider = "docker"
+    } else if (path.startsWith("twitter/follow/") || path.startsWith("twitter/followers/")) {
+      const username = path.split("/")[2]
+      if (!username) return null
+      shieldcnPath = `x/follow/${username}.svg`
+      provider = "x"
+    } else if (path.startsWith("x/follow/")) {
+      shieldcnPath = path
+      if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg"
+      provider = "x"
     } else {
       // Unknown provider — do a best-effort pass-through
       shieldcnPath = path

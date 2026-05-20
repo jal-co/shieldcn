@@ -206,7 +206,7 @@ export function BadgeBuilderCore({
     npm: "npm", pypi: "pypi", crates: "rust", docker: "docker",
     jsr: "jsr", discord: "discord", reddit: "reddit",
     youtube: "youtube", twitch: "twitch", github: "github",
-    gitlab: "gitlab", bluesky: "bluesky",
+    gitlab: "gitlab", bluesky: "bluesky", x: "x", twitter: "x",
   }
 
   const currentProvider = useMemo(() => s.path.split("/").filter(Boolean)[0] || "", [s.path])

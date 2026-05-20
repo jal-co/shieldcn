@@ -50,6 +50,16 @@ npx shieldcn-cli https://github.com/shadcn-ui/ui
 
 Remote scanning uses `raw.githubusercontent.com` HEAD requests to detect config files — no GitHub token required.
 
+### X / Twitter badges
+
+The CLI detects `x.com/{username}` and `twitter.com/{username}` links in your README and generates an X follow CTA badge:
+
+```md
+![X Follow](https://shieldcn.dev/x/follow/username.svg?variant=branded)
+```
+
+These are static badges — no API token required. They render as follow CTAs with the X icon and link to the profile.
+
 ### Customize style
 
 Override the default variant, size, theme, or mode:
@@ -287,6 +297,7 @@ Detects modern project signals:
 ### Community
 
 - **Discord** — extracted from `discord.gg` or `discord.com/invite` links in README
+- **X / Twitter** — extracted from `x.com/{username}` or `twitter.com/{username}` links in README
 - **Sponsors** — parsed from `.github/FUNDING.yml` (GitHub Sponsors, Open Collective, Patreon, Ko-fi)
 - **Homepage** — from `"homepage"` in package.json
 

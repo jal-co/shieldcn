@@ -80,6 +80,7 @@ import { getPyPIVersion, getPyPIDownloads, getPyPILicense, getPyPIPythonVersion 
 import { getCratesVersion, getCratesDownloads, getCratesLicense } from "./providers/crates"
 import { getDockerPulls, getDockerStars, getDockerVersion, getDockerSize } from "./providers/docker"
 import { getBlueskyFollowers, getBlueskyFollowing, getBlueskyPosts } from "./providers/bluesky"
+import { getXFollow, getXMention } from "./providers/x"
 import { getJSRVersion, getJSRScore } from "./providers/jsr"
 import { getBundleMin, getBundleMinGzip, getBundleTreeShaking } from "./providers/bundlephobia"
 import { getYouTubeSubscribers, getYouTubeChannelViews, getYouTubeVideoViews, getYouTubeLikes, getYouTubeComments } from "./providers/youtube"
@@ -547,6 +548,26 @@ async function fetchBadgeData(
 
       // Default: /bluesky/{handle} → followers
       return getBlueskyFollowers(rest[0])
+    }
+
+    // /x/{topic}/{username} or /x/{username}
+    // Static CTA badges — no API token required
+    case "x":
+    case "twitter": {
+      const rest = segments.slice(1)
+      if (rest.length < 1) return null
+
+      const xTopics = new Set(["follow", "mention"])
+      if (xTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "follow": return getXFollow(rest[1])
+          case "mention": return getXMention(rest[1])
+          default: return null
+        }
+      }
+
+      // Default: /x/{username} → follow
+      return getXFollow(rest[0])
     }
 
     // /jsr/{topic}/{@scope}/{name}
@@ -1257,6 +1278,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "crates") return { simpleIcon: "rust" }
   if (provider === "docker") return { simpleIcon: "docker" }
   if (provider === "bluesky") return { simpleIcon: "bluesky" }
+  if (provider === "x" || provider === "twitter") return { simpleIcon: "x", reactIcon: "BsTwitterX" }
   if (provider === "jsr") return { simpleIcon: "jsr" }
   if (provider === "bundlephobia") return { reactIcon: "GoPackage" }
   if (provider === "youtube") return { simpleIcon: "youtube" }

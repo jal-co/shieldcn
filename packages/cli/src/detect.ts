@@ -394,6 +394,17 @@ function extractDiscordInvite(readme: string): string | null {
   return m ? m[1]! : null
 }
 
+function extractXUsername(readme: string): string | null {
+  const re = /(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\/([A-Za-z0-9_]{1,15})(?:[/?#]|\s|\)|"|'|$)/i
+  const m = readme.match(re)
+  if (!m) return null
+
+  const username = m[1]!
+  const reserved = new Set(["home", "i", "intent", "share", "search", "settings"])
+  if (reserved.has(username.toLowerCase())) return null
+  return username
+}
+
 function extractShieldsIoUrls(readme: string): string[] {
   const re = /https?:\/\/img\.shields\.io\/[^\s)"'>]+/g
   return Array.from(new Set(readme.match(re) ?? []))
@@ -425,6 +436,19 @@ async function communityBadges(
         path: `/discord/online-members/${code}.svg`,
         query: { variant: "branded" },
         enabled: true,
+      })
+    }
+
+    const xUsername = extractXUsername(readme)
+    if (xUsername) {
+      out.push({
+        id: "community.x-follow",
+        group: "community",
+        label: "X Follow",
+        path: `/x/follow/${xUsername}.svg`,
+        query: { variant: "branded" },
+        enabled: true,
+        linkUrl: `https://x.com/${xUsername}`,
       })
     }
   }

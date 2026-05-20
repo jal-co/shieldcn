@@ -395,14 +395,14 @@ function socialBadges(
   )
   seen.add("github")
 
-  // Twitter from API
+  // Twitter / X
   if (user.twitter_username) {
     badges.push(
       mk(
         "social.twitter",
-        "Twitter / X",
-        staticBadgePath("Follow", `@${user.twitter_username}`, "000000"),
-        { logo: "x", variant: "branded" },
+        "X Follow",
+        `/x/follow/${user.twitter_username}.svg`,
+        { variant: "branded" },
         `https://x.com/${user.twitter_username}`,
       ),
     )
@@ -437,12 +437,18 @@ function socialBadges(
       const display = link.username
         ? `@${link.username}`
         : link.platform
+      const path = link.slug === "x" && link.username
+        ? `/x/follow/${link.username}.svg`
+        : staticBadgePath(link.platform, display, link.color)
+      const query: Record<string, string> = link.slug === "x"
+        ? { variant: "branded" }
+        : { logo: link.slug, variant: "branded" }
       badges.push(
         mk(
           `social.${link.slug}`,
           link.platform,
-          staticBadgePath(link.platform, display, link.color),
-          { logo: link.slug, variant: "branded" },
+          path,
+          query,
           link.url,
         ),
       )

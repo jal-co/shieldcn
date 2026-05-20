@@ -151,6 +151,7 @@ const docsNav: NavGroup[] = [
     title: "Social & Community",
     items: [
       { title: "Bluesky", href: "/docs/badges/bluesky" },
+      { title: "X / Twitter", href: "/docs/badges/x" },
       { title: "YouTube", href: "/docs/badges/youtube" },
       { title: "Mastodon", href: "/docs/badges/mastodon" },
       { title: "Lemmy", href: "/docs/badges/lemmy" },

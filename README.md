@@ -116,6 +116,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | **Discord** | online count, members | `/discord/{serverId}` |
 | **Reddit** | karma, subscribers | `/reddit/subscribers/r/{subreddit}` |
 | **Bluesky** | followers, following, posts | `/bluesky/{handle}` |
+| **X / Twitter** | follow CTA, mention CTA | `/x/follow/{username}` |
 | **YouTube** | subscribers, channel views, video views, likes, comments | `/youtube/subscribers/{channelId}` |
 | **Mastodon** | followers, following, posts | `/mastodon/followers/{instance}/{acct}` |
 | **Lemmy** | subscribers, posts, comments | `/lemmy/subscribers/{instance}/{community}` |

@@ -125,7 +125,7 @@ npx shieldcn-cli migrate --write
 | **Tooling** | Package manager (pnpm/yarn/bun/npm), TypeScript, ESLint, Prettier, Biome, Vite, Next.js, Nuxt, Astro, Svelte, Tailwind, Turborepo, Docker, Vitest, Playwright, Jest, Storybook, Vercel, Netlify, Cloudflare |
 | **Stack** | 100+ npm packages mapped to branded badges (React, Prisma, Drizzle, tRPC, Supabase, Stripe, OpenAI, etc.) |
 | **Modern** | ESM-only, tree-shakeable, dual package, monorepo, CLI tool, AGENTS.md, llms.txt, Claude/Cursor ready, MCP |
-| **Community** | Discord invite (from README), GitHub Sponsors, Open Collective, Patreon, Ko-fi (from FUNDING.yml), homepage |
+| **Community** | Discord invite and X/Twitter profile links (from README), GitHub Sponsors, Open Collective, Patreon, Ko-fi (from FUNDING.yml), homepage |
 
 ## Examples
 

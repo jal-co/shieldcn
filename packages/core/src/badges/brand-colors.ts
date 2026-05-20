@@ -19,6 +19,8 @@ export const providerBrandColors: Record<string, string> = {
   crates: "dea584",
   docker: "2496ED",
   bluesky: "0085FF",
+  x: "000000",
+  twitter: "000000",
   jsr: "F7DF1E",
   bundlephobia: "4E4E4E",
   youtube: "FF0000",

@@ -256,6 +256,23 @@ const SHIELDS_PATTERNS: Array<[RegExp, PathTransformer]> = [
     description: `Reddit subscribers for r/${m[1]}`,
   })],
 
+  // --- X / Twitter ---
+  [/^\/twitter\/follow\/([A-Za-z0-9_]{1,15})$/, (m) => ({
+    path: `/x/follow/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `X follow for @${m[1]}`,
+  })],
+  [/^\/twitter\/followers\/([A-Za-z0-9_]{1,15})$/, (m) => ({
+    path: `/x/follow/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `X follow for @${m[1]}`,
+  })],
+  [/^\/x\/follow\/([A-Za-z0-9_]{1,15})$/, (m) => ({
+    path: `/x/follow/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `X follow for @${m[1]}`,
+  })],
+
   // --- Codecov ---
   [/^\/codecov\/c\/github\/([^/]+)\/([^/]+)$/, (m) => ({
     path: `/codecov/${m[1]}/${m[2]}`,

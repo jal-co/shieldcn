@@ -131,8 +131,10 @@ export const categories: Category[] = [
   },
   {
     name: "Social",
-    description: "Badges for social platforms — Bluesky, Mastodon, Hacker News, Lemmy, and Reddit.",
+    description: "Badges for social platforms — X, Bluesky, Mastodon, Hacker News, Lemmy, and Reddit.",
     icons: [
+      dynamicBadge("X Follow", "social cta", "/x/follow/jal_co.svg?variant=branded", "Follow CTA badge linking to an X profile.", "/docs/badges/x"),
+      dynamicBadge("X Mention", "social cta", "/x/mention/jal_co.svg?variant=outline", "Mention CTA badge linking to tweet intent.", "/docs/badges/x"),
       dynamicBadge("Bluesky Followers", "social proof", "/bluesky/jay.bsky.team.svg?variant=branded", "Bluesky follower count.", "/docs/badges/bluesky"),
       dynamicBadge("Bluesky Posts", "activity", "/bluesky/posts/jay.bsky.team.svg?variant=outline", "Bluesky post count.", "/docs/badges/bluesky"),
       dynamicBadge("Mastodon Followers", "fediverse", "/mastodon/followers/mastodon.social/Gargron.svg?variant=branded", "Mastodon follower count from any instance.", "/docs/badges/mastodon"),

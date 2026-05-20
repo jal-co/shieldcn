@@ -1,0 +1,49 @@
+---
+title: X / Twitter
+description: Badges for X profiles — follow and mention CTA badges with the X icon.
+badge: "/x/follow/x.svg?variant=branded"
+---
+
+Static CTA badges for X profiles. No API token required.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/x/follow/x.svg?variant=branded" alt="x follow" description="Follow (branded)" />
+  <BadgePreviewCard src="/x/follow/jal_co.svg?variant=secondary" alt="x follow" description="Follow (secondary)" />
+  <BadgePreviewCard src="/x/mention/jal_co.svg?variant=outline" alt="x mention" description="Mention (outline)" />
+  <BadgePreviewCard src="/x/jal_co.svg" alt="x default" description="Default (follow)" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Follow | `/x/follow/{username}` | "follow @username" CTA linking to profile |
+| Mention | `/x/mention/{username}` | "@username" CTA linking to tweet intent |
+| Default | `/x/{username}` | Same as follow |
+
+<BadgeSandbox
+  endpoint="/x/follow/:username.svg"
+  pathParams={[
+    { name: "username", label: "username", placeholder: "jal_co", required: true, description: "X username without @." },
+  ]}
+  defaults={{ username: "jal_co" }}
+  extraParams={[
+    { name: "variant", label: "variant", defaultValue: "branded", options: ["branded", "default", "secondary", "outline", "ghost"] },
+  ]}
+/>
+
+## Quick examples
+
+```md
+![follow](https://shieldcn.dev/x/follow/jal_co.svg?variant=branded)
+![mention](https://shieldcn.dev/x/mention/jal_co.svg?variant=outline)
+![follow](https://shieldcn.dev/x/jal_co.svg?variant=secondary)
+```
+
+## Why static?
+
+X's API requires a $200/mo Basic plan for any read access — even public profile data like follower counts. These badges skip the API entirely and render as static follow/mention CTAs with the X icon. No token, no cost, no rate limits.
+
+## Data source
+
+No external API calls. Badges are rendered statically using the username from the URL path.

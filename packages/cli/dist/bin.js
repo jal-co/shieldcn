@@ -510,6 +510,15 @@ function extractDiscordInvite(readme) {
   const m = readme.match(re);
   return m ? m[1] : null;
 }
+function extractXUsername(readme) {
+  const re = /(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\/([A-Za-z0-9_]{1,15})(?:[/?#]|\s|\)|"|'|$)/i;
+  const m = readme.match(re);
+  if (!m) return null;
+  const username = m[1];
+  const reserved = /* @__PURE__ */ new Set(["home", "i", "intent", "share", "search", "settings"]);
+  if (reserved.has(username.toLowerCase())) return null;
+  return username;
+}
 function extractShieldsIoUrls(readme) {
   const re = /https?:\/\/img\.shields\.io\/[^\s)"'>]+/g;
   return Array.from(new Set(readme.match(re) ?? []));
@@ -534,6 +543,18 @@ async function communityBadges(owner, repo, pkg, readme, signal) {
         path: `/discord/online-members/${code}.svg`,
         query: { variant: "branded" },
         enabled: true
+      });
+    }
+    const xUsername = extractXUsername(readme);
+    if (xUsername) {
+      out.push({
+        id: "community.x-follow",
+        group: "community",
+        label: "X Follow",
+        path: `/x/follow/${xUsername}.svg`,
+        query: { variant: "branded" },
+        enabled: true,
+        linkUrl: `https://x.com/${xUsername}`
       });
     }
   }
@@ -778,6 +799,53 @@ function formatJson(result, global) {
 }
 
 // src/migrate.ts
+var BRANDED_PROVIDERS = /* @__PURE__ */ new Set([
+  "npm",
+  "github",
+  "discord",
+  "reddit",
+  "pypi",
+  "crates",
+  "docker",
+  "bluesky",
+  "jsr",
+  "youtube",
+  "vscode",
+  "opencollective",
+  "hackernews",
+  "x",
+  "twitter",
+  "mastodon",
+  "lemmy",
+  "packagist",
+  "rubygems",
+  "nuget",
+  "pub",
+  "homebrew",
+  "maven",
+  "cocoapods",
+  "twitch",
+  "codecov",
+  "wakatime",
+  "gitlab",
+  "conda",
+  "chrome",
+  "amo",
+  "coveralls",
+  "sonar",
+  "jsdelivr",
+  "chocolatey",
+  "flathub",
+  "snapcraft",
+  "fdroid",
+  "discourse",
+  "stackexchange",
+  "modrinth",
+  "openvsx",
+  "liberapay",
+  "matrix",
+  "weblate"
+]);
 function convertShieldsUrl(url) {
   try {
     const parsed = new URL(url);
@@ -832,10 +900,28 @@ function convertShieldsUrl(url) {
       shieldcnPath = path;
       if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg";
       provider = "docker";
+    } else if (path.startsWith("twitter/follow/") || path.startsWith("twitter/followers/")) {
+      const username = path.split("/")[2];
+      if (!username) return null;
+      shieldcnPath = `x/follow/${username}.svg`;
+      provider = "x";
+    } else if (path.startsWith("x/follow/")) {
+      shieldcnPath = path;
+      if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg";
+      provider = "x";
     } else {
       shieldcnPath = path;
       if (!shieldcnPath.endsWith(".svg")) shieldcnPath += ".svg";
       provider = path.split("/")[0] || "unknown";
+    }
+    if (!query.has("variant")) {
+      if (provider !== "badge" && BRANDED_PROVIDERS.has(provider)) {
+        query.set("variant", "branded");
+        query.delete("logoColor");
+      } else if (provider === "badge" && logo && BRANDED_PROVIDERS.has(logo)) {
+        query.set("variant", "branded");
+        query.delete("logoColor");
+      }
     }
     const qs = query.toString();
     const converted = `${SHIELDCN_BASE}/${shieldcnPath}${qs ? `?${qs}` : ""}`;
