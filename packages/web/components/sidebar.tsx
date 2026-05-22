@@ -56,6 +56,7 @@ const docsNav: NavGroup[] = [
     title: "Badges",
     alwaysOpen: true,
     items: [
+      { title: "Badge Group", href: "/docs/badges/group" },
       { title: "Static Badge", href: "/docs/badges/static" },
       { title: "Dynamic JSON", href: "/docs/badges/dynamic-json" },
       { title: "HTTPS Endpoint", href: "/docs/badges/https-endpoint" },

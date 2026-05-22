@@ -343,6 +343,7 @@ export const categories: Category[] = [
       makeLogoBadge("langchain", "LangChain", "7FC8FF", "&variant=secondary"),
     ],
   },
+
   {
     name: "Gradients",
     description: "Gradient background badges — use ?gradient=color1,color2 or add a third value for the angle.",
@@ -414,6 +415,74 @@ export const categories: Category[] = [
     
       dynamicBadge("Kotlin", "by @itzzjustmateo", "/badge/Kotlin-7f52ff.svg?logo=kotlin", "A badge for Kotlin :D"),
     ],
+  },
+]
+
+// ---------------------------------------------------------------------------
+// Badge Group showcase — bento grid items
+// ---------------------------------------------------------------------------
+
+export interface GroupShowcaseItem {
+  title: string
+  description: string
+  badgePath: string
+  /** Grid span: 1 = normal, 2 = wide */
+  span: 1 | 2
+}
+
+export const groupShowcaseItems: GroupShowcaseItem[] = [
+  // Wide — hero examples
+  {
+    title: "Project Overview",
+    description: "npm version + stars + license in one badge",
+    badgePath: "/group/npm/react+github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded",
+    span: 2,
+  },
+  {
+    title: "GitHub Health",
+    description: "Stars, forks, and open issues at a glance",
+    badgePath: "/group/github/stars/vercel/next.js+github/forks/vercel/next.js+github/open-issues/vercel/next.js.svg?variant=secondary",
+    span: 2,
+  },
+  // Normal
+  {
+    title: "Version + CI",
+    description: "Package version paired with build status",
+    badgePath: "/group/npm/react+github/ci/vercel/next.js.svg?variant=outline",
+    span: 1,
+  },
+  {
+    title: "Stars + License",
+    description: "Social proof + legal clarity",
+    badgePath: "/group/github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded",
+    span: 1,
+  },
+  // Wide
+  {
+    title: "Full README Row",
+    description: "Everything you'd want in a top-of-README badge bar",
+    badgePath: "/group/npm/react+github/stars/vercel/next.js+github/ci/vercel/next.js+github/license/vercel/next.js.svg?variant=secondary",
+    span: 2,
+  },
+  // Normal
+  {
+    title: "Release + Downloads",
+    description: "Latest release with download count",
+    badgePath: "/group/github/release/vercel/next.js+github/dt/vercel/next.js.svg?variant=branded",
+    span: 1,
+  },
+  {
+    title: "Outline Trio",
+    description: "Clean outline group for light READMEs",
+    badgePath: "/group/github/stars/vercel/next.js+github/forks/vercel/next.js+github/license/vercel/next.js.svg?variant=outline",
+    span: 1,
+  },
+  // Wide
+  {
+    title: "PyPI Stack",
+    description: "Python package version + downloads + license",
+    badgePath: "/group/pypi/v/requests+pypi/dm/requests+pypi/license/requests.svg?variant=branded",
+    span: 2,
   },
 ]
 

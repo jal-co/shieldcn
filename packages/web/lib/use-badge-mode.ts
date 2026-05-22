@@ -26,7 +26,16 @@ export function withBadgeMode(badgePath: string, mode: "dark" | "light"): string
   // Without this, dark mode URLs are identical to the default (no param),
   // and the browser serves cached dark SVGs when switching to light.
   const separator = badgePath.includes("?") ? "&" : "?"
-  return `${badgePath}${separator}mode=${mode}`
+  let url = `${badgePath}${separator}mode=${mode}`
+
+  // Encode + as %2B in group badge paths so browsers don't treat it as a space
+  // in <img src>. The server decodes %2B back to + via URL decoding.
+  if (url.includes("/group/")) {
+    const [path, qs] = url.split("?")
+    url = path.replace(/\+/g, "%2B") + (qs ? `?${qs}` : "")
+  }
+
+  return url
 }
 
 /**

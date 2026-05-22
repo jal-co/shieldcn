@@ -1,0 +1,71 @@
+---
+title: Badge Group
+description: Combine multiple badges into a single joined image — like a shadcn ButtonGroup.
+badge: "/group/npm/react+github/stars/vercel/next.js.svg?variant=secondary"
+---
+
+Combine multiple badges into a single image with shared rounded edges and separator lines between segments — styled like a shadcn [ButtonGroup](https://ui.shadcn.com/docs/components/radix/button-group).
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/group/npm/react+github/stars/vercel/next.js.svg?variant=branded" alt="badge group branded" description="Branded" />
+  <BadgePreviewCard src="/group/npm/react+github/stars/vercel/next.js.svg?variant=secondary" alt="badge group secondary" description="Secondary" />
+  <BadgePreviewCard src="/group/npm/react+github/stars/vercel/next.js.svg?variant=outline" alt="badge group outline" description="Outline" />
+  <BadgePreviewCard src="/group/npm/react+github/stars/vercel/next.js.svg" alt="badge group default" description="Default" />
+</BadgePreviewGroup>
+
+## URL format
+
+Join multiple badge paths with `+` under the `/group/` prefix:
+
+```
+/group/{badge1}+{badge2}+{badge3}.svg
+```
+
+Each segment is a normal badge endpoint path — `npm/react`, `github/stars/vercel/next.js`, etc. Query parameters apply to all segments.
+
+## Quick examples
+
+```md
+![group](https://shieldcn.dev/group/npm/react+github/stars/vercel/next.js.svg)
+
+![group](https://shieldcn.dev/group/npm/react+github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded)
+
+![group](https://shieldcn.dev/group/github/stars/vercel/next.js+github/forks/vercel/next.js+github/license/vercel/next.js.svg?variant=outline)
+```
+
+<BadgePreview
+  src="/group/npm/react+github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded"
+  alt="3-badge group"
+  description="Three badges joined — npm version, GitHub stars, and license"
+/>
+
+<BadgePreview
+  src="/group/github/stars/vercel/next.js+github/forks/vercel/next.js+github/license/vercel/next.js.svg?variant=outline"
+  alt="github group"
+  description="GitHub-only group in outline variant"
+/>
+
+<BadgePreview
+  src="/group/npm/react+github/ci/vercel/next.js.svg?variant=secondary"
+  alt="npm + ci group"
+  description="npm version paired with CI status"
+/>
+
+## How it works
+
+- Each segment fetches data from its provider independently (in parallel)
+- Icons are resolved per-segment using the provider's default icon
+- For **branded** variant, each segment uses its own provider brand color
+- The outer corners are rounded; inner edges are flat with a 1px separator line
+- All query parameters (`variant`, `size`, `mode`, `theme`, `font`) apply to every segment
+
+## Limitations
+
+- Per-segment query overrides (different variant per segment) are not supported — use query params for the whole group
+- Maximum recommended: 5 segments (beyond that the badge gets very wide)
+- `split` mode is not supported inside groups
+- `gradient` is not supported on groups
+
+## Data source
+
+Each segment fetches from its respective provider. No additional API calls.

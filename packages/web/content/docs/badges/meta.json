@@ -46,6 +46,7 @@
     "weblate",
     "modrinth",
     "tokscale",
+    "group",
     "static",
     "dynamic-json",
     "https-endpoint"

@@ -7,6 +7,7 @@
  */
 
 import { renderBadge, renderErrorBadge } from "./badges/render"
+import { renderBadgeGroup, type GroupSegment, type GroupConfig } from "./badges/render-group"
 import { resolveTheme, applyColorOverrides, statusColors } from "./badges/themes"
 import { getSimpleIcon } from "./badges/simple-icons"
 import { getProviderBrandColor } from "./badges/brand-colors"
@@ -1346,6 +1347,212 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
 }
 
 /**
+ * Handle a badge group request.
+ *
+ * URL format: /group/{badge1}+{badge2}+{badge3}.svg
+ * Each badge path is a normal badge endpoint (e.g. npm/react, github/stars/vercel/next.js).
+ * The + delimiter separates badge paths within the group.
+ * Query params apply globally to all segments.
+ */
+async function handleBadgeGroup(
+  cleanSegments: string[],
+  searchParams: URLSearchParams,
+  format: Format,
+  options?: BadgeRequestOptions,
+): Promise<Response> {
+  // Reconstruct the raw path after "group/" and split on "+"
+  const rawPath = cleanSegments.slice(1).join("/")
+  const badgePaths = rawPath.split("+").map(p => p.trim()).filter(Boolean)
+
+  if (badgePaths.length === 0) {
+    if (format === "svg") {
+      return new Response(await renderErrorBadge("group", "no badges specified"), {
+        headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+      })
+    }
+    return Response.json({ error: "no badges specified" }, { status: 400 })
+  }
+
+  // JSON: return array of badge data
+  if (format === "json") {
+    const results = await Promise.all(
+      badgePaths.map(async (bp) => {
+        const segs = bp.split("/").filter(Boolean)
+        const data = await fetchBadgeData(segs, searchParams)
+        return data || { label: segs[0] || "error", value: "not found" }
+      })
+    )
+    return Response.json(results, { headers: CACHE_HEADERS })
+  }
+
+  // SVG/PNG: resolve each segment
+  const style = (searchParams.get("style") || searchParams.get("variant") || "default") as BadgeStyle
+  const size = (searchParams.get("size") || undefined) as BadgeSize | undefined
+  const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
+  const theme = searchParams.get("theme") ?? undefined
+  const fontParam = searchParams.get("font") ?? undefined
+  const font = (fontParam && ["inter", "geist", "geist-mono"].includes(fontParam) ? fontParam : undefined) as GroupConfig["font"]
+  const logoColor = searchParams.get("logoColor") ?? undefined
+
+  const hasThemeOverride = !!(theme || searchParams.get("color") || searchParams.get("labelColor"))
+  let colors = resolveTheme(theme)
+  const colorOverride = searchParams.get("color") ?? undefined
+  const labelColorOverride = searchParams.get("labelColor") ?? undefined
+  colors = applyColorOverrides(colors, { color: colorOverride, labelColor: labelColorOverride })
+
+  // Fetch all badge data in parallel
+  const allData = await Promise.all(
+    badgePaths.map(async (bp) => {
+      const segs = bp.split("/").filter(Boolean)
+      const data = await fetchBadgeData(segs, searchParams)
+      return { segs, data }
+    })
+  )
+
+  // Resolve each segment with its icon
+  const segments: GroupSegment[] = await Promise.all(
+    allData.map(async ({ segs, data }) => {
+      const badgeData = data || { label: segs[0] || "error", value: "not found" }
+
+      // Resolve icon for this segment
+      let iconPath: string | undefined
+      let iconPaths: string[] | undefined
+      let iconViewBox: string | undefined
+      let iconFillRule: string | undefined
+      let iconFill: string | undefined
+      let iconIsStroke: boolean | undefined
+      let iconStrokeWidth: number | undefined
+      let iconStrokeLinecap: string | undefined
+      let iconStrokeLinejoin: string | undefined
+      let iconRotation: number | undefined
+      let brandColor: string | undefined
+
+      const provider = segs[0]
+      const providerBrand = provider ? getProviderBrandColor(provider) : undefined
+
+      // Use default provider icon
+      const defaultLogo = getDefaultLogoSlug(segs)
+      if (defaultLogo) {
+        const sources = [
+          defaultLogo.simpleIcon,
+          defaultLogo.reactIcon ? `ri:${defaultLogo.reactIcon}` : null,
+        ].filter(Boolean) as string[]
+
+        for (const source of sources) {
+          const si = await getSimpleIcon(source, logoColor)
+          if (si) {
+            iconPath = si.icon.path
+            iconPaths = si.icon.paths
+            iconViewBox = si.icon.viewBox
+            iconFillRule = si.icon.fillRule
+            iconIsStroke = si.icon.isStroke
+            iconStrokeWidth = si.icon.strokeWidth
+            iconStrokeLinecap = si.icon.strokeLinecap
+            iconStrokeLinejoin = si.icon.strokeLinejoin
+            iconRotation = si.icon.rotation
+            if (si.defaultColor && si.defaultColor !== "currentColor") {
+              brandColor = si.defaultColor
+            }
+            break
+          }
+        }
+      }
+
+      if (!brandColor && providerBrand) brandColor = providerBrand
+
+      // For branded variant, pick contrast-aware icon color
+      if (style === "branded" && !logoColor) {
+        iconFill = brandedFg(brandColor)
+      }
+
+      const statusColor = badgeData.color && statusColors[badgeData.color]
+        ? statusColors[badgeData.color]
+        : undefined
+
+      return {
+        label: searchParams.get("label") || badgeData.label,
+        value: badgeData.value,
+        icon: iconPath,
+        iconPaths,
+        iconViewBox,
+        iconFillRule,
+        iconFill,
+        iconIsStroke,
+        iconStrokeWidth,
+        iconStrokeLinecap,
+        iconStrokeLinejoin,
+        iconRotation,
+        brandColor,
+        statusColor,
+        statusDot: !!statusColor,
+      } satisfies GroupSegment
+    })
+  )
+
+  const groupConfig: GroupConfig = {
+    segments,
+    style,
+    size,
+    mode,
+    font,
+    hasThemeOverride,
+    colors,
+  }
+
+  const svg = await renderBadgeGroup(groupConfig)
+
+  if (options?.onTrack) {
+    void options.onTrack({
+      name: "badge_group_rendered",
+      data: {
+        count: segments.length,
+        format,
+        style,
+        size: size ?? "sm",
+        mode,
+        font: font ?? "inter",
+      },
+    })
+  }
+
+  // PNG response
+  if (format === "png") {
+    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
+    try {
+      let wasmLoaded = false
+      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+        try {
+          const fs = await import("node:fs")
+          const path = await import("node:path")
+          const candidates = [
+            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
+          ]
+          for (const p of candidates) {
+            if (fs.existsSync(p)) {
+              await initWasm(fs.readFileSync(p))
+              wasmLoaded = true
+              break
+            }
+          }
+        } catch { /* fs not available or file not found */ }
+      }
+      if (!wasmLoaded) {
+        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
+      }
+    } catch { /* already initialized */ }
+    const resvg = new Resvg(svg)
+    const png = resvg.render().asPng()
+    return new Response(Buffer.from(png), {
+      headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
+    })
+  }
+
+  return new Response(svg, {
+    headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+  })
+}
+
+/**
  * Handle a badge GET request.
  *
  * @param request - The incoming request
@@ -1370,6 +1577,14 @@ export async function handleBadgeGET(
       })
     }
     return Response.json({ error: "invalid url" }, { status: 400 })
+  }
+
+  // ---------------------------------------------------------------------------
+  // Badge group: /group/{badge1}+{badge2}+{badge3}.svg
+  // Renders multiple badges joined in a single SVG like a shadcn ButtonGroup.
+  // ---------------------------------------------------------------------------
+  if (cleanSegments[0] === "group") {
+    return handleBadgeGroup(cleanSegments, searchParams, format, options)
   }
 
   // Fetch badge data from provider

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ShowcaseSubmitDialog } from "@/components/showcase-submit-dialog"
-import { featuredBadges, categories } from "@/lib/showcase-data"
+import { featuredBadges, categories, groupShowcaseItems } from "@/lib/showcase-data"
+import { GroupShowcase } from "@/components/group-showcase"
 
 const ALL_CATEGORY_NAMES = ["All", ...categories.map((c) => c.name)]
 const totalIconCount = categories.reduce((sum, c) => sum + c.icons.length, 0)
@@ -62,6 +63,15 @@ export default function ShowcasePage() {
               <BadgeCard key={`featured-${badge.badgePath}-${badge.title}`} badge={badge} />
             ))}
           </div>
+        </div>
+
+        {/* Badge Groups — bento grid */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Badge Groups</h2>
+            <a href="/docs/badges/group" className="text-xs text-muted-foreground hover:text-foreground transition-colors">docs →</a>
+          </div>
+          <GroupShowcase items={groupShowcaseItems} />
         </div>
 
         <div className="relative">

@@ -66,6 +66,10 @@ export const BADGE_PRESETS: BadgePreset[] = [
   { label: "YouTube — subscribers", template: "/youtube/{channelId}/subscribers.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social" },
   { label: "Twitch — status", template: "/twitch/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social" },
 
+  // Groups
+  { label: "Group — npm + stars", template: "/group/npm/{package}+github/stars/{owner}/{repo}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }, { key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "Group" },
+  { label: "Group — GitHub trio", template: "/group/github/stars/{owner}/{repo}+github/forks/{owner}/{repo}+github/license/{owner}/{repo}.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "Group" },
+
   // Custom
   { label: "Static badge", template: "/badge/{content}.svg", params: [{ key: "label", label: "Label", placeholder: "build", default: "build", optional: true }, { key: "value", label: "Value", placeholder: "passing", default: "passing" }, { key: "color", label: "Color (hex)", placeholder: "22c55e", default: "22c55e", optional: true }], group: "Custom", customResolver: "static" },
 ]

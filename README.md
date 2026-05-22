@@ -14,10 +14,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jal-co/shieldcn/stargazers"><img src="https://shieldcn.dev/github/stars/jal-co/shieldcn.svg?variant=branded" alt="stars" /></a>
-  <a href="https://github.com/jal-co/shieldcn/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/jal-co/shieldcn.svg?variant=branded" alt="license" /></a>
-  <a href="https://github.com/jal-co/shieldcn/graphs/contributors"><img src="https://shieldcn.dev/github/contributors/jal-co/shieldcn.svg?variant=branded" alt="contributors" /></a>
-  <a href="https://github.com/jal-co/shieldcn/commits/main"><img src="https://shieldcn.dev/github/last-commit/jal-co/shieldcn.svg?variant=branded" alt="last commit" /></a>
+  <img src="https://shieldcn.dev/group/github/stars/jal-co/shieldcn%2Bgithub/license/jal-co/shieldcn%2Bgithub/contributors/jal-co/shieldcn%2Bgithub/last-commit/jal-co/shieldcn.svg?variant=branded" alt="shieldcn stats" />
+</p>
+
+<p align="center">
   <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
   <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
   <a href="https://shadcncraft.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded" alt="built with shadcncraft" /></a>
@@ -61,6 +61,20 @@ See the [CLI docs](https://shieldcn.dev/docs/cli) for full usage.
 ![license](https://shieldcn.dev/github/license/vercel/next.js.svg)
 ![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
 ```
+
+### Badge groups
+
+Combine multiple badges into a single joined image — like a [shadcn ButtonGroup](https://ui.shadcn.com/docs/components/radix/button-group):
+
+<p>
+  <img src="https://shieldcn.dev/group/npm/react%2Bgithub/stars/vercel/next.js%2Bgithub/license/vercel/next.js.svg?variant=branded" alt="badge group" />
+</p>
+
+```md
+![group](https://shieldcn.dev/group/npm/react+github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded)
+```
+
+Join any badge paths with `+` under `/group/`. Query params apply to all segments. See the [Badge Group docs](https://shieldcn.dev/docs/badges/group).
 
 ## Supported providers
 
@@ -141,6 +155,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 
 | Type | Description | Endpoint |
 |------|-------------|----------|
+| **Badge Group** | Multiple badges joined in one image | `/group/{badge1}+{badge2}+{badge3}` |
 | **Static** | Custom label/message/color | `/badge/{label}-{message}-{color}` |
 | **Dynamic JSON** | Fetch any JSON API | `/badge/dynamic/json?url=...&query=...` |
 | **HTTPS Endpoint** | Proxy any JSON endpoint | `/https/{hostname}/{path}` |
