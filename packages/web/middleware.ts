@@ -26,7 +26,8 @@ export function middleware(request: NextRequest) {
   const accept = request.headers.get("accept") || ""
 
   // Markdown content negotiation:
-  // When an agent requests text/markdown on HTML pages, serve the LLM-friendly version.
+  // When an agent requests text/markdown on HTML pages, serve the LLM-friendly version
+  // via a local API route that returns proper Content-Type: text/markdown.
   // Only apply to page routes, not API/asset/badge routes.
   if (
     accept.includes("text/markdown") &&
@@ -40,13 +41,13 @@ export function middleware(request: NextRequest) {
     !pathname.endsWith(".txt") &&
     !pathname.endsWith(".xml")
   ) {
-    // Serve /llms.txt for the homepage, /llms-full.txt for any subpage
-    const markdownUrl = pathname === "/" || pathname === ""
-      ? `${SITE}/llms.txt`
-      : `${SITE}/llms-full.txt`
+    // Rewrite to local API route that serves markdown with correct Content-Type
+    const full = pathname !== "/" && pathname !== "" ? "1" : "0"
+    const rewriteUrl = request.nextUrl.clone()
+    rewriteUrl.pathname = "/api/markdown"
+    rewriteUrl.searchParams.set("full", full)
 
-    const response = NextResponse.rewrite(markdownUrl)
-    response.headers.set("Content-Type", "text/markdown")
+    const response = NextResponse.rewrite(rewriteUrl)
     response.headers.set("Link", LINK_HEADER)
     return response
   }

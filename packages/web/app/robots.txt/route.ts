@@ -21,7 +21,7 @@ Disallow: /dev/
 # Content Signals (draft-romm-aipref-contentsignals)
 # Badge images and docs are free to index and use as AI input.
 # Training on shieldcn source/content is not preferred.
-Content-Signal: ai-train=disallow, search=allow, ai-input=allow
+Content-Signal: ai-train=no, search=yes, ai-input=yes
 
 Sitemap: https://shieldcn.dev/sitemap.xml
 `
