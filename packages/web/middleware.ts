@@ -1,0 +1,65 @@
+/**
+ * shieldcn
+ * middleware.ts
+ *
+ * Adds agent discovery headers and handles markdown content negotiation.
+ *
+ * 1. Link headers (RFC 8288 / RFC 9727 §3) — on every response
+ * 2. Markdown negotiation — when Accept: text/markdown, redirects to /llms.txt
+ */
+
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+const SITE = "https://shieldcn.dev"
+
+/** Link headers for agent discovery (RFC 8288). */
+const LINK_HEADER = [
+  `<${SITE}/.well-known/api-catalog>; rel="api-catalog"`,
+  `<${SITE}/.well-known/openapi.json>; rel="service-desc"; type="application/openapi+json"`,
+  `<${SITE}/docs/api-reference>; rel="service-doc"`,
+  `<${SITE}/llms.txt>; rel="describedby"; type="text/plain"`,
+].join(", ")
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const accept = request.headers.get("accept") || ""
+
+  // Markdown content negotiation:
+  // When an agent requests text/markdown on HTML pages, serve the LLM-friendly version.
+  // Only apply to page routes, not API/asset/badge routes.
+  if (
+    accept.includes("text/markdown") &&
+    !accept.includes("text/html") &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/_next/") &&
+    !pathname.startsWith("/.well-known/") &&
+    !pathname.endsWith(".svg") &&
+    !pathname.endsWith(".png") &&
+    !pathname.endsWith(".json") &&
+    !pathname.endsWith(".txt") &&
+    !pathname.endsWith(".xml")
+  ) {
+    // Serve /llms.txt for the homepage, /llms-full.txt for any subpage
+    const markdownUrl = pathname === "/" || pathname === ""
+      ? `${SITE}/llms.txt`
+      : `${SITE}/llms-full.txt`
+
+    const response = NextResponse.rewrite(markdownUrl)
+    response.headers.set("Content-Type", "text/markdown")
+    response.headers.set("Link", LINK_HEADER)
+    return response
+  }
+
+  // For all other responses, add Link headers
+  const response = NextResponse.next()
+  response.headers.set("Link", LINK_HEADER)
+  return response
+}
+
+export const config = {
+  // Run on page routes and well-known, skip static assets and badge images
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|og.png).*)",
+  ],
+}

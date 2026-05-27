@@ -3,6 +3,7 @@ import { Fira_Code, Geist, Sora } from "next/font/google"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@/components/analytics"
+import { WebMCP } from "@/components/webmcp"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 
@@ -103,6 +104,7 @@ export default function RootLayout({
           </ThemeProvider>
         </NuqsAdapter>
         <Analytics />
+        <WebMCP />
       </body>
     </html>
   )
