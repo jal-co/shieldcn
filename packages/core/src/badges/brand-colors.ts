@@ -60,6 +60,7 @@ export const providerBrandColors: Record<string, string> = {
   liberapay: "F6C915",
   matrix: "000000",
   weblate: "2ECCAA",
+  shipperclub: "000000",
 }
 
 /**

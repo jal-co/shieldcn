@@ -119,6 +119,7 @@ import { getOpenVSXVersion, getOpenVSXDownloads, getOpenVSXRating } from "./prov
 import { getLiberapayReceiving, getLiberapayPatrons, getLiberapayGoal } from "./providers/liberapay"
 import { getMatrixMembers } from "./providers/matrix"
 import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
+import { getShipperClubMember } from "./providers/shipperclub"
 
 /** Response format. */
 type Format = "svg" | "png" | "json" | "shields"
@@ -1226,6 +1227,12 @@ async function fetchBadgeData(
       }
     }
 
+    // /shipperclub
+    // Static shipper.club membership badge
+    case "shipperclub": {
+      return getShipperClubMember()
+    }
+
     // /https/{hostname}/{pathname...}
     // Proxy an HTTPS endpoint that returns { label/subject, value/status, color }
     case "https": {
@@ -1318,6 +1325,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "liberapay") return { simpleIcon: "liberapay" }
   if (provider === "matrix") return { simpleIcon: "matrix" }
   if (provider === "weblate") return { simpleIcon: "weblate" }
+  if (provider === "shipperclub") return { simpleIcon: "shipperclub" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}

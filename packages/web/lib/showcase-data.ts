@@ -402,6 +402,9 @@ export const categories: Category[] = [
       dynamicBadge("Built with shadcnblocks", "components", "/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=branded", "Branded shadcnblocks badge — 1500+ premium shadcn/ui blocks, components, and templates."),
       dynamicBadge("Built with shadcnblocks (default)", "components", "/badge/built%20with-shadcnblocks.svg?logo=shadcnblocks", "shadcnblocks badge in default style."),
       dynamicBadge("Built with shadcnblocks (secondary)", "components", "/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=secondary", "shadcnblocks badge in secondary style."),
+      dynamicBadge("shipper.club member", "membership", "/shipperclub.svg", "Static membership badge for shipper.club."),
+      dynamicBadge("shipper.club member (secondary)", "membership", "/shipperclub.svg?variant=secondary", "shipper.club membership badge in secondary style."),
+      dynamicBadge("shipper.club member (outline)", "membership", "/shipperclub.svg?variant=outline", "shipper.club membership badge in outline style."),
     ],
   },
   {

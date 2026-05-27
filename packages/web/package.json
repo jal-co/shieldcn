@@ -23,6 +23,7 @@
     "fumadocs-core": "^16.8.2",
     "fumadocs-mdx": "^14.3.1",
     "fumadocs-ui": "npm:@fumadocs/base-ui@^16.8.2",
+    "html-to-image": "^1.11.13",
     "jose": "^6.2.3",
     "lucide-react": "^1.8.0",
     "motion": "^12.38.0",

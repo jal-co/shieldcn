@@ -58,6 +58,7 @@ const registry: Record<string, CustomIconEntry> = {
   shieldcn: { file: "shieldcn.svg", color: "000000" },
   shadcncraft: { file: "shadcncraft.svg", color: "171717" },
   shadcnblocks: { file: "shadcnblocks.svg", color: "000000" },
+  shipperclub: { file: "shipperclub.svg", color: "000000" },
 }
 
 // ---------------------------------------------------------------------------
