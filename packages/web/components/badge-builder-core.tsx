@@ -16,7 +16,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { RotateCcw, Code2 } from "lucide-react"
+import { RotateCcw, Code2, Link } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorSwatch } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils"
 import {
   BADGE_PRESETS,
   resolveTemplate,
+  resolveDefaultLinkUrl,
   VARIANTS,
   SIZES,
   MODES,
@@ -64,7 +65,7 @@ function groupPresets(): Map<string, BadgePreset[]> {
 }
 
 const PRESET_GROUPS = groupPresets()
-const PRESET_GROUP_ORDER = ["Package", "GitHub", "Social", "Custom"]
+const PRESET_GROUP_ORDER = ["Custom", "Package", "GitHub", "Social", "Group"]
 
 /** Find a preset that matches a given path */
 function findMatchingPreset(path: string): { preset: BadgePreset; values: Record<string, string> } | null {
@@ -154,9 +155,9 @@ export function BadgeBuilderCore({
     setImgError(false)
   }, [s, onChange])
 
-  const updatePath = useCallback((preset: BadgePreset, values: Record<string, string>) => {
+  const updatePath = useCallback((preset: BadgePreset, values: Record<string, string>, extraState?: Partial<BuilderState>) => {
     const path = resolveTemplate(preset, values)
-    onChange({ ...s, path })
+    onChange({ ...s, ...extraState, path })
     setImgError(false)
   }, [s, onChange])
 
@@ -168,7 +169,9 @@ export function BadgeBuilderCore({
     const defaults: Record<string, string> = {}
     for (const p of preset.params) defaults[p.key] = p.default
     setParamValues(defaults)
-    updatePath(preset, defaults)
+    // Auto-fill link URL from preset default
+    const linkUrl = resolveDefaultLinkUrl(preset, defaults)
+    updatePath(preset, defaults, { linkUrl })
   }, [updatePath])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleParamChange = useCallback((key: string, value: string) => {
@@ -176,9 +179,13 @@ export function BadgeBuilderCore({
     setParamValues(next)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      updatePath(selectedPreset, next)
+      // Update link URL if user hasn't customized it (still matches previous auto-filled value)
+      const prevAutoLink = resolveDefaultLinkUrl(selectedPreset, paramValues)
+      const nextAutoLink = resolveDefaultLinkUrl(selectedPreset, next)
+      const isAutoLink = !s.linkUrl || s.linkUrl === prevAutoLink
+      updatePath(selectedPreset, next, isAutoLink ? { linkUrl: nextAutoLink } : undefined)
     }, 300)
-  }, [paramValues, selectedPreset, updatePath])
+  }, [paramValues, selectedPreset, updatePath, s.linkUrl])
 
   // --- Raw path editing (advanced) ---
   const [rawPathInput, setRawPathInput] = useState(s.path)
@@ -414,7 +421,28 @@ export function BadgeBuilderCore({
 
           <div className="h-px bg-border/50" />
 
-          {/* ── Row 4: Customize — all swatches + text inputs in one flat section ── */}
+          {/* ── Row 4: Link URL ── */}
+          <div className="space-y-2">
+            <SectionLabel>Link</SectionLabel>
+            <div className="relative">
+              <Link className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50" />
+              <Input
+                value={s.linkUrl}
+                onChange={e => set("linkUrl", e.target.value)}
+                placeholder="https://… — where the badge links to when clicked"
+                className="h-9 pl-8 text-sm"
+              />
+            </div>
+            {s.linkUrl && (
+              <p className="text-[10px] text-muted-foreground/50">
+                Badge will be wrapped in a clickable link in Markdown/HTML output.
+              </p>
+            )}
+          </div>
+
+          <div className="h-px bg-border/50" />
+
+          {/* ── Row 5: Customize — all swatches + text inputs in one flat section ── */}
           <div className="space-y-3">
             <SectionLabel>Customize</SectionLabel>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">

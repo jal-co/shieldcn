@@ -26,12 +26,23 @@ import {
 
 type CopyFormat = "markdown" | "html" | "url" | "rst"
 
-function formatOutput(url: string, format: CopyFormat): string {
+function formatOutput(url: string, format: CopyFormat, linkUrl?: string): string {
+  const link = linkUrl?.trim() || ""
   switch (format) {
-    case "markdown": return `![badge](${url})`
-    case "html": return `<img alt="badge" src="${url}">`
-    case "url": return url
-    case "rst": return `.. image:: ${url}\n   :alt: badge`
+    case "markdown":
+      return link
+        ? `[![badge](${url})](${link})`
+        : `![badge](${url})`
+    case "html":
+      return link
+        ? `<a href="${link}"><img alt="badge" src="${url}"></a>`
+        : `<img alt="badge" src="${url}">`
+    case "url":
+      return url
+    case "rst":
+      return link
+        ? `.. image:: ${url}\n   :alt: badge\n   :target: ${link}`
+        : `.. image:: ${url}\n   :alt: badge`
   }
 }
 
@@ -65,7 +76,7 @@ export function BadgeBuilder() {
   }, [resolvedTheme]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const url = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
-  const output = useMemo(() => formatOutput(url, copyFormat), [url, copyFormat])
+  const output = useMemo(() => formatOutput(url, copyFormat, s.linkUrl), [url, copyFormat, s.linkUrl])
 
   const handleCopy = useCallback(() => {
     if (!output) return
