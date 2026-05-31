@@ -79,7 +79,7 @@ Join any badge paths with `+` under `/group/`. Query params apply to all segment
 ### Animated badges
 
 <p>
-  <img src="./packages/web/brand/animated-badge.gif" alt="animated shieldcn badge" />
+  <img src="https://shieldcn.dev/badge/shieldcn-animated%20badges.gif?variant=branded&size=lg&logo=shieldcn&logoColor=fff&color=8b5cf6&animate=shimmer" alt="animated shieldcn badge" />
 </p>
 
 Add `?animate=pulse`, `glow`, or `shimmer` to bring a badge to life:
