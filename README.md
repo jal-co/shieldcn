@@ -76,6 +76,29 @@ Combine multiple badges into a single joined image — like a [shadcn ButtonGrou
 
 Join any badge paths with `+` under `/group/`. Query params apply to all segments. See the [Badge Group docs](https://shieldcn.dev/docs/badges/group).
 
+### Animated badges
+
+<p>
+  <img src="./packages/web/brand/animated-badge.gif" alt="animated shieldcn badge" />
+</p>
+
+Add `?animate=pulse`, `glow`, or `shimmer` to bring a badge to life:
+
+- **`pulse`** / **`glow`** animate the status dot (great for live, CI, or "online" badges)
+- **`shimmer`** sweeps a highlight across the whole badge
+
+For `.svg` badges the animation is pure CSS — no JavaScript — and automatically goes static for visitors with reduced motion enabled. Because GitHub sanitizes animated SVGs, request the **`.gif`** extension to animate inside a GitHub README:
+
+```md
+<!-- animates everywhere except GitHub READMEs (static frame there) -->
+![status](https://shieldcn.dev/badge/status-online-22c55e.svg?statusDot=true&animate=pulse)
+
+<!-- animated GIF — animates inside GitHub READMEs too -->
+![status](https://shieldcn.dev/badge/status-online-22c55e.gif?statusDot=true&animate=pulse)
+```
+
+See the [API reference](https://shieldcn.dev/docs/api-reference) for the full list of animation options.
+
 ## Supported providers
 
 See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive sandboxes, and copy-paste examples.

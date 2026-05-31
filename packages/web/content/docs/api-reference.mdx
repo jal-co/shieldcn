@@ -245,6 +245,20 @@ Join any badge paths with `+`. Query params apply to all segments. See [Badge Gr
   ]}
 />
 
+<ApiRefTable
+  title="Effects"
+  props={[
+    {
+      name: "animate",
+      type: "pulse | glow | shimmer",
+      default: "none",
+      description: "Animate the badge with pure CSS. pulse and glow animate the status dot; shimmer sweeps a highlight across the badge. SVG only — PNG/JSON ignore it. Respects prefers-reduced-motion (static for motion-sensitive visitors).",
+    },
+  ]}
+/>
+
+<InlineHint variant="note">Animation is SVG-only and works inside GitHub's image sandbox because it uses pure CSS keyframes — no JavaScript. `pulse` and `glow` require a status dot (auto for CI badges, or set `statusDot=true` with a `color`).</InlineHint>
+
 ## Response formats
 
 ### PNG

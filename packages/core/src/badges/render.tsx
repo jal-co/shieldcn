@@ -20,6 +20,7 @@ import { readFileSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { BadgeConfig } from "./types"
+import { animateSvg } from "./animate"
 import {
   darkMode,
   lightMode,
@@ -327,7 +328,26 @@ export async function renderBadge(config: BadgeConfig): Promise<string> {
   const fonts = getFonts(config.font)
   const raw = await satori(el, { height: r.height, fonts })
   const svg = inlineDataUriImages(raw)
-  return optimizeSvg(svg)
+  const optimized = optimizeSvg(svg)
+  const mode = config.animate ?? "none"
+  if (mode === "none") return optimized
+  return animateSvg(optimized, mode, r.dotColor)
+}
+
+/**
+ * Render the static base SVG once and return it alongside the resolved
+ * status-dot color. Used by the animated-GIF path: the base SVG is rendered
+ * a single time (one Satori call), then `frameSvg()` bakes each frame.
+ */
+export async function renderBadgeBase(
+  config: BadgeConfig,
+): Promise<{ svg: string; dotColor?: string }> {
+  const r = resolve(config)
+  const el = r.split ? renderSplit(r) : renderSingle(r)
+  const fonts = getFonts(config.font)
+  const raw = await satori(el, { height: r.height, fonts })
+  const svg = optimizeSvg(inlineDataUriImages(raw))
+  return { svg, dotColor: r.dotColor }
 }
 
 /**

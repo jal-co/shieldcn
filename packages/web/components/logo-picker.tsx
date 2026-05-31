@@ -45,6 +45,7 @@ import {
 const POPULAR_ICONS: { value: string; label: string; group: string; source: string }[] = [
   { value: "", label: "Auto (provider default)", group: "Default", source: "" },
   { value: "false", label: "None (hide logo)", group: "Default", source: "" },
+  { value: "shieldcn", label: "shieldcn", group: "Default", source: "shieldcn" },
   // Brands (SimpleIcons)
   { value: "react", label: "React", group: "Brands", source: "Simple Icons" },
   { value: "typescript", label: "TypeScript", group: "Brands", source: "Simple Icons" },
@@ -93,6 +94,7 @@ const SOURCE_COLORS: Record<string, string> = {
   material: "bg-purple-700/80 text-purple-100",
   bootstrap: "bg-violet-700/80 text-violet-100",
   feather: "bg-amber-700/80 text-amber-100",
+  shieldcn: "bg-primary text-primary-foreground",
 }
 
 const SOURCE_SHORT: Record<string, string> = {
@@ -105,6 +107,7 @@ const SOURCE_SHORT: Record<string, string> = {
   material: "MD",
   bootstrap: "Bs",
   feather: "Fi",
+  shieldcn: "\u2014",
 }
 
 // ---------------------------------------------------------------------------

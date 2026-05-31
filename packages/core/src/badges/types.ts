@@ -100,6 +100,8 @@ export interface BadgeConfig {
   font?: "inter" | "geist" | "geist-mono"
   /** CSS linear-gradient value for badge background. */
   gradient?: string
+  /** Animation mode: "pulse" | "glow" | "shimmer" | "none". Default: none. */
+  animate?: "pulse" | "glow" | "shimmer" | "none"
 }
 
 /** Raw badge data returned by data providers. */

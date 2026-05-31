@@ -6,7 +6,9 @@
  * self-hosted engine. Handles GET (badge rendering) and PUT (memo badges).
  */
 
-import { renderBadge, renderErrorBadge } from "./badges/render"
+import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
+import { parseAnimate } from "./badges/animate"
+import { renderGif } from "./badges/gif"
 import { renderBadgeGroup, type GroupSegment, type GroupConfig } from "./badges/render-group"
 import { resolveTheme, applyColorOverrides, statusColors } from "./badges/themes"
 import { getSimpleIcon } from "./badges/simple-icons"
@@ -123,7 +125,7 @@ import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 import { getShipperClubMember } from "./providers/shipperclub"
 
 /** Response format. */
-type Format = "svg" | "png" | "json" | "shields"
+type Format = "svg" | "png" | "gif" | "json" | "shields"
 
 /**
  * Parse gradient query param into a CSS linear-gradient value.
@@ -196,6 +198,13 @@ function parseFormat(segments: string[]): {
     const cleaned = [...segments]
     cleaned[cleaned.length - 1] = last.replace(/\.png$/, "")
     return { format: "png", cleanSegments: cleaned }
+  }
+
+  // .gif extension (animated raster — animates inside GitHub READMEs)
+  if (last.endsWith(".gif")) {
+    const cleaned = [...segments]
+    cleaned[cleaned.length - 1] = last.replace(/\.gif$/, "")
+    return { format: "gif", cleanSegments: cleaned }
   }
 
   // .svg extension
@@ -1819,7 +1828,12 @@ export async function handleBadgeGET(
   // Parse gradient
   const gradient = parseGradient(searchParams.get("gradient"))
 
-  const svg = await renderBadge({
+  // Parse animation mode. SVG animates via CSS keyframes; GIF animates as a
+  // rasterized loop (frames baked + encoded). PNG/JSON ignore it.
+  const animateRequested = parseAnimate(searchParams.get("animate"))
+  const animate = format === "svg" ? animateRequested : "none"
+
+  const badgeConfig: BadgeConfig = {
     label,
     value: data.value,
     icon: iconPath,
@@ -1843,6 +1857,7 @@ export async function handleBadgeGET(
     brandColor,
     font,
     gradient,
+    animate,
     valueColor: searchParams.get("valueColor") ?? undefined,
     labelTextColor: searchParams.get("labelTextColor") ?? undefined,
     labelOpacity: num("labelOpacity"),
@@ -1853,7 +1868,41 @@ export async function handleBadgeGET(
     iconSize: num("iconSize"),
     gap: num("gap"),
     labelGap: num("labelGap"),
-  })
+  }
+
+  // ── Animated GIF output (animates inside GitHub READMEs) ──────────────
+  if (format === "gif") {
+    const { svg: baseSvg, dotColor } = await renderBadgeBase(badgeConfig)
+    // Default a bare `.gif` (no animate param) to shimmer so it actually moves.
+    const gifMode = animateRequested === "none" ? "shimmer" : animateRequested
+    const gif = await renderGif(baseSvg, gifMode, dotColor)
+
+    if (gif) {
+      if (options?.onTrack) {
+        void options.onTrack({
+          name: "badge_rendered",
+          data: {
+            provider: cleanSegments[0] || "unknown",
+            format: "gif",
+            style,
+            size: size ?? "sm",
+            mode,
+            animate: gifMode as string,
+          },
+        })
+      }
+      return new Response(Buffer.from(gif), {
+        headers: { "Content-Type": "image/gif", ...CACHE_HEADERS },
+      })
+    }
+    // Animation not applicable (e.g. pulse/glow requested but no status dot).
+    // Fall back to the static SVG so the badge never breaks.
+    return new Response(baseSvg, {
+      headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+    })
+  }
+
+  const svg = await renderBadge(badgeConfig)
 
   if (options?.onTrack) {
     void options.onTrack({
@@ -1871,6 +1920,7 @@ export async function handleBadgeGET(
         hasBrandColor: !!brandColor,
         hasGradient: !!gradient,
         font: font ?? "inter",
+        ...(animate === "none" ? {} : { animate: animate as string }),
       },
     })
   }

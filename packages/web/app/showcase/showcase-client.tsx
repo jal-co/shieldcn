@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ShowcaseSubmitDialog } from "@/components/showcase-submit-dialog"
 import { featuredBadges, categories, groupShowcaseItems } from "@/lib/showcase-data"
 import { GroupShowcase } from "@/components/group-showcase"
+import { AnimatedShowcase } from "@/components/animated-showcase"
 
 const ALL_CATEGORY_NAMES = ["All", ...categories.map((c) => c.name)]
 const totalIconCount = categories.reduce((sum, c) => sum + c.icons.length, 0)
@@ -64,6 +65,9 @@ export default function ShowcasePage() {
             ))}
           </div>
         </div>
+
+        {/* Animated badges — live <img> row */}
+        <AnimatedShowcase />
 
         {/* Badge Groups — bento grid */}
         <div className="space-y-3">
