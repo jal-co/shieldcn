@@ -52,14 +52,19 @@ async function ensureResvg(initWasm: (input: unknown) => Promise<void>): Promise
  * @param baseSvg   The static base badge SVG (rendered once, no animation).
  * @param mode      The animation mode ("pulse" | "glow" | "shimmer").
  * @param dotColor  Resolved status-dot color (required for pulse/glow).
- * @param scale     Pixel scale factor for crisper raster output (default 2).
+ * @param scale     Pixel scale factor. Defaults to 1 so the GIF's pixel size
+ *                  matches the badge's logical size (and the PNG/SVG output) —
+ *                  in a bare `![](url)` the GIF displays at its intrinsic size,
+ *                  so anything above 1 makes it render larger than other
+ *                  badges. Raise only when the caller controls the `<img>`
+ *                  display size.
  * @returns         GIF bytes, or null if the badge can't be animated as a GIF.
  */
 export async function renderGif(
   baseSvg: string,
   mode: AnimateMode,
   dotColor: string | undefined,
-  scale = 2,
+  scale = 1,
 ): Promise<Uint8Array | null> {
   if (mode === "none") return null
 
