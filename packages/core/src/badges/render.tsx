@@ -373,18 +373,26 @@ function optimizeSvg(svg: string): string {
               // Don't collapse <g> elements — rotation transforms on icon
               // groups must be preserved.
               collapseGroups: false,
+              // Round path coordinates but keep absolute commands, and DO NOT
+              // bake transforms into path data.
+              //
+              // Custom icons are positioned with a tiny scale() transform
+              // (e.g. 14/512 ≈ 0.027). If SVGO bakes that into the path coords
+              // and then rounds to 1 decimal, all curve detail collapses —
+              // detailed icons (shieldcn shield, shipperclub) render as an
+              // unrecognizable "swirl". Keeping applyTransforms:false leaves
+              // the path in its native viewBox space with the scale as a
+              // separate transform, preserving fidelity. floatPrecision:1 still
+              // compacts the large badge geometry.
+              //
+              // Stroke-based icons (Lucide, Feather) also rely on this: they
+              // join subpaths in one `d`, so absolute commands must be kept.
+              convertPathData: {
+                floatPrecision: 1,
+                applyTransforms: false,
+                forceAbsolutePath: true,
+              },
             },
-          },
-        },
-        // Round path coordinates but keep absolute commands.
-        // Stroke-based icons (Lucide, Feather) join multiple subpaths into
-        // one `d` attribute — converting M (absolute move) to m (relative)
-        // breaks them because each subpath needs absolute positioning.
-        {
-          name: "convertPathData",
-          params: {
-            floatPrecision: 1,
-            forceAbsolutePath: true,
           },
         },
       ],
