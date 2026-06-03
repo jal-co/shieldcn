@@ -30,6 +30,6 @@
     "turbo": "^2"
   },
   "lint-staged": {
-    "packages/web/**/*.{ts,tsx}": "eslint --no-warn-ignored --max-warnings 0 --config packages/web/eslint.config.mjs"
+    "packages/web/**/*.{ts,tsx}": "pnpm --filter @shieldcn/web exec eslint --no-warn-ignored --max-warnings 0"
   }
 }

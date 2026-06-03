@@ -109,16 +109,6 @@ function loadSvg(svg: string): Promise<HTMLImageElement> {
   })
 }
 
-/** Read intrinsic width/height from an SVG root. */
-function svgSize(svg: string): { w: number; h: number } {
-  const w = svg.match(/<svg[^>]*\bwidth="([\d.]+)"/)?.[1]
-  const h = svg.match(/<svg[^>]*\bheight="([\d.]+)"/)?.[1]
-  if (w && h) return { w: parseFloat(w), h: parseFloat(h) }
-  const vb = svg.match(/viewBox="([\d.\s-]+)"/)?.[1]?.trim().split(/\s+/).map(Number)
-  if (vb && vb.length === 4) return { w: vb[2], h: vb[3] }
-  return { w: 0, h: 0 }
-}
-
 async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
   try {
     const res = await fetch(buildGifUrl(item, mode))
