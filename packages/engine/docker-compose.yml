@@ -14,6 +14,7 @@ services:
       - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-}
       - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-}
       - NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
     depends_on:
       postgres:
         condition: service_healthy

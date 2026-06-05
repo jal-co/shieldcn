@@ -23,6 +23,13 @@ import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/typ
 export interface BadgeRequestOptions {
   /** Optional analytics callback. Called after badge render. */
   onTrack?: (event: { name: string; data: Record<string, string | number | boolean> }) => void
+  /**
+   * Optional error reporter. Called when an unexpected error is caught while
+   * rendering a badge. The route still returns a valid fallback badge — this
+   * callback exists so the failure isn't silently swallowed. Apps wire this to
+   * Sentry (or any monitoring tool); core stays dependency-free.
+   */
+  onError?: (error: unknown, context: Record<string, string>) => void
 }
 
 /** Check if a hex color (without #) is light enough to need dark text/icons. */
@@ -1577,6 +1584,36 @@ async function handleBadgeGroup(
  * @param options - Optional analytics callback
  */
 export async function handleBadgeGET(
+  request: Request,
+  slug: string[],
+  options?: BadgeRequestOptions,
+) {
+  try {
+    return await handleBadgeGETInner(request, slug, options)
+  } catch (error) {
+    // Errors must never produce a broken image. Report the failure so it isn't
+    // silently swallowed, then return a valid fallback badge.
+    if (options?.onError) {
+      try {
+        const { cleanSegments } = parseFormat(slug)
+        options.onError(error, {
+          provider: cleanSegments[0] || "unknown",
+          path: slug.join("/"),
+        })
+      } catch { /* never let reporting break the response */ }
+    }
+    const { format, cleanSegments } = parseFormat(slug)
+    if (format === "svg" || format === "png" || format === "gif") {
+      return new Response(
+        await renderErrorBadge(cleanSegments[0] || "error", "error"),
+        { headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS } }
+      )
+    }
+    return Response.json({ error: "internal error" }, { status: 500 })
+  }
+}
+
+async function handleBadgeGETInner(
   request: Request,
   slug: string[],
   options?: BadgeRequestOptions,

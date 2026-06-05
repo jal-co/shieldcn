@@ -121,6 +121,17 @@ export function SiteFooter() {
               </a>
             </p>
             <p className="text-sm text-muted-foreground">
+              Monitored by{" "}
+              <a
+                href="https://sentry.io/?utm_source=shieldcn.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-foreground"
+              >
+                Sentry
+              </a>
+            </p>
+            <p className="text-sm text-muted-foreground">
               Built with components from{" "}
               <a
                 href="https://shadcncraft.com?utm_source=shieldcn.dev"

@@ -28,6 +28,10 @@ yarn-error.log*
 # env files
 .env*.local
 
+# sentry
+.env.sentry-build-plugin
+.sentryclirc
+
 # vercel
 .vercel
 

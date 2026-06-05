@@ -13,6 +13,7 @@
     "@davestewart/outliner": "^1.2.0",
     "@openpanel/nextjs": "^1.5.0",
     "@resvg/resvg-wasm": "^2.6.2",
+    "@sentry/nextjs": "^10.56.0",
     "@shieldcn/core": "workspace:*",
     "@types/flexsearch": "^0.7.42",
     "@types/mdx": "^2.0.13",
