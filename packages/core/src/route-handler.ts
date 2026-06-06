@@ -1950,10 +1950,29 @@ async function handleBadgeGETInner(
 
   // ── Animated GIF output (animates inside GitHub READMEs) ──────────────
   if (format === "gif") {
+    const gifRenderStart = performance.now()
     const { svg: baseSvg, dotColor } = await renderBadgeBase(badgeConfig)
     // Default a bare `.gif` (no animate param) to shimmer so it actually moves.
     const gifMode = animateRequested === "none" ? "shimmer" : animateRequested
     const gif = await renderGif(baseSvg, gifMode, dotColor)
+    const gifRenderMs = performance.now() - gifRenderStart
+
+    if (options?.onMetric) {
+      options.onMetric({
+        type: "distribution",
+        name: "badge.render_duration",
+        value: gifRenderMs,
+        unit: "millisecond",
+        tags: { provider, format, style, mode },
+      })
+      options.onMetric({
+        type: "distribution",
+        name: "badge.total_duration",
+        value: fetchMs + gifRenderMs,
+        unit: "millisecond",
+        tags: { provider, format },
+      })
+    }
 
     if (gif) {
       if (options?.onTrack) {
