@@ -75,6 +75,18 @@ npx shieldcn-cli --variant outline --size lg --mode light
 npx shieldcn-cli --variant ghost --compact
 ```
 
+### Theme-aware output
+
+Pass `--theme-aware` to emit `<picture>` markup so badges adapt to the reader's
+GitHub light/dark theme. Only theme-derived variants (outline, secondary,
+branded, default) are wrapped — color-locked badges stay as plain Markdown.
+
+```bash
+npx shieldcn-cli --variant outline --theme-aware
+```
+
+See [Light & Dark Mode](/docs/customization/light-dark-mode) for how it works.
+
 ## Output formats
 
 ### Markdown (default)

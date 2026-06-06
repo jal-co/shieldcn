@@ -59,6 +59,12 @@ export type GlobalSettings = {
   size: Size;
   mode: Mode;
   theme: Theme;
+  /**
+   * Emit theme-aware <picture> markup so badges adapt to the viewer's
+   * GitHub light/dark theme. Only affects theme-derived variants without an
+   * explicit color (see isThemeAdaptive).
+   */
+  themeAware?: boolean;
 };
 
 export const DEFAULT_GLOBAL: GlobalSettings = {
@@ -66,6 +72,7 @@ export const DEFAULT_GLOBAL: GlobalSettings = {
   size: 'sm',
   mode: 'dark',
   theme: 'none',
+  themeAware: false,
 };
 
 export type BadgeGroup =
@@ -106,12 +113,14 @@ const COLOR_FIELDS: (keyof Overrides)[] = [
 export function mergeQuery(
   badge: Badge,
   global: GlobalSettings,
+  modeOverride?: Mode,
 ): Record<string, string> {
   const merged: Record<string, string> = { ...badge.query };
 
   if (global.variant !== 'default' && !merged.variant) merged.variant = global.variant;
   if (global.size !== 'default' && !merged.size) merged.size = global.size;
-  if (global.mode !== 'dark' && !merged.mode) merged.mode = global.mode;
+  if (modeOverride) merged.mode = modeOverride;
+  else if (global.mode !== 'dark' && !merged.mode) merged.mode = global.mode;
   if (global.theme !== 'none' && !merged.theme) merged.theme = global.theme;
 
   for (const [rawKey, rawVal] of Object.entries(badge.overrides)) {
@@ -136,12 +145,64 @@ export function mergeQuery(
   return merged;
 }
 
-export function badgeUrl(badge: Badge, global: GlobalSettings): string {
-  const qs = new URLSearchParams(mergeQuery(badge, global)).toString();
+export function badgeUrl(
+  badge: Badge,
+  global: GlobalSettings,
+  modeOverride?: Mode,
+): string {
+  const qs = new URLSearchParams(mergeQuery(badge, global, modeOverride)).toString();
   return `${SHIELDCN_BASE}${badge.path}${qs ? `?${qs}` : ''}`;
 }
 
+/**
+ * Variants whose colors are derived from the light/dark theme. Only these
+ * benefit from theme-aware <picture> output — a badge with an explicit color
+ * looks identical in both modes.
+ */
+const THEME_DERIVED_VARIANTS = new Set<string>([
+  'default',
+  'secondary',
+  'outline',
+  'ghost',
+  'branded',
+]);
+
+/**
+ * Whether a badge would actually change between light and dark mode, so it's
+ * worth wrapping in <picture>. True when the resolved variant is theme-derived
+ * and the badge has no explicit color override pinning it to one look.
+ */
+export function isThemeAdaptive(badge: Badge, global: GlobalSettings): boolean {
+  const variant =
+    badge.query.variant ||
+    (global.variant !== 'default' ? global.variant : 'default');
+  if (!THEME_DERIVED_VARIANTS.has(variant)) return false;
+  // An explicit color (query or override) locks the badge to one appearance.
+  if (badge.query.color) return false;
+  if (badge.overrides.color) return false;
+  return true;
+}
+
+/**
+ * Build a GitHub theme-aware <picture> element. The <source> targets dark-theme
+ * viewers; the <img> fallback (light) covers light-theme viewers and renderers
+ * that don't support <picture> (npm, PyPI, etc).
+ */
+export function badgePicture(badge: Badge, global: GlobalSettings): string {
+  const dark = badgeUrl(badge, global, 'dark');
+  const light = badgeUrl(badge, global, 'light');
+  const alt = badge.label.replace(/"/g, '&quot;');
+  const pic =
+    `<picture>` +
+    `<source media="(prefers-color-scheme: dark)" srcset="${dark}">` +
+    `<img alt="${alt}" src="${light}"></picture>`;
+  return badge.linkUrl ? `<a href="${badge.linkUrl}">${pic}</a>` : pic;
+}
+
 export function badgeMarkdown(badge: Badge, global: GlobalSettings): string {
+  if (global.themeAware && isThemeAdaptive(badge, global)) {
+    return badgePicture(badge, global);
+  }
   const url = badgeUrl(badge, global);
   const alt = badge.label.replace(/[\[\]]/g, '');
   const img = `![${alt}](${url})`;
@@ -149,6 +210,9 @@ export function badgeMarkdown(badge: Badge, global: GlobalSettings): string {
 }
 
 export function badgeHtml(badge: Badge, global: GlobalSettings): string {
+  if (global.themeAware && isThemeAdaptive(badge, global)) {
+    return badgePicture(badge, global);
+  }
   const url = badgeUrl(badge, global);
   const alt = badge.label.replace(/"/g, '&quot;');
   const img = `<img src="${url}" alt="${alt}" />`;

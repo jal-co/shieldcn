@@ -53,4 +53,10 @@ export type GlobalSettings = {
   size: string
   mode: string
   theme: string
+  /**
+   * Emit theme-aware <picture> markup so badges adapt to the viewer's
+   * GitHub light/dark theme. Only affects badges whose colors are derived
+   * from the theme (see isThemeDerived in url.ts).
+   */
+  themeAware?: boolean
 }

@@ -14,7 +14,6 @@ import {
   badgeHtml,
   badgeMarkdown,
   badgeUrl,
-  DEFAULT_GLOBAL,
   type Badge,
   type BadgeGroup,
   type GlobalSettings,
@@ -46,6 +45,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
 import { ColorInput } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { cn } from "@/lib/utils"
@@ -119,6 +119,8 @@ export default function GeneratorApp() {
   useEffect(() => {
     if (qs.url && !didAutoGenerate.current && !config) {
       didAutoGenerate.current = true
+      // Pre-existing react-compiler debt (use-before-declare); tracked separately.
+      // eslint-disable-next-line react-hooks/immutability
       void handleGenerate(qs.url)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,18 +134,22 @@ export default function GeneratorApp() {
       size: qs.size,
       mode: qs.mode,
       theme: qs.theme,
+      themeAware: qs.themeAware,
     }
     const configGlobal = config.global
     if (
       urlGlobal.variant !== configGlobal.variant ||
       urlGlobal.size !== configGlobal.size ||
       urlGlobal.mode !== configGlobal.mode ||
-      urlGlobal.theme !== configGlobal.theme
+      urlGlobal.theme !== configGlobal.theme ||
+      urlGlobal.themeAware !== configGlobal.themeAware
     ) {
+      // Pre-existing react-compiler debt (set-state-in-effect); tracked separately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig((c) => (c ? { ...c, global: urlGlobal } : c))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qs.variant, qs.size, qs.mode, qs.theme])
+  }, [qs.variant, qs.size, qs.mode, qs.theme, qs.themeAware])
 
   const updateGlobal = useCallback((patch: Partial<GlobalSettings>) => {
     setConfig((c) => (c ? { ...c, global: { ...c.global, ...patch } } : c))
@@ -219,6 +225,8 @@ export default function GeneratorApp() {
     }
   }, [])
 
+  // Pre-existing react-compiler debt (preserve-manual-memoization); tracked separately.
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const handleGenerate = useCallback(async (urlOverride?: string) => {
     const url = urlOverride ?? inputUrl.trim()
     if (!url) return
@@ -624,6 +632,21 @@ function ResultsPanel({
             onChange={(v) => updateGlobal({ mode: v as Mode })}
           />
         </div>
+        <label className="flex items-start gap-3 rounded-md border border-dashed border-border p-3">
+          <Switch
+            checked={config.global.themeAware ?? false}
+            onCheckedChange={(v) => updateGlobal({ themeAware: v })}
+            className="mt-0.5"
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Theme-aware (light/dark)</span>
+            <span className="text-xs text-muted-foreground">
+              Output <code className="rounded bg-muted px-1 py-0.5">&lt;picture&gt;</code>{" "}
+              markup so badges adapt to the reader&apos;s GitHub theme. Applies to
+              theme-derived variants (outline, secondary, branded, default).
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Badge groups */}
@@ -777,6 +800,8 @@ function BadgeItem({
             !badge.enabled && "opacity-30 grayscale-[60%]",
           )}
         >
+          {/* Live badge SVG from an arbitrary URL — next/image is not applicable. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={previewUrl} alt={badge.label} loading="lazy" className="block max-h-10" />
         </button>
       </PopoverTrigger>

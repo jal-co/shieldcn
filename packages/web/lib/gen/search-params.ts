@@ -4,6 +4,7 @@
 import {
   parseAsString,
   parseAsStringEnum,
+  parseAsBoolean,
   createSearchParamsCache,
 } from "nuqs/server"
 import type { Variant, Size, Mode, Theme } from "./shieldcn"
@@ -43,6 +44,7 @@ export const genSearchParams = {
   size: parseAsStringEnum(SIZES).withDefault("sm"),
   mode: parseAsStringEnum(MODES).withDefault("dark"),
   theme: parseAsStringEnum(THEMES).withDefault("none"),
+  themeAware: parseAsBoolean.withDefault(false),
 }
 
 export const genSearchParamsCache = createSearchParamsCache(genSearchParams)

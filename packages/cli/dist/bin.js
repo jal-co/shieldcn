@@ -168,25 +168,52 @@ function staticBadgePath(label, message, color) {
   const enc = (s) => encodeURIComponent(encodeStaticSegment(s));
   return `/badge/${enc(label)}-${enc(message)}-${color.replace(/^#/, "")}.svg`;
 }
-function mergeQuery(badge, global) {
+function mergeQuery(badge, global, modeOverride) {
   const merged = { ...badge.query };
   if (global.variant && global.variant !== "default" && !merged.variant) merged.variant = global.variant;
   if (global.size && global.size !== "sm" && global.size !== "default" && !merged.size) merged.size = global.size;
-  if (global.mode && global.mode !== "dark" && !merged.mode) merged.mode = global.mode;
+  if (modeOverride) merged.mode = modeOverride;
+  else if (global.mode && global.mode !== "dark" && !merged.mode) merged.mode = global.mode;
   if (global.theme && !merged.theme) merged.theme = global.theme;
   return merged;
 }
-function badgeUrl(badge, global) {
-  const qs = new URLSearchParams(mergeQuery(badge, global)).toString();
+var THEME_DERIVED_VARIANTS = /* @__PURE__ */ new Set([
+  "default",
+  "secondary",
+  "outline",
+  "ghost",
+  "branded"
+]);
+function isThemeAdaptive(badge, global) {
+  const variant = badge.query.variant || (global.variant !== "default" ? global.variant : "default");
+  if (!THEME_DERIVED_VARIANTS.has(variant)) return false;
+  if (badge.query.color) return false;
+  return true;
+}
+function badgeUrl(badge, global, modeOverride) {
+  const qs = new URLSearchParams(mergeQuery(badge, global, modeOverride)).toString();
   return `${SHIELDCN_BASE}${badge.path}${qs ? `?${qs}` : ""}`;
 }
+function badgePicture(badge, global) {
+  const dark = badgeUrl(badge, global, "dark");
+  const light = badgeUrl(badge, global, "light");
+  const alt = badge.label.replace(/"/g, "&quot;");
+  const pic = `<picture><source media="(prefers-color-scheme: dark)" srcset="${dark}"><img alt="${alt}" src="${light}"></picture>`;
+  return badge.linkUrl ? `<a href="${badge.linkUrl}">${pic}</a>` : pic;
+}
 function badgeMarkdown(badge, global) {
+  if (global.themeAware && isThemeAdaptive(badge, global)) {
+    return badgePicture(badge, global);
+  }
   const url = badgeUrl(badge, global);
   const alt = badge.label.replace(/[\[\]]/g, "");
   const img = `![${alt}](${url})`;
   return badge.linkUrl ? `[${img}](${badge.linkUrl})` : img;
 }
 function badgeHtml(badge, global) {
+  if (global.themeAware && isThemeAdaptive(badge, global)) {
+    return badgePicture(badge, global);
+  }
   const url = badgeUrl(badge, global);
   const alt = badge.label.replace(/"/g, "&quot;");
   const img = `<img src="${url}" alt="${alt}" />`;
@@ -1061,6 +1088,11 @@ var generate = defineCommand({
       type: "string",
       description: "Color mode: dark, light"
     },
+    "theme-aware": {
+      type: "boolean",
+      description: "Emit <picture> markup so badges adapt to the viewer's light/dark theme",
+      default: false
+    },
     format: {
       type: "string",
       description: "Output format: markdown (default), flat, html, json",
@@ -1095,7 +1127,8 @@ var generate = defineCommand({
       variant: args2.variant || "default",
       size: args2.size || "sm",
       mode: args2.mode || "dark",
-      theme: args2.theme || ""
+      theme: args2.theme || "",
+      themeAware: Boolean(args2["theme-aware"])
     };
     if (global.variant && !VARIANTS.includes(global.variant)) {
       consola.error(`Invalid variant "${global.variant}". Valid: ${VARIANTS.join(", ")}`);

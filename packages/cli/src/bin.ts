@@ -115,6 +115,11 @@ const generate = defineCommand({
       type: "string",
       description: "Color mode: dark, light",
     },
+    "theme-aware": {
+      type: "boolean",
+      description: "Emit <picture> markup so badges adapt to the viewer's light/dark theme",
+      default: false,
+    },
     format: {
       type: "string",
       description: "Output format: markdown (default), flat, html, json",
@@ -153,6 +158,7 @@ const generate = defineCommand({
       size: (args.size as string) || "sm",
       mode: (args.mode as string) || "dark",
       theme: (args.theme as string) || "",
+      themeAware: Boolean(args["theme-aware"]),
     }
 
     // Validate variant

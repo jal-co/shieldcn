@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, useReducedMotion, AnimatePresence, LayoutGroup } from "motion/react"
 import { useRouter } from "next/navigation"
-import { ChevronDown, ChevronRight, Search, FileText, Hash } from "lucide-react"
+import { ChevronDown, ChevronRight, Search, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   CommandDialog,
@@ -213,6 +213,7 @@ const docsNav: NavGroup[] = [
     items: [
       { title: "Themes", href: "/docs/customization/themes" },
       { title: "Styles", href: "/docs/customization/styles" },
+      { title: "Light & Dark Mode", href: "/docs/customization/light-dark-mode" },
     ],
   },
   {
