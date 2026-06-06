@@ -243,6 +243,7 @@ export default function GeneratorApp() {
         size: qs.size,
         mode: qs.mode,
         theme: qs.theme,
+        themeAware: qs.themeAware,
       },
       badges: result.badges,
       generatedAt: new Date().toISOString(),
@@ -269,7 +270,7 @@ export default function GeneratorApp() {
         badgeCount: enabledCount,
       }),
     }).catch(() => {})
-  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, track])
+  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.themeAware, track])
 
   const handleConfigUpload = useCallback(async (file: File) => {
     setError(null)
@@ -288,6 +289,7 @@ export default function GeneratorApp() {
         size: parsed.config.global.size,
         mode: parsed.config.global.mode,
         theme: parsed.config.global.theme,
+        themeAware: parsed.config.global.themeAware ?? false,
       })
       setNotes([])
       setShieldsIoUrls([])
