@@ -422,6 +422,8 @@ export const categories: Category[] = [
       dynamicBadge("Kotlin", "by @itzzjustmateo", "/badge/Kotlin-7f52ff.svg?logo=kotlin", "A badge for Kotlin :D"),
     
       dynamicBadge("Convex", "by @get-convex", "/badge/Convex-F3B01C.svg?logo=convex", "Branded Convex badge using Simple Icons. Best for stack rows, integration lists, and polished README sections."),
+    
+      dynamicBadge("Telegram", "by @chirizxc", "/badge/Telegram-24A1DE.svg?font=geist-mono&logo=telegram&logoColor=ffffff", "Community badge submitted by chirizxc."),
     ],
   },
 ]
