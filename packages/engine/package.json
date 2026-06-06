@@ -15,6 +15,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@sentry/profiling-node": "^10.56.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

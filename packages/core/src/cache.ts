@@ -250,6 +250,25 @@ export async function cacheSet<T>(key: string, data: T, ttlSeconds: number = 300
  * @param ttlSeconds - cache TTL (default 300)
  * @returns data or null
  */
+/**
+ * Optional metrics callback for cache instrumentation.
+ * Set by the app layer (Sentry, etc.) before any requests flow.
+ */
+let cacheMetricsCallback: ((metric: {
+  type: "counter"
+  name: string
+  value: number
+  tags?: Record<string, string>
+}) => void) | null = null
+
+/**
+ * Register a callback to receive cache metrics (hit/miss/backoff/budget).
+ * Call once at app startup.
+ */
+export function setCacheMetricsCallback(cb: typeof cacheMetricsCallback): void {
+  cacheMetricsCallback = cb
+}
+
 export async function cachedFetch<T>(
   provider: string,
   key: string,
@@ -260,13 +279,36 @@ export async function cachedFetch<T>(
 
   // 1. Cache hit?
   const cached = await cacheGet<T>(fullKey)
-  if (cached !== undefined) return cached
+  if (cached !== undefined) {
+    cacheMetricsCallback?.({
+      type: "counter", name: "badge.cache", value: 1,
+      tags: { provider, result: "hit" },
+    })
+    return cached
+  }
+
+  cacheMetricsCallback?.({
+    type: "counter", name: "badge.cache", value: 1,
+    tags: { provider, result: "miss" },
+  })
 
   // 2. Is the provider backed off?
-  if (isBackedOff(provider)) return null
+  if (isBackedOff(provider)) {
+    cacheMetricsCallback?.({
+      type: "counter", name: "badge.backoff", value: 1,
+      tags: { provider },
+    })
+    return null
+  }
 
   // 3. Rate budget check
-  if (!consumeBudget(provider)) return null
+  if (!consumeBudget(provider)) {
+    cacheMetricsCallback?.({
+      type: "counter", name: "badge.budget_exhausted", value: 1,
+      tags: { provider },
+    })
+    return null
+  }
 
   // 4. Fetch
   try {

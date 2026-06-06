@@ -40,6 +40,7 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@sentry/profiling-node": "^10.56.0",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20",

@@ -4,6 +4,8 @@
  *
  * Sentry initialization for the engine's Edge runtime.
  * Inert unless NEXT_PUBLIC_SENTRY_DSN is set.
+ *
+ * Note: Profiling is not available on the Edge runtime — Node.js only.
  */
 
 import * as Sentry from "@sentry/nextjs"

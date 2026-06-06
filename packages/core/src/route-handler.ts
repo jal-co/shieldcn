@@ -18,6 +18,23 @@ import { normalizeSearchParams } from "./normalize-params"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/types"
 
 /**
+ * A single metric emission. Apps wire this to Sentry.metrics (or any
+ * metrics backend); core stays dependency-free.
+ */
+export interface MetricEvent {
+  /** Metric type: counter, distribution (histogram), gauge, or set. */
+  type: "counter" | "distribution" | "gauge" | "set"
+  /** Metric name, e.g. "badge.render_duration". */
+  name: string
+  /** Numeric value (or string for sets). */
+  value: number | string
+  /** Unit hint — Sentry uses this for display formatting. */
+  unit?: "millisecond" | "none" | "byte"
+  /** Key-value tags attached to the metric point. */
+  tags?: Record<string, string>
+}
+
+/**
  * Options for the badge GET handler.
  */
 export interface BadgeRequestOptions {
@@ -30,6 +47,12 @@ export interface BadgeRequestOptions {
    * Sentry (or any monitoring tool); core stays dependency-free.
    */
   onError?: (error: unknown, context: Record<string, string>) => void
+  /**
+   * Optional metrics callback. Called to emit counter/distribution/gauge/set
+   * metrics for badge operations. Apps wire this to Sentry.metrics or any
+   * metrics backend; core stays dependency-free.
+   */
+  onMetric?: (metric: MetricEvent) => void
 }
 
 /** Check if a hex color (without #) is light enough to need dark text/icons. */
@@ -1642,7 +1665,26 @@ async function handleBadgeGETInner(
   }
 
   // Fetch badge data from provider
+  const fetchStart = performance.now()
   const data = await fetchBadgeData(cleanSegments, searchParams)
+  const fetchMs = performance.now() - fetchStart
+  const provider = cleanSegments[0] || "unknown"
+
+  if (options?.onMetric) {
+    options.onMetric({
+      type: "distribution",
+      name: "badge.provider_fetch_duration",
+      value: fetchMs,
+      unit: "millisecond",
+      tags: { provider, found: data ? "true" : "false" },
+    })
+    options.onMetric({
+      type: "counter",
+      name: "badge.request",
+      value: 1,
+      tags: { provider, format },
+    })
+  }
 
   if (!data) {
     if (format === "svg") {
@@ -1720,7 +1762,6 @@ async function handleBadgeGETInner(
   let brandColor: string | undefined
 
   // For branded variant, get provider brand color as fallback
-  const provider = cleanSegments[0]
   const providerBrand = getProviderBrandColor(provider)
 
   if (logoParam === "false" || logoParam === "none") {
@@ -1939,13 +1980,32 @@ async function handleBadgeGETInner(
     })
   }
 
+  const renderStart = performance.now()
   const svg = await renderBadge(badgeConfig)
+  const renderMs = performance.now() - renderStart
+
+  if (options?.onMetric) {
+    options.onMetric({
+      type: "distribution",
+      name: "badge.render_duration",
+      value: renderMs,
+      unit: "millisecond",
+      tags: { provider, format, style, mode },
+    })
+    options.onMetric({
+      type: "distribution",
+      name: "badge.total_duration",
+      value: fetchMs + renderMs,
+      unit: "millisecond",
+      tags: { provider, format },
+    })
+  }
 
   if (options?.onTrack) {
     void options.onTrack({
       name: "badge_rendered",
       data: {
-        provider: cleanSegments[0] || "unknown",
+        provider,
         format,
         style,
         size: size ?? "sm",
