@@ -188,6 +188,7 @@ function isThemeAdaptive(badge, global) {
   const variant = badge.query.variant || (global.variant !== "default" ? global.variant : "default");
   if (!THEME_DERIVED_VARIANTS.has(variant)) return false;
   if (badge.query.color) return false;
+  if (badge.query.mode) return false;
   return true;
 }
 function badgeUrl(badge, global, modeOverride) {

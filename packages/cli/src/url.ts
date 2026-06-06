@@ -68,6 +68,8 @@ export function isThemeAdaptive(badge: Badge, global: GlobalSettings): boolean {
   if (!THEME_DERIVED_VARIANTS.has(variant)) return false
   // An explicit color locks the badge to one appearance in both modes.
   if (badge.query.color) return false
+  // An explicit mode pins the badge to one theme, so <picture> is pointless.
+  if (badge.query.mode) return false
   return true
 }
 

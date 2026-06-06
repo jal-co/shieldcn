@@ -126,6 +126,10 @@ export function mergeQuery(
   for (const [rawKey, rawVal] of Object.entries(badge.overrides)) {
     if (rawVal === undefined || rawVal === null || rawVal === '') continue;
     const key = rawKey as keyof Overrides;
+    // A forced mode (for theme-aware <picture> output) must win over the
+    // badge's own mode override, otherwise both <source> and <img> resolve
+    // to the same mode and the <picture> swap does nothing.
+    if (key === 'mode' && modeOverride) continue;
     if (key === 'theme' && rawVal === 'none') {
       delete merged.theme;
       continue;
@@ -180,6 +184,9 @@ export function isThemeAdaptive(badge: Badge, global: GlobalSettings): boolean {
   // An explicit color (query or override) locks the badge to one appearance.
   if (badge.query.color) return false;
   if (badge.overrides.color) return false;
+  // An explicit mode pins the badge to one theme, so <picture> is pointless.
+  if (badge.query.mode) return false;
+  if (badge.overrides.mode) return false;
   return true;
 }
 
