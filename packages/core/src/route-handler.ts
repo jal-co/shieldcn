@@ -12,6 +12,7 @@ import { renderGif } from "./badges/gif"
 import { renderBadgeGroup, type GroupSegment, type GroupConfig } from "./badges/render-group"
 import { resolveTheme, applyColorOverrides, statusColors } from "./badges/themes"
 import { getSimpleIcon } from "./badges/simple-icons"
+import { isTwemojiLogo, resolveTwemojiSvg } from "./badges/twemoji"
 import { getProviderBrandColor } from "./badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "./badges/svg-parser"
 import { normalizeSearchParams } from "./normalize-params"
@@ -1803,11 +1804,20 @@ async function handleBadgeGETInner(
   // For branded variant, get provider brand color as fallback
   const providerBrand = getProviderBrandColor(provider)
 
+  // Emoji (Twemoji) logo, rendered as a full-color square inset (not recolored).
+  let emojiSvg: string | undefined
+
   if (logoParam === "false" || logoParam === "none") {
     // Explicitly hidden — still use provider brand for branded variant
     if (style === "branded" && providerBrand) {
       brandColor = providerBrand
     }
+  } else if (logoParam && logoParam !== "true" && isTwemojiLogo(logoParam)) {
+    // Twemoji emoji: ?logo=twemoji:🚀, ?logo=twemoji:1f680, or bare ?logo=🚀
+    emojiSvg = (await resolveTwemojiSvg(logoParam)) ?? undefined
+    // Branded variant still needs a bg color; emoji carry no single brand color,
+    // so fall back to the provider brand if any.
+    if (style === "branded" && providerBrand) brandColor = providerBrand
   } else if (logoParam && logoParam.startsWith("data:image/svg+xml")) {
     // Custom SVG icon via data URI
     const svgContent = decodeSvgDataUri(logoParam)
@@ -1981,6 +1991,7 @@ async function handleBadgeGETInner(
     font,
     gradient,
     flagSvg,
+    emojiSvg,
     animate,
     valueColor: searchParams.get("valueColor") ?? undefined,
     labelTextColor: searchParams.get("labelTextColor") ?? undefined,

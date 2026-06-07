@@ -115,6 +115,12 @@ export interface BadgeConfig {
    * preserves the flag's original multi-color fills instead of recoloring it.
    */
   flagSvg?: string
+  /**
+   * Full-color emoji (Twemoji) SVG (raw markup) rendered as a square left
+   * inset at its natural 1:1 aspect ratio. Like `flagSvg`, this preserves the
+   * original multi-color fills instead of recoloring it.
+   */
+  emojiSvg?: string
   /** Animation mode: "pulse" | "glow" | "shimmer" | "none". Default: none. */
   animate?: "pulse" | "glow" | "shimmer" | "none"
 }

@@ -52,6 +52,7 @@ export const featuredBadges: ShowcaseBadge[] = [
   dynamicBadge("Bluesky Followers", "featured social", "/bluesky/jay.bsky.team.svg?variant=outline", "Social proof badge for Bluesky profiles.", "/docs/badges/bluesky"),
   dynamicBadge("Bundle Size", "featured bundlephobia", "/bundlephobia/minzip/react.svg?variant=secondary", "Show how lightweight your package is.", "/docs/badges/bundlephobia"),
   dynamicBadge("Built in the USA", "featured location", "/flag/us.svg", "Country flag badge with a natural-aspect flag chip.", "/docs/badges/flag"),
+  dynamicBadge("Ship It", "featured emoji", "/badge/ship-it.svg?logo=twemoji:\uD83D\uDE80&variant=secondary", "Any emoji as a logo, rendered via Twemoji.", "/docs/customization/logos"),
 ]
 
 export const categories: Category[] = [
@@ -408,6 +409,20 @@ export const categories: Category[] = [
       dynamicBadge("README > Code", "meta", "/badge/README-longer%20than%20code-blue.svg?variant=secondary", "The documentation is the product."),
       dynamicBadge("Hopes & Dreams", "fuel", "/badge/Runs%20on-hopes%20%26%20dreams-FF69B4.svg?variant=secondary", "The real runtime environment."),
       dynamicBadge("Type Safety: Eventual", "aspiration", "/badge/type%20safety-eventual-orange.svg?variant=outline", "any any any any any."),
+    ],
+  },
+  {
+    name: "Emoji",
+    description: "Any emoji can be a badge logo, rendered as a crisp full-color Twemoji glyph. Use ?logo=<emoji>, ?logo=twemoji:<emoji>, or ?logo=twemoji:<codepoint>. See the Logos & Icons docs.",
+    icons: [
+      dynamicBadge("Ship It", "emoji logo", "/badge/ship-it.svg?logo=twemoji:\uD83D\uDE80&variant=secondary", "\uD83D\uDE80 rocket emoji as a logo via Twemoji.", "/docs/customization/logos"),
+      dynamicBadge("Made with Love", "emoji logo", "/badge/made%20with-love.svg?logo=\u2764\uFE0F&variant=outline", "Bare \u2764\uFE0F emoji \u2014 auto-detected as Twemoji.", "/docs/customization/logos"),
+      dynamicBadge("On Fire", "emoji logo", "/badge/status-on%20fire.svg?logo=twemoji:1f525&variant=destructive", "\uD83D\uDD25 by hex codepoint (twemoji:1f525).", "/docs/customization/logos"),
+      dynamicBadge("Coffee Driven", "emoji logo", "/badge/coffee-driven.svg?logo=\u2615&variant=secondary", "\u2615 the real dependency.", "/docs/customization/logos"),
+      dynamicBadge("Party", "emoji logo", "/badge/release-shipped.svg?logo=\uD83C\uDF89&variant=outline&theme=green", "\uD83C\uDF89 emoji + outline + green theme.", "/docs/customization/logos"),
+      dynamicBadge("Built by a Human", "emoji logo", "/badge/built%20by-a%20human.svg?logo=\uD83D\uDC68\u200D\uD83D\uDCBB", "\uD83D\uDC68\u200D\uD83D\uDCBB ZWJ sequence rendered correctly.", "/docs/customization/logos"),
+      dynamicBadge("Sparkles", "emoji logo", "/badge/quality-magic.svg?logo=\u2728&variant=secondary", "\u2728 add a little shine.", "/docs/customization/logos"),
+      dynamicBadge("100", "emoji logo", "/badge/score-100.svg?logo=\uD83D\uDCAF&variant=outline", "\uD83D\uDCAF keepin' it real.", "/docs/customization/logos"),
     ],
   },
   {

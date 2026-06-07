@@ -205,6 +205,9 @@ interface ResolvedBadge {
 
   // Full-color flag SVG rendered as a left inset (preserves original colors)
   flagSvg: string | undefined
+
+  // Full-color emoji (Twemoji) SVG rendered as a square left inset
+  emojiSvg: string | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -351,6 +354,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     iconStrokeLinejoin: config.iconStrokeLinejoin,
     iconRotation: config.iconRotation,
     flagSvg: config.flagSvg,
+    emojiSvg: config.emojiSvg,
   }
 }
 
@@ -538,6 +542,22 @@ function FlagEl({ r }: { r: ResolvedBadge }) {
   )
 }
 
+// Full-color emoji (Twemoji) inset. Unlike flags (3:2, cover), emoji are square
+// (1:1, contain) and unrounded so the glyph keeps its natural shape.
+function EmojiEl({ r }: { r: ResolvedBadge }) {
+  if (!r.emojiSvg) return null
+  const size = Math.round(r.iconSize * 1.15)
+  const src = `data:image/svg+xml;base64,${Buffer.from(r.emojiSvg).toString("base64")}`
+  return (
+    <img
+      src={src}
+      width={size}
+      height={size}
+      style={{ width: size, height: size, objectFit: "contain", flexShrink: 0 }}
+    />
+  )
+}
+
 function IconEl({ r }: { r: ResolvedBadge }) {
   if (!r.icon) return null
   const vb = r.iconViewBox || "0 0 16 16"
@@ -657,6 +677,8 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       <DotEl r={r} />
       <FlagEl r={r} />
       {r.flagSvg && <div style={{ width: r.gap }} />}
+      <EmojiEl r={r} />
+      {r.emojiSvg && <div style={{ width: r.gap }} />}
       <IconEl r={r} />
       {r.icon && <div style={{ width: r.gap }} />}
       {r.label && (
@@ -702,6 +724,8 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
         paddingRight: r.paddingX,
       }}>
         <DotEl r={r} />
+        <EmojiEl r={r} />
+        {r.emojiSvg && <div style={{ width: r.gap }} />}
         <IconEl r={r} />
         {r.icon && <div style={{ width: r.gap }} />}
         {r.label && <span style={{ color: r.labelFg, ...textStyle }}>{r.label}</span>}

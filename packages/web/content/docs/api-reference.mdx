@@ -191,13 +191,13 @@ Join any badge paths with `+`. Query params apply to all segments. See [Badge Gr
       name: "logo",
       type: "string | false",
       default: "auto",
-      description: "SimpleIcons slug (e.g. react, typescript), React Icons (e.g. ri:FaReact, ri:GoStarFill), a base64 SVG data URI (data:image/svg+xml;base64,...) for custom icons, or false to hide.",
+      description: "SimpleIcons slug (e.g. react, typescript), React Icons (ri:FaReact), Lucide (lu:Check), an emoji via Twemoji (twemoji:🚀, twemoji:1f680, or a bare emoji like 🚀), a base64 SVG data URI (data:image/svg+xml;base64,...) for custom icons, or false to hide.",
     },
     {
       name: "logoColor",
       type: "string",
       default: "—",
-      description: "Override logo color (hex without #).",
+      description: "Override logo color (hex without #). No effect on emoji or multi-color SVGs.",
     },
   ]}
 />

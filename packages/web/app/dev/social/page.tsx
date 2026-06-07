@@ -56,6 +56,7 @@ interface BadgeItem {
   animate: Animate
   label: LabelKind
   labelText: string // used when label === "custom"
+  logo?: string // optional ?logo= value (e.g. an emoji / twemoji:<emoji>)
 }
 
 // Resolve the caption text for a badge from its label setting.
@@ -89,6 +90,7 @@ function buildSrc(item: BadgeItem, mode: Bg): string {
   if (item.size !== "sm") params.set("size", item.size)
   if (item.font !== "inter") params.set("font", item.font)
   if (item.animate !== "none") params.set("animate", item.animate)
+  if (item.logo) params.set("logo", item.logo)
   return `${item.path}.svg?${params.toString()}`
 }
 
@@ -99,6 +101,7 @@ function buildGifUrl(item: BadgeItem, mode: Bg): string {
   if (item.size !== "sm") params.set("size", item.size)
   if (item.font !== "inter") params.set("font", item.font)
   if (item.animate !== "none") params.set("animate", item.animate)
+  if (item.logo) params.set("logo", item.logo)
   return `${item.path}.gif?${params.toString()}`
 }
 
@@ -131,21 +134,37 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
   }
 }
 
-// A geographically diverse sample of country flags, seeded onto the canvas so
-// /dev/social opens ready to screenshot a “built in {country}” showcase for
-// social posts. Flags default to the `secondary` variant (their look in-app).
-const FLAG_SAMPLE = [
-  "us", "gb", "ca", "mx", "br", "ar",
-  "fr", "de", "es", "it", "nl", "pt",
-  "se", "no", "fi", "pl", "ua", "ie",
-  "jp", "kr", "cn", "in", "id", "sg",
-  "au", "nz", "za", "ng", "ke", "eg",
+// A curated set of emoji (Twemoji) badges, seeded onto the canvas so
+// /dev/social opens ready to screenshot an emoji-logo showcase for social
+// posts. Each entry: [static badge path, emoji logo, variant].
+const EMOJI_SAMPLE: Array<[string, string, Variant]> = [
+  ["/badge/ship-it", "\uD83D\uDE80", "secondary"],
+  ["/badge/made%20with-love", "\u2764\uFE0F", "outline"],
+  ["/badge/status-on%20fire", "\uD83D\uDD25", "destructive"],
+  ["/badge/coffee-driven", "\u2615", "secondary"],
+  ["/badge/release-shipped", "\uD83C\uDF89", "outline"],
+  ["/badge/built%20by-a%20human", "\uD83D\uDC68\u200D\uD83D\uDCBB", "default"],
+  ["/badge/quality-magic", "\u2728", "secondary"],
+  ["/badge/score-100", "\uD83D\uDCAF", "outline"],
+  ["/badge/speed-blazing", "\u26A1", "default"],
+  ["/badge/mood-chill", "\uD83D\uDE0E", "secondary"],
+  ["/badge/star-this%20repo", "\u2B50", "outline"],
+  ["/badge/packaged%20with-care", "\uD83D\uDCE6", "secondary"],
+  ["/badge/idea-bright", "\uD83D\uDCA1", "outline"],
+  ["/badge/powered%20by-vibes", "\uD83C\uDF08", "secondary"],
+  ["/badge/tests-passing", "\u2705", "outline"],
+  ["/badge/build-rocketing", "\uD83D\uDEF0\uFE0F", "default"],
+  ["/badge/security-locked", "\uD83D\uDD12", "secondary"],
+  ["/badge/docs-sparkling", "\uD83D\uDCDA", "outline"],
+  ["/badge/made%20in-the%20usa", "\uD83C\uDDFA\uD83C\uDDF8", "secondary"],
+  ["/badge/party-time", "\uD83E\uDD73", "outline"],
 ]
 
-const DEFAULT_ITEMS: BadgeItem[] = FLAG_SAMPLE.map((code) => ({
+const DEFAULT_ITEMS: BadgeItem[] = EMOJI_SAMPLE.map(([path, logo, variant]) => ({
   id: nextId(),
-  path: `/flag/${code}`,
-  variant: "secondary",
+  path,
+  logo,
+  variant,
   size: "sm",
   font: "inter",
   animate: "none",
@@ -169,6 +188,7 @@ function buildBaseSrc(item: BadgeItem, mode: Bg): string {
   params.set("mode", mode === "black" ? "dark" : "light")
   if (item.size !== "sm") params.set("size", item.size)
   if (item.font !== "inter") params.set("font", item.font)
+  if (item.logo) params.set("logo", item.logo)
   return `${item.path}.svg?${params.toString()}`
 }
 

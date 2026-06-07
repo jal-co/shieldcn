@@ -1,0 +1,114 @@
+---
+title: Logos & Icons
+description: Add a logo to any badge — SimpleIcons, React Icons, Lucide, emoji (Twemoji), or your own SVG.
+---
+
+Add an icon to any badge with the `?logo=` query parameter. shieldcn resolves logos from several sources, picked by a small prefix convention.
+
+## Logo sources
+
+| Source | Syntax | Example |
+|--------|--------|---------|
+| **SimpleIcons** (2,400+ brands) | bare slug | `?logo=react` |
+| **React Icons** (40,000+) | `ri:` prefix | `?logo=ri:FaReact` |
+| **Lucide** | `lu:` prefix | `?logo=lu:Check` |
+| **Twemoji** (emoji) | `twemoji:` prefix or bare emoji | `?logo=twemoji:🚀` |
+| **Custom SVG** | `data:` URI | `?logo=data:image/svg+xml;base64,…` |
+| **None** | `false` / `none` | `?logo=false` |
+
+Single-color icons (SimpleIcons, React Icons, Lucide) are recolored to match the badge variant and respect `?logoColor=`. Full-color sources (Twemoji, custom multi-color SVGs) keep their original colors.
+
+## Emoji (Twemoji)
+
+Any emoji can be a badge logo, rendered as a crisp full-color [Twemoji](https://github.com/jdecked/twemoji) glyph. Three forms work:
+
+```md
+![rocket](https://shieldcn.dev/badge/ship-it.svg?logo=twemoji:🚀)
+![rocket by codepoint](https://shieldcn.dev/badge/ship-it.svg?logo=twemoji:1f680)
+![rocket bare](https://shieldcn.dev/badge/ship-it.svg?logo=🚀)
+```
+
+- `twemoji:🚀` — explicit prefix with the emoji character.
+- `twemoji:1f680` — explicit prefix with the hex codepoint (handy when pasting emoji is awkward, e.g. in YAML).
+- `🚀` — a bare emoji is auto-detected as Twemoji.
+
+<BadgeSandbox
+  endpoint="/badge/:content.svg"
+  pathParams={[
+    { name: "content", label: "content", placeholder: "ship-it", required: true, description: "Static badge text, e.g. label-value or label-value-color" }
+  ]}
+  defaults={{ content: "ship-it", logo: "twemoji:🚀" }}
+  extraParams={[
+    { name: "logo", label: "logo", placeholder: "twemoji:🚀", description: "An emoji, twemoji:<emoji>, or twemoji:<codepoint>" }
+  ]}
+/>
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/badge/ship-it.svg?logo=twemoji:🚀&variant=secondary" alt="rocket" description="🚀 on a custom badge" />
+  <BadgePreviewCard src="/badge/made%20with-love.svg?logo=❤️&variant=outline" alt="heart" description="Bare ❤️ auto-detected" />
+  <BadgePreviewCard src="/badge/status-on%20fire.svg?logo=twemoji:1f525&variant=destructive" alt="fire" description="🔥 by codepoint" />
+  <BadgePreviewCard src="/badge/coffee-driven.svg?logo=☕&variant=secondary" alt="coffee" description="☕ powered" />
+  <BadgePreviewCard src="/badge/built%20by-a%20human.svg?logo=👨‍💻" alt="developer" description="ZWJ sequence 👨‍💻" />
+  <BadgePreviewCard src="/badge/made%20in-the%20usa.svg?logo=🇺🇸&variant=secondary" alt="flag" description="Flag emoji 🇺🇸" />
+</BadgePreviewGroup>
+
+Emoji logos compose with every variant, size, theme, mode, and `split`. Because emoji are inherently multi-color, `?logoColor=` has no effect on them.
+
+<BadgePreview
+  src="/badge/release-shipped.svg?logo=🎉&variant=outline&theme=green"
+  alt="party badge"
+  description="🎉 with an outline variant and the green theme."
+/>
+
+## Brand icons (SimpleIcons)
+
+The most common case — use a brand's slug directly. Browse the full set in the [Gallery](/gallery).
+
+```md
+![react](https://shieldcn.dev/badge/built%20with-react.svg?logo=react)
+![typescript](https://shieldcn.dev/badge/typed-strict.svg?logo=typescript&variant=branded)
+```
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/badge/built%20with-react.svg?logo=react&variant=branded" alt="react" description="?logo=react" />
+  <BadgePreviewCard src="/badge/typed-strict.svg?logo=typescript&variant=branded" alt="typescript" description="?logo=typescript" />
+  <BadgePreviewCard src="/badge/runtime-bun.svg?logo=bun&variant=branded" alt="bun" description="?logo=bun" />
+</BadgePreviewGroup>
+
+## React Icons & Lucide
+
+Reach 40,000+ icons via React Icons with the `ri:` prefix (use the exact component name), or Lucide with `lu:`.
+
+```md
+![react icon](https://shieldcn.dev/badge/icon-react.svg?logo=ri:FaReact)
+![lucide](https://shieldcn.dev/badge/check-passing.svg?logo=lu:Check)
+```
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/badge/icon-FaReact.svg?logo=ri:FaReact" alt="react icon" description="?logo=ri:FaReact" />
+  <BadgePreviewCard src="/badge/check-passing.svg?logo=lu:Check&variant=outline" alt="lucide check" description="?logo=lu:Check" />
+</BadgePreviewGroup>
+
+## Custom SVG
+
+Pass your own icon as an inline `data:` URI (base64 or UTF-8 encoded SVG). The builder's logo uploader generates this for you.
+
+```md
+![custom](https://shieldcn.dev/badge/custom-icon.svg?logo=data:image/svg+xml;base64,PHN2Zy4uLg==)
+```
+
+## Logo color
+
+For single-color icons, override the fill with `?logoColor=` (hex without `#`):
+
+```md
+![colored](https://shieldcn.dev/badge/built%20with-react.svg?logo=react&logoColor=ff0000)
+```
+
+`logoColor` does not apply to Twemoji or multi-color custom SVGs, which keep their original colors.
+
+## In the builder
+
+Both the [Badge Builder](/gen) and [Profile Generator](/gen/profile) include a logo picker and an SVG uploader under the logo control.
