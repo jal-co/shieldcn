@@ -92,14 +92,36 @@ function findMatchingPreset(path: string): { preset: BadgePreset; values: Record
 // Variant clamping
 // ---------------------------------------------------------------------------
 
+// Provider → SimpleIcons slug, for the `branded` variant's auto logo/color.
+// A badge can only use `branded` if we have a known icon for its provider AND
+// it isn't a static `/badge/` (which has no auto-brand). This is the builder's
+// branded rule — it MUST be shared by both the dropdown filter and clampVariant
+// so the selected state can never disagree with what the dropdown allows.
+const PROVIDER_ICON: Record<string, string> = {
+  npm: "npm", pypi: "pypi", crates: "rust", docker: "docker",
+  jsr: "jsr", discord: "discord", reddit: "reddit",
+  youtube: "youtube", twitch: "twitch", github: "github",
+  gitlab: "gitlab", bluesky: "bluesky", x: "x", twitter: "x",
+}
+
+/** Whether the `branded` variant is usable for a given badge path. */
+function brandedEligible(path: string): boolean {
+  const provider = path.split("/").filter(Boolean)[0] || ""
+  return !!PROVIDER_ICON[provider] && !path.startsWith("/badge/")
+}
+
 /**
- * If a state's variant isn't valid for its badge path (per the core registry),
- * snap it back to "default". Applied whenever the path changes so the preview
- * never shows a variant the selected badge doesn't support.
+ * If a state's variant isn't valid for its badge path, snap it back to
+ * "default". Applied whenever the path changes so the preview/URL never carry a
+ * variant the selected badge doesn't support. Mirrors the dropdown's rule:
+ * registry-allowed AND (not `branded`, or branded-eligible).
  */
 function clampVariant(next: BuilderState): BuilderState {
   const allowed = allowedVariantsForPath(next.path)
-  return allowed.includes(next.variant as never) ? next : { ...next, variant: "default" }
+  const ok =
+    allowed.includes(next.variant as never) &&
+    (next.variant !== "branded" || brandedEligible(next.path))
+  return ok ? next : { ...next, variant: "default" }
 }
 
 // ---------------------------------------------------------------------------
@@ -211,17 +233,10 @@ export function BadgeBuilderCore({
 
   const isDefault = JSON.stringify(s) === JSON.stringify(BUILDER_DEFAULTS)
 
-  // Map provider to its SimpleIcons slug for branded preview
-  const PROVIDER_ICON: Record<string, string> = {
-    npm: "npm", pypi: "pypi", crates: "rust", docker: "docker",
-    jsr: "jsr", discord: "discord", reddit: "reddit",
-    youtube: "youtube", twitch: "twitch", github: "github",
-    gitlab: "gitlab", bluesky: "bluesky", x: "x", twitter: "x",
-  }
-
   const currentProvider = useMemo(() => s.path.split("/").filter(Boolean)[0] || "", [s.path])
   const brandedIcon = PROVIDER_ICON[currentProvider] || ""
-  const hasBranded = brandedIcon !== "" && !s.path.startsWith("/badge/")
+  // Shared with clampVariant so the dropdown and the selected state never drift.
+  const hasBranded = brandedEligible(s.path)
 
   // Variants the SELECTED badge actually supports, per the core registry
   // (source of truth). Combined with the branded-icon check below so the
