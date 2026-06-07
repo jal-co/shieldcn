@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
+import { allowedVariantsForPath, VARIANT_LABELS } from "@shieldcn/core/badges/registry"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,9 +101,27 @@ export function BadgeSandbox({
   const [format, setFormat] = useState("markdown")
   const [copied, setCopied] = useState(false)
   const [executed, setExecuted] = useState(true) // auto-execute on load
-  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
 
-  useEffect(() => { setBaseUrl(window.location.origin) }, [])
+  // Hydration-safe origin: server renders the canonical host, client swaps in
+  // the real origin after hydration without a setState-in-effect.
+  const baseUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "https://shieldcn.dev",
+  )
+
+  // Changing the output format clears the "copied" state — handled in the tab
+  // change handler (below) rather than an effect.
+  const handleFormatChange = useCallback((next: string) => {
+    setFormat(next)
+    setCopied(false)
+  }, [])
+
+  // Variants the THIS badge actually supports, from the core registry (source
+  // of truth). `:param` placeholders aren't topic keys, so they're ignored;
+  // the literal topic segment (e.g. "ci") drives the policy. Keeps the dropdown
+  // honest — no missing `branded`, no `branded` on pass/fail state badges.
+  const availableVariants = useMemo(() => allowedVariantsForPath(endpoint), [endpoint])
 
   const setValue = useCallback((name: string, value: string) => {
     setValues(prev => ({ ...prev, [name]: value }))
@@ -160,8 +179,6 @@ export function BadgeSandbox({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [formattedOutput])
-
-  useEffect(() => { setCopied(false) }, [format])
 
   const sizeHeight = { xs: "h-6", sm: "h-8", default: "h-9", lg: "h-10" }[size] || "h-8"
 
@@ -238,8 +255,8 @@ export function BadgeSandbox({
             <Select value={variant} onValueChange={setVariant}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {["default", "secondary", "outline", "ghost", "destructive"].map(v =>
-                  <SelectItem key={v} value={v}>{v}</SelectItem>
+                {availableVariants.map(v =>
+                  <SelectItem key={v} value={v}>{VARIANT_LABELS[v] ?? v}</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -334,7 +351,7 @@ export function BadgeSandbox({
         <Separator />
 
         {/* Output format tabs + preview */}
-        <Tabs value={format} onValueChange={setFormat}>
+        <Tabs value={format} onValueChange={handleFormatChange}>
           <TabsList>
             <TabsTrigger value="url">URL</TabsTrigger>
             <TabsTrigger value="markdown">Markdown</TabsTrigger>

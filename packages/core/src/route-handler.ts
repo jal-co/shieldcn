@@ -16,6 +16,7 @@ import { getProviderBrandColor } from "./badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "./badges/svg-parser"
 import { normalizeSearchParams } from "./normalize-params"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/types"
+import { resolveVariant } from "./badges/validate"
 
 /**
  * A single metric emission. Apps wire this to Sentry.metrics (or any
@@ -1729,7 +1730,14 @@ async function handleBadgeGETInner(
   }
 
   // SVG response
-  let style = (searchParams.get("style") || searchParams.get("variant") || "default") as BadgeStyle
+  // Resolve the effective variant against the registry. Unsupported variants
+  // (legacy `flat`/`subtle`, typos, or `branded` on a state badge) coerce to
+  // "default" — non-breaking: nothing that rendered before becomes an error.
+  let style = resolveVariant(
+    cleanSegments[0],
+    cleanSegments.slice(1),
+    searchParams.get("style") || searchParams.get("variant") || undefined,
+  )
   const size = (searchParams.get("size") || undefined) as BadgeSize | undefined
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const theme = searchParams.get("theme") ?? undefined

@@ -39,6 +39,8 @@ import {
   resolveTemplate,
   resolveDefaultLinkUrl,
   VARIANTS,
+  VARIANT_LABELS,
+  allowedVariantsForPath,
   SIZES,
   MODES,
   FONTS,
@@ -87,16 +89,17 @@ function findMatchingPreset(path: string): { preset: BadgePreset; values: Record
 }
 
 // ---------------------------------------------------------------------------
-// Variant display
+// Variant clamping
 // ---------------------------------------------------------------------------
 
-const VARIANT_DISPLAY: Record<string, { label: string }> = {
-  default: { label: "Default" },
-  secondary: { label: "Secondary" },
-  outline: { label: "Outline" },
-  ghost: { label: "Ghost" },
-  destructive: { label: "Destructive" },
-  branded: { label: "Branded" },
+/**
+ * If a state's variant isn't valid for its badge path (per the core registry),
+ * snap it back to "default". Applied whenever the path changes so the preview
+ * never shows a variant the selected badge doesn't support.
+ */
+function clampVariant(next: BuilderState): BuilderState {
+  const allowed = allowedVariantsForPath(next.path)
+  return allowed.includes(next.variant as never) ? next : { ...next, variant: "default" }
 }
 
 // ---------------------------------------------------------------------------
@@ -157,7 +160,7 @@ export function BadgeBuilderCore({
 
   const updatePath = useCallback((preset: BadgePreset, values: Record<string, string>, extraState?: Partial<BuilderState>) => {
     const path = resolveTemplate(preset, values)
-    onChange({ ...s, ...extraState, path })
+    onChange(clampVariant({ ...s, ...extraState, path }))
     setImgError(false)
   }, [s, onChange])
 
@@ -193,7 +196,7 @@ export function BadgeBuilderCore({
     setRawPathInput(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      onChange({ ...s, path: val })
+      onChange(clampVariant({ ...s, path: val }))
       setImgError(false)
     }, 400)
   }, [s, onChange])
@@ -220,6 +223,16 @@ export function BadgeBuilderCore({
   const brandedIcon = PROVIDER_ICON[currentProvider] || ""
   const hasBranded = brandedIcon !== "" && !s.path.startsWith("/badge/")
 
+  // Variants the SELECTED badge actually supports, per the core registry
+  // (source of truth). Combined with the branded-icon check below so the
+  // dropdown never lists a variant this badge can't render.
+  const allowedForPath = useMemo(() => new Set(allowedVariantsForPath(s.path)), [s.path])
+  const variantAllowed = useCallback(
+    (v: string) => allowedForPath.has(v as never) && (v !== "branded" || hasBranded),
+    [allowedForPath, hasBranded],
+  )
+
+
   // Build variant preview URLs — static badges showing variant name in that variant's style
   const variantPreviewUrls = useMemo(() => {
     if (!badgeUrl) return {} as Record<string, string>
@@ -227,8 +240,8 @@ export function BadgeBuilderCore({
     try {
       const base = new URL(badgeUrl).origin
       for (const v of VARIANTS) {
-        if (v === "branded" && !hasBranded) continue
-        const label = VARIANT_DISPLAY[v]?.label ?? v
+        if (!variantAllowed(v)) continue
+        const label = VARIANT_LABELS[v] ?? v
         const p = new URLSearchParams()
         if (v !== "default") p.set("variant", v)
         p.set("size", "default")
@@ -240,7 +253,7 @@ export function BadgeBuilderCore({
       }
     } catch { /* noop */ }
     return map
-  }, [badgeUrl, s.mode, brandedIcon, hasBranded])
+  }, [badgeUrl, s.mode, brandedIcon, variantAllowed])
 
   const handleReset = useCallback(() => {
     onChange(BUILDER_DEFAULTS)
@@ -368,8 +381,8 @@ export function BadgeBuilderCore({
           {/* ── Row 2: Style (variant + dropdowns) ── */}
           <div className="space-y-3">
             <SectionLabel>Style</SectionLabel>
-            <div className={cn("grid grid-cols-3 gap-1.5", hasBranded ? "sm:grid-cols-6" : "sm:grid-cols-5")}>
-              {VARIANTS.filter(v => v !== "branded" || hasBranded).map(v => (
+            <div className={cn("grid grid-cols-3 gap-1.5", "sm:grid-cols-6")}>
+              {VARIANTS.filter(variantAllowed).map(v => (
                 <button
                   key={v}
                   onClick={() => set("variant", v)}
@@ -384,12 +397,12 @@ export function BadgeBuilderCore({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={variantPreviewUrls[v]}
-                      alt={VARIANT_DISPLAY[v]?.label ?? v}
+                      alt={VARIANT_LABELS[v] ?? v}
                       className="h-[26px] select-none"
                     />
                   ) : (
                     <span className="text-[11px] text-muted-foreground">
-                      {VARIANT_DISPLAY[v]?.label ?? v}
+                      {VARIANT_LABELS[v] ?? v}
                     </span>
                   )}
                 </button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check, ExternalLink } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import {
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
+import { allowedVariantsForPath } from "@shieldcn/core/badges/registry"
 
 interface BadgeModalProps {
   title: string
@@ -32,7 +33,6 @@ interface BadgeModalProps {
   onOpenChange: (open: boolean) => void
 }
 
-const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"]
 const SIZES = ["xs", "sm", "default", "lg"]
 const THEMES = ["_none", "zinc", "slate", "blue", "green", "rose", "orange", "violet", "purple", "cyan", "emerald"]
 const MODES = ["dark", "light"]
@@ -57,10 +57,17 @@ function withStyleParams(
   }
 ) {
   const url = new URL(badgePath, "https://shieldcn.dev")
+  // badgePath may already carry preset query params (e.g. ?theme=blue), so each
+  // of these must DELETE when at its default — otherwise switching back to the
+  // default (e.g. theme “auto”) would leave a stale param in the URL.
   if (opts.variant !== "default") url.searchParams.set("variant", opts.variant)
+  else url.searchParams.delete("variant")
   if (opts.size !== "sm") url.searchParams.set("size", opts.size)
+  else url.searchParams.delete("size")
   if (opts.theme !== "_none") url.searchParams.set("theme", opts.theme)
+  else url.searchParams.delete("theme")
   if (opts.mode !== "dark") url.searchParams.set("mode", opts.mode)
+  else url.searchParams.delete("mode")
   if (opts.color) url.searchParams.set("color", opts.color)
   else url.searchParams.delete("color")
   if (opts.labelColor) url.searchParams.set("labelColor", opts.labelColor)
@@ -89,7 +96,16 @@ export function BadgeModal({
   onOpenChange,
 }: BadgeModalProps) {
   const initialParams = useMemo(() => new URL(badgePath, "https://shieldcn.dev").searchParams, [badgePath])
-  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
+  // Variant options come from the core registry — only what this badge supports
+  // (e.g. no `branded` on a flag, which has no brand identity).
+  const availableVariants = useMemo(() => [...allowedVariantsForPath(badgePath)], [badgePath])
+  // Hydration-safe origin (server renders canonical host, client swaps in real
+  // origin after hydration) — no setState-in-effect.
+  const baseUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "https://shieldcn.dev",
+  )
   const [variant, setVariant] = useState(initialParams.get("variant") ?? "default")
   const [size, setSize] = useState(initialParams.get("size") ?? "sm")
   const [theme, setTheme] = useState(initialParams.get("theme") ?? "_none")
@@ -107,16 +123,21 @@ export function BadgeModal({
   const [label, setLabel] = useState("")
   const [split, setSplit] = useState(false)
 
-  useEffect(() => {
-    setBaseUrl(window.location.origin)
-  }, [])
-
-  useEffect(() => {
-    setVariant(initialParams.get("variant") ?? "default")
+  // Re-sync the controls from the badge path each time the modal (re)opens or
+  // the site theme changes. Done during render via a sync key (the React
+  // “adjust state when inputs change” pattern) instead of a setState-in-effect.
+  // Also clamps the variant to what this badge supports (e.g. no `branded` on a
+  // flag) so a stale value can't slip through.
+  const [syncKey, setSyncKey] = useState("")
+  const nextSyncKey = `${open}|${siteMode}|${badgePath}`
+  if (open && nextSyncKey !== syncKey) {
+    setSyncKey(nextSyncKey)
+    const requested = initialParams.get("variant") ?? "default"
+    setVariant((availableVariants as string[]).includes(requested) ? requested : "default")
     setSize(initialParams.get("size") ?? "sm")
     setTheme(initialParams.get("theme") ?? "_none")
     setMode(initialParams.get("mode") || siteMode)
-  }, [initialParams, open, siteMode])
+  }
 
   const resolvedBadgePath = useMemo(
     () => withStyleParams(badgePath, {
@@ -182,7 +203,7 @@ export function BadgeModal({
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Control label="Variant" value={variant} onValueChange={setVariant} options={VARIANTS} />
+          <Control label="Variant" value={variant} onValueChange={setVariant} options={availableVariants} />
           <Control label="Size" value={size} onValueChange={setSize} options={SIZES} />
           <Control label="Theme" value={theme} onValueChange={setTheme} options={THEMES} />
           <Control label="Mode" value={mode} onValueChange={setMode} options={MODES} />

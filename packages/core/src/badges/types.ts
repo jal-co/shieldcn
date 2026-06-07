@@ -5,8 +5,17 @@
  * Shared types for the badge rendering engine.
  */
 
-/** Visual style variants for badges (maps to shadcn Button variant). */
-export type BadgeStyle = "default" | "outline" | "subtle" | "flat" | "ghost" | "secondary" | "destructive" | "branded"
+/**
+ * Visual style variants for badges (maps to shadcn Button variant).
+ *
+ * This is the complete, honest set — every value here has a real case in
+ * `getButtonStyle` (button-tokens.ts). Do not add a value here without a
+ * corresponding render case, or it becomes a phantom variant that silently
+ * falls through to `default`. Legacy shields.io styles (flat, flat-square,
+ * plastic, for-the-badge) are INPUTS that get mapped to one of these — they
+ * are not variants themselves (see migrate/transform.ts).
+ */
+export type BadgeStyle = "default" | "secondary" | "outline" | "ghost" | "destructive" | "branded"
 
 /** Badge size presets (maps to shadcn Button size). */
 export type BadgeSize = "xs" | "sm" | "default" | "lg"

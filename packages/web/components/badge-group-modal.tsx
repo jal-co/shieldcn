@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
+import Link from "next/link"
 import { Copy, Check, ExternalLink, Plus, Trash2, GripVertical } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import {
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ALL_VARIANTS } from "@shieldcn/core/badges/registry"
 
 interface BadgeGroupModalProps {
   title: string
@@ -29,7 +31,9 @@ interface BadgeGroupModalProps {
   onOpenChange: (open: boolean) => void
 }
 
-const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"]
+// Groups apply one variant uniformly across all badges, so every variant is
+// valid. Sourced from the registry (single source of truth) rather than a copy.
+const VARIANTS = [...ALL_VARIANTS]
 const SIZES = ["xs", "sm", "default", "lg"]
 const THEMES = ["_none", "zinc", "slate", "blue", "green", "rose", "orange", "violet", "purple", "cyan", "emerald"]
 const MODES = ["dark", "light"]
@@ -97,29 +101,34 @@ export function BadgeGroupModal({
   const [theme, setTheme] = useState(parsed.theme)
   const { mode: siteMode } = useBadgeMode()
   const [mode, setMode] = useState(parsed.mode || siteMode)
-  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("markdown")
   const [copied, setCopied] = useState(false)
   const [newSegment, setNewSegment] = useState("")
-  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => { setMounted(true) }, [])
+  // Hydration-safe flags (server snapshot differs from client) — no
+  // setState-in-effect. `mounted` gates badge <img> rendering to avoid an SSR
+  // mismatch; `baseUrl` swaps the canonical host for the real origin on client.
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
+  const baseUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "https://shieldcn.dev",
+  )
 
-  useEffect(() => {
-    setBaseUrl(window.location.origin)
-  }, [])
-
-  // Reset when opening with a different badge
-  useEffect(() => {
-    if (open) {
-      const p = parseGroupPath(badgePath)
-      setSegments(p.segments)
-      setVariant(p.variant)
-      setSize(p.size)
-      setTheme(p.theme)
-      setMode(p.mode || siteMode)
-    }
-  }, [badgePath, open, siteMode])
+  // Re-sync controls when the modal (re)opens with a different badge or the
+  // site theme changes — done during render via a sync key (the React “adjust
+  // state when inputs change” pattern) instead of a setState-in-effect.
+  const [syncKey, setSyncKey] = useState("")
+  const nextSyncKey = `${open}|${siteMode}|${badgePath}`
+  if (open && nextSyncKey !== syncKey) {
+    setSyncKey(nextSyncKey)
+    const p = parseGroupPath(badgePath)
+    setSegments(p.segments)
+    setVariant(p.variant)
+    setSize(p.size)
+    setTheme(p.theme)
+    setMode(p.mode || siteMode)
+  }
 
   const resolvedPath = useMemo(
     () => buildGroupPath(segments, { variant, size, theme, mode }),
@@ -298,10 +307,10 @@ export function BadgeGroupModal({
           <p className="text-[11px] text-muted-foreground">badge group · {segments.length} segment{segments.length !== 1 ? "s" : ""}</p>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" asChild>
-              <a href="/docs/badges/group">
+              <Link href="/docs/badges/group">
                 <ExternalLink className="size-3" />
                 Docs
-              </a>
+              </Link>
             </Button>
             <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" asChild>
               <a href={resolvedPath} target="_blank" rel="noopener noreferrer">

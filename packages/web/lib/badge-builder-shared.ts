@@ -118,7 +118,10 @@ export function resolveTemplate(preset: BadgePreset, values: Record<string, stri
 // Options
 // ---------------------------------------------------------------------------
 
-export const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"] as const
+// Single source of truth — the variants the renderer actually supports.
+// Re-exported from the core registry so the builder/showcase can never drift
+// from what really renders (no phantom variants in dropdowns).
+export { ALL_VARIANTS as VARIANTS, VARIANT_LABELS, allowedVariantsForPath } from "@shieldcn/core/badges/registry"
 export const SIZES = ["xs", "sm", "default", "lg"] as const
 export const MODES = ["dark", "light"] as const
 export const FONTS = ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"] as const
