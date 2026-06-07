@@ -466,7 +466,6 @@ export default function DevSocialPage() {
         // Radial fade: solid center fading out, revealing grid at edges
         const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.55)
         grad.addColorStop(0, canvasBgHex)
-        grad.addColorStop(0.1, canvasBgHex)
         grad.addColorStop(1, "transparent")
         ctx.fillStyle = grad
         ctx.fillRect(0, 0, W, H)
@@ -621,7 +620,7 @@ export default function DevSocialPage() {
       `linear-gradient(${gridColor} 1px, transparent 1px)`,
       `linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
       // radial fade: solid center → transparent edges, revealing the grid only at edges
-      `radial-gradient(ellipse at center, ${canvasBg} 5%, transparent 50%)`,
+      `radial-gradient(ellipse at center, ${canvasBg} 0%, transparent 35%)`,
     ].join(", "),
     backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px, 100% 100%`,
   }
