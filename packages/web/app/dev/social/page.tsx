@@ -27,6 +27,9 @@ type Variant = (typeof VARIANTS)[number]
 const SIZES = ["xs", "sm", "default", "lg"] as const
 type Size = (typeof SIZES)[number]
 
+const FONTS = ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"] as const
+type Font = (typeof FONTS)[number]
+
 const ANIMATES = ["none", "pulse", "glow", "shimmer"] as const
 type Animate = (typeof ANIMATES)[number]
 
@@ -49,6 +52,7 @@ interface BadgeItem {
   path: string
   variant: Variant
   size: Size
+  font: Font
   animate: Animate
   label: LabelKind
   labelText: string // used when label === "custom"
@@ -83,6 +87,7 @@ function buildSrc(item: BadgeItem, mode: Bg): string {
   params.set("variant", item.variant)
   params.set("mode", mode === "black" ? "dark" : "light")
   if (item.size !== "sm") params.set("size", item.size)
+  if (item.font !== "inter") params.set("font", item.font)
   if (item.animate !== "none") params.set("animate", item.animate)
   return `${item.path}.svg?${params.toString()}`
 }
@@ -92,6 +97,7 @@ function buildGifUrl(item: BadgeItem, mode: Bg): string {
   params.set("variant", item.variant)
   params.set("mode", mode === "black" ? "dark" : "light")
   if (item.size !== "sm") params.set("size", item.size)
+  if (item.font !== "inter") params.set("font", item.font)
   if (item.animate !== "none") params.set("animate", item.animate)
   return `${item.path}.gif?${params.toString()}`
 }
@@ -126,9 +132,13 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
 }
 
 const DEFAULT_ITEMS: BadgeItem[] = [
-  { id: nextId(), path: "/npm/react", variant: "branded", size: "sm", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/github/stars/vercel/next.js", variant: "branded", size: "sm", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/built_with-shieldcn-blue", variant: "default", size: "sm", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-inter-8b5cf6", variant: "branded", size: "sm", font: "inter", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-geist mono-06b6d4", variant: "branded", size: "sm", font: "geist-mono", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-geist-22c55e", variant: "branded", size: "sm", font: "geist", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-fira--code-f97316", variant: "branded", size: "sm", font: "fira-code", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-roboto-3b82f6", variant: "branded", size: "sm", font: "roboto", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-jetbrains mono-eab308", variant: "branded", size: "sm", font: "jetbrains-mono", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-space grotesk-ec4899", variant: "branded", size: "sm", font: "space-grotesk", animate: "none", label: "none", labelText: "" },
 ]
 
 // ---------------------------------------------------------------------------
@@ -146,6 +156,7 @@ function buildBaseSrc(item: BadgeItem, mode: Bg): string {
   params.set("variant", item.variant)
   params.set("mode", mode === "black" ? "dark" : "light")
   if (item.size !== "sm") params.set("size", item.size)
+  if (item.font !== "inter") params.set("font", item.font)
   return `${item.path}.svg?${params.toString()}`
 }
 
@@ -230,6 +241,7 @@ function ItemControls({
       <span className="font-mono text-[11px] text-zinc-400 truncate max-w-[180px]" title={item.path}>{item.path}</span>
       <Select value={item.variant} options={VARIANTS} onChange={(v) => onChange({ variant: v })} />
       <Select value={item.size} options={SIZES} onChange={(v) => onChange({ size: v })} />
+      <Select value={item.font} options={FONTS} onChange={(v) => onChange({ font: v as Font })} />
       <Select value={item.animate} options={ANIMATES} onChange={(v) => onChange({ animate: v })} />
       <span className="font-mono text-[10px] text-zinc-600">label</span>
       <Select value={item.label} options={LABELS} onChange={(v) => onChange({ label: v })} />
@@ -326,7 +338,7 @@ export default function DevSocialPage() {
     const path = normalizePath(input)
     if (!path) return
     if (items.some((b) => b.path === path)) { setInput(""); return }
-    setItems((prev) => [...prev, { id: nextId(), path, variant: "branded", size: "sm", animate: "none", label: "none", labelText: "" }])
+    setItems((prev) => [...prev, { id: nextId(), path, variant: "branded", size: "sm", font: "inter", animate: "none", label: "none", labelText: "" }])
     setInput("")
   }, [input, items])
 
@@ -664,7 +676,7 @@ export default function DevSocialPage() {
                 const caption = labelFor(item)
                 return (
                   <div
-                    key={`${item.id}-${item.variant}-${item.size}-${item.animate}-${bg}`}
+                    key={`${item.id}-${item.variant}-${item.size}-${item.font}-${item.animate}-${bg}`}
                     className="flex flex-col items-center"
                     style={{ gap: caption ? 10 : 0 }}
                   >
