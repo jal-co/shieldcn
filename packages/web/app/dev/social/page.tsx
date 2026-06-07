@@ -132,13 +132,13 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
 }
 
 const DEFAULT_ITEMS: BadgeItem[] = [
-  { id: nextId(), path: "/badge/font-inter-8b5cf6", variant: "branded", size: "sm", font: "inter", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-geist mono-06b6d4", variant: "branded", size: "sm", font: "geist-mono", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-geist-22c55e", variant: "branded", size: "sm", font: "geist", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-fira--code-f97316", variant: "branded", size: "sm", font: "fira-code", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-roboto-3b82f6", variant: "branded", size: "sm", font: "roboto", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-jetbrains mono-eab308", variant: "branded", size: "sm", font: "jetbrains-mono", animate: "none", label: "none", labelText: "" },
-  { id: nextId(), path: "/badge/font-space grotesk-ec4899", variant: "branded", size: "sm", font: "space-grotesk", animate: "none", label: "none", labelText: "" },
+  { id: nextId(), path: "/badge/font-Inter-a78bfa", variant: "branded", size: "sm", font: "inter", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-Geist-34d399", variant: "branded", size: "sm", font: "geist", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-Geist Mono-22d3ee", variant: "branded", size: "sm", font: "geist-mono", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-JetBrains Mono-facc15", variant: "branded", size: "sm", font: "jetbrains-mono", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-Fira Code-fb923c", variant: "branded", size: "sm", font: "fira-code", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-Roboto-60a5fa", variant: "branded", size: "sm", font: "roboto", animate: "none", label: "variant", labelText: "" },
+  { id: nextId(), path: "/badge/font-Space Grotesk-f472b6", variant: "branded", size: "sm", font: "space-grotesk", animate: "none", label: "variant", labelText: "" },
 ]
 
 // ---------------------------------------------------------------------------
@@ -450,6 +450,24 @@ export default function DevSocialPage() {
         ctx.fillStyle = canvasBgHex
         ctx.fillRect(0, 0, W, H)
 
+        // Graph paper grid
+        const gSize = 24
+        const gCol = bg === "black" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
+        ctx.strokeStyle = gCol
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        for (let x = 0; x <= W; x += gSize) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H) }
+        for (let y = 0; y <= H; y += gSize) { ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5) }
+        ctx.stroke()
+
+        // Radial fade: solid center fading out, revealing grid at edges
+        const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.55)
+        grad.addColorStop(0, canvasBgHex)
+        grad.addColorStop(0.35, canvasBgHex)
+        grad.addColorStop(1, "transparent")
+        ctx.fillStyle = grad
+        ctx.fillRect(0, 0, W, H)
+
         // Title + subtitle (canvas-drawn text — sharp, no glyph doubling).
         if (titleBox && titleEl) {
           const fs = parseFloat(getComputedStyle(titleEl).fontSize)
@@ -565,6 +583,19 @@ export default function DevSocialPage() {
   const textColor = bg === "black" ? "#ffffff" : "#09090b"
   const subColor = bg === "black" ? "rgba(255,255,255,0.6)" : "rgba(9,9,11,0.55)"
 
+  // Graph paper grid settings
+  const gridSize = 24
+  const gridColor = bg === "black" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
+  const gridStyle: React.CSSProperties = {
+    backgroundImage: [
+      `linear-gradient(${gridColor} 1px, transparent 1px)`,
+      `linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
+      // radial fade: solid center → transparent edges, revealing the grid only at edges
+      `radial-gradient(ellipse at center, ${canvasBg} 20%, transparent 70%)`,
+    ].join(", "),
+    backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px, 100% 100%`,
+  }
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100">
       {/* Toolbar */}
@@ -659,6 +690,7 @@ export default function DevSocialPage() {
             className="flex shrink-0 flex-col items-center justify-center"
             style={{
               backgroundColor: canvasBg,
+              ...gridStyle,
               width: isTight ? "auto" : p.width,
               height: isTight ? "auto" : p.height,
               padding: isTight ? `${Math.max(gap, 24)}px ${Math.max(gap, 32)}px` : 48,
