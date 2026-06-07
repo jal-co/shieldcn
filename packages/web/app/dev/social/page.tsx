@@ -296,6 +296,7 @@ export default function DevSocialPage() {
   const [bg, setBg] = useState<Bg>("black")
   const [gap, setGap] = useState(16)
   const [showText, setShowText] = useState(false)
+  const [showLogo, setShowLogo] = useState(true)
   const [title, setTitle] = useState("shieldcn")
   const [subtitle, setSubtitle] = useState("Beautiful README badges")
   const [saving, setSaving] = useState(false)
@@ -389,6 +390,8 @@ export default function DevSocialPage() {
       const subEl = node.querySelector("[data-canvas-subtitle]") as HTMLElement | null
       const titleBox = titleEl ? titleEl.getBoundingClientRect() : null
       const subBox = subEl ? subEl.getBoundingClientRect() : null
+      const logoEl = node.querySelector("[data-canvas-logo]") as HTMLElement | null
+      const logoBox = logoEl ? logoEl.getBoundingClientRect() : null
 
       // Per-badge variant labels (if shown) — capture text, center, baseline.
       const labels = items
@@ -503,6 +506,33 @@ export default function DevSocialPage() {
           ctx.font = `400 ${l.fontSize}px ${l.font}`
           ctx.fillText(l.text, l.cx, l.baseline)
         })
+
+        // Logo watermark at the bottom
+        if (logoBox && logoEl) {
+          ctx.save()
+          ctx.globalAlpha = 0.4
+          const lx = logoBox.left - rootRect.left
+          const ly = logoBox.top - rootRect.top
+          // Draw the shield icon as a path
+          const iconSize = 20
+          ctx.fillStyle = textCol
+          ctx.save()
+          ctx.translate(lx, ly + 1)
+          const s = iconSize / 512
+          ctx.scale(s, s)
+          const p1 = new Path2D("M148.02,363.76c-4.48,0-8.64-2.42-10.86-6.32l-54.29-95.68c-2.15-3.8-2.15-8.52,0-12.32l54.29-95.68c2.21-3.9,6.37-6.32,10.86-6.32h18.51c4.44,0,8.45,2.28,10.73,6.09,2.27,3.82,2.37,8.43.25,12.33l-42.23,77.99c-3.98,7.36-3.98,16.14,0,23.49l22.22,41.02c4.25,7.85,12.43,12.8,21.36,12.92,0,0,45.08.61,45.11.61,8.68,0,16.83-4.64,21.26-12.12l24.87-41.99c2.23-3.77,6.34-6.11,10.72-6.12l19.47-.04c4.48,0,8.49,2.29,10.76,6.12,2.27,3.83,2.35,8.45.21,12.35l-42.2,77.17c-2.19,4-6.39,6.49-10.95,6.49h-110.08Z")
+          const p2 = new Path2D("M346.7,363.69c-4.44,0-8.45-2.28-10.73-6.09-2.27-3.82-2.37-8.43-.25-12.33l42.23-77.99c3.98-7.35,3.98-16.14,0-23.49l-22.22-41.02c-4.25-7.85-12.44-12.8-21.36-12.92,0,0-46.51-.63-46.53-.63-8.88,0-17.12,4.81-21.48,12.54l-23.35,41.36c-2.2,3.9-6.36,6.34-10.84,6.35l-19.21.04c-4.48,0-8.49-2.29-10.76-6.12-2.27-3.83-2.35-8.45-.22-12.36l42.2-77.17c2.19-4.01,6.39-6.5,10.95-6.5h110.08c4.48,0,8.64,2.42,10.86,6.32l54.29,95.68c2.16,3.8,2.16,8.52,0,12.32l-54.29,95.68c-2.21,3.9-6.37,6.32-10.86,6.32h-18.51Z")
+          ctx.fill(p1)
+          ctx.fill(p2)
+          ctx.restore()
+          // Draw "shieldcn.dev" text next to the icon
+          ctx.fillStyle = textCol
+          ctx.font = '500 14px "Geist Mono", ui-monospace, monospace'
+          ctx.textAlign = "left"
+          ctx.textBaseline = "middle"
+          ctx.fillText("shieldcn.dev", lx + iconSize + 8, ly + iconSize / 2 + 1)
+          ctx.restore()
+        }
       }
 
       // ── Static → PNG ───────────────────────────────────────────────────
@@ -656,6 +686,11 @@ export default function DevSocialPage() {
             title text
           </label>
 
+          <label className="flex items-center gap-1.5 cursor-pointer font-mono text-[11px] text-zinc-500">
+            <input type="checkbox" checked={showLogo} onChange={(e) => setShowLogo(e.target.checked)} className="rounded border-zinc-700" />
+            logo
+          </label>
+
 
           {showText && (
             <>
@@ -725,6 +760,15 @@ export default function DevSocialPage() {
                 )
               })}
             </div>
+            {showLogo && (
+              <div data-canvas-logo className="flex items-center gap-2 mt-auto pt-4" style={{ opacity: 0.4 }}>
+                <svg viewBox="0 0 512 512" width={20} height={20} fill={textColor}>
+                  <path d="M148.02,363.76c-4.48,0-8.64-2.42-10.86-6.32l-54.29-95.68c-2.15-3.8-2.15-8.52,0-12.32l54.29-95.68c2.21-3.9,6.37-6.32,10.86-6.32h18.51c4.44,0,8.45,2.28,10.73,6.09,2.27,3.82,2.37,8.43.25,12.33l-42.23,77.99c-3.98,7.36-3.98,16.14,0,23.49l22.22,41.02c4.25,7.85,12.43,12.8,21.36,12.92,0,0,45.08.61,45.11.61,8.68,0,16.83-4.64,21.26-12.12l24.87-41.99c2.23-3.77,6.34-6.11,10.72-6.12l19.47-.04c4.48,0,8.49,2.29,10.76,6.12,2.27,3.83,2.35,8.45.21,12.35l-42.2,77.17c-2.19,4-6.39,6.49-10.95,6.49h-110.08Z" />
+                  <path d="M346.7,363.69c-4.44,0-8.45-2.28-10.73-6.09-2.27-3.82-2.37-8.43-.25-12.33l42.23-77.99c3.98-7.35,3.98-16.14,0-23.49l-22.22-41.02c-4.25-7.85-12.44-12.8-21.36-12.92,0,0-46.51-.63-46.53-.63-8.88,0-17.12,4.81-21.48,12.54l-23.35,41.36c-2.2,3.9-6.36,6.34-10.84,6.35l-19.21.04c-4.48,0-8.49-2.29-10.76-6.12-2.27-3.83-2.35-8.45-.22-12.36l42.2-77.17c2.19-4.01,6.39-6.5,10.95-6.5h110.08c4.48,0,8.64,2.42,10.86,6.32l54.29,95.68c2.16,3.8,2.16,8.52,0,12.32l-54.29,95.68c-2.21,3.9-6.37,6.32-10.86,6.32h-18.51Z" />
+                </svg>
+                <span style={{ fontSize: 14, fontWeight: 500, color: textColor, fontFamily: "var(--font-geist-mono), ui-monospace, monospace", letterSpacing: "0.02em" }}>shieldcn.dev</span>
+              </div>
+            )}
           </div>
         </div>
 
