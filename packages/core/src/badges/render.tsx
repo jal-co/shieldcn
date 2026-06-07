@@ -55,13 +55,21 @@ const fontsDir = findFontsDir()
 const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
 const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
 const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
+const jetbrainsMonoData = readFileSync(join(fontsDir, "jetbrains-mono-medium.ttf"))
+const firaCodeData = readFileSync(join(fontsDir, "fira-code-medium.ttf"))
+const robotoData = readFileSync(join(fontsDir, "roboto-medium.ttf"))
+const spaceGroteskData = readFileSync(join(fontsDir, "space-grotesk-medium.ttf"))
 
-export type BadgeFont = "inter" | "geist" | "geist-mono"
+export type BadgeFont = "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
 
 const FONT_CONFIG: Record<BadgeFont, { name: string; data: Buffer }> = {
   inter: { name: "Inter", data: interData },
   geist: { name: "Geist", data: geistData },
   "geist-mono": { name: "Geist Mono", data: geistMonoData },
+  "jetbrains-mono": { name: "JetBrains Mono", data: jetbrainsMonoData },
+  "fira-code": { name: "Fira Code", data: firaCodeData },
+  roboto: { name: "Roboto", data: robotoData },
+  "space-grotesk": { name: "Space Grotesk", data: spaceGroteskData },
 }
 
 function getFonts(font: BadgeFont = "inter") {
@@ -77,6 +85,11 @@ function luminance(hex: string): number {
   const b = parseInt(h.substring(4, 6), 16)
   if (isNaN(r) || isNaN(g) || isNaN(b)) return 0
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+}
+
+/** Check if a hex background color is light enough to need dark text. */
+function isLightBg(hex: string): boolean {
+  return luminance(hex) > 0.5
 }
 
 /**
@@ -282,6 +295,25 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     ? gradientFg(config.gradient)
     : (config.colors.valueFg || mode.primaryForeground)
 
+  // In split mode, recompute label/icon colors to contrast against leftBg
+  // instead of the main badge bg. Without this, dark-on-dark and light-on-light
+  // text is invisible in split badges.
+  let splitLabelFg = finalLabelColor
+  let splitIconColor = finalIconColor
+  if (config.split && !config.labelTextColor && !config.gradient) {
+    // Pick a foreground that contrasts with the left segment background
+    const leftIsLight = isLightBg(leftBg)
+    const splitLabelBase = leftIsLight ? "#18181b" : "#fafafa"
+    splitLabelFg = config.statusDot ? splitLabelBase : rgba(splitLabelBase, labelOpacity)
+    splitIconColor = rgba(splitLabelBase, Math.min(labelOpacity + 0.15, 1))
+  }
+  // Same for rightFg — ensure it contrasts with rightBg
+  let splitRightFg = rightFg
+  if (config.split && !config.valueColor && !config.gradient) {
+    const rightIsLight = isLightBg(rightBg)
+    splitRightFg = rightIsLight ? "#18181b" : "#ffffff"
+  }
+
   return {
     label: config.label,
     value: config.value,
@@ -295,15 +327,15 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     borderRadius: bs.borderRadius,
     bg,
     fg: finalValueColor,
-    labelFg: finalLabelColor,
-    iconColor: finalIconColor,
+    labelFg: config.split ? splitLabelFg : finalLabelColor,
+    iconColor: config.split ? splitIconColor : finalIconColor,
     border,
     dotColor,
     dotSize,
     split: !!config.split,
     leftBg,
     rightBg,
-    rightFg,
+    rightFg: splitRightFg,
     gradient: config.gradient,
     icon: config.icon,
     iconPaths: config.iconPaths,

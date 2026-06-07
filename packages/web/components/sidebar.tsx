@@ -53,6 +53,15 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
+    title: "Customization",
+    items: [
+      { title: "Themes", href: "/docs/customization/themes" },
+      { title: "Styles", href: "/docs/customization/styles" },
+      { title: "Fonts", href: "/docs/customization/fonts" },
+      { title: "Light & Dark Mode", href: "/docs/customization/light-dark-mode" },
+    ],
+  },
+  {
     title: "Badges",
     alwaysOpen: true,
     items: [
@@ -208,14 +217,7 @@ const docsNav: NavGroup[] = [
       { title: "Tokscale", href: "/docs/badges/tokscale" },
     ],
   },
-  {
-    title: "Customization",
-    items: [
-      { title: "Themes", href: "/docs/customization/themes" },
-      { title: "Styles", href: "/docs/customization/styles" },
-      { title: "Light & Dark Mode", href: "/docs/customization/light-dark-mode" },
-    ],
-  },
+
   {
     title: "Registry",
     items: [

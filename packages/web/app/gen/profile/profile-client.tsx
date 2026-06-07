@@ -17,6 +17,7 @@ import {
   DEFAULT_GLOBAL,
   type Badge,
   type BadgeGroup,
+  type Font,
   type GlobalSettings,
   type Mode,
   type Overrides,
@@ -64,6 +65,15 @@ const VARIANTS: Variant[] = [
 ]
 const SIZES: Size[] = ["xs", "sm", "default", "lg"]
 const MODES: Mode[] = ["dark", "light"]
+const FONTS: Font[] = [
+  "inter",
+  "geist",
+  "geist-mono",
+  "jetbrains-mono",
+  "fira-code",
+  "roboto",
+  "space-grotesk",
+]
 const THEMES: Theme[] = [
   "none",
   "zinc",
@@ -128,18 +138,20 @@ export default function ProfileGeneratorClient() {
       size: qs.size,
       mode: qs.mode,
       theme: qs.theme,
+      font: qs.font,
     }
     const configGlobal = config.global
     if (
       urlGlobal.variant !== configGlobal.variant ||
       urlGlobal.size !== configGlobal.size ||
       urlGlobal.mode !== configGlobal.mode ||
-      urlGlobal.theme !== configGlobal.theme
+      urlGlobal.theme !== configGlobal.theme ||
+      urlGlobal.font !== configGlobal.font
     ) {
       setConfig((c) => (c ? { ...c, global: urlGlobal } : c))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qs.variant, qs.size, qs.mode, qs.theme])
+  }, [qs.variant, qs.size, qs.mode, qs.theme, qs.font])
 
   const updateGlobal = useCallback(
     (patch: Partial<GlobalSettings>) => {
@@ -242,6 +254,7 @@ export default function ProfileGeneratorClient() {
           size: qs.size,
           mode: qs.mode,
           theme: qs.theme,
+          font: qs.font,
         },
         badges: result.badges,
         generatedAt: new Date().toISOString(),
@@ -259,7 +272,7 @@ export default function ProfileGeneratorClient() {
         body: JSON.stringify({ count: enabledCount }),
       }).catch(() => {})
     },
-    [inputUser, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, track],
+    [inputUser, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, track],
   )
 
   const configRef = useRef<Config | null>(null)
@@ -463,6 +476,12 @@ export default function ProfileGeneratorClient() {
                 value={config.global.mode}
                 options={MODES}
                 onChange={(v) => updateGlobal({ mode: v as Mode })}
+              />
+              <GlobalSelect
+                label="Font"
+                value={config.global.font}
+                options={FONTS}
+                onChange={(v) => updateGlobal({ font: v as Font })}
               />
             </div>
           </div>

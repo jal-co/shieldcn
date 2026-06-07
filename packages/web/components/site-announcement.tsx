@@ -11,8 +11,8 @@ export function SiteAnnouncement() {
     <Announcement>
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
-        <Link href="/docs/badges/group" className="hover:underline underline-offset-4">
-          New: Badge Groups — combine badges like a ButtonGroup
+        <Link href="/docs/customization/fonts" className="hover:underline underline-offset-4">
+          New: 4 fonts — JetBrains Mono, Fira Code, Roboto, Space Grotesk
           <ArrowRight className="size-3" />
         </Link>
       </AnnouncementContent>

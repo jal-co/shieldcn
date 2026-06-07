@@ -6,7 +6,7 @@ import {
   parseAsStringEnum,
   createSearchParamsCache,
 } from "nuqs/server"
-import type { Variant, Size, Mode, Theme } from "./shieldcn"
+import type { Variant, Size, Mode, Theme, Font } from "./shieldcn"
 
 const VARIANTS: Variant[] = [
   "default",
@@ -36,6 +36,15 @@ const THEMES: Theme[] = [
   "cyan",
   "emerald",
 ]
+const FONTS: Font[] = [
+  "inter",
+  "geist",
+  "geist-mono",
+  "jetbrains-mono",
+  "fira-code",
+  "roboto",
+  "space-grotesk",
+]
 
 export const profileSearchParams = {
   user: parseAsString.withDefault(""),
@@ -43,6 +52,7 @@ export const profileSearchParams = {
   size: parseAsStringEnum(SIZES).withDefault("sm"),
   mode: parseAsStringEnum(MODES).withDefault("dark"),
   theme: parseAsStringEnum(THEMES).withDefault("none"),
+  font: parseAsStringEnum(FONTS).withDefault("inter"),
 }
 
 export const profileSearchParamsCache = createSearchParamsCache(profileSearchParams)

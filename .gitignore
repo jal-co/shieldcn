@@ -48,5 +48,8 @@ next-env.d.ts
 # reddit drafts
 reddit/
 
+# visual test output
+visual-test.html
+
 sponsorship-application.txt
 logo-dev-email.txt

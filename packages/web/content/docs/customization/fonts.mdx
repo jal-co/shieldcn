@@ -1,0 +1,108 @@
+---
+title: Fonts
+description: Choose from 7 font families for your badges.
+---
+
+Pick a font with the `?font=` query parameter. All fonts are rendered at weight 500 (medium) via Satori.
+
+## Available fonts
+
+| Slug | Font | Type | Best for |
+|------|------|------|----------|
+| `inter` | Inter | Sans-serif | Default — matches shadcn/ui |
+| `geist` | Geist | Sans-serif | Vercel projects |
+| `geist-mono` | Geist Mono | Monospace | Version numbers, code |
+| `jetbrains-mono` | JetBrains Mono | Monospace | Developer-focused badges |
+| `fira-code` | Fira Code | Monospace | Code & terminal badges |
+| `roboto` | Roboto | Sans-serif | Universal readability |
+| `space-grotesk` | Space Grotesk | Sans-serif | Modern, geometric look |
+
+## Usage
+
+```md
+![inter](https://shieldcn.dev/npm/react.svg?font=inter)
+![jetbrains](https://shieldcn.dev/npm/react.svg?font=jetbrains-mono)
+![fira](https://shieldcn.dev/npm/react.svg?font=fira-code)
+![roboto](https://shieldcn.dev/npm/react.svg?font=roboto)
+![space](https://shieldcn.dev/npm/react.svg?font=space-grotesk)
+```
+
+## Comparison
+
+### Sans-serif fonts
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    src="/npm/react.svg?font=inter"
+    alt="Inter"
+    description="Inter — the default, matches shadcn/ui."
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=geist"
+    alt="Geist"
+    description="Geist — Vercel's typeface."
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=roboto"
+    alt="Roboto"
+    description="Roboto — Google's universal font."
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=space-grotesk"
+    alt="Space Grotesk"
+    description="Space Grotesk — geometric, modern."
+  />
+</BadgePreviewGroup>
+
+### Monospace fonts
+
+Monospace fonts work especially well for version badges, build status, and anything code-related.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    src="/npm/react.svg?font=geist-mono"
+    alt="Geist Mono"
+    description="Geist Mono — Vercel's monospace."
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=jetbrains-mono"
+    alt="JetBrains Mono"
+    description="JetBrains Mono — designed for code."
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=fira-code"
+    alt="Fira Code"
+    description="Fira Code — the original coding font."
+  />
+</BadgePreviewGroup>
+
+## Combining with variants
+
+Fonts compose freely with all variants, themes, sizes, and modes:
+
+<BadgePreviewGroup>
+  <BadgePreviewCard
+    src="/npm/react.svg?font=jetbrains-mono&variant=branded"
+    alt="JetBrains Mono branded"
+    description="JetBrains Mono + branded"
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=fira-code&variant=outline"
+    alt="Fira Code outline"
+    description="Fira Code + outline"
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=space-grotesk&variant=secondary"
+    alt="Space Grotesk secondary"
+    description="Space Grotesk + secondary"
+  />
+  <BadgePreviewCard
+    src="/npm/react.svg?font=roboto&theme=blue"
+    alt="Roboto blue theme"
+    description="Roboto + blue theme"
+  />
+</BadgePreviewGroup>
+
+## In the builder
+
+The font selector is available in both the [Badge Builder](/gen) and [Profile Generator](/gen/profile) under **Global defaults**. You can also set fonts per-badge via the badge's override popover.

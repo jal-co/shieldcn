@@ -16,6 +16,7 @@ import {
   badgeUrl,
   type Badge,
   type BadgeGroup,
+  type Font,
   type GlobalSettings,
   type Mode,
   type Overrides,
@@ -62,6 +63,15 @@ const VARIANTS: Variant[] = [
 ]
 const SIZES: Size[] = ["xs", "sm", "default", "lg"]
 const MODES: Mode[] = ["dark", "light"]
+const FONTS: Font[] = [
+  "inter",
+  "geist",
+  "geist-mono",
+  "jetbrains-mono",
+  "fira-code",
+  "roboto",
+  "space-grotesk",
+]
 const THEMES: Theme[] = [
   "none",
   "zinc",
@@ -134,6 +144,7 @@ export default function GeneratorApp() {
       size: qs.size,
       mode: qs.mode,
       theme: qs.theme,
+      font: qs.font,
       themeAware: qs.themeAware,
     }
     const configGlobal = config.global
@@ -243,6 +254,7 @@ export default function GeneratorApp() {
         size: qs.size,
         mode: qs.mode,
         theme: qs.theme,
+        font: qs.font,
         themeAware: qs.themeAware,
       },
       badges: result.badges,
@@ -270,7 +282,7 @@ export default function GeneratorApp() {
         badgeCount: enabledCount,
       }),
     }).catch(() => {})
-  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.themeAware, track])
+  }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, qs.themeAware, track])
 
   const handleConfigUpload = useCallback(async (file: File) => {
     setError(null)
@@ -633,6 +645,12 @@ function ResultsPanel({
             options={MODES}
             onChange={(v) => updateGlobal({ mode: v as Mode })}
           />
+          <GlobalSelect
+            label="Font"
+            value={config.global.font}
+            options={FONTS}
+            onChange={(v) => updateGlobal({ font: v as Font })}
+          />
         </div>
         <label className="flex items-start gap-3 rounded-md border border-dashed border-border p-3">
           <Switch
@@ -841,6 +859,12 @@ function BadgeItem({
             value={badge.overrides.mode ?? ""}
             options={MODES}
             onChange={(v) => setOverride("mode", v)}
+          />
+          <OverrideSelect
+            label="Font"
+            value={badge.overrides.font ?? ""}
+            options={FONTS}
+            onChange={(v) => setOverride("font", v)}
           />
         </div>
 

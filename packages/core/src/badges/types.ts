@@ -97,7 +97,7 @@ export interface BadgeConfig {
   /** Brand color for "branded" variant (hex without #). */
   brandColor?: string
   /** Font family for badge text. */
-  font?: "inter" | "geist" | "geist-mono"
+  font?: "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
   /** CSS linear-gradient value for badge background. */
   gradient?: string
   /** Animation mode: "pulse" | "glow" | "shimmer" | "none". Default: none. */

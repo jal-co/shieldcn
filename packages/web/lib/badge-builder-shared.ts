@@ -118,7 +118,7 @@ export function resolveTemplate(preset: BadgePreset, values: Record<string, stri
 export const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "branded"] as const
 export const SIZES = ["xs", "sm", "default", "lg"] as const
 export const MODES = ["dark", "light"] as const
-export const FONTS = ["inter", "geist", "geist-mono"] as const
+export const FONTS = ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"] as const
 export const FORMATS = ["svg", "png"] as const
 
 export const THEMES = [

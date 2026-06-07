@@ -412,6 +412,19 @@ export const categories: Category[] = [
     ],
   },
   {
+    name: "Fonts",
+    description: "Badges rendered in different typefaces. Use ?font= to change the look.",
+    icons: [
+      dynamicBadge("Inter (default)", "sans-serif", "/npm/react.svg?font=inter", "The default — matches shadcn/ui's typeface."),
+      dynamicBadge("Geist", "sans-serif", "/npm/react.svg?font=geist&variant=secondary", "Vercel's typeface. Clean and geometric."),
+      dynamicBadge("Geist Mono", "monospace", "/npm/react.svg?font=geist-mono&variant=outline", "Vercel's monospace font. Great for version badges."),
+      dynamicBadge("JetBrains Mono", "monospace", "/npm/react.svg?font=jetbrains-mono&variant=branded", "Popular with devs. Designed for code."),
+      dynamicBadge("Fira Code", "monospace", "/npm/react.svg?font=fira-code&variant=outline", "The original ligature-capable coding font."),
+      dynamicBadge("Roboto", "sans-serif", "/npm/react.svg?font=roboto&variant=secondary", "Google's workhorse. Universal readability."),
+      dynamicBadge("Space Grotesk", "sans-serif", "/npm/react.svg?font=space-grotesk&variant=branded", "Geometric and trendy. Modern startup vibes."),
+    ],
+  },
+  {
     name: "Community",
     description: "Badges submitted by the community. Submit yours with the button on the showcase page!",
     icons: [

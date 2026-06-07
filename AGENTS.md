@@ -103,7 +103,7 @@ Minimal self-hosted Next.js app published as a Docker image. Badge API only — 
 | Param | Values | Default |
 |-------|--------|---------|
 | `variant` | `default`, `secondary`, `outline`, `ghost`, `destructive`, `branded` | `default` |
-| `font` | `inter`, `geist`, `geist-mono` | `inter` |
+| `font` | `inter`, `geist`, `geist-mono`, `jetbrains-mono`, `fira-code`, `roboto`, `space-grotesk` | `inter` |
 | `size` | `xs`, `sm`, `default`, `lg` | `sm` |
 | `mode` | `dark`, `light` | `dark` |
 | `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |

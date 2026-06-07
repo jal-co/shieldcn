@@ -1438,8 +1438,9 @@ async function handleBadgeGroup(
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const theme = searchParams.get("theme") ?? undefined
   const fontParam = searchParams.get("font") ?? undefined
-  const font = (fontParam && ["inter", "geist", "geist-mono"].includes(fontParam) ? fontParam : undefined) as GroupConfig["font"]
+  const font = (fontParam && ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"].includes(fontParam) ? fontParam : undefined) as GroupConfig["font"]
   const logoColor = searchParams.get("logoColor") ?? undefined
+
 
   const hasThemeOverride = !!(theme || searchParams.get("color") || searchParams.get("labelColor"))
   let colors = resolveTheme(theme)
@@ -1720,12 +1721,12 @@ async function handleBadgeGETInner(
   }
 
   // SVG response
-  const style = (searchParams.get("style") || searchParams.get("variant") || "default") as BadgeStyle
+  let style = (searchParams.get("style") || searchParams.get("variant") || "default") as BadgeStyle
   const size = (searchParams.get("size") || undefined) as BadgeSize | undefined
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const theme = searchParams.get("theme") ?? undefined
   const fontParam = searchParams.get("font") ?? undefined
-  const font = (fontParam && ["inter", "geist", "geist-mono"].includes(fontParam) ? fontParam : undefined) as BadgeConfig["font"]
+  const font = (fontParam && ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"].includes(fontParam) ? fontParam : undefined) as BadgeConfig["font"]
   const logoParam = searchParams.get("logo")
   const logoColor = searchParams.get("logoColor") ?? undefined
 
@@ -1882,6 +1883,12 @@ async function handleBadgeGETInner(
 
   // Resolve status color for CI badges (only when data.color is a status keyword)
   const statusColor = data.color && statusColors[data.color] ? statusColors[data.color] : undefined
+
+  // Downgrade destructive/branded to default for CI badges — status color text
+  // becomes invisible on same-hue backgrounds (red-on-red, green-on-red, etc.)
+  if (statusColor && (style === "destructive" || style === "branded")) {
+    style = "default"
+  }
 
   // Split mode: only when explicitly requested
   const splitParam = searchParams.get("split")

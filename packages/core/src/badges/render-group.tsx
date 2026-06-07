@@ -45,13 +45,21 @@ const fontsDir = findFontsDir()
 const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
 const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
 const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
+const jetbrainsMonoData = readFileSync(join(fontsDir, "jetbrains-mono-medium.ttf"))
+const firaCodeData = readFileSync(join(fontsDir, "fira-code-medium.ttf"))
+const robotoData = readFileSync(join(fontsDir, "roboto-medium.ttf"))
+const spaceGroteskData = readFileSync(join(fontsDir, "space-grotesk-medium.ttf"))
 
-type BadgeFont = "inter" | "geist" | "geist-mono"
+type BadgeFont = "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
 
 const FONT_CONFIG: Record<BadgeFont, { name: string; data: Buffer }> = {
   inter: { name: "Inter", data: interData },
   geist: { name: "Geist", data: geistData },
   "geist-mono": { name: "Geist Mono", data: geistMonoData },
+  "jetbrains-mono": { name: "JetBrains Mono", data: jetbrainsMonoData },
+  "fira-code": { name: "Fira Code", data: firaCodeData },
+  roboto: { name: "Roboto", data: robotoData },
+  "space-grotesk": { name: "Space Grotesk", data: spaceGroteskData },
 }
 
 function getFonts(font: BadgeFont = "inter") {

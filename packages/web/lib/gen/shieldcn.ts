@@ -12,6 +12,15 @@ export type Size = 'xs' | 'sm' | 'default' | 'lg';
 
 export type Mode = 'dark' | 'light';
 
+export type Font =
+  | 'inter'
+  | 'geist'
+  | 'geist-mono'
+  | 'jetbrains-mono'
+  | 'fira-code'
+  | 'roboto'
+  | 'space-grotesk';
+
 export type Theme =
   | 'none'
   | 'zinc'
@@ -35,6 +44,7 @@ export type Overrides = Partial<{
   size: Size;
   mode: Mode;
   theme: Theme;
+  font: Font;
   color: string;
   labelColor: string;
   valueColor: string;
@@ -59,6 +69,7 @@ export type GlobalSettings = {
   size: Size;
   mode: Mode;
   theme: Theme;
+  font: Font;
   /**
    * Emit theme-aware <picture> markup so badges adapt to the viewer's
    * GitHub light/dark theme. Only affects theme-derived variants without an
@@ -72,6 +83,7 @@ export const DEFAULT_GLOBAL: GlobalSettings = {
   size: 'sm',
   mode: 'dark',
   theme: 'none',
+  font: 'inter',
   themeAware: false,
 };
 
@@ -122,6 +134,7 @@ export function mergeQuery(
   if (modeOverride) merged.mode = modeOverride;
   else if (global.mode !== 'dark' && !merged.mode) merged.mode = global.mode;
   if (global.theme !== 'none' && !merged.theme) merged.theme = global.theme;
+  if (global.font !== 'inter' && !merged.font) merged.font = global.font;
 
   for (const [rawKey, rawVal] of Object.entries(badge.overrides)) {
     if (rawVal === undefined || rawVal === null || rawVal === '') continue;
