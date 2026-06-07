@@ -100,6 +100,12 @@ export interface BadgeConfig {
   font?: "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
   /** CSS linear-gradient value for badge background. */
   gradient?: string
+  /**
+   * Full-color flag SVG (raw markup) rendered as a left inset at its natural
+   * 3:2 aspect ratio — used by country “built in” badges. Unlike `icon`, this
+   * preserves the flag's original multi-color fills instead of recoloring it.
+   */
+  flagSvg?: string
   /** Animation mode: "pulse" | "glow" | "shimmer" | "none". Default: none. */
   animate?: "pulse" | "glow" | "shimmer" | "none"
 }

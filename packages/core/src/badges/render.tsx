@@ -202,6 +202,9 @@ interface ResolvedBadge {
 
   // Icon rotation (degrees, applied around center)
   iconRotation: number | undefined
+
+  // Full-color flag SVG rendered as a left inset (preserves original colors)
+  flagSvg: string | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -347,6 +350,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     iconStrokeLinecap: config.iconStrokeLinecap,
     iconStrokeLinejoin: config.iconStrokeLinejoin,
     iconRotation: config.iconRotation,
+    flagSvg: config.flagSvg,
   }
 }
 
@@ -504,6 +508,36 @@ export async function renderErrorBadge(label: string, message: string): Promise<
 // Icon element (same for all variants)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Flag element (full-color flag inset, natural 3:2 aspect)
+//
+// Unlike IconEl, this renders the flag's original multi-color SVG verbatim as
+// an <img>, so red/white/blue etc. are preserved. Satori renders <img>
+// natively (honouring width/height, border-radius, and object-fit), so the
+// flag keeps its natural proportions as a small rounded chip on the left.
+// ---------------------------------------------------------------------------
+
+function FlagEl({ r }: { r: ResolvedBadge }) {
+  if (!r.flagSvg) return null
+  const flagH = Math.round(r.iconSize * 1.15)
+  const flagW = Math.round((flagH * 3) / 2) // 3:2 aspect, natural flag proportions
+  const src = `data:image/svg+xml;base64,${Buffer.from(r.flagSvg).toString("base64")}`
+  return (
+    <img
+      src={src}
+      width={flagW}
+      height={flagH}
+      style={{
+        width: flagW,
+        height: flagH,
+        borderRadius: 2,
+        objectFit: "cover",
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
 function IconEl({ r }: { r: ResolvedBadge }) {
   if (!r.icon) return null
   const vb = r.iconViewBox || "0 0 16 16"
@@ -621,6 +655,8 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       ...(r.border ? { border: `1px solid ${r.border}` } : {}),
     }}>
       <DotEl r={r} />
+      <FlagEl r={r} />
+      {r.flagSvg && <div style={{ width: r.gap }} />}
       <IconEl r={r} />
       {r.icon && <div style={{ width: r.gap }} />}
       {r.label && (

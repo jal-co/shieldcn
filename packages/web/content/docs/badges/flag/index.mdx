@@ -1,0 +1,93 @@
+---
+title: Country Flags
+description: Built-in country badges with a natural-aspect flag chip — 265 countries and regions.
+badge: "/flag/us.svg"
+---
+
+Show where your project is built with a “built in _your country_” badge. The
+country flag is rendered as a crisp little chip at its natural proportions next
+to the label — no stretching, no cropping. 265 countries and regions are
+supported.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/flag/us.svg" alt="built in the USA" description="United States" />
+  <BadgePreviewCard src="/flag/gb.svg" alt="built in the UK" description="United Kingdom" />
+  <BadgePreviewCard src="/flag/jp.svg" alt="built in Japan" description="Japan" />
+  <BadgePreviewCard src="/flag/de.svg" alt="built in Germany" description="Germany" />
+  <BadgePreviewCard src="/flag/in.svg" alt="built in India" description="India" />
+  <BadgePreviewCard src="/flag/br.svg" alt="built in Brazil" description="Brazil" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Country flag | `/flag/{code}` | “built in _country_” with a flag chip |
+
+`{code}` is an ISO 3166-1 alpha-2 country code (case-insensitive), e.g. `us`,
+`jp`, `gb`. A handful of regions and subdivisions are supported too — see
+[Codes & regions](#codes--regions) below.
+
+<BadgeSandbox
+  endpoint="/flag/:code.svg"
+  pathParams={[
+    { name: "code", label: "country code", placeholder: "us", required: true },
+  ]}
+  defaults={{ code: "us" }}
+/>
+
+## Quick examples
+
+<CodeLine language="markdown" code='![built in the USA](https://shieldcn.dev/flag/us.svg)' />
+
+<CodeLine language="markdown" code='![built in Japan](https://shieldcn.dev/flag/jp.svg)' />
+
+<CodeLine language="markdown" code='![built in Germany](https://shieldcn.dev/flag/de.svg?variant=outline)' />
+
+## Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/flag/fr.svg" alt="built in France" description="France" />
+  <BadgePreviewCard src="/flag/ca.svg" alt="built in Canada" description="Canada" />
+  <BadgePreviewCard src="/flag/kr.svg" alt="built in South Korea" description="South Korea" />
+  <BadgePreviewCard src="/flag/au.svg" alt="built in Australia" description="Australia" />
+  <BadgePreviewCard src="/flag/za.svg" alt="built in South Africa" description="South Africa" />
+  <BadgePreviewCard src="/flag/nl.svg" alt="built in the Netherlands" description="Netherlands" />
+  <BadgePreviewCard src="/flag/eu.svg" alt="built in the European Union" description="European Union (region)" />
+  <BadgePreviewCard src="/flag/us.svg?variant=outline" alt="built in the USA outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+<BadgePreview
+  src="/flag/us.svg"
+  alt="built in the USA"
+  description="Default — the flag chip sits on a soft secondary surface."
+/>
+
+<BadgePreview
+  src="/flag/jp.svg?variant=outline"
+  alt="built in Japan (outline)"
+  description="Outline variant — pairs well with a light-themed README header."
+/>
+
+## Codes & regions
+
+- **Countries** — use any ISO 3166-1 alpha-2 code: `/flag/us`, `/flag/jp`, `/flag/gb`, `/flag/in`, …
+- **Definite articles** are handled automatically: `us` → “the USA”, `gb` → “the UK”, `nl` → “the Netherlands”, `eu` → “the European Union”.
+- **Subdivisions** — `gb-eng` (England), `gb-sct` (Scotland), `gb-wls` (Wales), `gb-nir` (Northern Ireland), `es-ct` (Catalonia), `es-ga` (Galicia), `es-pv` (Basque Country).
+- **Regions** — `eu` (European Union), and a few others.
+- **Unknown codes** return a readable text badge (never a broken image).
+
+Codes are case-insensitive — `/flag/US`, `/flag/us`, and `/flag/Us` all work.
+
+## Customizing
+
+All standard badge query params apply (`variant`, `size`, `mode`, `font`,
+`label`, colors, etc.). For example, override the label text:
+
+<CodeLine language="markdown" code='![made in Japan](https://shieldcn.dev/flag/jp.svg?label=made+in)' />
+
+## Data source
+
+Flags are from [country-flag-icons](https://github.com/purecatamphetamine/country-flag-icons)
+(3×2), rendered inline as a flag chip. Country names are resolved from a static
+ISO 3166-1 map. No API key required. Cached 1 hour.

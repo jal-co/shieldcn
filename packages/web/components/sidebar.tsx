@@ -215,6 +215,7 @@ const docsNav: NavGroup[] = [
         ],
       },
       { title: "Tokscale", href: "/docs/badges/tokscale" },
+      { title: "Country Flags", href: "/docs/badges/flag" },
     ],
   },
 

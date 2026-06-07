@@ -65,7 +65,7 @@ function groupPresets(): Map<string, BadgePreset[]> {
 }
 
 const PRESET_GROUPS = groupPresets()
-const PRESET_GROUP_ORDER = ["Custom", "Package", "GitHub", "Social", "Group"]
+const PRESET_GROUP_ORDER = ["Custom", "Package", "GitHub", "Social", "Other", "Group"]
 
 /** Find a preset that matches a given path */
 function findMatchingPreset(path: string): { preset: BadgePreset; values: Record<string, string> } | null {
@@ -172,7 +172,7 @@ export function BadgeBuilderCore({
     // Auto-fill link URL from preset default
     const linkUrl = resolveDefaultLinkUrl(preset, defaults)
     updatePath(preset, defaults, { linkUrl })
-  }, [updatePath])  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [updatePath])
 
   const handleParamChange = useCallback((key: string, value: string) => {
     const next = { ...paramValues, [key]: value }

@@ -13,6 +13,53 @@
 
 import type { BadgeData } from "../badges/types"
 import { JSONPath } from "jsonpath-plus"
+import flagNames from "../badges/flags.json"
+
+// Country flags come from `country-flag-icons` (catamphetamine), 3x2 aspect.
+// Codes are ISO 3166-1 alpha-2 (uppercase) plus a few subdivisions/regions
+// (e.g. GB-ENG, ES-CT, EU). flags.json maps each code to a display name.
+const FLAG_CDN_BASE = "https://catamphetamine.gitlab.io/country-flag-icons/3x2"
+const FLAG_NAMES = flagNames as Record<string, string>
+
+/** True for every country/region code shieldcn can render a flag for. */
+export function isKnownFlagCode(code: string): boolean {
+  return Object.prototype.hasOwnProperty.call(FLAG_NAMES, code.trim().toUpperCase())
+}
+
+/** All supported flag codes (uppercase), sorted. */
+export function listFlagCodes(): string[] {
+  return Object.keys(FLAG_NAMES)
+}
+
+/**
+ * /flag/{code} — a “built in {country}” badge. The flag SVG is rendered as a
+ * natural-aspect chip on the left (handled in the renderer); here we resolve
+ * the display name and the flag CDN URL.
+ */
+export async function getFlagBadge(code: string): Promise<BadgeData | null> {
+  const raw = code.trim()
+  if (!raw) return null
+  // CDN filenames are uppercase (US.svg, GB-ENG.svg).
+  const cdnCode = raw.toUpperCase()
+  const name = FLAG_NAMES[cdnCode]
+
+  if (!name) {
+    // Unknown code — still return a readable badge, no flag art.
+    const fallback = raw
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ")
+    return { label: "built in", value: fallback, color: "red" }
+  }
+
+  return {
+    label: "built in",
+    value: name,
+    link: `${FLAG_CDN_BASE}/${cdnCode}.svg`,
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Named color map (subset matching shields.io / badge-maker)

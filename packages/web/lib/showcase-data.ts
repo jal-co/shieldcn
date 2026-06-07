@@ -51,9 +51,32 @@ export const featuredBadges: ShowcaseBadge[] = [
   dynamicBadge("PyPI Version", "featured pypi", "/pypi/requests.svg?variant=branded", "Python package version badge with PyPI branding.", "/docs/badges/pypi"),
   dynamicBadge("Bluesky Followers", "featured social", "/bluesky/jay.bsky.team.svg?variant=outline", "Social proof badge for Bluesky profiles.", "/docs/badges/bluesky"),
   dynamicBadge("Bundle Size", "featured bundlephobia", "/bundlephobia/minzip/react.svg?variant=secondary", "Show how lightweight your package is.", "/docs/badges/bundlephobia"),
+  dynamicBadge("Built in the USA", "featured location", "/flag/us.svg", "Country flag badge with a natural-aspect flag chip.", "/docs/badges/flag"),
 ]
 
 export const categories: Category[] = [
+  {
+    name: "Location",
+    description: "“Built in {country}” badges with a natural-aspect flag chip. 265 countries and regions supported — use any ISO 3166-1 code, e.g. /flag/us.svg, /flag/jp.svg, /flag/gb.svg.",
+    icons: [
+      dynamicBadge("Built in the USA", "country flag", "/flag/us.svg", "Flag chip + label for origin and maker-story sections.", "/docs/badges/flag"),
+      dynamicBadge("Built in the UK", "country flag", "/flag/gb.svg", "Union Jack flag chip with clean label.", "/docs/badges/flag"),
+      dynamicBadge("Built in Japan", "country flag", "/flag/jp.svg", "Crisp flag chip for geography-based product identity.", "/docs/badges/flag"),
+      dynamicBadge("Built in Germany", "country flag", "/flag/de.svg", "Good for country-of-origin rows and case studies.", "/docs/badges/flag"),
+      dynamicBadge("Built in France", "country flag", "/flag/fr.svg", "Works well in product headers and OSS profiles.", "/docs/badges/flag"),
+      dynamicBadge("Built in Canada", "country flag", "/flag/ca.svg", "Country badge for regional teams and local-first products.", "/docs/badges/flag"),
+      dynamicBadge("Built in Brazil", "country flag", "/flag/br.svg", "Bold flag chip that reads clearly in README rows.", "/docs/badges/flag"),
+      dynamicBadge("Built in India", "country flag", "/flag/in.svg", "Detailed flag (Ashoka Chakra) rendered crisply at chip size.", "/docs/badges/flag"),
+      dynamicBadge("Built in South Korea", "country flag", "/flag/kr.svg", "Taegeukgi flag chip; definite-article phrasing handled automatically.", "/docs/badges/flag"),
+      dynamicBadge("Built in Australia", "country flag", "/flag/au.svg", "Southern Cross + Union Jack canton at chip scale.", "/docs/badges/flag"),
+      dynamicBadge("Built in Mexico", "country flag", "/flag/mx.svg", "Coat-of-arms flag rendered cleanly as a chip.", "/docs/badges/flag"),
+      dynamicBadge("Built in South Africa", "country flag", "/flag/za.svg", "Multi-color flag chip for diverse origin rows.", "/docs/badges/flag"),
+      dynamicBadge("Built in the Netherlands", "country flag", "/flag/nl.svg", "Definite-article phrasing (‘the Netherlands’) applied automatically.", "/docs/badges/flag"),
+      dynamicBadge("Built in Spain", "country flag", "/flag/es.svg", "Coat-of-arms flag chip for Spanish-origin projects.", "/docs/badges/flag"),
+      dynamicBadge("Built in Italy", "country flag", "/flag/it.svg", "Clean tricolor flag chip.", "/docs/badges/flag"),
+      dynamicBadge("Built in the European Union", "region flag", "/flag/eu.svg", "Regional flag — the EU and other regions are supported too.", "/docs/badges/flag"),
+    ],
+  },
   {
     name: "GitHub",
     description: "Best GitHub badge types for repos: social proof, release metadata, health, and maintenance signals.",

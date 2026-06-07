@@ -106,7 +106,7 @@ import {
   getGitHubUserStars,
 } from "./providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
-import { parseStaticBadgeContent, getDynamicJsonBadge } from "./providers/badge"
+import { parseStaticBadgeContent, getDynamicJsonBadge, getFlagBadge } from "./providers/badge"
 import { getRedditKarma, getRedditSubscribers } from "./providers/reddit"
 import { getMemoBadge, upsertMemoBadge } from "./providers/memo"
 import { getPyPIVersion, getPyPIDownloads, getPyPILicense, getPyPIPythonVersion } from "./providers/pypi"
@@ -497,6 +497,12 @@ async function fetchBadgeData(
       }
 
       return null
+    }
+
+    // /flag/{countryCode}  → “built in {country}” with a flag inset
+    case "flag": {
+      if (segments.length < 2) return null
+      return getFlagBadge(segments[1])
     }
 
     // /pypi/{topic}/{package}  or  /pypi/{package}
@@ -1318,6 +1324,8 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
 
   // Static / dynamic badges have no default icon
   if (provider === "badge") return null
+  // Flag badges render a full-color flag inset instead of a monochrome icon.
+  if (provider === "flag") return null
 
   if (provider === "npm") return { simpleIcon: "npm" }
   if (provider === "discord") return { simpleIcon: "discord" }
@@ -1730,6 +1738,28 @@ async function handleBadgeGETInner(
   const logoParam = searchParams.get("logo")
   const logoColor = searchParams.get("logoColor") ?? undefined
 
+  // Flag badges: fetch the full-color flag SVG to render as a left inset.
+  // Default to the `secondary` variant so the flag chip sits on a soft surface.
+  const isFlag = cleanSegments[0] === "flag"
+  let flagSvg: string | undefined
+  if (isFlag) {
+    if (!searchParams.get("style") && !searchParams.get("variant")) {
+      style = "secondary"
+    }
+    // data.link is the resolved flag CDN URL (set by getFlagBadge).
+    if (data.link) {
+      try {
+        const flagRes = await fetch(data.link, {
+          next: { revalidate: 86400 },
+          headers: { Accept: "image/svg+xml", "User-Agent": "shieldcn/1.0" },
+        })
+        if (flagRes.ok) flagSvg = await flagRes.text()
+      } catch {
+        // No flag art — fall back to a normal text badge.
+      }
+    }
+  }
+
   // Resolve colors
   const isStaticBadge = cleanSegments[0] === "badge" || cleanSegments[0] === "https"
   const hasThemeOverride = !!(theme || searchParams.get("color") || searchParams.get("labelColor") || (isStaticBadge && data.color))
@@ -1942,6 +1972,7 @@ async function handleBadgeGETInner(
     brandColor,
     font,
     gradient,
+    flagSvg,
     animate,
     valueColor: searchParams.get("valueColor") ?? undefined,
     labelTextColor: searchParams.get("labelTextColor") ?? undefined,

@@ -71,6 +71,9 @@ export const BADGE_PRESETS: BadgePreset[] = [
   { label: "YouTube — subscribers", template: "/youtube/{channelId}/subscribers.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social", defaultLinkUrl: "https://www.youtube.com/channel/{channelId}" },
   { label: "Twitch — status", template: "/twitch/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
 
+  // Other
+  { label: "Country flag — built in", template: "/flag/{code}.svg", params: [{ key: "code", label: "Country code", placeholder: "us", default: "us" }], group: "Other" },
+
   // Groups
   { label: "Group — npm + stars", template: "/group/npm/{package}+github/stars/{owner}/{repo}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }, { key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "Group", defaultLinkUrl: "https://github.com/{owner}/{repo}" },
   { label: "Group — GitHub trio", template: "/group/github/stars/{owner}/{repo}+github/forks/{owner}/{repo}+github/license/{owner}/{repo}.svg", params: [{ key: "owner", label: "Owner", placeholder: "vercel", default: "vercel" }, { key: "repo", label: "Repo", placeholder: "next.js", default: "next.js" }], group: "Group", defaultLinkUrl: "https://github.com/{owner}/{repo}" },

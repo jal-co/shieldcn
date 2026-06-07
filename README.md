@@ -174,6 +174,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | **Weblate** | translation %, language count | `/weblate/translation/{server}/{project}/{component}` |
 | **Modrinth** | downloads, followers, version, game versions | `/modrinth/downloads/{slug}` |
 | **Tokscale** | tokens, cost, rank, active days | `/tokscale/{username}` |
+| **Country Flags** | “built in {country}” with a flag chip (265 countries/regions) | `/flag/{code}` |
 
 ### Custom badges
 

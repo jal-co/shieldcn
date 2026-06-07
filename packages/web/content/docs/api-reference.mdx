@@ -79,6 +79,16 @@ Static badges — no API token required.
 | `/tokscale/active-days/{username}.svg` | Days with AI activity |
 | `/tokscale/stats.svg` | Global user count |
 
+### Country Flags
+
+| Endpoint | Description |
+|----------|-------------|
+| `/flag/{code}.svg` | “built in _country_” with a flag chip |
+
+`{code}` is an ISO 3166-1 alpha-2 country code (case-insensitive), plus regions
+and subdivisions like `eu`, `gb-eng`, `es-ct`. 265 codes supported. Definite
+articles are applied automatically (`us` → “the USA”). See [Country Flags docs](/docs/badges/flag).
+
 ### Badge Group
 
 | Endpoint | Description |

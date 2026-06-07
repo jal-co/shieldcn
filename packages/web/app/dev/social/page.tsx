@@ -131,15 +131,27 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
   }
 }
 
-const DEFAULT_ITEMS: BadgeItem[] = [
-  { id: nextId(), path: "/badge/font-Inter-a78bfa", variant: "branded", size: "sm", font: "inter", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-Geist-34d399", variant: "branded", size: "sm", font: "geist", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-Geist Mono-22d3ee", variant: "branded", size: "sm", font: "geist-mono", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-JetBrains Mono-facc15", variant: "branded", size: "sm", font: "jetbrains-mono", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-Fira Code-fb923c", variant: "branded", size: "sm", font: "fira-code", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-Roboto-60a5fa", variant: "branded", size: "sm", font: "roboto", animate: "none", label: "variant", labelText: "" },
-  { id: nextId(), path: "/badge/font-Space Grotesk-f472b6", variant: "branded", size: "sm", font: "space-grotesk", animate: "none", label: "variant", labelText: "" },
+// A geographically diverse sample of country flags, seeded onto the canvas so
+// /dev/social opens ready to screenshot a “built in {country}” showcase for
+// social posts. Flags default to the `secondary` variant (their look in-app).
+const FLAG_SAMPLE = [
+  "us", "gb", "ca", "mx", "br", "ar",
+  "fr", "de", "es", "it", "nl", "pt",
+  "se", "no", "fi", "pl", "ua", "ie",
+  "jp", "kr", "cn", "in", "id", "sg",
+  "au", "nz", "za", "ng", "ke", "eg",
 ]
+
+const DEFAULT_ITEMS: BadgeItem[] = FLAG_SAMPLE.map((code) => ({
+  id: nextId(),
+  path: `/flag/${code}`,
+  variant: "secondary",
+  size: "sm",
+  font: "inter",
+  animate: "none",
+  label: "none",
+  labelText: "",
+}))
 
 // ---------------------------------------------------------------------------
 // Inline SVG badge — pure renderer. The page fetches each badge's base SVG
