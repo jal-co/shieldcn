@@ -57,6 +57,7 @@ const docsNav: NavGroup[] = [
     items: [
       { title: "Themes", href: "/docs/customization/themes" },
       { title: "Styles", href: "/docs/customization/styles" },
+      { title: "Logos & Icons", href: "/docs/customization/logos" },
       { title: "Fonts", href: "/docs/customization/fonts" },
       { title: "Light & Dark Mode", href: "/docs/customization/light-dark-mode" },
     ],
