@@ -6,8 +6,8 @@
  * badges from collapsing into "not found" on a transient upstream failure.
  */
 
-import { describe, it, expect, vi } from "vitest"
-import { cachedFetchStale } from "./cache"
+import { describe, it, expect, vi, afterEach } from "vitest"
+import { cachedFetchStale, setProviderAlertCallback, type ProviderAlert } from "./cache"
 
 // Unique key per case so the process-wide memory LRU doesn't bleed between tests.
 let n = 0
@@ -67,5 +67,37 @@ describe("cachedFetchStale", () => {
       vi.fn().mockRejectedValue(new Error("network")),
     )
     expect(result).toBeNull()
+  })
+})
+
+describe("provider alerts", () => {
+  afterEach(() => setProviderAlertCallback(null))
+
+  it("fires a badge_unavailable alert when a fetch fails with no cached value", async () => {
+    const alerts: ProviderAlert[] = []
+    setProviderAlertCallback((a) => alerts.push(a))
+
+    const result = await cachedFetchStale(
+      "test", freshKey(),
+      vi.fn().mockResolvedValue(null),
+    )
+
+    expect(result).toBeNull()
+    expect(alerts).toHaveLength(1)
+    expect(alerts[0]).toMatchObject({ provider: "test", reason: "badge_unavailable" })
+  })
+
+  it("does NOT alert when a stale value is available to serve", async () => {
+    const key = freshKey()
+    // Prime stale store, expire fresh immediately.
+    await cachedFetchStale("test", key, vi.fn().mockResolvedValue({ label: "x", value: "1" }), 0, 3600)
+
+    const alerts: ProviderAlert[] = []
+    setProviderAlertCallback((a) => alerts.push(a))
+
+    const result = await cachedFetchStale("test", key, vi.fn().mockResolvedValue(null), 0, 3600)
+
+    expect(result).toEqual({ label: "x", value: "1" })
+    expect(alerts).toHaveLength(0)
   })
 })

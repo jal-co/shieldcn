@@ -9,7 +9,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 import { nodeProfilingIntegration } from "@sentry/profiling-node"
-import { setCacheMetricsCallback } from "@shieldcn/core/cache"
+import { setCacheMetricsCallback, setProviderAlertCallback } from "@shieldcn/core/cache"
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
 
@@ -33,6 +33,23 @@ if (dsn) {
     Sentry.metrics.count(metric.name, metric.value, {
       attributes: metric.tags,
       unit: "none",
+    })
+  })
+
+  // Wire provider alerts to Sentry issues so a rate limit (429) or a badge
+  // that can't be served at all surfaces as an alertable error — not just a
+  // metric. `message` is stable per reason so recurring alerts group into a
+  // single issue; the variable detail rides along in tags/extra.
+  setProviderAlertCallback((alert) => {
+    Sentry.captureMessage(alert.message, {
+      level: alert.reason === "rate_limit" ? "warning" : "error",
+      tags: {
+        area: "badge",
+        provider: alert.provider,
+        reason: alert.reason,
+        ...(alert.status ? { status: String(alert.status) } : {}),
+      },
+      extra: alert.context ?? {},
     })
   })
 }

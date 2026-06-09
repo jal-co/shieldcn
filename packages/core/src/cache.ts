@@ -269,6 +269,52 @@ export function setCacheMetricsCallback(cb: typeof cacheMetricsCallback): void {
   cacheMetricsCallback = cb
 }
 
+// ---------------------------------------------------------------------------
+// Provider alerts (Sentry issues, not just metrics)
+// ---------------------------------------------------------------------------
+
+/**
+ * A provider-level alert worth surfacing as a Sentry issue (not just a
+ * metric counter). Examples: an upstream rate limit (429), or a badge that
+ * could not be served at all because the upstream failed and there was no
+ * last-known-good value to fall back to.
+ *
+ * `reason` and `message` are kept stable so Sentry groups recurring alerts
+ * into a single issue; `context` carries the variable detail (path, url).
+ */
+export interface ProviderAlert {
+  /** Provider name, e.g. "github". */
+  provider: string
+  /** What went wrong — used for triage and Sentry grouping. */
+  reason: "rate_limit" | "unavailable" | "badge_unavailable"
+  /** HTTP status, when applicable (e.g. 429, 503). */
+  status?: number
+  /** Stable human-readable summary (avoid per-request detail here). */
+  message: string
+  /** Variable context (badge path, url) — not used for grouping. */
+  context?: Record<string, string>
+}
+
+let providerAlertCallback: ((alert: ProviderAlert) => void) | null = null
+
+/**
+ * Register a callback to receive provider alerts. Apps wire this to
+ * Sentry.captureMessage (or any alerting backend); core stays
+ * dependency-free. Call once at app startup.
+ */
+export function setProviderAlertCallback(cb: ((alert: ProviderAlert) => void) | null): void {
+  providerAlertCallback = cb
+}
+
+/** Emit a provider alert. No-op if no callback is registered; never throws. */
+export function reportProviderAlert(alert: ProviderAlert): void {
+  try {
+    providerAlertCallback?.(alert)
+  } catch {
+    // Alerting must never break a badge response.
+  }
+}
+
 export async function cachedFetch<T>(
   provider: string,
   key: string,
@@ -377,7 +423,10 @@ export async function cachedFetchStale<T>(
     tags: { provider, result: "miss" },
   })
 
-  // Helper: serve last-known-good if we have it.
+  // Helper: serve last-known-good if we have it, otherwise surface that the
+  // badge could not be served at all (upstream failed and there is no cached
+  // value to fall back to) so it shows up in Sentry rather than silently
+  // rendering "not found".
   const serveStale = async (): Promise<T | null> => {
     const stale = await cacheGet<T>(staleKey)
     if (stale !== undefined) {
@@ -387,6 +436,12 @@ export async function cachedFetchStale<T>(
       })
       return stale
     }
+    reportProviderAlert({
+      provider,
+      reason: "badge_unavailable",
+      message: `${provider} badge unavailable (upstream failed, no cached value)`,
+      context: { key },
+    })
     return null
   }
 

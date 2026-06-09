@@ -106,6 +106,7 @@ import {
   getGitHubDownloadsAssetTag,
   getGitHubFollowers,
   getGitHubUserStars,
+  githubRepoExists,
 } from "./providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
 import { parseStaticBadgeContent, getDynamicJsonBadge, getFlagBadge } from "./providers/badge"
@@ -327,6 +328,7 @@ async function resolveGitHubBadge(
     extra = rest.slice(3)
   }
 
+  const result: BadgeData | null = await (async (): Promise<BadgeData | null> => {
   switch (topic) {
     // Repo metadata
     case "stars":       return getGitHubStars(owner, repo)
@@ -413,6 +415,26 @@ async function resolveGitHubBadge(
 
     default: return null
   }
+  })()
+
+  if (result !== null) return result
+
+  // The topic resolver returned nothing. Definitively distinguish a genuine
+  // bad/typo'd repo from a transient upstream blip: a real 404 renders
+  // "invalid repository" (a clear, terminal state), while anything we can't
+  // confirm stays null so the caller serves last-known-good / a short-lived
+  // "not found" that self-heals.
+  const exists = await githubRepoExists(owner, repo)
+  if (exists === false) {
+    return {
+      label: "github",
+      value: "invalid repository",
+      color: "failure",
+      link: `https://github.com/${owner}/${repo}`,
+    }
+  }
+
+  return null
 }
 
 async function fetchBadgeData(
