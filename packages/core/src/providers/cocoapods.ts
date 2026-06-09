@@ -42,24 +42,12 @@ export async function getCocoaPodsVersion(pod: string): Promise<BadgeData | null
 // ---------------------------------------------------------------------------
 
 export async function getCocoaPodsLicense(pod: string): Promise<BadgeData | null> {
+  // The trunk API doesn't expose license info; just confirm the pod exists
+  // and point at its page. (A previous version also fetched the CDN spec
+  // index here, but every branch returned the same badge — dead weight and a
+  // hang risk for zero signal.)
   const data = await podFetch(pod)
   if (!data) return null
-
-  // Fetch the spec for license info
-  try {
-    const r = await fetch(
-      `https://cdn.cocoapods.org/all_pods_versions_${pod.charAt(0).toLowerCase()}_${pod.charAt(1).toLowerCase()}_${pod.charAt(2).toLowerCase()}.txt`,
-      { next: { revalidate: 86400 } }
-    )
-    // Fallback: just return the pod page
-    if (!r.ok) {
-      return {
-        label: "license",
-        value: "see pod",
-        link: `https://cocoapods.org/pods/${pod}`,
-      }
-    }
-  } catch { /* ignore */ }
 
   return {
     label: "license",

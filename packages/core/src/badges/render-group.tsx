@@ -16,6 +16,7 @@ import { readFileSync, existsSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { BadgeConfig } from "./types"
+import { sanitizeBadgeText } from "./render"
 import {
   darkMode,
   lightMode,
@@ -200,8 +201,8 @@ function resolveSegment(
   const dotSize = Math.round(bz.fontSize * 0.5)
 
   return {
-    label: seg.label,
-    value: seg.value,
+    label: sanitizeBadgeText(seg.label),
+    value: sanitizeBadgeText(seg.value),
     fontFamily,
     height: bz.height,
     paddingX: bz.paddingX,

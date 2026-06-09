@@ -10,7 +10,7 @@ import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
 import { parseAnimate } from "./badges/animate"
 import { renderGif } from "./badges/gif"
 import { renderBadgeGroup, type GroupSegment, type GroupConfig } from "./badges/render-group"
-import { resolveTheme, applyColorOverrides, statusColors } from "./badges/themes"
+import { resolveTheme, applyColorOverrides, statusColors, resolveColor } from "./badges/themes"
 import { getSimpleIcon } from "./badges/simple-icons"
 import { isTwemojiLogo, resolveTwemojiSvg } from "./badges/twemoji"
 import { getProviderBrandColor } from "./badges/brand-colors"
@@ -157,6 +157,7 @@ import { getMatrixMembers } from "./providers/matrix"
 import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 import { getShipperClubMember } from "./providers/shipperclub"
 import { cachedFetchStale } from "./cache"
+import { raceTimeout } from "./provider-fetch"
 
 /** Response format. */
 type Format = "svg" | "png" | "gif" | "json" | "shields"
@@ -233,6 +234,7 @@ function parseFormat(segments: string[]): {
   cleanSegments: string[]
 } {
   const last = segments[segments.length - 1]
+  if (!last) return { format: "svg", cleanSegments: [] }
 
   // /provider/.../shields.json
   if (last === "shields.json") {
@@ -1366,23 +1368,38 @@ async function fetchBadgeData(
       const endpointUrl = `https://${rest.join("/")}`
 
       try {
-        const response = await fetch(endpointUrl, {
+        const response = await raceTimeout(fetch(endpointUrl, {
           headers: { Accept: "application/json", "User-Agent": "shieldcn/1.0" },
           next: { revalidate: 300 },
-        })
+        }))
+        // Failure verdicts carry `error: true` so they get short error cache
+        // headers and self-heal instead of being pinned at the CDN like a
+        // success.
+        if (!response) {
+          return { label: "endpoint", value: "timeout", color: "red", error: true }
+        }
         if (!response.ok) {
-          return { label: "endpoint", value: `${response.status}`, color: "red" }
+          return { label: "endpoint", value: `${response.status}`, color: "red", error: true }
         }
         const data = await response.json()
 
-        // Support both badgen format (subject/status) and our format (label/value)
-        const label = data.label || data.subject || "badge"
-        const value = data.value || data.status || data.message || "unknown"
-        const color = data.color || undefined
+        // Support both badgen format (subject/status) and our format
+        // (label/value). The endpoint is arbitrary user-supplied JSON — coerce
+        // to strings so an object can never paint "[object Object]" or crash
+        // the renderer, and accept legitimate falsy values like 0.
+        const asText = (v: unknown): string | undefined => {
+          if (v === null || v === undefined) return undefined
+          if (typeof v === "string") return v || undefined
+          if (typeof v === "number" || typeof v === "boolean") return String(v)
+          return undefined
+        }
+        const label = asText(data.label) ?? asText(data.subject) ?? "badge"
+        const value = asText(data.value) ?? asText(data.status) ?? asText(data.message) ?? "unknown"
+        const color = typeof data.color === "string" ? data.color : undefined
 
         return { label, value, color } as BadgeData
       } catch {
-        return { label: "endpoint", value: "error", color: "red" }
+        return { label: "endpoint", value: "error", color: "red", error: true }
       }
     }
 
@@ -1528,13 +1545,12 @@ async function handleBadgeGroup(
   const theme = searchParams.get("theme") ?? undefined
   const fontParam = searchParams.get("font") ?? undefined
   const font = (fontParam && ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"].includes(fontParam) ? fontParam : undefined) as GroupConfig["font"]
-  const logoColor = searchParams.get("logoColor") ?? undefined
+  const logoColor = resolveColor(searchParams.get("logoColor"))
 
-
-  const hasThemeOverride = !!(theme || searchParams.get("color") || searchParams.get("labelColor"))
+  const colorOverride = resolveColor(searchParams.get("color"))
+  const labelColorOverride = resolveColor(searchParams.get("labelColor"))
+  const hasThemeOverride = !!(theme || colorOverride || labelColorOverride)
   let colors = resolveTheme(theme)
-  const colorOverride = searchParams.get("color") ?? undefined
-  const labelColorOverride = searchParams.get("labelColor") ?? undefined
   colors = applyColorOverrides(colors, { color: colorOverride, labelColor: labelColorOverride })
 
   // Fetch all badge data in parallel
@@ -1836,7 +1852,7 @@ async function handleBadgeGETInner(
   const fontParam = searchParams.get("font") ?? undefined
   const font = (fontParam && ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "roboto", "space-grotesk"].includes(fontParam) ? fontParam : undefined) as BadgeConfig["font"]
   const logoParam = searchParams.get("logo")
-  const logoColor = searchParams.get("logoColor") ?? undefined
+  const logoColor = resolveColor(searchParams.get("logoColor"))
 
   // Flag badges: fetch the full-color flag SVG to render as a left inset.
   // Default to the `secondary` variant so the flag chip sits on a soft surface.
@@ -1849,29 +1865,31 @@ async function handleBadgeGETInner(
     // data.link is the resolved flag CDN URL (set by getFlagBadge).
     if (data.link) {
       try {
-        const flagRes = await fetch(data.link, {
+        const flagRes = await raceTimeout(fetch(data.link, {
           next: { revalidate: 86400 },
           headers: { Accept: "image/svg+xml", "User-Agent": "shieldcn/1.0" },
-        })
-        if (flagRes.ok) flagSvg = await flagRes.text()
+        }))
+        if (flagRes?.ok) flagSvg = await flagRes.text()
       } catch {
         // No flag art — fall back to a normal text badge.
       }
     }
   }
 
-  // Resolve colors
+  // Resolve colors. User-supplied color params are validated (named → hex,
+  // invalid → dropped) so garbage can never reach the renderer.
   const isStaticBadge = cleanSegments[0] === "badge" || cleanSegments[0] === "https"
-  const hasThemeOverride = !!(theme || searchParams.get("color") || searchParams.get("labelColor") || (isStaticBadge && data.color))
-  let colors = resolveTheme(theme)
 
   // Color overrides:
-  // 1. ?color= query param always wins (user-specified hex)
+  // 1. ?color= query param always wins (user-specified hex or named color)
   // 2. For static badges (/badge/...), data.color is a resolved hex from the path
   // 3. For provider badges, data.color is a status keyword — handled by statusColor
-  const colorOverride = searchParams.get("color")
-    ?? (isStaticBadge && data.color ? data.color : undefined)
-  const labelColorOverride = searchParams.get("labelColor") ?? undefined
+  const colorOverride = resolveColor(searchParams.get("color"))
+    ?? (isStaticBadge ? resolveColor(data.color) : undefined)
+  const labelColorOverride = resolveColor(searchParams.get("labelColor"))
+
+  const hasThemeOverride = !!(theme || colorOverride || labelColorOverride)
+  let colors = resolveTheme(theme)
 
   colors = applyColorOverrides(colors, {
     color: colorOverride,
@@ -2041,12 +2059,26 @@ async function handleBadgeGETInner(
   // Override label if provided
   const label = searchParams.get("label") || data.label
 
-  // Parse configurable layout params
+  // Parse configurable layout params. Each is clamped to a sane range — an
+  // unbounded ?height=1e9 would otherwise balloon the Satori render, and
+  // negative values break layout.
+  const NUM_BOUNDS: Record<string, [number, number]> = {
+    labelOpacity: [0, 1],
+    height: [8, 240],
+    fontSize: [5, 120],
+    radius: [0, 120],
+    padX: [0, 120],
+    iconSize: [0, 120],
+    gap: [0, 60],
+    labelGap: [0, 60],
+  }
   function num(key: string): number | undefined {
     const v = searchParams.get(key)
     if (v === null) return undefined
     const n = parseFloat(v)
-    return isNaN(n) ? undefined : n
+    if (!Number.isFinite(n)) return undefined
+    const [min, max] = NUM_BOUNDS[key] ?? [0, 1000]
+    return Math.min(max, Math.max(min, n))
   }
 
   // Parse gradient
@@ -2084,8 +2116,8 @@ async function handleBadgeGETInner(
     flagSvg,
     emojiSvg,
     animate,
-    valueColor: searchParams.get("valueColor") ?? undefined,
-    labelTextColor: searchParams.get("labelTextColor") ?? undefined,
+    valueColor: resolveColor(searchParams.get("valueColor")),
+    labelTextColor: resolveColor(searchParams.get("labelTextColor")),
     labelOpacity: num("labelOpacity"),
     height: num("height"),
     fontSize: num("fontSize"),

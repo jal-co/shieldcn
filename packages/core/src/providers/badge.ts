@@ -13,6 +13,8 @@
 
 import type { BadgeData } from "../badges/types"
 import { JSONPath } from "jsonpath-plus"
+import { resolveColor } from "../badges/themes"
+import { raceTimeout } from "../provider-fetch"
 import flagNames from "../badges/flags.json"
 
 // Country flags come from `country-flag-icons` (catamphetamine), 3x2 aspect.
@@ -59,54 +61,6 @@ export async function getFlagBadge(code: string): Promise<BadgeData | null> {
     value: name,
     link: `${FLAG_CDN_BASE}/${cdnCode}.svg`,
   }
-}
-
-// ---------------------------------------------------------------------------
-// Named color map (subset matching shields.io / badge-maker)
-// ---------------------------------------------------------------------------
-
-const NAMED_COLORS: Record<string, string> = {
-  brightgreen: "44cc11",
-  green: "16a34a",
-  yellow: "d97706",
-  yellowgreen: "a3e635",
-  orange: "ea580c",
-  red: "dc2626",
-  blue: "2563eb",
-  grey: "6b7280",
-  gray: "6b7280",
-  lightgrey: "9ca3af",
-  lightgray: "9ca3af",
-  critical: "dc2626",
-  important: "ea580c",
-  success: "16a34a",
-  informational: "2563eb",
-  inactive: "9ca3af",
-  // CSS named colors (common subset)
-  black: "000000",
-  white: "ffffff",
-  purple: "9333ea",
-  violet: "7c3aed",
-  pink: "ec4899",
-  cyan: "0891b2",
-  teal: "0d9488",
-  lime: "84cc16",
-  indigo: "6366f1",
-}
-
-/**
- * Resolve a color string to a hex value (without #).
- * Accepts: named colors, hex (with or without #), or returns undefined.
- */
-function resolveColor(color: string | undefined): string | undefined {
-  if (!color) return undefined
-  const lower = color.toLowerCase()
-  if (NAMED_COLORS[lower]) return NAMED_COLORS[lower]
-  // Strip leading # if present
-  const hex = lower.replace(/^#/, "")
-  // Validate hex: 3, 4, 6, or 8 hex chars
-  if (/^[0-9a-f]{3,8}$/i.test(hex)) return hex
-  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -211,19 +165,31 @@ export async function getDynamicJsonBadge(
   if (!jsonUrl || !query) return null
 
   try {
-    const response = await fetch(jsonUrl, {
+    const response = await raceTimeout(fetch(jsonUrl, {
       next: { revalidate: 300 },
       headers: {
         Accept: "application/json",
         "User-Agent": "shieldcn/1.0",
       },
-    })
+    }))
+    if (!response) {
+      return {
+        label: searchParams.get("label") || "error",
+        value: "timeout",
+        color: "red",
+        // Failure verdicts are still informative badges, but they must carry
+        // short error cache headers so they self-heal instead of being pinned
+        // at the CDN for an hour like a success.
+        error: true,
+      }
+    }
 
     if (!response.ok) {
       return {
         label: searchParams.get("label") || "error",
         value: `${response.status}`,
         color: "red",
+        error: true,
       }
     }
 
@@ -235,10 +201,12 @@ export async function getDynamicJsonBadge(
         label: searchParams.get("label") || "custom",
         value: "not found",
         color: "red",
+        error: true,
       }
     }
 
-    let value = String(results[0])
+    const first = results[0]
+    let value = typeof first === "object" && first !== null ? JSON.stringify(first) : String(first)
     const prefix = searchParams.get("prefix") || ""
     const suffix = searchParams.get("suffix") || ""
     value = `${prefix}${value}${suffix}`
@@ -252,6 +220,7 @@ export async function getDynamicJsonBadge(
       label: searchParams.get("label") || "error",
       value: "fetch failed",
       color: "red",
+      error: true,
     }
   }
 }

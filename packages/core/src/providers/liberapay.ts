@@ -78,7 +78,8 @@ export async function getLiberapayGoal(username: string): Promise<BadgeData | nu
   const receiving = data.receiving as Record<string, string> | undefined
   const receivingAmount = receiving?.amount ? parseFloat(receiving.amount) : 0
   const goalAmount = amount ? parseFloat(amount) : 0
-  const pct = goalAmount > 0 ? Math.round((receivingAmount / goalAmount) * 100) : 0
+  const rawPct = goalAmount > 0 ? Math.round((receivingAmount / goalAmount) * 100) : 0
+  const pct = Number.isFinite(rawPct) ? rawPct : 0
 
   return {
     label: "goal",

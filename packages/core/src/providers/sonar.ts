@@ -29,9 +29,17 @@ async function sonarFetch(
 function getMeasureValue(data: Record<string, unknown>, metric: string): string | undefined {
   const component = data.component as Record<string, unknown> | undefined
   const measures = component?.measures as Array<Record<string, string>> | undefined
-  if (!measures) return undefined
+  if (!Array.isArray(measures)) return undefined
   const m = measures.find(m => m.metric === metric)
   return m?.value
+}
+
+/** Parse a measure value as a number; undefined (never NaN) when not numeric. */
+function getMeasureNumber(data: Record<string, unknown>, metric: string): number | undefined {
+  const value = getMeasureValue(data, metric)
+  if (value === undefined) return undefined
+  const n = parseFloat(value)
+  return Number.isFinite(n) ? n : undefined
 }
 
 function ratingToLetter(value: string): string {
@@ -75,12 +83,12 @@ export async function getSonarQualityGate(component: string, server?: string): P
 export async function getSonarBugs(component: string, server?: string): Promise<BadgeData | null> {
   const data = await sonarFetch(component, "bugs", server)
   if (!data) return null
-  const value = getMeasureValue(data, "bugs")
+  const value = getMeasureNumber(data, "bugs")
   if (value === undefined) return null
 
   return {
     label: "bugs",
-    value: formatCount(parseInt(value)),
+    value: formatCount(value),
     link: `https://${server ?? "sonarcloud.io"}/project/issues?id=${component}&resolved=false&types=BUG`,
   }
 }
@@ -92,12 +100,12 @@ export async function getSonarBugs(component: string, server?: string): Promise<
 export async function getSonarVulnerabilities(component: string, server?: string): Promise<BadgeData | null> {
   const data = await sonarFetch(component, "vulnerabilities", server)
   if (!data) return null
-  const value = getMeasureValue(data, "vulnerabilities")
+  const value = getMeasureNumber(data, "vulnerabilities")
   if (value === undefined) return null
 
   return {
     label: "vulnerabilities",
-    value: formatCount(parseInt(value)),
+    value: formatCount(value),
     link: `https://${server ?? "sonarcloud.io"}/project/issues?id=${component}&resolved=false&types=VULNERABILITY`,
   }
 }
@@ -109,12 +117,12 @@ export async function getSonarVulnerabilities(component: string, server?: string
 export async function getSonarCodeSmells(component: string, server?: string): Promise<BadgeData | null> {
   const data = await sonarFetch(component, "code_smells", server)
   if (!data) return null
-  const value = getMeasureValue(data, "code_smells")
+  const value = getMeasureNumber(data, "code_smells")
   if (value === undefined) return null
 
   return {
     label: "code smells",
-    value: formatCount(parseInt(value)),
+    value: formatCount(value),
     link: `https://${server ?? "sonarcloud.io"}/project/issues?id=${component}&resolved=false&types=CODE_SMELL`,
   }
 }
@@ -126,10 +134,9 @@ export async function getSonarCodeSmells(component: string, server?: string): Pr
 export async function getSonarCoverage(component: string, server?: string): Promise<BadgeData | null> {
   const data = await sonarFetch(component, "coverage", server)
   if (!data) return null
-  const value = getMeasureValue(data, "coverage")
-  if (value === undefined) return null
+  const pct = getMeasureNumber(data, "coverage")
+  if (pct === undefined) return null
 
-  const pct = parseFloat(value)
   let color: string | undefined
   if (pct >= 80) color = "green"
   else if (pct >= 60) color = "yellow"
@@ -151,12 +158,12 @@ export async function getSonarCoverage(component: string, server?: string): Prom
 export async function getSonarDuplicatedLines(component: string, server?: string): Promise<BadgeData | null> {
   const data = await sonarFetch(component, "duplicated_lines_density", server)
   if (!data) return null
-  const value = getMeasureValue(data, "duplicated_lines_density")
+  const value = getMeasureNumber(data, "duplicated_lines_density")
   if (value === undefined) return null
 
   return {
     label: "duplicated lines",
-    value: `${parseFloat(value)}%`,
+    value: `${value}%`,
     link: `https://${server ?? "sonarcloud.io"}/component_measures?id=${component}&metric=duplicated_lines_density`,
   }
 }

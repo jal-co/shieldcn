@@ -160,6 +160,57 @@ export const themes: Record<ThemeName, ResolvedColors> = {
 /** Default theme. */
 export const DEFAULT_THEME: ThemeName = "zinc"
 
+// ---------------------------------------------------------------------------
+// User-supplied color validation
+// ---------------------------------------------------------------------------
+
+/** Named color map (subset matching shields.io / badge-maker). */
+export const NAMED_COLORS: Record<string, string> = {
+  brightgreen: "44cc11",
+  green: "16a34a",
+  yellow: "d97706",
+  yellowgreen: "a3e635",
+  orange: "ea580c",
+  red: "dc2626",
+  blue: "2563eb",
+  grey: "6b7280",
+  gray: "6b7280",
+  lightgrey: "9ca3af",
+  lightgray: "9ca3af",
+  critical: "dc2626",
+  important: "ea580c",
+  success: "16a34a",
+  informational: "2563eb",
+  inactive: "9ca3af",
+  // CSS named colors (common subset)
+  black: "000000",
+  white: "ffffff",
+  purple: "9333ea",
+  violet: "7c3aed",
+  pink: "ec4899",
+  cyan: "0891b2",
+  teal: "0d9488",
+  lime: "84cc16",
+  indigo: "6366f1",
+}
+
+/**
+ * Resolve a user-supplied color string to a normalized hex value (without #).
+ * Accepts named colors and 3/4/6/8-digit hex (with or without #). Short hex
+ * is expanded (abc → aabbcc) so downstream luminance math sees full channels.
+ * Returns undefined for anything invalid — callers must drop the override
+ * rather than pass garbage into the renderer.
+ */
+export function resolveColor(color: string | undefined | null): string | undefined {
+  if (!color) return undefined
+  const lower = color.toLowerCase().trim()
+  if (NAMED_COLORS[lower]) return NAMED_COLORS[lower]
+  const hex = lower.replace(/^#/, "")
+  if (!/^([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(hex)) return undefined
+  if (hex.length <= 4) return hex.split("").map(c => c + c).join("")
+  return hex
+}
+
 /**
  * Resolve a theme name to hex colors.
  * Falls back to the default theme for unknown names.
@@ -197,16 +248,20 @@ export function applyColorOverrides(
   overrides: { color?: string; labelColor?: string }
 ): ResolvedColors {
   const result = { ...colors }
-  if (overrides.color) {
-    const hex = `#${overrides.color}`
+  // Validate before use — an unvalidated ?color= would flow straight into
+  // the SVG and break the render for anything that isn't a clean hex value.
+  const color = resolveColor(overrides.color)
+  if (color) {
+    const hex = `#${color}`
     const textColor = isLightColor(hex) ? "#18181b" : "#ffffff"
     result.labelBg = hex
     result.valueBg = hex
     result.valueFg = textColor
     result.labelFg = textColor
   }
-  if (overrides.labelColor) {
-    const hex = `#${overrides.labelColor}`
+  const labelColor = resolveColor(overrides.labelColor)
+  if (labelColor) {
+    const hex = `#${labelColor}`
     const textColor = isLightColor(hex) ? "#18181b" : "#ffffff"
     result.labelBg = hex
     result.labelFg = textColor

@@ -9,6 +9,7 @@
 import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
 import { cachedFetch, handleUpstreamStatus } from "../cache"
+import { raceTimeout } from "../provider-fetch"
 
 interface VSCodeExtension {
   results: Array<{
@@ -24,7 +25,7 @@ async function vscodeFetch(publisher: string, extension: string): Promise<VSCode
     "vscode",
     `ext:${publisher}:${extension}`,
     async () => {
-      const r = await fetch("https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery", {
+      const r = await raceTimeout(fetch("https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,17 +38,24 @@ async function vscodeFetch(publisher: string, extension: string): Promise<VSCode
           flags: 914,
         }),
         next: { revalidate: 3600 },
-      })
+      }))
+      if (!r) return null
       handleUpstreamStatus("vscode", r.status)
       if (!r.ok) return null
-      return r.json()
+      try {
+        return await r.json()
+      } catch {
+        return null
+      }
     },
     3600,
   )
 }
 
-function getStat(stats: Array<{ statisticName: string; value: number }>, name: string): number {
-  return stats.find(s => s.statisticName === name)?.value ?? 0
+function getStat(stats: Array<{ statisticName: string; value: number }> | undefined, name: string): number {
+  if (!Array.isArray(stats)) return 0
+  const value = stats.find(s => s.statisticName === name)?.value
+  return typeof value === "number" && Number.isFinite(value) ? value : 0
 }
 
 // ---------------------------------------------------------------------------

@@ -92,7 +92,7 @@ function profileLink(username: string): string {
 
 export async function getTokscaleTokens(username: string): Promise<BadgeData | null> {
   const data = await fetchUserProfile(username)
-  if (!data) return { label: "tokscale", value: "not found" }
+  if (!data) return null
   return {
     label: "tokens",
     value: formatTokens(data.stats.totalTokens),
@@ -102,7 +102,7 @@ export async function getTokscaleTokens(username: string): Promise<BadgeData | n
 
 export async function getTokscaleCost(username: string): Promise<BadgeData | null> {
   const data = await fetchUserProfile(username)
-  if (!data) return { label: "tokscale", value: "not found" }
+  if (!data) return null
   return {
     label: "cost",
     value: formatCost(data.stats.totalCost),
@@ -112,7 +112,7 @@ export async function getTokscaleCost(username: string): Promise<BadgeData | nul
 
 export async function getTokscaleRank(username: string): Promise<BadgeData | null> {
   const data = await fetchUserProfile(username)
-  if (!data) return { label: "tokscale", value: "not found" }
+  if (!data) return null
   return {
     label: "rank",
     value: `#${data.user.rank}`,
@@ -122,7 +122,7 @@ export async function getTokscaleRank(username: string): Promise<BadgeData | nul
 
 export async function getTokscaleActiveDays(username: string): Promise<BadgeData | null> {
   const data = await fetchUserProfile(username)
-  if (!data) return { label: "tokscale", value: "not found" }
+  if (!data) return null
   return {
     label: "active days",
     value: `${data.stats.activeDays}`,

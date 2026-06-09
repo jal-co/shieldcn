@@ -120,18 +120,20 @@ export async function getGitLabMergeRequests(owner: string, repo: string, state:
 // ---------------------------------------------------------------------------
 
 export async function getGitLabPipeline(owner: string, repo: string, branch?: string): Promise<BadgeData | null> {
-  const branchParam = branch ? `?ref=${encodeURIComponent(branch)}` : ""
+  const params = new URLSearchParams({ per_page: "1", order_by: "id", sort: "desc" })
+  if (branch) params.set("ref", branch)
   const data = await providerFetch<unknown[]>({
     provider: "gitlab",
     cacheKey: `pipeline:${owner}/${repo}:${branch ?? "default"}`,
-    url: `https://gitlab.com/api/v4/projects/${encodeProject(owner, repo)}/pipelines${branchParam}&per_page=1&order_by=id&sort=desc`,
+    url: `https://gitlab.com/api/v4/projects/${encodeProject(owner, repo)}/pipelines?${params}`,
     ttl: 300,
   })
   if (!data || !Array.isArray(data) || data.length === 0) return null
 
   const pipeline = data[0] as Record<string, unknown>
-  const status = pipeline.status as string
-  const ref = pipeline.ref as string
+  const status = pipeline.status
+  if (typeof status !== "string") return null
+  const ref = typeof pipeline.ref === "string" ? pipeline.ref : undefined
 
   const statusMap: Record<string, string> = {
     success: "passing",

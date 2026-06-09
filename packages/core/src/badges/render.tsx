@@ -214,6 +214,20 @@ interface ResolvedBadge {
 // Resolve: variant × theme × overrides → ResolvedBadge
 // ---------------------------------------------------------------------------
 
+/**
+ * Hard cap on badge text length. Provider data and /badge/... path segments
+ * are user-controlled; an unbounded string would render a megabyte-wide SVG.
+ * Also coerces non-strings so a provider bug can never crash Satori or paint
+ * a literal "undefined" into the badge.
+ */
+const MAX_TEXT_LENGTH = 256
+
+export function sanitizeBadgeText(input: unknown): string {
+  if (input === null || input === undefined) return ""
+  const s = typeof input === "string" ? input : String(input)
+  return s.length > MAX_TEXT_LENGTH ? `${s.slice(0, MAX_TEXT_LENGTH - 1)}…` : s
+}
+
 function resolve(config: BadgeConfig): ResolvedBadge {
   const mode = config.mode === "light" ? lightMode : darkMode
   const bs = getButtonStyle(config.style, mode, config.brandColor)
@@ -321,8 +335,8 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   }
 
   return {
-    label: config.label,
-    value: config.value,
+    label: sanitizeBadgeText(config.label),
+    value: sanitizeBadgeText(config.value),
     fontFamily,
     height,
     paddingX,
@@ -466,10 +480,14 @@ function inlineDataUriImages(svg: string): string {
       return match
     }
 
-    // Extract viewBox from inner SVG
+    // Extract viewBox from inner SVG. Guard against malformed values (a
+    // user-supplied ?logo= data URI can carry a garbage viewBox) — a NaN or
+    // zero dimension would otherwise produce scale(NaN) and a broken badge.
     const vbMatch = innerSvg.match(/viewBox="([^"]+)"/)
     const viewBox = vbMatch ? vbMatch[1].split(/\s+/).map(Number) : [0, 0, 24, 24]
-    const [, , vbWidth, vbHeight] = viewBox
+    let [, , vbWidth, vbHeight] = viewBox
+    if (!Number.isFinite(vbWidth) || vbWidth <= 0) vbWidth = 24
+    if (!Number.isFinite(vbHeight) || vbHeight <= 0) vbHeight = 24
 
     // Extract any <g transform="..."> wrapper from inner SVG (e.g. rotation)
     const gTransformMatch = innerSvg.match(/<g\s+transform="([^"]+)">/)

@@ -12,6 +12,25 @@
 
 import { cachedFetch, handleUpstreamStatus } from "./cache"
 
+/**
+ * Hard cap on upstream latency. A hung upstream must fail fast so the badge
+ * route can fall back instead of hanging until the platform kills the request
+ * (README image proxies time out and show a broken image). Implemented as a
+ * race rather than an AbortSignal so the `next: { revalidate }` fetch cache
+ * behavior is untouched.
+ */
+export const UPSTREAM_TIMEOUT_MS = 8_000
+
+/** Resolve to `null` if `promise` takes longer than `ms`. */
+export function raceTimeout<T>(promise: Promise<T>, ms: number = UPSTREAM_TIMEOUT_MS): Promise<T | null> {
+  // Swallow the late rejection if the timeout wins the race.
+  promise.catch(() => {})
+  return Promise.race([
+    promise,
+    new Promise<null>(resolve => setTimeout(() => resolve(null), ms)),
+  ])
+}
+
 interface ProviderFetchOptions {
   /** Provider name (e.g. "npm", "discord"). Used for backoff + budgets. */
   provider: string
@@ -40,19 +59,25 @@ export async function providerFetch<T = Record<string, unknown>>(
     provider,
     cacheKey,
     async () => {
-      const response = await fetch(url, {
+      const response = await raceTimeout(fetch(url, {
         headers: {
           Accept: "application/json",
           "User-Agent": "shieldcn/1.0",
           ...headers,
         },
         next: { revalidate: revalidate ?? ttl },
-      })
+      }))
+      if (!response) return null
 
       handleUpstreamStatus(provider, response.status)
 
       if (!response.ok) return null
-      return response.json() as Promise<T>
+      try {
+        return await (response.json() as Promise<T>)
+      } catch {
+        // Truncated / malformed body — treat as a transient failure.
+        return null
+      }
     },
     ttl,
   )
@@ -71,18 +96,23 @@ export async function providerFetchText(
     provider,
     cacheKey,
     async () => {
-      const response = await fetch(url, {
+      const response = await raceTimeout(fetch(url, {
         headers: {
           "User-Agent": "shieldcn/1.0",
           ...headers,
         },
         next: { revalidate: revalidate ?? ttl },
-      })
+      }))
+      if (!response) return null
 
       handleUpstreamStatus(provider, response.status)
 
       if (!response.ok) return null
-      return response.text()
+      try {
+        return await response.text()
+      } catch {
+        return null
+      }
     },
     ttl,
   )

@@ -15,6 +15,7 @@
  */
 
 import { cacheGet, cacheSet } from "../cache"
+import { raceTimeout } from "../provider-fetch"
 
 // Pinned release of jdecked/twemoji. Bump deliberately; @latest would risk a
 // silent upstream change breaking cached codepoint → asset mappings.
@@ -104,9 +105,10 @@ export async function resolveTwemojiSvg(logo: string): Promise<string | null> {
   if (cached !== undefined) return cached || null
 
   try {
-    const res = await fetch(`${TWEMOJI_BASE}/${codepoint}.svg`, {
+    const res = await raceTimeout(fetch(`${TWEMOJI_BASE}/${codepoint}.svg`, {
       headers: { Accept: "image/svg+xml", "User-Agent": "shieldcn/1.0" },
-    })
+    }))
+    if (!res) return null
     if (!res.ok) {
       // Cache the miss briefly so a bad emoji doesn't hammer the CDN.
       await cacheSet(cacheKeyId, "", 60 * 10)

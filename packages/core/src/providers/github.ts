@@ -13,35 +13,61 @@ import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
 import { pickToken, invalidateToken } from "../token-pool"
 import { isBackedOff, recordBackoff, clearBackoff } from "../cache"
+import { raceTimeout } from "../provider-fetch"
 
 // ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
+
+/**
+ * True when a response is a rate limit. GitHub signals primary and secondary
+ * rate limits as 403 (with an exhausted quota header or a Retry-After), not
+ * just 429 — a plain 403 (e.g. a blocked repo) is NOT a rate limit.
+ */
+function isRateLimitResponse(response: Response): boolean {
+  if (response.status === 429) return true
+  return (
+    response.status === 403 &&
+    (response.headers.get("x-ratelimit-remaining") === "0" ||
+      response.headers.get("retry-after") !== null)
+  )
+}
 
 async function githubFetch(url: string, revalidate: number = 3600): Promise<Response | null> {
   if (isBackedOff("github")) return null
 
   try {
     const token = await pickToken()
-    const headers: HeadersInit = {
-      Accept: "application/vnd.github.v3+json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
-    const response = await fetch(url, { headers, next: { revalidate } })
+    const doFetch = (auth?: string) =>
+      raceTimeout(
+        fetch(url, {
+          headers: {
+            Accept: "application/vnd.github.v3+json",
+            ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+          },
+          next: { revalidate },
+        }),
+      )
 
-    // Track rate limits — recordBackoff also surfaces the Sentry alert.
-    if (response.status === 429 || response.status === 503) {
+    let response = await doFetch(token)
+    if (!response) return null
+
+    // A 401 means the pooled token was revoked — drop it from the pool and
+    // retry once unauthenticated. The retry goes through the same status
+    // checks below; it must never be returned unvetted.
+    if (response.status === 401 && token) {
+      await invalidateToken(token)
+      response = await doFetch()
+      if (!response) return null
+    }
+
+    // Track rate limits (429, or 403 with exhausted quota) and outages —
+    // recordBackoff also surfaces the Sentry alert.
+    if (isRateLimitResponse(response) || response.status === 503) {
       recordBackoff("github", response.status)
       return null
     }
 
-    if (response.status === 401 && token) {
-      await invalidateToken(token)
-      return fetch(url, {
-        headers: { Accept: "application/vnd.github.v3+json" },
-        next: { revalidate },
-      })
-    }
     if (!response.ok) return null
     clearBackoff("github")
     return response
@@ -53,18 +79,24 @@ async function githubFetch(url: string, revalidate: number = 3600): Promise<Resp
 async function githubJson(url: string, revalidate?: number): Promise<Record<string, unknown> | null> {
   const r = await githubFetch(url, revalidate)
   if (!r) return null
-  return r.json()
+  try {
+    return await r.json()
+  } catch {
+    // Truncated / malformed body — treat as a transient failure.
+    return null
+  }
 }
 
 function link(owner: string, repo: string, path = ""): string {
   return `https://github.com/${owner}/${repo}${path}`
 }
 
-function relDate(iso: string): string {
+function relDate(iso: string): string | null {
   const d = new Date(iso)
+  if (isNaN(d.getTime())) return null
   const now = new Date()
   const days = Math.floor((now.getTime() - d.getTime()) / 86_400_000)
-  if (days === 0) return "today"
+  if (days <= 0) return "today"
   if (days === 1) return "yesterday"
   if (days < 30) return `${days}d ago`
   const months = Math.floor(days / 30)
@@ -110,19 +142,32 @@ async function resolveRepo(owner: string, repo: string): Promise<{ owner: string
  * costs an extra call only when a badge would otherwise have failed.
  */
 export async function githubRepoExists(owner: string, repo: string): Promise<boolean | null> {
+  return githubHeadExists(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`)
+}
+
+/**
+ * HEAD-probe a GitHub API URL and definitively classify it:
+ * `true` (2xx), `false` (404), or `null` for anything we can't be sure about
+ * (rate limit, backoff, network, other status) — callers must treat `null`
+ * as transient, never as "does not exist".
+ */
+async function githubHeadExists(url: string): Promise<boolean | null> {
   if (isBackedOff("github")) return null
   try {
     const token = await pickToken()
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      method: "HEAD",
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      next: { revalidate: 3600 },
-    })
+    const response = await raceTimeout(
+      fetch(url, {
+        method: "HEAD",
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        next: { revalidate: 3600 },
+      }),
+    )
+    if (!response) return null
     if (response.status === 404) return false
-    if (response.status === 429 || response.status === 503) {
+    if (isRateLimitResponse(response) || response.status === 503) {
       recordBackoff("github", response.status)
       return null
     }
@@ -171,13 +216,19 @@ export async function getGitHubLicense(owner: string, repo: string): Promise<Bad
 // ---------------------------------------------------------------------------
 
 async function countPages(url: string): Promise<number | null> {
-  // GitHub returns Link header with last page for paginated endpoints
-  const r = await githubFetch(`${url}?per_page=1`)
+  // GitHub returns Link header with last page for paginated endpoints.
+  // The URL may already carry a query string (e.g. commits?sha=branch).
+  const sep = url.includes("?") ? "&" : "?"
+  const r = await githubFetch(`${url}${sep}per_page=1`)
   if (!r) return null
   const linkHeader = r.headers.get("link")
   if (!linkHeader) {
-    const data = await r.json()
-    return Array.isArray(data) ? data.length : 0
+    try {
+      const data = await r.json()
+      return Array.isArray(data) ? data.length : 0
+    } catch {
+      return null
+    }
   }
   const match = linkHeader.match(/page=(\d+)>;\s*rel="last"/)
   return match ? parseInt(match[1]) : 1
@@ -204,6 +255,7 @@ export async function getGitHubTags(owner: string, repo: string): Promise<BadgeD
 export async function getGitHubLatestTag(owner: string, repo: string): Promise<BadgeData | null> {
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/tags?per_page=1`)
   if (!d || !Array.isArray(d) || d.length === 0) return null
+  if (typeof d[0]?.name !== "string") return null
   return { label: "tag", value: d[0].name, link: link(owner, repo, "/tags") }
 }
 
@@ -217,8 +269,8 @@ export async function getGitHubRelease(owner: string, repo: string, channel?: st
     const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=20`)
     if (!d || !Array.isArray(d)) return null
     const stable = d.find((r: Record<string, unknown>) => !r.prerelease && !r.draft)
-    if (!stable) return null
-    return { label: "release", value: stable.tag_name as string, color: "blue", link: stable.html_url as string }
+    if (!stable || typeof stable.tag_name !== "string") return null
+    return { label: "release", value: stable.tag_name, color: "blue", link: typeof stable.html_url === "string" ? stable.html_url : link(owner, repo, "/releases") }
   }
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
   if (!d || typeof d.tag_name !== "string") return null
@@ -375,13 +427,13 @@ export async function getGitHubPRs(owner: string, repo: string, filter: string):
 export async function getGitHubMilestone(
   owner: string, repo: string, milestoneNumber: string
 ): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/milestones/${milestoneNumber}`)
-  if (!d) return null
-  const open = d.open_issues as number
-  const closed = d.closed_issues as number
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/milestones/${encodeURIComponent(milestoneNumber)}`)
+  if (!d || typeof d.title !== "string" || typeof d.open_issues !== "number" || typeof d.closed_issues !== "number") return null
+  const open = d.open_issues
+  const closed = d.closed_issues
   const total = open + closed
   const pct = total > 0 ? Math.round((closed / total) * 100) : 0
-  return { label: d.title as string, value: `${pct}%`, link: link(owner, repo, `/milestone/${milestoneNumber}`) }
+  return { label: d.title, value: `${pct}%`, link: link(owner, repo, `/milestone/${milestoneNumber}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -396,12 +448,15 @@ export async function getGitHubCommits(owner: string, repo: string, ref?: string
 }
 
 export async function getGitHubLastCommit(owner: string, repo: string, ref?: string): Promise<BadgeData | null> {
-  const branch = ref ? `?sha=${encodeURIComponent(ref)}` : ""
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/commits${branch}&per_page=1`.replace("&", "?").replace("??", "?"), 600)
+  const params = new URLSearchParams({ per_page: "1" })
+  if (ref) params.set("sha", ref)
+  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/commits?${params}`, 600)
   if (!d || !Array.isArray(d) || d.length === 0) return null
   const date = d[0].commit?.author?.date || d[0].commit?.committer?.date
-  if (!date) return null
-  return { label: "last commit", value: relDate(date), link: link(owner, repo, `/commits${ref ? `/${ref}` : ""}`) }
+  if (typeof date !== "string") return null
+  const rel = relDate(date)
+  if (rel === null) return null
+  return { label: "last commit", value: rel, link: link(owner, repo, `/commits${ref ? `/${ref}` : ""}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -414,9 +469,9 @@ export async function getGitHubAssetsDl(owner: string, repo: string, tag?: strin
     : `https://api.github.com/repos/${owner}/${repo}/releases/latest`
   const d = await githubJson(url)
   if (!d) return null
-  const assets = d.assets as Record<string, unknown>[]
-  if (!assets) return null
-  const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
+  const assets = d.assets
+  if (!Array.isArray(assets)) return null
+  const total = assets.reduce((sum: number, a) => sum + (typeof a.download_count === "number" ? a.download_count : 0), 0)
   return { label: "downloads", value: formatCount(total), link: link(owner, repo, "/releases") }
 }
 
@@ -432,12 +487,16 @@ export async function getGitHubDownloadsAllAssetsAllReleases(owner: string, repo
   while (true) {
     const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
     const d = await githubJson(url)
-    if (!d || !Array.isArray(d) || d.length === 0) break
+    // A failed page (rate limit, backoff, network) must fail the whole badge:
+    // a partial sum — or a flat 0 — would otherwise be persisted as
+    // last-known-good for days, clobbering the real count.
+    if (!d || !Array.isArray(d)) return null
+    if (d.length === 0) break
     for (const release of d) {
       const assets = release.assets as Record<string, unknown>[] | undefined
       if (assets) {
         for (const a of assets) {
-          total += (a.download_count as number) || 0
+          total += typeof a.download_count === "number" ? a.download_count : 0
         }
       }
     }
@@ -455,8 +514,8 @@ export async function getGitHubDownloadsAllAssetsAllReleases(owner: string, repo
 export async function getGitHubDownloadsAllAssetsLatest(owner: string, repo: string): Promise<BadgeData | null> {
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
   if (!d) return null
-  const assets = d.assets as Record<string, unknown>[] | undefined
-  if (!assets) return null
+  const assets = d.assets
+  if (!Array.isArray(assets)) return null
   const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
   const tag = d.tag_name as string | undefined
   return { label: `downloads@${tag ?? "latest"}`, value: formatCount(total), link: link(owner, repo, "/releases/latest") }
@@ -469,8 +528,8 @@ export async function getGitHubDownloadsAllAssetsLatest(owner: string, repo: str
 export async function getGitHubDownloadsAllAssetsTag(owner: string, repo: string, tag: string): Promise<BadgeData | null> {
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
   if (!d) return null
-  const assets = d.assets as Record<string, unknown>[] | undefined
-  if (!assets) return null
+  const assets = d.assets
+  if (!Array.isArray(assets)) return null
   const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
   return { label: `downloads@${tag}`, value: formatCount(total), link: link(owner, repo, `/releases/tag/${tag}`) }
 }
@@ -486,13 +545,16 @@ export async function getGitHubDownloadsAssetAllReleases(owner: string, repo: st
   while (true) {
     const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
     const d = await githubJson(url)
-    if (!d || !Array.isArray(d) || d.length === 0) break
+    // A failed page must fail the whole badge — see
+    // getGitHubDownloadsAllAssetsAllReleases for why.
+    if (!d || !Array.isArray(d)) return null
+    if (d.length === 0) break
     for (const release of d) {
       const assets = release.assets as Record<string, unknown>[] | undefined
       if (assets) {
         for (const a of assets) {
           if ((a.name as string) === assetName) {
-            total += (a.download_count as number) || 0
+            total += typeof a.download_count === "number" ? a.download_count : 0
           }
         }
       }
@@ -511,8 +573,8 @@ export async function getGitHubDownloadsAssetAllReleases(owner: string, repo: st
 export async function getGitHubDownloadsAssetLatest(owner: string, repo: string, assetName: string): Promise<BadgeData | null> {
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
   if (!d) return null
-  const assets = d.assets as Record<string, unknown>[] | undefined
-  if (!assets) return null
+  const assets = d.assets
+  if (!Array.isArray(assets)) return null
   const asset = assets.find(a => (a.name as string) === assetName)
   if (!asset) return { label: `downloads [${assetName}]`, value: "0", link: link(owner, repo, "/releases/latest") }
   const count = (asset.download_count as number) || 0
@@ -527,8 +589,8 @@ export async function getGitHubDownloadsAssetLatest(owner: string, repo: string,
 export async function getGitHubDownloadsAssetTag(owner: string, repo: string, tag: string, assetName: string): Promise<BadgeData | null> {
   const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
   if (!d) return null
-  const assets = d.assets as Record<string, unknown>[] | undefined
-  if (!assets) return null
+  const assets = d.assets
+  if (!Array.isArray(assets)) return null
   const asset = assets.find(a => (a.name as string) === assetName)
   if (!asset) return { label: `downloads@${tag} [${assetName}]`, value: "0", link: link(owner, repo, `/releases/tag/${tag}`) }
   const count = (asset.download_count as number) || 0
@@ -540,14 +602,20 @@ export async function getGitHubDownloadsAssetTag(owner: string, repo: string, ta
 // ---------------------------------------------------------------------------
 
 export async function getGitHubDependabot(owner: string, repo: string): Promise<BadgeData | null> {
-  // Check if dependabot.yml exists
-  const r = await githubFetch(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yml`)
-  if (r) return { label: "dependabot", value: "enabled", color: "success" }
+  // Check if dependabot.yml exists. A definitive 404 on both spellings means
+  // "not configured"; anything indeterminate (rate limit, backoff, network)
+  // must return null so the route serves last-known-good instead of flipping
+  // a configured repo to "not found" during an outage.
+  const yml = await githubHeadExists(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yml`)
+  if (yml === true) return { label: "dependabot", value: "enabled", color: "success" }
 
-  const r2 = await githubFetch(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yaml`)
-  if (r2) return { label: "dependabot", value: "enabled", color: "success" }
+  const yaml = await githubHeadExists(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yaml`)
+  if (yaml === true) return { label: "dependabot", value: "enabled", color: "success" }
 
-  return { label: "dependabot", value: "not found", color: "cancelled" }
+  if (yml === false && yaml === false) {
+    return { label: "dependabot", value: "not found", color: "cancelled" }
+  }
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -570,7 +638,12 @@ export async function getGitHubUserStars(username: string): Promise<BadgeData | 
     `https://api.github.com/users/${username}/repos?per_page=100&sort=stars&type=owner`,
   )
   if (!repos) return null
-  const list = await repos.json() as Array<{ stargazers_count: number; fork: boolean }>
+  let list: Array<{ stargazers_count: number; fork: boolean }>
+  try {
+    list = await repos.json()
+  } catch {
+    return null
+  }
   if (!Array.isArray(list)) return null
   const total = list.reduce(
     (sum, r) => sum + (r.fork ? 0 : (r.stargazers_count ?? 0)),

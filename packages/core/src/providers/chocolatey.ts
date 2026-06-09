@@ -56,9 +56,12 @@ export async function getChocolateyDownloads(pkg: string): Promise<BadgeData | n
   const downloads = extractXmlValue(xml, "DownloadCount")
   if (!downloads) return null
 
+  const count = parseInt(downloads, 10)
+  if (!Number.isFinite(count)) return null
+
   return {
     label: "downloads",
-    value: formatCount(parseInt(downloads)),
+    value: formatCount(count),
     link: `https://community.chocolatey.org/packages/${pkg}`,
   }
 }
