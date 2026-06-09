@@ -17,7 +17,7 @@ export function ScrollCta({ targetId, label = "try it" }: ScrollCtaProps) {
   }
 
   return (
-    <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
+    <div className="absolute bottom-4 left-1/2 z-10 hidden -translate-x-1/2 md:block">
       <button
         type="button"
         onClick={handleClick}
@@ -26,7 +26,7 @@ export function ScrollCta({ targetId, label = "try it" }: ScrollCtaProps) {
         <span className="text-xs font-medium uppercase tracking-widest">
           {label}
         </span>
-        <ChevronDown className="size-4 animate-bounce" />
+        <ChevronDown className="size-4 motion-safe:animate-[scroll-hint_2s_ease-in-out_infinite]" />
       </button>
     </div>
   )

@@ -10,7 +10,6 @@ import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
 
-
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges",
   description:
@@ -38,7 +37,7 @@ export default async function Home() {
             <div className="relative z-10 space-y-6 lg:w-1/2">
               <SiteAnnouncement />
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 The badges your{" "}
                 <span className="inline-flex items-baseline">
                   <code className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[0.85em]">readme</code>
@@ -52,7 +51,7 @@ export default async function Home() {
             </div>
 
             {/* Right — 3D badge icon cloud (oversized, bleeds behind text) */}
-            <div className="relative z-0 flex items-center justify-center lg:w-1/2 lg:-ml-20 lg:-mt-16">
+            <div className="relative z-0 hidden items-center justify-center md:flex lg:w-1/2 lg:-ml-20 lg:-mt-16">
               <HeroIconCloud />
             </div>
           </div>
@@ -66,7 +65,7 @@ export default async function Home() {
           <section id="builder" className="py-16 scroll-mt-16">
             <div className="mb-8 max-w-lg">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Build your badge</h2>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-3 text-pretty text-muted-foreground">
                 Pick a type, customize the look, copy the output.
               </p>
             </div>

@@ -7,7 +7,7 @@ import UnderlineToBackground from "@/components/fancy/text/underline-to-backgrou
 
 export function HeroSubtext() {
   return (
-    <div className="max-w-lg text-lg leading-relaxed text-muted-foreground">
+    <div className="max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
       A{" "}
       <UnderlineToBackground
         targetTextColor="var(--background)"

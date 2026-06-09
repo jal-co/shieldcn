@@ -118,7 +118,7 @@ export function GenHeroInput() {
         />
 
         <Button onClick={handleSubmit} className="h-10 shrink-0" size="sm">
-          generate my badges
+          Generate my badges
           <ArrowRight className="size-3.5" />
         </Button>
       </div>
