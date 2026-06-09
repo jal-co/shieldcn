@@ -17,9 +17,9 @@ Display funding stats from Liberapay, the open-source recurring donations platfo
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Receiving](./receiving) | `/liberapay/receiving/{username}` | Weekly income |
-| [Patrons](./patrons) | `/liberapay/patrons/{username}` | Number of patrons |
-| [Goal](./goal) | `/liberapay/goal/{username}` | Funding goal progress |
+| Receiving | `/liberapay/receiving/{username}` | Weekly income |
+| Patrons | `/liberapay/patrons/{username}` | Number of patrons |
+| Goal | `/liberapay/goal/{username}` | Funding goal progress |
 
 ## Quick examples
 
@@ -30,3 +30,88 @@ Display funding stats from Liberapay, the open-source recurring donations platfo
 ## Data source
 
 Uses the [Liberapay API](https://liberapay.com/about/api). No API key required. Cached 1 hour.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### Liberapay Goal
+
+This section covers the `liberapay/goal` badge endpoint.
+
+Show the funding goal progress as a percentage of the weekly target.
+
+<BadgeSandbox
+  endpoint="/liberapay/goal/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/liberapay/goal/{username}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/liberapay/goal/Changaco.svg" alt="goal" description="Default — goal progress percentage" />
+
+<BadgePreview src="/liberapay/goal/Changaco.svg?variant=branded" alt="goal" description="Branded — Liberapay yellow" />
+
+### Notes
+
+If the user hasn't set a funding goal, the badge will show "not set".
+
+### Liberapay Patrons
+
+This section covers the `liberapay/patrons` badge endpoint.
+
+Show how many patrons support a Liberapay user.
+
+<BadgeSandbox
+  endpoint="/liberapay/patrons/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/liberapay/patrons/{username}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/liberapay/patrons/Changaco.svg" alt="patrons" description="Default — patron count" />
+
+<BadgePreview src="/liberapay/patrons/Changaco.svg?variant=branded" alt="patrons" description="Branded — Liberapay yellow" />
+
+### Liberapay Receiving
+
+This section covers the `liberapay/receiving` badge endpoint.
+
+Show how much a Liberapay user receives per week in donations.
+
+<BadgeSandbox
+  endpoint="/liberapay/receiving/:username.svg"
+  pathParams={[
+    { name: "username", label: "Liberapay username", placeholder: "Changaco", required: true },
+  ]}
+  defaults={{ username: "Changaco" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/liberapay/receiving/{username}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/liberapay/receiving/Changaco.svg" alt="receiving" description="Default — weekly donation income" />
+
+<BadgePreview src="/liberapay/receiving/Changaco.svg?variant=branded" alt="receiving" description="Branded — Liberapay yellow" />
+
+### Notes
+
+Some users choose to hide their income. In that case, the badge will show "hidden".

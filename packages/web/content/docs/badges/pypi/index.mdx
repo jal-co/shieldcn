@@ -18,10 +18,10 @@ Display live stats for any package on [PyPI](https://pypi.org).
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Version](./version) | `/pypi/{package}` | Latest version |
-| [Downloads](./downloads) | `/pypi/dm/{package}` | Download counts (day/week/month) |
-| [License](./license) | `/pypi/license/{package}` | Package license |
-| [Python Version](./python) | `/pypi/python/{package}` | Required Python version |
+| Version | `/pypi/{package}` | Latest version |
+| Downloads | `/pypi/dm/{package}` | Download counts (day/week/month) |
+| License | `/pypi/license/{package}` | Package license |
+| Python Version | `/pypi/python/{package}` | Required Python version |
 
 ## Quick examples
 
@@ -39,3 +39,136 @@ Display live stats for any package on [PyPI](https://pypi.org).
 - Downloads: [pypistats.org](https://pypistats.org)
 
 No API key required. Cached 1 hour.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### PyPI Downloads
+
+This section covers the `pypi/downloads` badge endpoint.
+
+Show daily, weekly, or monthly download counts.
+
+<BadgeSandbox
+  endpoint="/pypi/dm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "requests", required: true },
+  ]}
+  defaults={{ package: "requests" }}
+/>
+
+### URL formats
+
+| Period | Endpoint |
+|--------|----------|
+| Daily | `/pypi/dd/{package}` |
+| Weekly | `/pypi/dw/{package}` |
+| Monthly | `/pypi/dm/{package}` |
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/dm/requests.svg" alt="monthly downloads" description="Monthly (default)" />
+  <BadgePreviewCard src="/pypi/dm/requests.svg?variant=secondary" alt="monthly downloads" description="Monthly (secondary)" />
+  <BadgePreviewCard src="/pypi/dw/requests.svg?variant=outline" alt="weekly downloads" description="Weekly (outline)" />
+  <BadgePreviewCard src="/pypi/dm/requests.svg?variant=branded" alt="monthly downloads" description="Monthly (branded)" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/pypi/dm/requests.svg?variant=secondary" alt="pypi downloads" description="Secondary — monthly download count from pypistats" />
+
+<BadgePreview src="/pypi/dm/requests.svg?variant=branded" alt="pypi downloads" description="Branded — PyPI brand color" />
+
+### PyPI License
+
+This section covers the `pypi/license` badge endpoint.
+
+<BadgeSandbox
+  endpoint="/pypi/license/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "flask", required: true },
+  ]}
+  defaults={{ package: "flask" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/pypi/license/{package}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/license/flask.svg" alt="license" description="Default variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=secondary" alt="license" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=outline" alt="license" description="Outline variant" />
+  <BadgePreviewCard src="/pypi/license/flask.svg?variant=ghost" alt="license" description="Ghost variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/pypi/license/flask.svg?variant=outline" alt="pypi license" description="Outline — subtle license badge for package metadata" />
+
+<BadgePreview src="/pypi/license/flask.svg?variant=ghost" alt="pypi license" description="Ghost — minimal metadata badge for footer rows" />
+
+### Python Version
+
+This section covers the `pypi/python` badge endpoint.
+
+<BadgeSandbox
+  endpoint="/pypi/python/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "django", required: true },
+  ]}
+  defaults={{ package: "django" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/pypi/python/{package}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/python/django.svg" alt="python version" description="Default variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=secondary" alt="python version" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=outline" alt="python version" description="Outline variant" />
+  <BadgePreviewCard src="/pypi/python/django.svg?variant=branded" alt="python version" description="Branded variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/pypi/python/django.svg?variant=secondary" alt="python version" description="Secondary — required Python version" />
+
+<BadgePreview src="/pypi/python/django.svg?variant=branded" alt="python version" description="Branded — PyPI brand color" />
+
+### PyPI Version
+
+This section covers the `pypi/version` badge endpoint.
+
+Show the current published version of a Python package.
+
+<BadgeSandbox
+  endpoint="/pypi/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "requests", required: true },
+  ]}
+  defaults={{ package: "requests" }}
+/>
+
+### URL formats
+
+<CodeLine language="bash" code="/pypi/{package}.svg" hideCopy />
+
+<CodeLine language="bash" code="/pypi/v/{package}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/pypi/requests.svg" alt="pypi requests" description="Default variant" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=branded" alt="pypi requests" description="Branded (PyPI blue)" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=secondary" alt="pypi requests" description="Secondary variant" />
+  <BadgePreviewCard src="/pypi/requests.svg?variant=outline" alt="pypi requests" description="Outline variant" />
+</BadgePreviewGroup>

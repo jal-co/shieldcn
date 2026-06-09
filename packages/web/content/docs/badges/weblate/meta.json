@@ -1,8 +1,4 @@
 {
   "title": "Weblate",
-  "pages": [
-    "index",
-    "translation",
-    "languages"
-  ]
+  "pages": ["index"]
 }

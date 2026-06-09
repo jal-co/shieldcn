@@ -18,10 +18,10 @@ Display live stats from [Tokscale](https://tokscale.ai), the AI token usage lead
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Tokens](./tokens) | `/tokscale/tokens/{username}` | Total token consumption |
-| [Cost](./cost) | `/tokscale/cost/{username}` | Estimated total cost |
-| [Rank](./rank) | `/tokscale/rank/{username}` | Global leaderboard rank |
-| [Active Days](./active-days) | `/tokscale/active-days/{username}` | Days with AI activity |
+| Tokens | `/tokscale/tokens/{username}` | Total token consumption |
+| Cost | `/tokscale/cost/{username}` | Estimated total cost |
+| Rank | `/tokscale/rank/{username}` | Global leaderboard rank |
+| Active Days | `/tokscale/active-days/{username}` | Days with AI activity |
 | Stats | `/tokscale/stats` | Global user count |
 
 The default endpoint `/tokscale/{username}` returns the token count.
@@ -49,3 +49,144 @@ Visit your profile at `https://tokscale.ai/u/{username}` to verify.
 ## Data source
 
 Uses the [Tokscale API](https://tokscale.ai). Returns data from the user's profile including all-time stats. No API key required. Cached 10 minutes.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### Tokscale Active Days
+
+This section covers the `tokscale/active-days` badge endpoint.
+
+Show how many days the user had at least one AI interaction.
+
+<BadgeSandbox
+  endpoint="/tokscale/active-days/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/tokscale/active-days/{username}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg" alt="active days" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=branded" alt="active days branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=secondary" alt="active days secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/active-days/junhoyeo.svg?variant=outline" alt="active days outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/tokscale/active-days/junhoyeo.svg" alt="tokscale active days" description="Default — total days with AI activity" />
+
+<BadgePreview src="/tokscale/active-days/junhoyeo.svg?variant=branded" alt="tokscale active days" description="Branded — Tokscale blue background" />
+
+### Tokscale Cost
+
+This section covers the `tokscale/cost` badge endpoint.
+
+Show the estimated total cost of AI token usage based on LiteLLM pricing data.
+
+<BadgeSandbox
+  endpoint="/tokscale/cost/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/tokscale/cost/{username}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg" alt="cost" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=branded" alt="cost branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=secondary" alt="cost secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/cost/junhoyeo.svg?variant=outline" alt="cost outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/tokscale/cost/junhoyeo.svg" alt="tokscale cost" description="Default — estimated total cost" />
+
+<BadgePreview src="/tokscale/cost/junhoyeo.svg?variant=branded" alt="tokscale cost" description="Branded — Tokscale blue background" />
+
+### Tokscale Rank
+
+This section covers the `tokscale/rank` badge endpoint.
+
+Show the user's position on the Tokscale global leaderboard.
+
+<BadgeSandbox
+  endpoint="/tokscale/rank/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/tokscale/rank/{username}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg" alt="rank" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=branded" alt="rank branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=secondary" alt="rank secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/rank/junhoyeo.svg?variant=outline" alt="rank outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/tokscale/rank/junhoyeo.svg" alt="tokscale rank" description="Default — global leaderboard position" />
+
+<BadgePreview src="/tokscale/rank/junhoyeo.svg?variant=branded" alt="tokscale rank" description="Branded — Tokscale blue background" />
+
+### Tokscale Tokens
+
+This section covers the `tokscale/tokens` badge endpoint.
+
+Show the total number of tokens consumed across all AI coding agents.
+
+<BadgeSandbox
+  endpoint="/tokscale/tokens/:username.svg"
+  pathParams={[
+    { name: "username", label: "GitHub username", placeholder: "junhoyeo", required: true },
+  ]}
+  defaults={{ username: "junhoyeo" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/tokscale/tokens/{username}.svg" hideCopy />
+
+<CodeLine language="bash" code="/tokscale/{username}.svg" hideCopy />
+
+Both formats return the same badge. The default endpoint shows token count.
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg" alt="tokens" description="Default variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=branded" alt="tokens branded" description="Branded variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=secondary" alt="tokens secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/tokscale/tokens/junhoyeo.svg?variant=outline" alt="tokens outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/tokscale/tokens/junhoyeo.svg" alt="tokscale tokens" description="Default — total token consumption" />
+
+<BadgePreview src="/tokscale/tokens/junhoyeo.svg?variant=branded" alt="tokscale tokens" description="Branded — Tokscale blue background" />

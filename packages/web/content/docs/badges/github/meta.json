@@ -1,16 +1,4 @@
 {
   "title": "GitHub",
-  "pages": [
-    "index",
-    "stars",
-    "forks",
-    "license",
-    "release",
-    "downloads",
-    "ci",
-    "issues",
-    "prs",
-    "commits",
-    "repository"
-  ]
+  "pages": ["index"]
 }

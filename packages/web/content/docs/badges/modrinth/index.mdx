@@ -17,10 +17,10 @@ Display mod stats from Modrinth, the modern Minecraft mod platform.
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Downloads](./downloads) | `/modrinth/downloads/{slug}` | Total download count |
-| [Followers](./followers) | `/modrinth/followers/{slug}` | Follower count |
-| [Version](./version) | `/modrinth/v/{slug}` | Latest version |
-| [Game Versions](./game-versions) | `/modrinth/game-versions/{slug}` | Supported Minecraft versions |
+| Downloads | `/modrinth/downloads/{slug}` | Total download count |
+| Followers | `/modrinth/followers/{slug}` | Follower count |
+| Version | `/modrinth/v/{slug}` | Latest version |
+| Game Versions | `/modrinth/game-versions/{slug}` | Supported Minecraft versions |
 
 ## Quick examples
 
@@ -31,3 +31,104 @@ Display mod stats from Modrinth, the modern Minecraft mod platform.
 ## Data source
 
 Uses the [Modrinth API v2](https://docs.modrinth.com/). No API key required. Cached 1 hour.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### Modrinth Downloads
+
+This section covers the `modrinth/downloads` badge endpoint.
+
+Show total downloads for a Modrinth mod or modpack.
+
+<BadgeSandbox
+  endpoint="/modrinth/downloads/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/modrinth/downloads/{slug}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/modrinth/downloads/sodium.svg" alt="downloads" description="Default — total download count" />
+
+<BadgePreview src="/modrinth/downloads/sodium.svg?variant=branded" alt="downloads" description="Branded — Modrinth green" />
+
+### Modrinth Followers
+
+This section covers the `modrinth/followers` badge endpoint.
+
+Show the follower count for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/followers/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/modrinth/followers/{slug}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/modrinth/followers/sodium.svg" alt="followers" description="Default — follower count" />
+
+<BadgePreview src="/modrinth/followers/sodium.svg?variant=branded" alt="followers" description="Branded — Modrinth green" />
+
+### Modrinth Game Versions
+
+This section covers the `modrinth/game-versions` badge endpoint.
+
+Show the range of supported Minecraft versions for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/game-versions/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/modrinth/game-versions/{slug}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/modrinth/game-versions/sodium.svg" alt="game versions" description="Default — supported Minecraft version range" />
+
+<BadgePreview src="/modrinth/game-versions/sodium.svg?variant=branded" alt="game versions" description="Branded — Modrinth green" />
+
+### Modrinth Version
+
+This section covers the `modrinth/version` badge endpoint.
+
+Show the latest published version for a Modrinth project.
+
+<BadgeSandbox
+  endpoint="/modrinth/v/:slug.svg"
+  pathParams={[
+    { name: "slug", label: "Modrinth project slug", placeholder: "sodium", required: true },
+  ]}
+  defaults={{ slug: "sodium" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/modrinth/v/{slug}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/modrinth/v/sodium.svg" alt="version" description="Default — latest version number" />
+
+<BadgePreview src="/modrinth/v/fabric-api.svg?variant=branded" alt="version" description="Branded — Modrinth green" />

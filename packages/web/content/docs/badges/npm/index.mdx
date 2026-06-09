@@ -20,12 +20,12 @@ Display live stats for any npm package.
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Version](./version) | `/npm/{package}` | Latest version |
-| [Downloads](./downloads) | `/npm/dw/{package}`, `/npm/dm/{package}`, etc. | Download counts |
-| [License](./license) | `/npm/license/{package}` | Package license |
-| [Node Version](./node) | `/npm/node/{package}` | Required Node.js version |
-| [Types](./types) | `/npm/types/{package}` | TypeScript types status |
-| [Dependents](./dependents) | `/npm/dependents/{package}` | Dependent package count |
+| Version | `/npm/{package}` | Latest version |
+| Downloads | `/npm/dw/{package}`, `/npm/dm/{package}`, etc. | Download counts |
+| License | `/npm/license/{package}` | Package license |
+| Node Version | `/npm/node/{package}` | Required Node.js version |
+| Types | `/npm/types/{package}` | TypeScript types status |
+| Dependents | `/npm/dependents/{package}` | Dependent package count |
 
 ## Quick examples
 
@@ -51,3 +51,185 @@ For scoped packages like `@types/react`, use the full scope:
 - Downloads: [api.npmjs.org](https://api.npmjs.org)
 
 No API key required. Cached 1 hour.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### npm Dependents
+
+This section covers the `npm/dependents` badge endpoint.
+
+Show how many other packages depend on this package.
+
+<BadgeSandbox
+  endpoint="/npm/dependents/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/npm/dependents/{package}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/dependents/react.svg" alt="dependents" description="Default — ecosystem adoption signal" />
+
+<BadgePreview src="/npm/dependents/react.svg?variant=outline&label=used%20by" alt="dependents" description="Outline with custom label — social proof for package pages" />
+
+### npm Downloads
+
+This section covers the `npm/downloads` badge endpoint.
+
+Show weekly, monthly, yearly, or total download counts.
+
+<BadgeSandbox
+  endpoint="/npm/dm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL formats
+
+| Period | Endpoint | Example |
+|--------|----------|---------|
+| Weekly | `/npm/dw/{package}` | `/npm/dw/react` |
+| Monthly | `/npm/dm/{package}` | `/npm/dm/react` |
+| Yearly | `/npm/dy/{package}` | `/npm/dy/react` |
+| Total | `/npm/dt/{package}` | `/npm/dt/react` |
+| Legacy | `/npm/{package}/downloads` | `/npm/react/downloads` |
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/dm/react.svg" alt="monthly downloads" description="Default — monthly downloads as a growth signal" />
+
+<BadgePreview src="/npm/dt/react.svg?variant=outline" alt="total downloads" description="Outline — long-term adoption signal" />
+
+### npm License
+
+This section covers the `npm/license` badge endpoint.
+
+Show the license specified in a package's package.json.
+
+<BadgeSandbox
+  endpoint="/npm/license/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/npm/license/{package}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/license/react.svg" alt="license" description="Default — license badge for package pages" />
+
+<BadgePreview src="/npm/license/react.svg?variant=ghost" alt="license" description="Ghost — subtle metadata badge for footer rows" />
+
+### npm Node Version
+
+This section covers the `npm/node` badge endpoint.
+
+Show the Node.js version requirement from a package's `engines.node` field.
+
+<BadgeSandbox
+  endpoint="/npm/node/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/npm/node/{package}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/node/next.svg?variant=outline" alt="node version" description="Outline — good compatibility badge for libraries" />
+
+<BadgePreview src="/npm/node/next.svg?logo=nodedotjs" alt="node version" description="With Node.js logo — branded compatibility badge" />
+
+### Notes
+
+- Returns the `engines.node` value from package.json
+- Shows "any" if no Node version is specified
+
+### npm Types
+
+This section covers the `npm/types` badge endpoint.
+
+Show whether a package includes TypeScript types or has types available via DefinitelyTyped.
+
+<BadgeSandbox
+  endpoint="/npm/types/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/npm/types/{package}.svg" hideCopy />
+
+### Examples
+
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/react.svg)' />
+
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/typescript.svg)' />
+
+<CodeLine language="markdown" code='![types](https://shieldcn.dev/npm/types/zod.svg)' />
+
+### Type status values
+
+| Value | Meaning |
+|-------|---------|
+| `bundled` | Package includes its own TypeScript definitions |
+| `@types/{pkg}` | Types available via DefinitelyTyped |
+| `none` | No TypeScript types available |
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/types/react.svg?theme=blue" alt="types" description="Blue theme — highlights TS support clearly" />
+
+<BadgePreview src="/npm/types/zod.svg?variant=branded&logo=typescript" alt="types" description="Branded with TypeScript logo — strong developer experience signal" />
+
+### npm Version
+
+This section covers the `npm/version` badge endpoint.
+
+Show the current published version of a package.
+
+<BadgeSandbox
+  endpoint="/npm/:package.svg"
+  pathParams={[
+    { name: "package", label: "package name", placeholder: "react", required: true, description: "Unscoped (react) or scoped (@types/react)." },
+  ]}
+  defaults={{ package: "react" }}
+/>
+
+### URL formats
+
+<CodeLine language="bash" code="/npm/{package}.svg" hideCopy />
+
+<CodeLine language="bash" code="/npm/v/{package}.svg" hideCopy />
+
+<CodeLine language="bash" code="/npm/v/{package}/{tag}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/npm/react.svg" alt="npm version" description="Default — clean version badge for READMEs" />
+
+<BadgePreview src="/npm/react.svg?variant=branded" alt="npm version" description="Branded — npm's official red" />
+
+<BadgePreview src="/npm/@types/react.svg?variant=secondary" alt="npm version" description="Scoped package — secondary variant" />

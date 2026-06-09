@@ -1,10 +1,11 @@
 import type { ReactNode } from "react"
+import { SiteFooter } from "@/components/footer"
 import { Sidebar } from "@/components/sidebar"
 import { SiteShell } from "@/components/site-shell"
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
-    <SiteShell>
+    <SiteShell footer={false}>
       <aside className="hidden w-64 shrink-0 border-r md:block">
         <div className="sticky top-14 h-[calc(100vh-3.5rem)]">
           <Sidebar />
@@ -13,6 +14,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
 
       <main className="min-w-0 flex-1">
         {children}
+        <SiteFooter />
       </main>
     </SiteShell>
   )

@@ -19,13 +19,13 @@ Display live stats from any public GitLab repository.
 
 | Category | Topics | Description |
 |----------|--------|-------------|
-| [Stars](./stars) | `stars` | Repository star count |
-| [Forks](./forks) | `forks` | Repository fork count |
-| [Pipeline](./pipeline) | `pipeline` | Latest CI/CD pipeline status |
-| [Issues](./issues) | `issues`, `open-issues`, `closed-issues` | Issue counts by state |
-| [Release](./release) | `release` | Latest release tag |
-| [License](./license) | `license` | Repository license |
-| [Repository](./repository) | `contributors`, `last-commit` | Other project metadata |
+| Stars | `stars` | Repository star count |
+| Forks | `forks` | Repository fork count |
+| Pipeline | `pipeline` | Latest CI/CD pipeline status |
+| Issues | `issues`, `open-issues`, `closed-issues` | Issue counts by state |
+| Release | `release` | Latest release tag |
+| License | `license` | Repository license |
+| Repository | `contributors`, `last-commit` | Other project metadata |
 
 ## URL format
 
@@ -42,3 +42,211 @@ Display live stats from any public GitLab repository.
 ## Data source
 
 Uses the [GitLab API v4](https://docs.gitlab.com/ee/api/). No API key required for public projects. Cached 1 hour, pipeline cached 5 minutes.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### GitLab Forks
+
+This section covers the `gitlab/forks` badge endpoint.
+
+Show how many times a GitLab project has been forked.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/forks.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/forks.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/forks.svg" alt="forks" description="Default — show fork activity" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/forks.svg?variant=branded" alt="forks" description="Branded — GitLab orange" />
+
+### GitLab Issues
+
+This section covers the `gitlab/issues` badge endpoint.
+
+Show open or closed issue counts for a GitLab project.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/issues.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL formats
+
+### Open issues
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/issues.svg" hideCopy />
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/open-issues.svg" hideCopy />
+
+### Closed issues
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/closed-issues.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/issues.svg" alt="issues" description="Default — open issue count" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/issues.svg?variant=branded" alt="issues" description="Branded — GitLab orange" />
+
+### GitLab License
+
+This section covers the `gitlab/license` badge endpoint.
+
+Show the detected license for a GitLab project.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/license.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/license.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/license.svg" alt="license" description="Default — detected license name" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/license.svg?variant=outline" alt="license" description="Outline — subtle license indicator" />
+
+### GitLab Pipeline
+
+This section covers the `gitlab/pipeline` badge endpoint.
+
+Show the status of the most recent GitLab CI/CD pipeline.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/pipeline.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  extraParams={[
+    { name: "branch", label: "branch", placeholder: "main" },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/pipeline.svg" hideCopy />
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/pipeline.svg?branch=main" hideCopy />
+
+### Status values
+
+| Status | Color | Description |
+|--------|-------|-------------|
+| `passing` | Green | Pipeline succeeded |
+| `failing` | Red | Pipeline failed |
+| `running` | Amber | Pipeline is running |
+| `pending` | Amber | Pipeline is pending |
+| `canceled` | Gray | Pipeline was canceled |
+| `skipped` | Gray | Pipeline was skipped |
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/pipeline.svg" alt="pipeline" description="Default — shows latest pipeline status" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/pipeline.svg?variant=secondary" alt="pipeline" description="Secondary — softer CI badge" />
+
+### GitLab Release
+
+This section covers the `gitlab/release` badge endpoint.
+
+Show the latest release tag from GitLab Releases.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/release.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/release.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/release.svg" alt="release" description="Default — latest release tag" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/release.svg?variant=branded" alt="release" description="Branded — GitLab orange" />
+
+### GitLab Repository
+
+This section covers the `gitlab/repository` badge endpoint.
+
+Show contributor count and last activity for a GitLab project.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/contributors.svg?variant=branded" alt="contributors" description="Contributors (branded)" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/last-commit.svg?variant=secondary" alt="last activity" description="Last activity" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/contributors.svg?variant=outline" alt="contributors" description="Contributors (outline)" />
+  <BadgePreviewCard src="/gitlab/inkscape/inkscape/last-commit.svg" alt="last activity" description="Last activity (default)" />
+</BadgePreviewGroup>
+
+### URL formats
+
+### Contributors
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/contributors.svg" hideCopy />
+
+### Last activity
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/last-commit.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/contributors.svg" alt="contributors" description="Default — contributor count" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/last-commit.svg?variant=secondary" alt="last activity" description="Secondary — how recently the project was active" />
+
+### GitLab Stars
+
+This section covers the `gitlab/stars` badge endpoint.
+
+Show how many stars a GitLab project has earned.
+
+<BadgeSandbox
+  endpoint="/gitlab/:owner/:repo/stars.svg"
+  pathParams={[
+    { name: "owner", label: "GitLab username or group", placeholder: "inkscape", required: true },
+    { name: "repo", label: "project name", placeholder: "inkscape", required: true },
+  ]}
+  defaults={{ owner: "inkscape", repo: "inkscape" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/gitlab/{owner}/{repo}/stars.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/gitlab/inkscape/inkscape/stars.svg" alt="stars" description="Default — works great in any README" />
+
+<BadgePreview src="/gitlab/inkscape/inkscape/stars.svg?variant=branded" alt="stars" description="Branded — GitLab's brand color" />

@@ -1,9 +1,4 @@
 {
   "title": "Discord",
-  "pages": [
-    "index",
-    "online",
-    "members",
-    "online-members"
-  ]
+  "pages": ["index"]
 }

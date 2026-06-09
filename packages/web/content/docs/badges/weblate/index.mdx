@@ -17,8 +17,8 @@ Display translation stats from Weblate, the open-source translation management s
 
 | Badge | Endpoint | Description |
 |-------|----------|-------------|
-| [Translation](./translation) | `/weblate/translation/{server}/{project}/{component}` | Translation percentage |
-| [Languages](./languages) | `/weblate/languages/{server}/{project}/{component}` | Language count |
+| Translation | `/weblate/translation/{server}/{project}/{component}` | Translation percentage |
+| Languages | `/weblate/languages/{server}/{project}/{component}` | Language count |
 
 ## Quick examples
 
@@ -29,3 +29,60 @@ Display translation stats from Weblate, the open-source translation management s
 ## Data source
 
 Uses the [Weblate API](https://docs.weblate.org/en/latest/api.html). No API key required for public projects. Cached 1 hour.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### Weblate Languages
+
+This section covers the `weblate/languages` badge endpoint.
+
+Show the number of languages a Weblate component is translated into.
+
+<BadgeSandbox
+  endpoint="/weblate/languages/:server/:project/:component.svg"
+  pathParams={[
+    { name: "server", label: "Weblate server", placeholder: "hosted.weblate.org", required: true },
+    { name: "project", label: "project slug", placeholder: "weblate", required: true },
+    { name: "component", label: "component slug", placeholder: "application", required: true },
+  ]}
+  defaults={{ server: "hosted.weblate.org", project: "weblate", component: "application" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/weblate/languages/{server}/{project}/{component}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/weblate/languages/hosted.weblate.org/weblate/application.svg" alt="languages" description="Default — number of target languages" />
+
+<BadgePreview src="/weblate/languages/hosted.weblate.org/weblate/application.svg?variant=branded" alt="languages" description="Branded — Weblate green" />
+
+### Weblate Translation
+
+This section covers the `weblate/translation` badge endpoint.
+
+Show the overall translation progress for a Weblate component. The badge is color-coded: green for ≥90%, yellow for ≥50%, red below 50%.
+
+<BadgeSandbox
+  endpoint="/weblate/translation/:server/:project/:component.svg"
+  pathParams={[
+    { name: "server", label: "Weblate server", placeholder: "hosted.weblate.org", required: true },
+    { name: "project", label: "project slug", placeholder: "weblate", required: true },
+    { name: "component", label: "component slug", placeholder: "application", required: true },
+  ]}
+  defaults={{ server: "hosted.weblate.org", project: "weblate", component: "application" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/weblate/translation/{server}/{project}/{component}.svg" hideCopy />
+
+### Copy-paste examples
+
+<BadgePreview src="/weblate/translation/hosted.weblate.org/weblate/application.svg" alt="translation" description="Default — color-coded translation percentage" />
+
+<BadgePreview src="/weblate/translation/hosted.weblate.org/weblate/application.svg?variant=branded" alt="translation" description="Branded — Weblate green" />

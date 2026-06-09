@@ -6,7 +6,13 @@ import { SiteFooter } from "@/components/footer"
  * Shared site shell — dot grid background, max-width container,
  * header, and footer. Used by both the landing page and docs layout.
  */
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({
+  children,
+  footer = true,
+}: {
+  children: ReactNode
+  footer?: boolean
+}) {
   return (
     <div className="relative min-h-screen">
       {/* Dot grid background */}
@@ -28,7 +34,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <div className="relative mx-auto flex min-h-screen max-w-[1600px] flex-col border-x border-dashed border-border bg-background">
         <SiteHeader />
         <div className="flex flex-1">{children}</div>
-        <SiteFooter />
+        {footer ? <SiteFooter /> : null}
       </div>
     </div>
   )

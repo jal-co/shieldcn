@@ -73,58 +73,18 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
-    title: "npm",
+    title: "Source Control",
+    alwaysOpen: true,
     items: [
-      { title: "Overview", href: "/docs/badges/npm" },
-      { title: "Version", href: "/docs/badges/npm/version" },
-      { title: "Downloads", href: "/docs/badges/npm/downloads" },
-      { title: "License", href: "/docs/badges/npm/license" },
-      { title: "Node Version", href: "/docs/badges/npm/node" },
-      { title: "Types", href: "/docs/badges/npm/types" },
-      { title: "Dependents", href: "/docs/badges/npm/dependents" },
-    ],
-  },
-  {
-    title: "Discord",
-    items: [
-      { title: "Overview", href: "/docs/badges/discord" },
-      { title: "Online Count", href: "/docs/badges/discord/online" },
-      { title: "Members", href: "/docs/badges/discord/members" },
-      { title: "Online Members", href: "/docs/badges/discord/online-members" },
-    ],
-  },
-  {
-    title: "GitHub",
-    items: [
-      { title: "Overview", href: "/docs/badges/github" },
-      { title: "Stars", href: "/docs/badges/github/stars" },
-      { title: "Forks", href: "/docs/badges/github/forks" },
-      { title: "License", href: "/docs/badges/github/license" },
-      { title: "Releases & Tags", href: "/docs/badges/github/release" },
-      { title: "Downloads", href: "/docs/badges/github/downloads" },
-      { title: "CI Status", href: "/docs/badges/github/ci" },
-      { title: "Issues", href: "/docs/badges/github/issues" },
-      { title: "Pull Requests", href: "/docs/badges/github/prs" },
-      { title: "Commits", href: "/docs/badges/github/commits" },
-      { title: "Repository", href: "/docs/badges/github/repository" },
-    ],
-  },
-  {
-    title: "GitLab",
-    items: [
-      { title: "Overview", href: "/docs/badges/gitlab" },
-      { title: "Stars", href: "/docs/badges/gitlab/stars" },
-      { title: "Forks", href: "/docs/badges/gitlab/forks" },
-      { title: "Pipeline", href: "/docs/badges/gitlab/pipeline" },
-      { title: "Issues", href: "/docs/badges/gitlab/issues" },
-      { title: "Release", href: "/docs/badges/gitlab/release" },
-      { title: "License", href: "/docs/badges/gitlab/license" },
-      { title: "Repository", href: "/docs/badges/gitlab/repository" },
+      { title: "GitHub", href: "/docs/badges/github" },
+      { title: "GitLab", href: "/docs/badges/gitlab" },
     ],
   },
   {
     title: "Package Registries",
+    alwaysOpen: true,
     items: [
+      { title: "npm", href: "/docs/badges/npm" },
       { title: "PyPI", href: "/docs/badges/pypi" },
       { title: "Crates.io", href: "/docs/badges/crates" },
       { title: "Docker Hub", href: "/docs/badges/docker" },
@@ -133,13 +93,7 @@ const docsNav: NavGroup[] = [
       { title: "RubyGems", href: "/docs/badges/rubygems" },
       { title: "NuGet", href: "/docs/badges/nuget" },
       { title: "Pub.dev", href: "/docs/badges/pub" },
-      {
-        title: "Homebrew",
-        href: "/docs/badges/homebrew",
-        children: [
-          { title: "Downloads", href: "/docs/badges/homebrew/downloads" },
-        ],
-      },
+      { title: "Homebrew", href: "/docs/badges/homebrew" },
       { title: "Maven Central", href: "/docs/badges/maven" },
       { title: "CocoaPods", href: "/docs/badges/cocoapods" },
       { title: "JSR", href: "/docs/badges/jsr" },
@@ -161,6 +115,7 @@ const docsNav: NavGroup[] = [
   {
     title: "Social & Community",
     items: [
+      { title: "Discord", href: "/docs/badges/discord" },
       { title: "Bluesky", href: "/docs/badges/bluesky" },
       { title: "X / Twitter", href: "/docs/badges/x" },
       { title: "YouTube", href: "/docs/badges/youtube" },
@@ -187,34 +142,10 @@ const docsNav: NavGroup[] = [
       { title: "VS Code Marketplace", href: "/docs/badges/vscode" },
       { title: "Open VSX", href: "/docs/badges/openvsx" },
       { title: "Open Collective", href: "/docs/badges/opencollective" },
-      {
-        title: "Liberapay",
-        href: "/docs/badges/liberapay",
-        children: [
-          { title: "Receiving", href: "/docs/badges/liberapay/receiving" },
-          { title: "Patrons", href: "/docs/badges/liberapay/patrons" },
-          { title: "Goal", href: "/docs/badges/liberapay/goal" },
-        ],
-      },
+      { title: "Liberapay", href: "/docs/badges/liberapay" },
       { title: "WakaTime", href: "/docs/badges/wakatime" },
-      {
-        title: "Weblate",
-        href: "/docs/badges/weblate",
-        children: [
-          { title: "Translation", href: "/docs/badges/weblate/translation" },
-          { title: "Languages", href: "/docs/badges/weblate/languages" },
-        ],
-      },
-      {
-        title: "Modrinth",
-        href: "/docs/badges/modrinth",
-        children: [
-          { title: "Downloads", href: "/docs/badges/modrinth/downloads" },
-          { title: "Followers", href: "/docs/badges/modrinth/followers" },
-          { title: "Version", href: "/docs/badges/modrinth/version" },
-          { title: "Game Versions", href: "/docs/badges/modrinth/game-versions" },
-        ],
-      },
+      { title: "Weblate", href: "/docs/badges/weblate" },
+      { title: "Modrinth", href: "/docs/badges/modrinth" },
       { title: "Tokscale", href: "/docs/badges/tokscale" },
       { title: "Country Flags", href: "/docs/badges/flag" },
     ],
@@ -386,6 +317,7 @@ function CollapsibleNavItem({
       <div className="flex items-center">
         <Link
           href={item.href}
+          data-sidebar-active={isActive ? "true" : undefined}
           className={cn(
             "relative flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             isActive
@@ -469,6 +401,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      data-sidebar-active={isActive ? "true" : undefined}
       className={cn(
         "relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         isActive
@@ -567,12 +500,16 @@ function DocsSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-8 w-full items-center gap-2 rounded-md border border-border bg-transparent px-2.5 text-sm text-muted-foreground transition-colors hover:border-ring hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className="group flex h-10 w-full items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 text-sm text-muted-foreground shadow-sm shadow-black/5 transition-all hover:border-border hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 dark:bg-white/[0.03] dark:shadow-none dark:hover:bg-white/[0.05]"
       >
-        <Search className="size-3.5 shrink-0" />
-        <span className="flex-1 text-left">Search docs...</span>
-        <Kbd>⌘</Kbd>
-        <Kbd>K</Kbd>
+        <Search className="size-4 shrink-0 text-muted-foreground/70 transition-colors group-hover:text-muted-foreground" />
+        <span className="flex-1 text-left text-muted-foreground/80">
+          Search docs
+        </span>
+        <span className="hidden items-center gap-1 sm:flex">
+          <Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </span>
       </button>
       <CommandDialog
         open={open}
@@ -643,10 +580,37 @@ export function Sidebar() {
     return () => el.removeEventListener("scroll", onScroll)
   }, [])
 
+  React.useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+
+    const frame = requestAnimationFrame(() => {
+      const active = el.querySelector<HTMLElement>(
+        '[data-sidebar-active="true"]',
+      )
+      if (!active) return
+
+      const containerRect = el.getBoundingClientRect()
+      const activeRect = active.getBoundingClientRect()
+      const isVisible =
+        activeRect.top >= containerRect.top + 16 &&
+        activeRect.bottom <= containerRect.bottom - 56
+
+      if (!isVisible) {
+        active.scrollIntoView({
+          block: "center",
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+        })
+      }
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pathname, prefersReducedMotion])
+
   return (
     <div className="relative h-full flex flex-col">
       {/* Search */}
-      <div className="shrink-0 p-4 pb-2">
+      <div className="shrink-0 p-4 pb-4">
         <DocsSearch />
       </div>
 
