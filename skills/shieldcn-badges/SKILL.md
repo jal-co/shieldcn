@@ -102,13 +102,14 @@ CI supports `?workflow=name&branch=main` query params.
 
 ### Agent skills (skills.sh)
 
+Addressed as `{owner}/{repo}/{skill}` — the GitHub repo (skills.sh `source`) plus the skill slug.
+
 | Badge | Endpoint | Example |
 |-------|----------|---------|
-| Skill installs | `/skills/installs/{owner}/{repo}/{skill}` | `/skills/installs/vercel-labs/agent-skills/frontend-design` |
-| Skill rank | `/skills/rank/{owner}/{repo}/{skill}` | `/skills/rank/vercel-labs/agent-skills/frontend-design` |
-| Trending rank | `/skills/trending/{owner}/{repo}/{skill}` | `/skills/trending/vercel-labs/agent-skills/frontend-design` |
-| Hot rank | `/skills/hot/{owner}/{repo}/{skill}` | `/skills/hot/vercel-labs/agent-skills/frontend-design` |
-| Audit status | `/skills/audit/{owner}/{repo}/{skill}` | `/skills/audit/vercel-labs/agent-skills/frontend-design` |
+| Skill installs | `/skills/installs/{owner}/{repo}/{skill}` | `/skills/installs/vercel-labs/agent-skills/vercel-react-best-practices` |
+| Skill rank | `/skills/rank/{owner}/{repo}/{skill}` | `/skills/rank/vercel-labs/agent-skills/vercel-react-best-practices` |
+| Trending rank | `/skills/trending/{owner}/{repo}/{skill}` | `/skills/trending/vercel-labs/agent-skills/vercel-react-best-practices` |
+| Hot rank | `/skills/hot/{owner}/{repo}/{skill}` | `/skills/hot/vercel-labs/agent-skills/vercel-react-best-practices` |
 
 ### Custom badges
 

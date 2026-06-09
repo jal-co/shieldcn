@@ -136,7 +136,7 @@ import { getCocoaPodsVersion } from "./providers/cocoapods"
 import { getCodecovCoverage } from "./providers/codecov"
 import { getWakaTimeCodingTime } from "./providers/wakatime"
 import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "./providers/tokscale"
-import { getSkillsInstalls, getSkillsRank, getSkillsTrending, getSkillsHot, getSkillsAudit } from "./providers/skills"
+import { getSkillsInstalls, getSkillsRank, getSkillsTrending, getSkillsHot } from "./providers/skills"
 import { getIndieDevsUser } from "./providers/indiedevs"
 import { getGitLabStars, getGitLabForks, getGitLabIssues, getGitLabPipeline, getGitLabLicense, getGitLabLastCommit, getGitLabContributors, getGitLabRelease } from "./providers/gitlab"
 import { getCondaVersion, getCondaDownloads, getCondaPlatform } from "./providers/conda"
@@ -1061,12 +1061,12 @@ async function fetchBadgeData(
     }
 
     // /skills/{topic}/{owner}/{repo}/{skill}
-    // e.g. /skills/installs/vercel-labs/agent-skills/frontend-design
+    // e.g. /skills/installs/vercel-labs/agent-skills/vercel-react-best-practices
     case "skills": {
       const rest = segments.slice(1)
       if (rest.length === 0) return null
 
-      const skillTopics = new Set(["installs", "rank", "trending", "hot", "audit"])
+      const skillTopics = new Set(["installs", "rank", "trending", "hot"])
       if (skillTopics.has(rest[0])) {
         if (rest.length < 4) return null
         const [topic, owner, repo, skill] = rest
@@ -1075,7 +1075,6 @@ async function fetchBadgeData(
           case "rank": return getSkillsRank(owner, repo, skill)
           case "trending": return getSkillsTrending(owner, repo, skill)
           case "hot": return getSkillsHot(owner, repo, skill)
-          case "audit": return getSkillsAudit(owner, repo, skill)
           default: return null
         }
       }

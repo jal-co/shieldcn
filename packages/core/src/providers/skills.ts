@@ -3,8 +3,12 @@
  * lib/providers/skills
  *
  * skills.sh API client — the open agent skills directory by Vercel.
- * Supports: installs, rank, trending, hot, audit.
+ * Supports: installs, rank, trending, hot.
  * API: https://www.skills.sh/docs/api
+ *
+ * Uses the public leaderboard endpoint `/api/skills/{view}/{page}` which needs
+ * no authentication. A skill is addressed as {owner}/{repo}/{skill}, matching
+ * the upstream `source` ("owner/repo") plus `skillId`.
  */
 
 import type { BadgeData } from "../badges/types"
@@ -18,42 +22,32 @@ import { providerFetch } from "../provider-fetch"
 interface SkillsShSkill {
   id?: string
   source?: string
-  slug?: string
   skillId?: string
+  slug?: string
   name?: string
   installs?: number
 }
 
-/** Leaderboard responses have shipped under several envelope keys — accept all. */
-interface SkillsShList {
-  data?: SkillsShSkill[]
+/** Leaderboard page. Field names vary slightly across skills.sh tiers. */
+interface SkillsShPage {
   skills?: SkillsShSkill[]
+  data?: SkillsShSkill[]
   results?: SkillsShSkill[]
-  pagination?: { hasMore?: boolean }
   hasMore?: boolean
+  pagination?: { hasMore?: boolean }
 }
 
-interface SkillsShAudit {
-  audits?: Array<{
-    provider?: string
-    status?: string
-    riskLevel?: string
-  }>
-}
+type View = "all-time" | "trending" | "hot"
 
 // ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-// Use the www host directly — skills.sh redirects to www and the
-// Authorization header can be dropped on the hop.
-const API_BASE = "https://www.skills.sh/api/v1"
+// Canonical host — skills.sh redirects to www, so target www directly.
+const API_BASE = "https://www.skills.sh/api"
 
-const PER_PAGE = 100
-/** All-time rank scan depth: 10 pages × 100 = top 1000. */
-const RANK_MAX_PAGES = 10
-/** Trending/hot scan depth: 5 pages × 100 = top 500. */
-const VIEW_MAX_PAGES = 5
+/** How many leaderboard pages to scan before giving up on a skill. */
+const MAX_PAGES = 5
 
 /** Optional API key raises the skills.sh rate limit (60 → 600 req/min). */
 function authHeaders(): HeadersInit {
@@ -61,74 +55,64 @@ function authHeaders(): HeadersInit {
   return key ? { Authorization: `Bearer ${key}` } : {}
 }
 
-async function fetchSkillDetail(owner: string, repo: string, skill: string): Promise<SkillsShSkill | null> {
-  return providerFetch<SkillsShSkill>({
-    provider: "skills",
-    cacheKey: `detail:${owner}/${repo}/${skill}`,
-    url: `${API_BASE}/skills/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(skill)}`,
-    headers: authHeaders(),
-    ttl: 1800,
-  })
-}
-
-async function fetchLeaderboardPage(view: string, page: number): Promise<SkillsShList | null> {
-  return providerFetch<SkillsShList>({
+async function fetchLeaderboardPage(view: View, page: number): Promise<SkillsShPage | null> {
+  return providerFetch<SkillsShPage>({
     provider: "skills",
     cacheKey: `board:${view}:${page}`,
-    url: `${API_BASE}/skills?view=${view}&page=${page}&per_page=${PER_PAGE}`,
+    url: `${API_BASE}/skills/${view}/${page}`,
     headers: authHeaders(),
     ttl: 1800,
   })
 }
 
-async function fetchAudit(owner: string, repo: string, skill: string): Promise<SkillsShAudit | null> {
-  return providerFetch<SkillsShAudit>({
-    provider: "skills",
-    cacheKey: `audit:${owner}/${repo}/${skill}`,
-    url: `${API_BASE}/skills/audit/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(skill)}`,
-    headers: authHeaders(),
-    ttl: 3600,
-  })
-}
-
-function listSkills(page: SkillsShList): SkillsShSkill[] {
-  return page.data ?? page.skills ?? page.results ?? []
+function pageSkills(page: SkillsShPage): SkillsShSkill[] {
+  return page.skills ?? page.data ?? page.results ?? []
 }
 
 function matchesSkill(item: SkillsShSkill, owner: string, repo: string, skill: string): boolean {
-  const id = `${owner}/${repo}/${skill}`
-  if (item.id === id) return true
-  return item.source === `${owner}/${repo}` && (item.slug ?? item.skillId) === skill
+  const source = `${owner}/${repo}`
+  if (item.id === `${source}/${skill}`) return true
+  if (item.source !== source) return false
+  return (item.skillId ?? item.slug ?? item.name) === skill
+}
+
+interface ScanHit {
+  /** 1-based position on the leaderboard. */
+  rank: number
+  installs: number | null
 }
 
 /**
- * Find a skill's 1-based position on a leaderboard view by scanning pages.
- * Pages are cached and shared across all rank badges, so a warm scan is free.
+ * Scan a leaderboard view for a skill, returning its position and install
+ * count. Pages are cached (30 min) and shared across every skills badge, so a
+ * warm scan costs nothing. Stops as soon as the skill is found.
  */
-async function findRank(
-  view: string,
+async function scanLeaderboard(
+  view: View,
   owner: string,
   repo: string,
-  skill: string,
-  maxPages: number
-): Promise<number | null> {
+  skill: string
+): Promise<ScanHit | null> {
   let position = 0
-  for (let page = 0; page < maxPages; page++) {
+  for (let page = 0; page < MAX_PAGES; page++) {
     const data = await fetchLeaderboardPage(view, page)
-    if (!data) return null
-    const items = listSkills(data)
+    if (!data) break
+    const items = pageSkills(data)
+    if (items.length === 0) break
     for (const item of items) {
       position++
-      if (matchesSkill(item, owner, repo, skill)) return position
+      if (matchesSkill(item, owner, repo, skill)) {
+        return { rank: position, installs: typeof item.installs === "number" ? item.installs : null }
+      }
     }
     const hasMore = data.pagination?.hasMore ?? data.hasMore
-    if (items.length < PER_PAGE || hasMore === false) break
+    if (hasMore === false) break
   }
   return null
 }
 
 function skillLink(owner: string, repo: string, skill: string): string {
-  return `https://skills.sh/${owner}/${repo}/${skill}`
+  return `https://www.skills.sh/${owner}/${repo}/${skill}`
 }
 
 // ---------------------------------------------------------------------------
@@ -136,68 +120,41 @@ function skillLink(owner: string, repo: string, skill: string): string {
 // ---------------------------------------------------------------------------
 
 export async function getSkillsInstalls(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
-  const data = await fetchSkillDetail(owner, repo, skill)
-  if (!data || typeof data.installs !== "number") return null
+  const hit = await scanLeaderboard("all-time", owner, repo, skill)
+  if (!hit || hit.installs === null) return null
   return {
     label: "installs",
-    value: formatCount(data.installs),
+    value: formatCount(hit.installs),
     link: skillLink(owner, repo, skill),
   }
 }
 
 export async function getSkillsRank(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
-  const rank = await findRank("all-time", owner, repo, skill, RANK_MAX_PAGES)
-  if (rank !== null) {
-    return {
-      label: "skill rank",
-      value: `#${rank}`,
-      link: skillLink(owner, repo, skill),
-    }
-  }
-  // Outside the scanned top — still a real badge if the skill exists.
-  const detail = await fetchSkillDetail(owner, repo, skill)
-  if (!detail) return null
+  const hit = await scanLeaderboard("all-time", owner, repo, skill)
+  if (!hit) return null
   return {
     label: "skill rank",
-    value: `${RANK_MAX_PAGES * PER_PAGE}+`,
+    value: `#${hit.rank}`,
     link: skillLink(owner, repo, skill),
   }
 }
 
 export async function getSkillsTrending(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
-  const rank = await findRank("trending", owner, repo, skill, VIEW_MAX_PAGES)
-  if (rank === null) return null
+  const hit = await scanLeaderboard("trending", owner, repo, skill)
+  if (!hit) return null
   return {
     label: "trending",
-    value: `#${rank}`,
+    value: `#${hit.rank}`,
     link: skillLink(owner, repo, skill),
   }
 }
 
 export async function getSkillsHot(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
-  const rank = await findRank("hot", owner, repo, skill, VIEW_MAX_PAGES)
-  if (rank === null) return null
+  const hit = await scanLeaderboard("hot", owner, repo, skill)
+  if (!hit) return null
   return {
     label: "hot",
-    value: `#${rank}`,
-    link: skillLink(owner, repo, skill),
-  }
-}
-
-export async function getSkillsAudit(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
-  const data = await fetchAudit(owner, repo, skill)
-  if (!data?.audits || data.audits.length === 0) return null
-
-  const statuses = data.audits.map((a) => a.status)
-  const value = statuses.includes("fail") ? "failed"
-    : statuses.includes("warn") ? "warning"
-    : "passed"
-  const color = value === "failed" ? "red" : value === "warning" ? "amber" : "green"
-
-  return {
-    label: "audit",
-    value,
-    color,
+    value: `#${hit.rank}`,
     link: skillLink(owner, repo, skill),
   }
 }

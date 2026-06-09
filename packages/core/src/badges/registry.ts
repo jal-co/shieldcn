@@ -455,14 +455,13 @@ export const REGISTRY: BadgeProvider[] = [
   },
   {
     provider: "skills",
-    description: "skills.sh agent skill installs, rank, and audits.",
+    description: "skills.sh agent skill installs and leaderboard rank.",
     defaultTopic: "installs",
     topics: [
-      t("installs", "Skill installs", ["installs", "vercel-labs", "agent-skills", "frontend-design"]),
-      t("rank", "All-time leaderboard rank", ["rank", "vercel-labs", "agent-skills", "frontend-design"]),
-      t("trending", "Trending rank", ["trending", "vercel-labs", "agent-skills", "frontend-design"]),
-      t("hot", "Hot rank", ["hot", "vercel-labs", "agent-skills", "frontend-design"]),
-      state("audit", "Security audit status", ["audit", "vercel-labs", "agent-skills", "frontend-design"]),
+      t("installs", "Skill installs", ["installs", "vercel-labs", "agent-skills", "vercel-react-best-practices"]),
+      t("rank", "All-time leaderboard rank", ["rank", "vercel-labs", "agent-skills", "vercel-react-best-practices"]),
+      t("trending", "Trending rank", ["trending", "vercel-labs", "agent-skills", "vercel-react-best-practices"]),
+      t("hot", "Hot rank", ["hot", "vercel-labs", "agent-skills", "vercel-react-best-practices"]),
     ],
   },
   {
