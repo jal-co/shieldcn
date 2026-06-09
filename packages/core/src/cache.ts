@@ -79,15 +79,41 @@ export function isBackedOff(provider: string): boolean {
 /**
  * Record a rate limit or server error for a provider.
  * Applies exponential backoff: 15s, 30s, 60s, 120s, 300s.
+ *
+ * Also surfaces a provider alert (Sentry issue) on the request that *starts*
+ * a backoff cycle — when there is no active backoff window. Subsequent
+ * blocked requests within the same window don't re-alert, so this stays
+ * roughly one alert per outage rather than one per request. This is the
+ * single chokepoint every provider funnels rate limits / 5xx through (via
+ * githubFetch, handleUpstreamStatus, or provider-fetch), so adding it here
+ * gives every provider rate-limit alerting, not just GitHub.
+ *
+ * @param provider - provider name (e.g. "github", "npm")
+ * @param status - upstream HTTP status that triggered the backoff, if known
  */
-export function recordBackoff(provider: string): void {
+export function recordBackoff(provider: string, status?: number): void {
   const state = backoff.get(provider)
+  // A new cycle = no backoff state, or the previous window has elapsed.
+  const newCycle = !state || Date.now() >= state.until
   const count = (state?.count ?? 0) + 1
   const delay = Math.min(15000 * Math.pow(2, count - 1), MAX_BACKOFF_MS)
   backoff.set(provider, {
     until: Date.now() + delay,
     count,
   })
+
+  if (newCycle) {
+    reportProviderAlert({
+      provider,
+      reason: status === 503 ? "unavailable" : "rate_limit",
+      status,
+      message: status === 503
+        ? `${provider} API unavailable (503)`
+        : status
+          ? `${provider} API rate limited (${status})`
+          : `${provider} API rate limited`,
+    })
+  }
 }
 
 /**
@@ -369,7 +395,7 @@ export async function cachedFetch<T>(
     if (err instanceof Response) {
       const status = err.status
       if (status === 429 || status === 503) {
-        recordBackoff(provider)
+        recordBackoff(provider, status)
       }
     }
     return null
@@ -460,7 +486,7 @@ export async function cachedFetchStale<T>(
     data = await fetcher()
   } catch (err) {
     if (err instanceof Response && (err.status === 429 || err.status === 503)) {
-      recordBackoff(provider)
+      recordBackoff(provider, err.status)
     }
     data = null
   }
@@ -483,7 +509,7 @@ export async function cachedFetchStale<T>(
  */
 export function handleUpstreamStatus(provider: string, status: number): void {
   if (status === 429 || status === 503) {
-    recordBackoff(provider)
+    recordBackoff(provider, status)
   } else if (status >= 200 && status < 400) {
     clearBackoff(provider)
   }

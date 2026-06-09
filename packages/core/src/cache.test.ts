@@ -7,7 +7,13 @@
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest"
-import { cachedFetchStale, setProviderAlertCallback, type ProviderAlert } from "./cache"
+import {
+  cachedFetchStale,
+  setProviderAlertCallback,
+  recordBackoff,
+  clearBackoff,
+  type ProviderAlert,
+} from "./cache"
 
 // Unique key per case so the process-wide memory LRU doesn't bleed between tests.
 let n = 0
@@ -99,5 +105,23 @@ describe("provider alerts", () => {
 
     expect(result).toEqual({ label: "x", value: "1" })
     expect(alerts).toHaveLength(0)
+  })
+
+  it("alerts any provider once per backoff cycle on a rate limit", async () => {
+    const provider = `prov-${Date.now()}-${n++}`
+    clearBackoff(provider)
+    const alerts: ProviderAlert[] = []
+    setProviderAlertCallback((a) => alerts.push(a))
+
+    // First failure starts a backoff cycle → one alert with the status.
+    recordBackoff(provider, 429)
+    // Subsequent failures within the same active window must NOT re-alert.
+    recordBackoff(provider, 429)
+    recordBackoff(provider, 429)
+
+    expect(alerts).toHaveLength(1)
+    expect(alerts[0]).toMatchObject({ provider, reason: "rate_limit", status: 429 })
+
+    clearBackoff(provider)
   })
 })
