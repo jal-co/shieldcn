@@ -32,62 +32,62 @@ export default async function Page(props: {
           ),
         }}
       />
-      <div className="mx-auto flex w-full items-start gap-14 py-10 px-6 md:px-10">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-col gap-6 w-full">
-          {/* Title + description */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                {page.data.title}
-              </h1>
-              {(() => {
-                const badge = (page.data as unknown as Record<string, unknown>).badge
-                return typeof badge === "string" ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={badge} alt="" className="h-6 shrink-0" />
-                ) : null
-              })()}
+      <div className="mx-auto grid w-full max-w-[90rem] grid-cols-1 gap-10 px-6 py-10 md:px-10 lg:py-14 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-12 2xl:grid-cols-[minmax(0,52rem)_15rem] 2xl:justify-center">
+        <div className="min-w-0">
+          <div className="flex w-full max-w-[52rem] flex-col gap-8">
+            {/* Title + description */}
+            <div className="flex flex-col gap-3 border-b border-border/60 pb-8">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                  {page.data.title}
+                </h1>
+                {(() => {
+                  const badge = (page.data as unknown as Record<string, unknown>).badge
+                  return typeof badge === "string" ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={badge} alt="" className="h-6 shrink-0" />
+                  ) : null
+                })()}
+              </div>
+              {page.data.description && (
+                <p className="max-w-2xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
+                  {page.data.description}
+                </p>
+              )}
             </div>
-            {page.data.description && (
-              <p className="text-xl text-muted-foreground leading-relaxed">
-                {page.data.description}
-              </p>
-            )}
-          </div>
 
-          {/* MDX content */}
-          <div className="prose prose-zinc dark:prose-invert max-w-none">
-            <MDX components={getMDXComponents()} />
+            {/* MDX content */}
+            <div className="prose prose-zinc max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:text-balance prose-p:text-pretty prose-pre:my-5 prose-table:my-5">
+              <MDX components={getMDXComponents()} />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Table of contents */}
-      {toc && toc.length > 0 && (
-        <aside className="sticky top-24 hidden w-64 shrink-0 xl:block">
-          <div className="flex flex-col gap-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              On This Page
-            </p>
-            <div className="flex flex-col gap-2 border-l border-border/40 pl-4">
-              {toc.map((item) => (
-                <a
-                  key={item.url}
-                  href={item.url}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground line-clamp-2"
-                  style={{
-                    paddingLeft: (item.depth - 2) * 12,
-                  }}
-                >
-                  {item.title}
-                </a>
-              ))}
+        {/* Table of contents */}
+        {toc && toc.length > 0 && (
+          <aside className="sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 overflow-y-auto xl:block">
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                On This Page
+              </p>
+              <div className="flex flex-col gap-1 border-l border-border/50 pl-3">
+                {toc.map((item) => (
+                  <a
+                    key={item.url}
+                    href={item.url}
+                    className="rounded-sm py-1 text-sm leading-5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 line-clamp-2"
+                    style={{
+                      paddingLeft: (item.depth - 2) * 10,
+                    }}
+                  >
+                    {item.title}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
-        </aside>
-      )}
-    </div>
+          </aside>
+        )}
+      </div>
     </>
   )
 }

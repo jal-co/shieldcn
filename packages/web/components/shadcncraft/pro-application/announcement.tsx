@@ -14,7 +14,7 @@ function Announcement({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 
 function AnnouncementContent({
@@ -22,7 +22,7 @@ function AnnouncementContent({
   className,
   ...props
 }: React.ComponentProps<"div"> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "div";
+  const Comp = asChild ? Slot.Root : "div"
 
   return (
     <Comp
@@ -33,16 +33,16 @@ function AnnouncementContent({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function AnnouncementBadge({
   asChild,
   ...props
 }: React.ComponentProps<typeof Badge> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : Badge;
+  const Comp = asChild ? Slot.Root : Badge
 
-  return <Comp variant="secondary" data-slot="announcement-badge" {...props} />;
+  return <Comp variant="secondary" data-slot="announcement-badge" {...props} />
 }
 
-export { Announcement, AnnouncementBadge, AnnouncementContent };
+export { Announcement, AnnouncementBadge, AnnouncementContent }

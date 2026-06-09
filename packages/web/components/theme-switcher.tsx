@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils"
 
 export function ThemeSwitcher() {
   const { setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   if (!mounted) {
     return <div className="size-8" />
@@ -55,13 +55,13 @@ export function ThemeSwitcher() {
           />
         </clipPath>
         <g clipPath="url(#theme-toggle-clip)">
-          <motion.circle
-            animate={{ r: resolvedTheme === "dark" ? 10 : 8 }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+          <circle
+            r={resolvedTheme === "dark" ? 10 : 8}
             cx="16"
             cy="16"
           />
           <motion.g
+            initial={false}
             animate={{
               rotate: resolvedTheme === "dark" ? -100 : 0,
               scale: resolvedTheme === "dark" ? 0.5 : 1,

@@ -58,10 +58,16 @@ export function ColorInput({
   value,
   onChange,
   placeholder = "auto",
+  inputId,
+  inputName,
+  ariaLabel = "Hex color",
 }: {
   value: string
   onChange: (v: string) => void
   placeholder?: string
+  inputId?: string
+  inputName?: string
+  ariaLabel?: string
 }) {
   const [open, setOpen] = useState(false)
 
@@ -97,6 +103,9 @@ export function ColorInput({
         </PopoverContent>
       </Popover>
       <Input
+        id={inputId}
+        name={inputName}
+        aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/^#/, ""))}
         placeholder={placeholder}
@@ -186,19 +195,7 @@ function ColorPicker({
   const [sat, setSat] = useState(s)
   const [lit, setLit] = useState(l)
 
-  // Sync internal state when external value changes
   const prevValue = useRef(value)
-  useEffect(() => {
-    if (value !== prevValue.current) {
-      prevValue.current = value
-      if (value && isValidHex(value)) {
-        const [nh, ns, nl] = hexToHsl(value)
-        setHue(nh)
-        setSat(ns)
-        setLit(nl)
-      }
-    }
-  }, [value])
 
   const emit = useCallback(
     (h2: number, s2: number, l2: number) => {
@@ -220,8 +217,6 @@ function ColorPicker({
       const rect = el.getBoundingClientRect()
       const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
       const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
-      const newSat = x * 100
-      const newLit = (1 - y) * 50 + (1 - x) * (1 - y) * 50
       // Simplified: top-left is white, top-right is hue, bottom is black
       // Use HSB-to-HSL: s = x*100, b = (1-y)*100, then convert
       const b = (1 - y) * 100
@@ -305,6 +300,9 @@ function ColorPicker({
     typeof window !== "undefined" && "EyeDropper" in window,
   )
 
+  // --- Hex input ---
+  const [hexInput, setHexInput] = useState(hex)
+
   const handleEyedropper = useCallback(async () => {
     try {
       // @ts-expect-error EyeDropper API not in all TS libs
@@ -316,6 +314,7 @@ function ColorPicker({
         setHue(nh)
         setSat(ns)
         setLit(nl)
+        setHexInput(picked)
         prevValue.current = picked
         onChange(picked)
       }
@@ -323,12 +322,6 @@ function ColorPicker({
       /* user cancelled */
     }
   }, [onChange])
-
-  // --- Hex input ---
-  const [hexInput, setHexInput] = useState(hex)
-  useEffect(() => {
-    setHexInput(value && isValidHex(value) ? value : hex)
-  }, [value, hex])
 
   return (
     <div className="space-y-3">
@@ -382,6 +375,8 @@ function ColorPicker({
       <div className="flex items-center gap-1.5">
         <span className="text-xs text-muted-foreground">#</span>
         <Input
+          aria-label="Hex color value"
+          name="hex-color"
           value={hexInput}
           onChange={(e) => {
             const raw = e.target.value.replace(/^#/, "").slice(0, 6)
@@ -405,6 +400,7 @@ function ColorPicker({
             size="icon-xs"
             onClick={() => void handleEyedropper()}
             title="Pick color from screen"
+            aria-label="Pick color from screen"
           >
             <Pipette className="size-3" />
           </Button>
@@ -429,10 +425,12 @@ function ColorPicker({
               setHue(nh)
               setSat(ns)
               setLit(nl)
+              setHexInput(preset)
               prevValue.current = preset
               onChange(preset)
             }}
             title={`#${preset}`}
+            aria-label={`Use color #${preset}`}
           />
         ))}
       </div>

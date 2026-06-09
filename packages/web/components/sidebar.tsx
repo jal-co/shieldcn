@@ -74,7 +74,6 @@ const docsNav: NavGroup[] = [
   },
   {
     title: "Source Control",
-    alwaysOpen: true,
     items: [
       { title: "GitHub", href: "/docs/badges/github" },
       { title: "GitLab", href: "/docs/badges/gitlab" },
@@ -82,7 +81,6 @@ const docsNav: NavGroup[] = [
   },
   {
     title: "Package Registries",
-    alwaysOpen: true,
     items: [
       { title: "npm", href: "/docs/badges/npm" },
       { title: "PyPI", href: "/docs/badges/pypi" },
@@ -193,7 +191,7 @@ function CollapsibleSection({
   prefersReducedMotion: boolean | null
 }) {
   const containsActive = groupContainsPath(group, pathname)
-  const [open, setOpen] = React.useState(true)
+  const [open, setOpen] = React.useState(containsActive)
   const prevPathRef = React.useRef(pathname)
 
   // Auto-expand when navigating into this section
@@ -232,9 +230,11 @@ function CollapsibleSection({
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
         className={cn(
-          "flex w-full items-center justify-between px-2 pb-0.5 text-xs font-bold uppercase tracking-wide text-foreground transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm",
-          index === 0 ? "pt-0" : "pt-3",
+          "flex w-full items-center justify-between rounded-sm px-2 pb-1 text-xs font-bold uppercase tracking-wide transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+          containsActive ? "text-foreground" : "text-muted-foreground",
+          index === 0 ? "pt-0" : "pt-4",
         )}
       >
         <span>{group.title}</span>
@@ -256,7 +256,7 @@ function CollapsibleSection({
                 ? { duration: 0 }
                 : { duration: 0.15, ease: "easeInOut" }
             }
-            className="overflow-hidden"
+            className="overflow-hidden pt-0.5"
           >
             {group.items.map(item => (
               <CollapsibleNavItem
@@ -319,7 +319,7 @@ function CollapsibleNavItem({
           href={item.href}
           data-sidebar-active={isActive ? "true" : undefined}
           className={cn(
-            "relative flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+            "relative flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-sm leading-5 transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             isActive
               ? "font-medium text-accent-foreground"
               : "text-muted-foreground",
@@ -403,7 +403,7 @@ function NavLink({
       href={href}
       data-sidebar-active={isActive ? "true" : undefined}
       className={cn(
-        "relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        "relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm leading-5 transition-colors hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         isActive
           ? "font-medium text-accent-foreground"
           : "text-muted-foreground",
@@ -610,7 +610,7 @@ export function Sidebar() {
   return (
     <div className="relative h-full flex flex-col">
       {/* Search */}
-      <div className="shrink-0 p-4 pb-4">
+      <div className="shrink-0 p-4 pb-3">
         <DocsSearch />
       </div>
 
@@ -620,7 +620,7 @@ export function Sidebar() {
         className="flex-1 overflow-y-auto px-4 pb-14 no-scrollbar"
       >
         <LayoutGroup>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1.5">
             {docsNav.map((group, i) => (
               <CollapsibleSection
                 key={group.title}

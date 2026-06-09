@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
+import { useState, useCallback, useId, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,6 +68,8 @@ export function BadgeSandbox({
   defaults = {},
   showStatusDot = false,
 }: BadgeSandboxProps) {
+  const sandboxId = useId()
+
   // Path + extra param values
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {}
@@ -204,15 +206,24 @@ export function BadgeSandbox({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {pathParams.map(p => (
                 <div key={p.name} className="space-y-1">
+                  {(() => {
+                    const inputId = `${sandboxId}-${p.name}`
+                    return (
+                      <>
                   <div className="flex items-baseline gap-1.5">
-                    <Label className="font-mono text-xs">{p.name}</Label>
+                    <Label htmlFor={inputId} className="font-mono text-xs">{p.name}</Label>
                     {p.required && <Badge variant="secondary" className="text-[9px] px-1 py-0">required</Badge>}
                   </div>
                   <Input
+                    id={inputId}
+                    name={p.name}
                     value={values[p.name] ?? ""}
                     onChange={e => setValue(p.name, e.target.value)}
                     placeholder={p.placeholder}
                   />
+                      </>
+                    )
+                  })()}
                   {p.description && <p className="text-[11px] text-muted-foreground">{p.description}</p>}
                 </div>
               ))}
@@ -225,8 +236,10 @@ export function BadgeSandbox({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {extraParams.map(p => (
               <div key={p.name} className="space-y-1">
-                <Label className="font-mono text-xs">{p.name}</Label>
+                <Label htmlFor={`${sandboxId}-${p.name}`} className="font-mono text-xs">{p.name}</Label>
                 <Input
+                  id={`${sandboxId}-${p.name}`}
+                  name={p.name}
                   value={values[p.name] ?? ""}
                   onChange={e => setValue(p.name, e.target.value)}
                   placeholder={p.placeholder}
@@ -243,7 +256,7 @@ export function BadgeSandbox({
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <SField label="format">
             <Select value={imageFormat} onValueChange={v => setImageFormat(v as "png" | "svg")}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Badge image format" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="png">PNG</SelectItem>
                 <SelectItem value="svg">SVG</SelectItem>
@@ -253,7 +266,7 @@ export function BadgeSandbox({
 
           <SField label="variant">
             <Select value={variant} onValueChange={setVariant}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Badge variant" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {availableVariants.map(v =>
                   <SelectItem key={v} value={v}>{VARIANT_LABELS[v] ?? v}</SelectItem>
@@ -264,7 +277,7 @@ export function BadgeSandbox({
 
           <SField label="size">
             <Select value={size} onValueChange={setSize}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Badge size" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {[["xs","xs (24px)"],["sm","sm (32px)"],["default","default (36px)"],["lg","lg (40px)"]].map(([v,l]) =>
                   <SelectItem key={v} value={v}>{l}</SelectItem>
@@ -275,7 +288,7 @@ export function BadgeSandbox({
 
           <SField label="theme">
             <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Badge theme" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {[["_none","none"],["zinc","zinc"],["blue","blue"],["green","green"],["rose","rose"],["orange","orange"],["violet","violet"]].map(([v,l]) =>
                   <SelectItem key={v} value={v}>{l}</SelectItem>
@@ -286,7 +299,7 @@ export function BadgeSandbox({
 
           <SField label="mode">
             <Select value={mode} onValueChange={setMode}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Badge color mode" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="dark">dark</SelectItem>
                 <SelectItem value="light">light</SelectItem>
@@ -304,22 +317,22 @@ export function BadgeSandbox({
           </SField>
 
           <SField label="logoColor">
-            <ColorInput value={logoColor} onChange={setLogoColor} placeholder="auto" />
+            <ColorInput inputId={`${sandboxId}-logo-color`} inputName="logoColor" ariaLabel="Logo color hex" value={logoColor} onChange={setLogoColor} placeholder="auto" />
           </SField>
 
           <SField label="label">
-            <Input value={label} onChange={e => setLabel(e.target.value)} placeholder="auto" />
+            <Input id={`${sandboxId}-label`} name="label" aria-label="Custom badge label" value={label} onChange={e => setLabel(e.target.value)} placeholder="auto" />
           </SField>
 
           <SField label="flags">
             <div className="flex flex-col gap-1 pt-1">
               <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                <Checkbox checked={split} onCheckedChange={v => setSplit(v === true)} />
+                <Checkbox aria-label="Use split badge layout" checked={split} onCheckedChange={v => setSplit(v === true)} />
                 <span className="font-mono text-muted-foreground">split</span>
               </label>
               {showStatusDot && (
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                  <Checkbox checked={statusDot} onCheckedChange={v => setStatusDot(v === true)} />
+                  <Checkbox aria-label="Show status dot" checked={statusDot} onCheckedChange={v => setStatusDot(v === true)} />
                   <span className="font-mono text-muted-foreground">statusDot</span>
                 </label>
               )}
@@ -329,6 +342,7 @@ export function BadgeSandbox({
 
         {/* Advanced */}
         <button
+          type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
           className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline underline-offset-4"
         >
@@ -338,13 +352,13 @@ export function BadgeSandbox({
 
         {showAdvanced && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <SField label="color"><ColorInput value={color} onChange={setColor} placeholder="hex" /></SField>
+            <SField label="color"><ColorInput inputId={`${sandboxId}-color`} inputName="color" ariaLabel="Badge color hex" value={color} onChange={setColor} placeholder="hex" /></SField>
             <SField label="gradient">
-              <Input value={gradient} onChange={e => setGradient(e.target.value)} placeholder="ff6b6b,4ecdc4" />
+              <Input id={`${sandboxId}-gradient`} name="gradient" aria-label="Badge gradient colors" value={gradient} onChange={e => setGradient(e.target.value)} placeholder="ff6b6b,4ecdc4" />
             </SField>
-            <SField label="valueColor"><ColorInput value={valueColor} onChange={setValueColor} placeholder="hex" /></SField>
-            <SField label="labelTextColor"><ColorInput value={labelTextColor} onChange={setLabelTextColor} placeholder="hex" /></SField>
-            <SField label="labelOpacity"><Input value={labelOpacity} onChange={e => setLabelOpacity(e.target.value)} placeholder="0–1" /></SField>
+            <SField label="valueColor"><ColorInput inputId={`${sandboxId}-value-color`} inputName="valueColor" ariaLabel="Value color hex" value={valueColor} onChange={setValueColor} placeholder="hex" /></SField>
+            <SField label="labelTextColor"><ColorInput inputId={`${sandboxId}-label-text-color`} inputName="labelTextColor" ariaLabel="Label text color hex" value={labelTextColor} onChange={setLabelTextColor} placeholder="hex" /></SField>
+            <SField label="labelOpacity"><Input id={`${sandboxId}-label-opacity`} name="labelOpacity" aria-label="Label opacity" value={labelOpacity} onChange={e => setLabelOpacity(e.target.value)} placeholder="0–1" /></SField>
           </div>
         )}
 
@@ -368,6 +382,7 @@ export function BadgeSandbox({
                     {formattedOutput}
                   </pre>
                   <Button
+                    aria-label={copied ? "Copied output" : "Copy output"}
                     variant="outline" size="icon-xs"
                     onClick={handleCopy}
                     className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
