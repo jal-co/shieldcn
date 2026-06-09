@@ -156,7 +156,7 @@ import { getLiberapayReceiving, getLiberapayPatrons, getLiberapayGoal } from "./
 import { getMatrixMembers } from "./providers/matrix"
 import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 import { getShipperClubMember } from "./providers/shipperclub"
-import { cachedFetchStale } from "./cache"
+import { cachedFetchStale, isBackedOff } from "./cache"
 import { raceTimeout } from "./provider-fetch"
 
 /** Response format. */
@@ -440,7 +440,27 @@ async function resolveGitHubBadge(
     }
   }
 
+  // The existence probe couldn't reach GitHub either (rate limit, backoff,
+  // network) — the failure is definitely transient, not a bad repo. Say so
+  // honestly: a red "not found" on a valid repo reads as "your badge URL is
+  // wrong" and destroys trust. Marked error:true → 60s cache, never
+  // persisted as last-known-good.
+  if (exists === null) {
+    return GITHUB_UNAVAILABLE
+  }
+
   return null
+}
+
+/**
+ * Transient-failure verdict for GitHub badges with no last-known-good value.
+ * Gray (not red), short-cached, self-heals as soon as the upstream recovers.
+ */
+const GITHUB_UNAVAILABLE: BadgeData = {
+  label: "github",
+  value: "unavailable",
+  color: "cancelled",
+  error: true,
 }
 
 async function fetchBadgeData(
@@ -515,7 +535,7 @@ async function fetchBadgeData(
       const wf = searchParams.get("workflow")
       const br = searchParams.get("branch")
       const ghKey = rest.join("/") + (wf ? `|wf=${wf}` : "") + (br ? `|br=${br}` : "")
-      return cachedFetchStale(
+      const ghData = await cachedFetchStale(
         "github",
         ghKey,
         () => resolveGitHubBadge(rest, searchParams),
@@ -526,6 +546,15 @@ async function fetchBadgeData(
         // that later becomes available self-heals quickly.
         { isError: (d) => d.error === true, errorTtl: GITHUB_ERROR_TTL },
       )
+      if (ghData !== null) return ghData
+
+      // No data and no last-known-good. When GitHub is in a backoff window
+      // the fetcher was never called, so the transient-failure verdict from
+      // resolveGitHubBadge never got a chance to run — produce it here so a
+      // brand-new badge during an outage reads "unavailable" (gray, 60s),
+      // not "not found" (red, implies the badge URL is wrong).
+      if (isBackedOff("github")) return GITHUB_UNAVAILABLE
+      return null
     }
 
     // /discord/{serverId} or /discord/{topic}/{inviteCode}
@@ -1562,10 +1591,11 @@ async function handleBadgeGroup(
     })
   )
 
-  // If any segment fell back to "not found", treat the whole group as an
-  // error response so the failure self-heals quickly instead of being
-  // pinned at the CDN for an hour.
-  const groupCacheHeaders = allData.some(({ data }) => !data)
+  // If any segment fell back to "not found" or carries a terminal-error
+  // verdict (e.g. "unavailable"), treat the whole group as an error response
+  // so the failure self-heals quickly instead of being pinned at the CDN
+  // for an hour.
+  const groupCacheHeaders = allData.some(({ data }) => !data || data.error)
     ? ERROR_CACHE_HEADERS
     : CACHE_HEADERS
 
