@@ -223,6 +223,7 @@ const ERROR_CACHE_HEADERS = {
 /** GitHub last-known-good cache tuning (see cachedFetchStale). */
 const GITHUB_FRESH_TTL = 300 // 5 min fresh copy
 const GITHUB_STALE_TTL = 60 * 60 * 24 * 7 // 7 day last-known-good fallback
+const GITHUB_ERROR_TTL = 60 // "invalid repository" verdict — short, self-healing
 
 /**
  * Parse the format from the last URL segment.
@@ -306,7 +307,7 @@ async function resolveGitHubBadge(
     "milestones", "commits", "last-commit",
     "assets-dl", "dt",
     "downloads", "downloads-all", "downloads-asset",
-    "dependents-repo", "dependents-pkg", "dependabot",
+    "dependabot",
   ])
 
   let topic: string
@@ -431,6 +432,9 @@ async function resolveGitHubBadge(
       value: "invalid repository",
       color: "failure",
       link: `https://github.com/${owner}/${repo}`,
+      // Terminal error: short-cached, never persisted as last-known-good, and
+      // served with short cache headers so it self-heals if the repo appears.
+      error: true,
     }
   }
 
@@ -515,6 +519,10 @@ async function fetchBadgeData(
         () => resolveGitHubBadge(rest, searchParams),
         GITHUB_FRESH_TTL,
         GITHUB_STALE_TTL,
+        // An "invalid repository" verdict is a terminal error, not a value:
+        // cache it briefly and never persist it as last-known-good, so a repo
+        // that later becomes available self-heals quickly.
+        { isError: (d) => d.error === true, errorTtl: GITHUB_ERROR_TTL },
       )
     }
 
@@ -1453,7 +1461,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
       "license","release","contributors","ci","checks","issues","open-issues","closed-issues",
       "label-issues","prs","open-prs","closed-prs","merged-prs","milestones","commits",
       "last-commit","assets-dl","dt","downloads","downloads-all","downloads-asset",
-      "dependents-repo","dependents-pkg","dependabot"])
+      "dependabot"])
     const topic = knownTopics.has(rest[0]) ? rest[0] : rest[2]
 
     if (topic === "stars") return { reactIcon: "GoStarFill" }
@@ -1790,9 +1798,14 @@ async function handleBadgeGETInner(
     )
   }
 
+  // A terminal-error verdict (e.g. a genuine 404 → "invalid repository")
+  // renders a real badge but must not be cached like a success — short
+  // headers let it self-heal quickly instead of being pinned at the CDN.
+  const dataCacheHeaders = data.error ? ERROR_CACHE_HEADERS : CACHE_HEADERS
+
   // JSON response
   if (format === "json") {
-    return Response.json(data, { headers: CACHE_HEADERS })
+    return Response.json(data, { headers: dataCacheHeaders })
   }
 
   // Shields.io compatible JSON
@@ -1804,7 +1817,7 @@ async function handleBadgeGETInner(
         message: data.value,
         color: data.color || "blue",
       },
-      { headers: CACHE_HEADERS }
+      { headers: dataCacheHeaders }
     )
   }
 
@@ -2124,13 +2137,13 @@ async function handleBadgeGETInner(
         })
       }
       return new Response(Buffer.from(gif), {
-        headers: { "Content-Type": "image/gif", ...CACHE_HEADERS },
+        headers: { "Content-Type": "image/gif", ...dataCacheHeaders },
       })
     }
     // Animation not applicable (e.g. pulse/glow requested but no status dot).
     // Fall back to the static SVG so the badge never breaks.
     return new Response(baseSvg, {
-      headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+      headers: { "Content-Type": "image/svg+xml", ...dataCacheHeaders },
     })
   }
 
@@ -2210,7 +2223,7 @@ async function handleBadgeGETInner(
     return new Response(Buffer.from(png), {
       headers: {
         "Content-Type": "image/png",
-        ...CACHE_HEADERS,
+        ...dataCacheHeaders,
       },
     })
   }
@@ -2219,7 +2232,7 @@ async function handleBadgeGETInner(
   return new Response(svg, {
     headers: {
       "Content-Type": "image/svg+xml",
-      ...CACHE_HEADERS,
+      ...dataCacheHeaders,
     },
   })
 }

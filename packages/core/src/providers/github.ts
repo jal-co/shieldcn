@@ -5,7 +5,7 @@
  * GitHub REST API client. Uses the token pool for distributed rate limiting.
  * Supports: stars, forks, watchers, branches, releases, tags, license,
  *           contributors, checks, issues, PRs, milestones, commits,
- *           last-commit, assets-dl, dependents, dependabot,
+ *           last-commit, assets-dl, dependabot,
  *           followers, user-stars.
  */
 

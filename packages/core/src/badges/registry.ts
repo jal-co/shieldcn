@@ -171,8 +171,6 @@ export const REGISTRY: BadgeProvider[] = [
       t("downloads", "Release downloads", ["downloads", "facebook", "react"]),
       t("downloads-all", "All release downloads", ["downloads-all", "facebook", "react"]),
       t("downloads-asset", "Specific asset downloads", ["downloads-asset", "facebook", "react"]),
-      t("dependents-repo", "Dependent repositories", ["dependents-repo", "facebook", "react"]),
-      t("dependents-pkg", "Dependent packages", ["dependents-pkg", "facebook", "react"]),
       // Pass/fail state badges — no `branded`.
       state("ci", "GitHub Actions CI status", ["ci", "facebook", "react"]),
       state("checks", "Combined check status", ["checks", "facebook", "react"]),

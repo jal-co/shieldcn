@@ -135,4 +135,11 @@ export interface BadgeData {
   color?: string
   /** Optional link URL. */
   link?: string
+  /**
+   * Marks a terminal error verdict that still renders a real badge (e.g. a
+   * genuine 404 → "invalid repository"). Such results are cached only briefly
+   * and never persisted as a last-known-good value, so they self-heal quickly
+   * instead of being pinned at the CDN like a success.
+   */
+  error?: boolean
 }

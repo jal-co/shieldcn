@@ -419,11 +419,20 @@ export async function cachedFetch<T>(
  * Only non-null results are cached; a genuine miss with no prior good value
  * still returns `null` (caller decides how to render / cache that).
  *
+ * A fetched result may be a "terminal error" — a real value that nonetheless
+ * represents a definitive error state (e.g. GitHub 404 → "invalid
+ * repository"). Pass `opts.isError` to mark these: they are cached only
+ * briefly (`opts.errorTtl`) so repeated requests don't re-hit the upstream,
+ * but they are NEVER written to the long-lived stale store and never
+ * overwrite an existing good value — so they self-heal quickly and can't be
+ * served later as a fake last-known-good.
+ *
  * @param provider - provider name (e.g. "github")
  * @param key - unique cache key for this request
  * @param fetcher - async function that fetches the data
  * @param freshTtl - fresh-copy TTL in seconds (default 300)
  * @param staleTtl - last-known-good TTL in seconds (default 7 days)
+ * @param opts - optional terminal-error handling
  */
 export async function cachedFetchStale<T>(
   provider: string,
@@ -431,6 +440,7 @@ export async function cachedFetchStale<T>(
   fetcher: () => Promise<T | null>,
   freshTtl: number = 300,
   staleTtl: number = 60 * 60 * 24 * 7,
+  opts?: { isError?: (data: T) => boolean; errorTtl?: number },
 ): Promise<T | null> {
   const freshKey = cacheKey(provider, key)
   const staleKey = cacheKey(provider, "stale", key)
@@ -493,9 +503,16 @@ export async function cachedFetchStale<T>(
 
   if (data !== null) {
     clearBackoff(provider)
-    // Refresh both the short-lived and the long-lived copy.
-    await cacheSet(freshKey, data, freshTtl)
-    await cacheSet(staleKey, data, staleTtl)
+    if (opts?.isError?.(data)) {
+      // Terminal error verdict: cache briefly so we don't re-hit the upstream
+      // on every request, but never persist it as last-known-good and never
+      // clobber an existing good value — so it self-heals fast.
+      await cacheSet(freshKey, data, opts.errorTtl ?? 60)
+    } else {
+      // Good value: refresh both the short-lived and the long-lived copy.
+      await cacheSet(freshKey, data, freshTtl)
+      await cacheSet(staleKey, data, staleTtl)
+    }
     return data
   }
 

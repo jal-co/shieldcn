@@ -12,6 +12,8 @@ import {
   setProviderAlertCallback,
   recordBackoff,
   clearBackoff,
+  cacheGet,
+  cacheSet,
   type ProviderAlert,
 } from "./cache"
 
@@ -55,6 +57,27 @@ describe("cachedFetchStale", () => {
       3600,
     )
     expect(stale).toEqual({ label: "stars", value: "325" })
+  })
+
+  it("returns a terminal-error result but never persists it as last-known-good", async () => {
+    const key = freshKey()
+    const staleKey = `shieldcn:test:stale:${key}`
+    const isError = (d: { error?: boolean }) => d.error === true
+
+    // Seed the last-known-good store directly (fresh cache stays empty).
+    await cacheSet(staleKey, { label: "stars", value: "325" }, 3600)
+
+    // Upstream now returns a terminal error verdict ("invalid repository").
+    const errVal = await cachedFetchStale(
+      "test", key,
+      vi.fn().mockResolvedValue({ label: "github", value: "invalid repository", error: true }),
+      300, 3600, { isError },
+    )
+    // It is returned to the caller...
+    expect(errVal).toMatchObject({ value: "invalid repository" })
+    // ...but must NOT have overwritten the last-known-good value, so a repo
+    // that recovers self-heals instead of being stuck on the error verdict.
+    expect(await cacheGet(staleKey)).toEqual({ label: "stars", value: "325" })
   })
 
   it("returns null when a fetch fails and there is no prior good value", async () => {
