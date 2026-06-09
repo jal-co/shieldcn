@@ -166,6 +166,7 @@ const PROVIDER_BUDGETS: Record<string, { max: number; refillRate: number }> = {
   cocoapods:     { max: 20, refillRate: 2 },
   maven:         { max: 20, refillRate: 2 },
   jsr:           { max: 30, refillRate: 3 },
+  skills:        { max: 10, refillRate: 1 },      // skills.sh: 60 req/min unauthenticated
   // github is handled by the token pool, not budgeted here
 }
 

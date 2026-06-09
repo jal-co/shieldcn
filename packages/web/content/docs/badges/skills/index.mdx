@@ -1,0 +1,195 @@
+---
+title: skills.sh
+description: Badges for skills.sh — agent skill installs, leaderboard rank, trending, hot, and security audits.
+badge: "/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=branded"
+---
+
+Display live stats from [skills.sh](https://skills.sh), the open agent skills directory by Vercel. Show how many times your skill has been installed, where it sits on the leaderboard, and whether it passes security audits.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="installs" description="Installs (branded)" />
+  <BadgePreviewCard src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=secondary" alt="rank" description="All-time rank" />
+  <BadgePreviewCard src="/skills/trending/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="trending" description="Trending rank (branded)" />
+  <BadgePreviewCard src="/skills/hot/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="hot" description="Hot rank" />
+  <BadgePreviewCard src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="audit" description="Security audit" />
+  <BadgePreviewCard src="/skills/installs/jal-co/shieldcn/shieldcn-badges.svg?variant=secondary" alt="shieldcn skill installs" description="Installs" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Installs | `/skills/installs/{owner}/{repo}/{skill}` | All-time install count |
+| Rank | `/skills/rank/{owner}/{repo}/{skill}` | All-time leaderboard position |
+| Trending | `/skills/trending/{owner}/{repo}/{skill}` | Position on the trending leaderboard |
+| Hot | `/skills/hot/{owner}/{repo}/{skill}` | Position on the hot (last 24h) leaderboard |
+| Audit | `/skills/audit/{owner}/{repo}/{skill}` | Security audit status (passed / warning / failed) |
+
+The default endpoint `/skills/{owner}/{repo}/{skill}` returns the install count.
+
+## Quick examples
+
+<CodeLine language="markdown" code='![installs](https://shieldcn.dev/skills/installs/vercel-labs/agent-skills/frontend-design.svg)' />
+
+<CodeLine language="markdown" code='![skill rank](https://shieldcn.dev/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=branded)' />
+
+<CodeLine language="markdown" code='![trending](https://shieldcn.dev/skills/trending/vercel-labs/agent-skills/frontend-design.svg)' />
+
+<CodeLine language="markdown" code='![audit](https://shieldcn.dev/skills/audit/vercel-labs/agent-skills/frontend-design.svg)' />
+
+## Finding your skill
+
+Skills are addressed as `{owner}/{repo}/{skill}` — the GitHub repository that hosts the skill plus the skill's slug:
+
+1. Publish a `SKILL.md` in a public GitHub repo (see the [skills.sh docs](https://www.skills.sh/docs)).
+2. The skill is indexed automatically after its first `npx skills add {owner}/{repo}` install.
+3. Find your skill page at `https://skills.sh/{owner}/{repo}/{skill}` — the badge path uses the same three segments.
+
+## Data source
+
+Uses the official [skills.sh API](https://www.skills.sh/docs/api). No API key required (a `SKILLS_SH_API_KEY` env var raises the rate limit when self-hosting). Install counts and ranks are cached 30 minutes, audits 1 hour. Rank scans the top 1000 skills — skills outside it show `1000+`. Trending and hot cover the top 500 and return a not-found badge when the skill isn't currently listed.
+
+## Endpoint details
+
+Use these sections when you need the exact URL shape or a focused example for a
+specific badge type.
+
+### Skill Installs
+
+This section covers the `skills/installs` badge endpoint.
+
+Show the all-time install count for a skill.
+
+<BadgeSandbox
+  endpoint="/skills/installs/:owner/:repo/:skill.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub owner", placeholder: "vercel-labs", required: true },
+    { name: "repo", label: "Repository", placeholder: "agent-skills", required: true },
+    { name: "skill", label: "Skill slug", placeholder: "frontend-design", required: true },
+  ]}
+  defaults={{ owner: "vercel-labs", repo: "agent-skills", skill: "frontend-design" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/skills/installs/{owner}/{repo}/{skill}.svg" hideCopy />
+
+<CodeLine language="bash" code="/skills/{owner}/{repo}/{skill}.svg" hideCopy />
+
+Both formats return the same badge. The default endpoint shows the install count.
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg" alt="installs" description="Default variant" />
+  <BadgePreviewCard src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="installs branded" description="Branded variant" />
+  <BadgePreviewCard src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=secondary" alt="installs secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="installs outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg" alt="skill installs" description="Default — all-time install count" />
+
+<BadgePreview src="/skills/installs/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="skill installs" description="Branded — Vercel black with the ▲ logo" />
+
+### Skill Rank
+
+This section covers the `skills/rank` badge endpoint.
+
+Show the skill's position on the all-time skills.sh leaderboard. Covers the top 1000 — skills below that show `1000+`.
+
+<BadgeSandbox
+  endpoint="/skills/rank/:owner/:repo/:skill.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub owner", placeholder: "vercel-labs", required: true },
+    { name: "repo", label: "Repository", placeholder: "agent-skills", required: true },
+    { name: "skill", label: "Skill slug", placeholder: "frontend-design", required: true },
+  ]}
+  defaults={{ owner: "vercel-labs", repo: "agent-skills", skill: "frontend-design" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/skills/rank/{owner}/{repo}/{skill}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg" alt="rank" description="Default variant" />
+  <BadgePreviewCard src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="rank branded" description="Branded variant" />
+  <BadgePreviewCard src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=secondary" alt="rank secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="rank outline" description="Outline variant" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg" alt="skill rank" description="Default — all-time leaderboard position" />
+
+<BadgePreview src="/skills/rank/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="skill rank" description="Branded — Vercel black background" />
+
+### Trending & Hot
+
+These sections cover the `skills/trending` and `skills/hot` badge endpoints.
+
+Show the skill's position on the trending or hot (last 24h) leaderboards. Both cover the top 500 — a skill that isn't currently listed returns a not-found badge, so these work best for skills that are actively climbing.
+
+<BadgeSandbox
+  endpoint="/skills/trending/:owner/:repo/:skill.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub owner", placeholder: "vercel-labs", required: true },
+    { name: "repo", label: "Repository", placeholder: "agent-skills", required: true },
+    { name: "skill", label: "Skill slug", placeholder: "frontend-design", required: true },
+  ]}
+  defaults={{ owner: "vercel-labs", repo: "agent-skills", skill: "frontend-design" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/skills/trending/{owner}/{repo}/{skill}.svg" hideCopy />
+
+<CodeLine language="bash" code="/skills/hot/{owner}/{repo}/{skill}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/skills/trending/vercel-labs/agent-skills/frontend-design.svg?variant=branded" alt="trending branded" description="Trending (branded)" />
+  <BadgePreviewCard src="/skills/trending/vercel-labs/agent-skills/frontend-design.svg?variant=secondary" alt="trending secondary" description="Trending (secondary)" />
+  <BadgePreviewCard src="/skills/hot/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="hot outline" description="Hot (outline)" />
+  <BadgePreviewCard src="/skills/hot/vercel-labs/agent-skills/frontend-design.svg" alt="hot" description="Hot (default)" />
+</BadgePreviewGroup>
+
+### Skill Audit
+
+This section covers the `skills/audit` badge endpoint.
+
+Show the skill's security audit status. skills.sh runs audits from providers like Socket, Snyk, and Gen Agent Trust Hub after a skill's first install. The badge aggregates all audit results: `passed` (green), `warning` (amber), or `failed` (red).
+
+<BadgeSandbox
+  endpoint="/skills/audit/:owner/:repo/:skill.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub owner", placeholder: "vercel-labs", required: true },
+    { name: "repo", label: "Repository", placeholder: "agent-skills", required: true },
+    { name: "skill", label: "Skill slug", placeholder: "frontend-design", required: true },
+  ]}
+  defaults={{ owner: "vercel-labs", repo: "agent-skills", skill: "frontend-design" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/skills/audit/{owner}/{repo}/{skill}.svg" hideCopy />
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg" alt="audit" description="Default variant" />
+  <BadgePreviewCard src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg?variant=secondary" alt="audit secondary" description="Secondary variant" />
+  <BadgePreviewCard src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg?variant=outline" alt="audit outline" description="Outline variant" />
+  <BadgePreviewCard src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg?statusDot=true" alt="audit dot" description="With status dot" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg" alt="skill audit" description="Default — aggregated audit verdict, color-coded" />
+
+<BadgePreview src="/skills/audit/vercel-labs/agent-skills/frontend-design.svg?variant=outline&statusDot=true" alt="skill audit" description="Outline with a status dot — reads like a CI badge" />

@@ -136,6 +136,7 @@ import { getCocoaPodsVersion } from "./providers/cocoapods"
 import { getCodecovCoverage } from "./providers/codecov"
 import { getWakaTimeCodingTime } from "./providers/wakatime"
 import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "./providers/tokscale"
+import { getSkillsInstalls, getSkillsRank, getSkillsTrending, getSkillsHot, getSkillsAudit } from "./providers/skills"
 import { getIndieDevsUser } from "./providers/indiedevs"
 import { getGitLabStars, getGitLabForks, getGitLabIssues, getGitLabPipeline, getGitLabLicense, getGitLabLastCommit, getGitLabContributors, getGitLabRelease } from "./providers/gitlab"
 import { getCondaVersion, getCondaDownloads, getCondaPlatform } from "./providers/conda"
@@ -1059,6 +1060,31 @@ async function fetchBadgeData(
       return getTokscaleTokens(rest[0])
     }
 
+    // /skills/{topic}/{owner}/{repo}/{skill}
+    // e.g. /skills/installs/vercel-labs/agent-skills/frontend-design
+    case "skills": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const skillTopics = new Set(["installs", "rank", "trending", "hot", "audit"])
+      if (skillTopics.has(rest[0])) {
+        if (rest.length < 4) return null
+        const [topic, owner, repo, skill] = rest
+        switch (topic) {
+          case "installs": return getSkillsInstalls(owner, repo, skill)
+          case "rank": return getSkillsRank(owner, repo, skill)
+          case "trending": return getSkillsTrending(owner, repo, skill)
+          case "hot": return getSkillsHot(owner, repo, skill)
+          case "audit": return getSkillsAudit(owner, repo, skill)
+          default: return null
+        }
+      }
+
+      // Default: /skills/{owner}/{repo}/{skill} → installs
+      if (rest.length < 3) return null
+      return getSkillsInstalls(rest[0], rest[1], rest[2])
+    }
+
     // /indiedevs/{username}
     // e.g. /indiedevs/jalco
     case "indiedevs": {
@@ -1479,6 +1505,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "wakatime") return { simpleIcon: "wakatime" }
   if (provider === "reddit") return { simpleIcon: "reddit" }
   if (provider === "tokscale") return { reactIcon: "GoRocket" }
+  if (provider === "skills") return { simpleIcon: "vercel" }
   if (provider === "indiedevs") return { simpleIcon: "indiedevs" }
   if (provider === "gitlab") return { simpleIcon: "gitlab" }
   if (provider === "conda") return { simpleIcon: "anaconda" }

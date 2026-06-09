@@ -42,7 +42,11 @@ export default async function Home() {
                 <span className="inline-flex items-baseline">
                   <code className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[0.85em]">readme</code>
                 </span>{" "}
-                craves.
+                and{" "}
+                <span className="inline-flex items-baseline">
+                  <code className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[0.85em]">SKILL.md</code>
+                </span>{" "}
+                crave.
               </h1>
 
               <HeroSubtext />

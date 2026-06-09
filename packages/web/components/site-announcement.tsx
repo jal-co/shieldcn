@@ -11,8 +11,8 @@ export function SiteAnnouncement() {
     <Announcement>
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
-        <Link href="/docs/customization/fonts" className="hover:underline underline-offset-4">
-          New: 4 fonts — JetBrains Mono, Fira Code, Roboto, Space Grotesk
+        <Link href="/docs/badges/skills" className="hover:underline underline-offset-4">
+          New: skills.sh badges — skill installs, rank &amp; audits
           <ArrowRight className="size-3" />
         </Link>
       </AnnouncementContent>

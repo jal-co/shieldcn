@@ -40,6 +40,7 @@ export const providerBrandColors: Record<string, string> = {
   codecov: "F01F7A",
   wakatime: "000000",
   tokscale: "0073FF",
+  skills: "000000",
   indiedevs: "818CF8",
   openpanel: "2564EB",
   gitlab: "FC6D26",

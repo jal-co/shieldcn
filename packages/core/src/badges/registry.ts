@@ -454,6 +454,18 @@ export const REGISTRY: BadgeProvider[] = [
     ],
   },
   {
+    provider: "skills",
+    description: "skills.sh agent skill installs, rank, and audits.",
+    defaultTopic: "installs",
+    topics: [
+      t("installs", "Skill installs", ["installs", "vercel-labs", "agent-skills", "frontend-design"]),
+      t("rank", "All-time leaderboard rank", ["rank", "vercel-labs", "agent-skills", "frontend-design"]),
+      t("trending", "Trending rank", ["trending", "vercel-labs", "agent-skills", "frontend-design"]),
+      t("hot", "Hot rank", ["hot", "vercel-labs", "agent-skills", "frontend-design"]),
+      state("audit", "Security audit status", ["audit", "vercel-labs", "agent-skills", "frontend-design"]),
+    ],
+  },
+  {
     provider: "indiedevs",
     description: "IndieDevs membership badge.",
     freeform: true,

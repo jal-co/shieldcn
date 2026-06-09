@@ -145,6 +145,7 @@ const docsNav: NavGroup[] = [
       { title: "Weblate", href: "/docs/badges/weblate" },
       { title: "Modrinth", href: "/docs/badges/modrinth" },
       { title: "Tokscale", href: "/docs/badges/tokscale" },
+      { title: "skills.sh", href: "/docs/badges/skills" },
       { title: "Country Flags", href: "/docs/badges/flag" },
     ],
   },

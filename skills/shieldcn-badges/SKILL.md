@@ -100,6 +100,16 @@ CI supports `?workflow=name&branch=main` query params.
 | VS Code installs | `/vscode/installs/{publisher}/{ext}` | `/vscode/installs/esbenp/prettier-vscode` |
 | WakaTime | `/wakatime/{username}` | `/wakatime/@user` |
 
+### Agent skills (skills.sh)
+
+| Badge | Endpoint | Example |
+|-------|----------|---------|
+| Skill installs | `/skills/installs/{owner}/{repo}/{skill}` | `/skills/installs/vercel-labs/agent-skills/frontend-design` |
+| Skill rank | `/skills/rank/{owner}/{repo}/{skill}` | `/skills/rank/vercel-labs/agent-skills/frontend-design` |
+| Trending rank | `/skills/trending/{owner}/{repo}/{skill}` | `/skills/trending/vercel-labs/agent-skills/frontend-design` |
+| Hot rank | `/skills/hot/{owner}/{repo}/{skill}` | `/skills/hot/vercel-labs/agent-skills/frontend-design` |
+| Audit status | `/skills/audit/{owner}/{repo}/{skill}` | `/skills/audit/vercel-labs/agent-skills/frontend-design` |
+
 ### Custom badges
 
 | Type | Endpoint | Example |
