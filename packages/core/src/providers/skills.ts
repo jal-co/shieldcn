@@ -6,9 +6,9 @@
  * Supports: installs, rank, trending, hot.
  * API: https://www.skills.sh/docs/api
  *
- * Uses the public leaderboard endpoint `/api/skills/{view}/{page}` which needs
- * no authentication. A skill is addressed as {owner}/{repo}/{skill}, matching
- * the upstream `source` ("owner/repo") plus `skillId`.
+ * Uses the v1 API for direct skill lookups (installs) and the paginated
+ * leaderboard for positional data (rank, trending, hot).
+ * Authentication via Vercel OIDC token (auto-minted on Vercel deployments).
  */
 
 import type { BadgeData } from "../badges/types"
@@ -19,6 +19,15 @@ import { providerFetch } from "../provider-fetch"
 // Types
 // ---------------------------------------------------------------------------
 
+/** Shape returned by /api/v1/skills/{source}/{skill} */
+interface V1SkillDetail {
+  id?: string
+  source?: string
+  slug?: string
+  installs?: number
+}
+
+/** Shape returned in leaderboard/search listing arrays */
 interface SkillsShSkill {
   id?: string
   source?: string
@@ -28,39 +37,86 @@ interface SkillsShSkill {
   installs?: number
 }
 
-/** Leaderboard page. Field names vary slightly across skills.sh tiers. */
+/** Leaderboard page (v1 and legacy shapes) */
 interface SkillsShPage {
   skills?: SkillsShSkill[]
   data?: SkillsShSkill[]
   results?: SkillsShSkill[]
   hasMore?: boolean
-  pagination?: { hasMore?: boolean }
+  pagination?: { hasMore?: boolean; total?: number }
 }
 
 type View = "all-time" | "trending" | "hot"
 
 // ---------------------------------------------------------------------------
-// Fetch helpers
+// Auth
 // ---------------------------------------------------------------------------
 
-// Canonical host — skills.sh redirects to www, so target www directly.
-const API_BASE = "https://www.skills.sh/api"
+const API_BASE = "https://www.skills.sh/api/v1"
 
-/** How many leaderboard pages to scan before giving up on a skill. */
-const MAX_PAGES = 5
+/**
+ * Get auth headers for skills.sh API.
+ * Prefers Vercel OIDC token (available on Vercel deployments), falls back to
+ * explicit SKILLS_SH_API_KEY env var.
+ */
+async function getAuthHeaders(): Promise<HeadersInit> {
+  // Try Vercel OIDC first (available on Vercel deployments)
+  try {
+    const { getVercelOidcToken } = await import("@vercel/oidc")
+    const token = await getVercelOidcToken()
+    if (token) return { Authorization: `Bearer ${token}` }
+  } catch {
+    // Not on Vercel or @vercel/oidc not available — fall through
+  }
 
-/** Optional API key raises the skills.sh rate limit (60 → 600 req/min). */
-function authHeaders(): HeadersInit {
+  // Fall back to raw env var (works with `vercel env pull` locally)
+  const oidc = process.env.VERCEL_OIDC_TOKEN
+  if (oidc) return { Authorization: `Bearer ${oidc}` }
+
+  // Legacy: explicit API key
   const key = process.env.SKILLS_SH_API_KEY
-  return key ? { Authorization: `Bearer ${key}` } : {}
+  if (key) return { Authorization: `Bearer ${key}` }
+
+  return {}
 }
 
+// ---------------------------------------------------------------------------
+// Direct skill lookup (v1 API)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch a single skill's details via the v1 direct endpoint.
+ * Returns install count without needing to scan the leaderboard.
+ */
+async function fetchSkillDirect(
+  owner: string,
+  repo: string,
+  skill: string
+): Promise<V1SkillDetail | null> {
+  const headers = await getAuthHeaders()
+  return providerFetch<V1SkillDetail>({
+    provider: "skills",
+    cacheKey: `v1:${owner}/${repo}/${skill}`,
+    url: `${API_BASE}/skills/${owner}/${repo}/${skill}`,
+    headers,
+    ttl: 300, // 5 min, matching upstream Cache-Control
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Leaderboard scan (for rank / trending / hot)
+// ---------------------------------------------------------------------------
+
+/** How many leaderboard pages to scan before giving up on a skill. */
+const MAX_PAGES = 10
+
 async function fetchLeaderboardPage(view: View, page: number): Promise<SkillsShPage | null> {
+  const headers = await getAuthHeaders()
   return providerFetch<SkillsShPage>({
     provider: "skills",
     cacheKey: `board:${view}:${page}`,
-    url: `${API_BASE}/skills/${view}/${page}`,
-    headers: authHeaders(),
+    url: `${API_BASE}/skills?view=${view}&page=${page}&per_page=100`,
+    headers,
     ttl: 1800,
   })
 }
@@ -77,16 +133,10 @@ function matchesSkill(item: SkillsShSkill, owner: string, repo: string, skill: s
 }
 
 interface ScanHit {
-  /** 1-based position on the leaderboard. */
   rank: number
   installs: number | null
 }
 
-/**
- * Scan a leaderboard view for a skill, returning its position and install
- * count. Pages are cached (30 min) and shared across every skills badge, so a
- * warm scan costs nothing. Stops as soon as the skill is found.
- */
 async function scanLeaderboard(
   view: View,
   owner: string,
@@ -111,6 +161,10 @@ async function scanLeaderboard(
   return null
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function skillLink(owner: string, repo: string, skill: string): string {
   return `https://www.skills.sh/${owner}/${repo}/${skill}`
 }
@@ -120,6 +174,17 @@ function skillLink(owner: string, repo: string, skill: string): string {
 // ---------------------------------------------------------------------------
 
 export async function getSkillsInstalls(owner: string, repo: string, skill: string): Promise<BadgeData | null> {
+  // Use direct v1 lookup — works for any skill, not just top-ranked
+  const detail = await fetchSkillDirect(owner, repo, skill)
+  if (detail && typeof detail.installs === "number") {
+    return {
+      label: "installs",
+      value: formatCount(detail.installs),
+      link: skillLink(owner, repo, skill),
+    }
+  }
+
+  // Fallback: scan leaderboard (covers edge cases where v1 is down)
   const hit = await scanLeaderboard("all-time", owner, repo, skill)
   if (!hit || hit.installs === null) return null
   return {

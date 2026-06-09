@@ -27,6 +27,7 @@
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
     "@upstash/redis": "^1.37.0",
+    "@vercel/oidc": "^3.6.1",
     "jsonpath-plus": "^10.4.0",
     "lru-cache": "^11.3.5",
     "modern-gif": "^2.1.0",
