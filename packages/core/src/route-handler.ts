@@ -155,6 +155,7 @@ import { getLiberapayReceiving, getLiberapayPatrons, getLiberapayGoal } from "./
 import { getMatrixMembers } from "./providers/matrix"
 import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 import { getShipperClubMember } from "./providers/shipperclub"
+import { cachedFetchStale } from "./cache"
 
 /** Response format. */
 type Format = "svg" | "png" | "gif" | "json" | "shields"
@@ -198,11 +199,29 @@ function parseGradient(raw: string | null): string | undefined {
   return `linear-gradient(${angle}deg, ${stops})`
 }
 
-/** Cache headers for responses. */
+/** Cache headers for successful badge responses. */
 const CACHE_HEADERS = {
   "Cache-Control":
     "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
 }
+
+/**
+ * Cache headers for error / "not found" responses.
+ *
+ * Deliberately short-lived with no long `stale-while-revalidate` window:
+ * an error is almost always transient (rate limit, backoff, upstream blip),
+ * so it must self-heal on the next request rather than being pinned at the
+ * CDN/browser for an hour the way a success is. A genuine 404 just gets
+ * re-checked every minute, which is cheap.
+ */
+const ERROR_CACHE_HEADERS = {
+  "Cache-Control":
+    "public, max-age=60, s-maxage=60, stale-while-revalidate=120",
+}
+
+/** GitHub last-known-good cache tuning (see cachedFetchStale). */
+const GITHUB_FRESH_TTL = 300 // 5 min fresh copy
+const GITHUB_STALE_TTL = 60 * 60 * 24 * 7 // 7 day last-known-good fallback
 
 /**
  * Parse the format from the last URL segment.
@@ -253,6 +272,149 @@ function parseFormat(segments: string[]): {
 /**
  * Route the request to the appropriate provider.
  */
+/**
+ * Resolve a GitHub badge from the path segments after the "github" provider.
+ * `rest` is `segments.slice(1)` (e.g. ["stars", "owner", "repo"] or
+ * ["owner", "repo", "stars"]). Returns the live badge data, or null when the
+ * upstream call fails / the path is malformed — the caller (cachedFetchStale)
+ * supplies the last-known-good fallback for the failure case.
+ */
+async function resolveGitHubBadge(
+  rest: string[],
+  searchParams: URLSearchParams,
+): Promise<BadgeData | null> {
+  // User-level endpoints (2 segments: topic + username)
+  const userTopics = new Set(["followers", "user-stars"])
+  if (rest.length >= 2 && userTopics.has(rest[0])) {
+    const username = rest[1]
+    switch (rest[0]) {
+      case "followers":  return getGitHubFollowers(username)
+      case "user-stars": return getGitHubUserStars(username)
+      default: return null
+    }
+  }
+
+  if (rest.length < 3) return null
+
+  // Detect format: is rest[0] a known topic or an owner?
+  const knownTopics = new Set([
+    "stars", "forks", "watchers", "branches", "releases", "tags", "tag",
+    "license", "release", "contributors", "ci", "checks",
+    "issues", "open-issues", "closed-issues", "label-issues",
+    "prs", "open-prs", "closed-prs", "merged-prs",
+    "milestones", "commits", "last-commit",
+    "assets-dl", "dt",
+    "downloads", "downloads-all", "downloads-asset",
+    "dependents-repo", "dependents-pkg", "dependabot",
+  ])
+
+  let topic: string
+  let owner: string
+  let repo: string
+  let extra: string[] // remaining segments after owner/repo
+
+  if (knownTopics.has(rest[0])) {
+    // /github/{topic}/{owner}/{repo}/...
+    topic = rest[0]
+    owner = rest[1]
+    repo = rest[2]
+    extra = rest.slice(3)
+  } else {
+    // /github/{owner}/{repo}/{topic}/...
+    owner = rest[0]
+    repo = rest[1]
+    topic = rest[2]
+    extra = rest.slice(3)
+  }
+
+  switch (topic) {
+    // Repo metadata
+    case "stars":       return getGitHubStars(owner, repo)
+    case "forks":       return getGitHubForks(owner, repo)
+    case "watchers":    return getGitHubWatchers(owner, repo)
+    case "license":     return getGitHubLicense(owner, repo)
+    case "branches":    return getGitHubBranches(owner, repo)
+    case "releases":    return getGitHubReleases(owner, repo)
+    case "tags":        return getGitHubTags(owner, repo)
+    case "tag":         return getGitHubLatestTag(owner, repo)
+    case "contributors": return getGitHubContributors(owner, repo)
+    case "dependabot":  return getGitHubDependabot(owner, repo)
+
+    // Release (optional channel: stable)
+    case "release":     return getGitHubRelease(owner, repo, extra[0])
+
+    // CI (Actions)
+    case "ci":
+      return getGitHubCI(owner, repo,
+        searchParams.get("workflow") ?? undefined,
+        searchParams.get("branch") ?? undefined)
+
+    // Checks
+    case "checks":
+      return getGitHubChecks(owner, repo,
+        extra[0], // ref (branch/tag)
+        extra.slice(1).join("/") || undefined) // check_name
+
+    // Issues
+    case "issues":
+    case "open-issues":
+    case "closed-issues":
+      return getGitHubIssues(owner, repo, topic)
+
+    case "label-issues":
+      return getGitHubLabelIssues(owner, repo,
+        extra[0] || "",
+        extra[1]) // open|closed
+
+    // PRs
+    case "prs":
+    case "open-prs":
+    case "closed-prs":
+    case "merged-prs":
+      return getGitHubPRs(owner, repo, topic)
+
+    // Milestones
+    case "milestones":
+      return getGitHubMilestone(owner, repo, extra[0] || "1")
+
+    // Commits
+    case "commits":     return getGitHubCommits(owner, repo, extra[0])
+    case "last-commit": return getGitHubLastCommit(owner, repo, extra[0])
+
+    // Downloads (legacy)
+    case "assets-dl":
+    case "dt":
+      return getGitHubAssetsDl(owner, repo, extra[0])
+
+    // Downloads — granular
+    // /github/downloads/{owner}/{repo}              → all assets, all releases
+    // /github/downloads/{owner}/{repo}/latest       → all assets, latest release
+    // /github/downloads/{owner}/{repo}/{tag}        → all assets, specific tag
+    // /github/downloads-all/{owner}/{repo}          → all assets, all releases (alias)
+    // /github/downloads-all/{owner}/{repo}/latest   → all assets, latest release
+    // /github/downloads-all/{owner}/{repo}/{tag}    → all assets, specific tag
+    case "downloads":
+    case "downloads-all": {
+      if (!extra[0]) return getGitHubDownloadsAllAssetsAllReleases(owner, repo)
+      if (extra[0] === "latest") return getGitHubDownloadsAllAssetsLatest(owner, repo)
+      return getGitHubDownloadsAllAssetsTag(owner, repo, extra[0])
+    }
+
+    // /github/downloads-asset/{owner}/{repo}/{assetName}           → specific asset, all releases
+    // /github/downloads-asset/{owner}/{repo}/{assetName}/latest    → specific asset, latest release
+    // /github/downloads-asset/{owner}/{repo}/{assetName}/{tag}     → specific asset, specific tag
+    case "downloads-asset": {
+      if (!extra[0]) return null
+      const assetName = extra[0]
+      if (!extra[1]) return getGitHubDownloadsAssetAllReleases(owner, repo, assetName)
+      if (extra[1] === "latest") return getGitHubDownloadsAssetLatest(owner, repo, assetName)
+      return getGitHubDownloadsAssetTag(owner, repo, extra[1], assetName)
+    }
+
+    default: return null
+  }
+}
+
 async function fetchBadgeData(
   segments: string[],
   searchParams: URLSearchParams
@@ -316,137 +478,22 @@ async function fetchBadgeData(
     // Support both: /github/stars/owner/repo AND /github/owner/repo/stars
     case "github": {
       const rest = segments.slice(1)
+      if (rest.length < 2) return null
 
-      // User-level endpoints (2 segments: topic + username)
-      const userTopics = new Set(["followers", "user-stars"])
-      if (rest.length >= 2 && userTopics.has(rest[0])) {
-        const username = rest[1]
-        switch (rest[0]) {
-          case "followers":  return getGitHubFollowers(username)
-          case "user-stars": return getGitHubUserStars(username)
-          default: return null
-        }
-      }
-
-      if (rest.length < 3) return null
-
-      // Detect format: is rest[0] a known topic or an owner?
-      const knownTopics = new Set([
-        "stars", "forks", "watchers", "branches", "releases", "tags", "tag",
-        "license", "release", "contributors", "ci", "checks",
-        "issues", "open-issues", "closed-issues", "label-issues",
-        "prs", "open-prs", "closed-prs", "merged-prs",
-        "milestones", "commits", "last-commit",
-        "assets-dl", "dt",
-        "downloads", "downloads-all", "downloads-asset",
-        "dependents-repo", "dependents-pkg", "dependabot",
-      ])
-
-      let topic: string
-      let owner: string
-      let repo: string
-      let extra: string[] // remaining segments after owner/repo
-
-      if (knownTopics.has(rest[0])) {
-        // /github/{topic}/{owner}/{repo}/...
-        topic = rest[0]
-        owner = rest[1]
-        repo = rest[2]
-        extra = rest.slice(3)
-      } else {
-        // /github/{owner}/{repo}/{topic}/...
-        owner = rest[0]
-        repo = rest[1]
-        topic = rest[2]
-        extra = rest.slice(3)
-      }
-
-      switch (topic) {
-        // Repo metadata
-        case "stars":       return getGitHubStars(owner, repo)
-        case "forks":       return getGitHubForks(owner, repo)
-        case "watchers":    return getGitHubWatchers(owner, repo)
-        case "license":     return getGitHubLicense(owner, repo)
-        case "branches":    return getGitHubBranches(owner, repo)
-        case "releases":    return getGitHubReleases(owner, repo)
-        case "tags":        return getGitHubTags(owner, repo)
-        case "tag":         return getGitHubLatestTag(owner, repo)
-        case "contributors": return getGitHubContributors(owner, repo)
-        case "dependabot":  return getGitHubDependabot(owner, repo)
-
-        // Release (optional channel: stable)
-        case "release":     return getGitHubRelease(owner, repo, extra[0])
-
-        // CI (Actions)
-        case "ci":
-          return getGitHubCI(owner, repo,
-            searchParams.get("workflow") ?? undefined,
-            searchParams.get("branch") ?? undefined)
-
-        // Checks
-        case "checks":
-          return getGitHubChecks(owner, repo,
-            extra[0], // ref (branch/tag)
-            extra.slice(1).join("/") || undefined) // check_name
-
-        // Issues
-        case "issues":
-        case "open-issues":
-        case "closed-issues":
-          return getGitHubIssues(owner, repo, topic)
-
-        case "label-issues":
-          return getGitHubLabelIssues(owner, repo,
-            extra[0] || "",
-            extra[1]) // open|closed
-
-        // PRs
-        case "prs":
-        case "open-prs":
-        case "closed-prs":
-        case "merged-prs":
-          return getGitHubPRs(owner, repo, topic)
-
-        // Milestones
-        case "milestones":
-          return getGitHubMilestone(owner, repo, extra[0] || "1")
-
-        // Commits
-        case "commits":     return getGitHubCommits(owner, repo, extra[0])
-        case "last-commit": return getGitHubLastCommit(owner, repo, extra[0])
-
-        // Downloads (legacy)
-        case "assets-dl":
-        case "dt":
-          return getGitHubAssetsDl(owner, repo, extra[0])
-
-        // Downloads — granular
-        // /github/downloads/{owner}/{repo}              → all assets, all releases
-        // /github/downloads/{owner}/{repo}/latest       → all assets, latest release
-        // /github/downloads/{owner}/{repo}/{tag}        → all assets, specific tag
-        // /github/downloads-all/{owner}/{repo}          → all assets, all releases (alias)
-        // /github/downloads-all/{owner}/{repo}/latest   → all assets, latest release
-        // /github/downloads-all/{owner}/{repo}/{tag}    → all assets, specific tag
-        case "downloads":
-        case "downloads-all": {
-          if (!extra[0]) return getGitHubDownloadsAllAssetsAllReleases(owner, repo)
-          if (extra[0] === "latest") return getGitHubDownloadsAllAssetsLatest(owner, repo)
-          return getGitHubDownloadsAllAssetsTag(owner, repo, extra[0])
-        }
-
-        // /github/downloads-asset/{owner}/{repo}/{assetName}           → specific asset, all releases
-        // /github/downloads-asset/{owner}/{repo}/{assetName}/latest    → specific asset, latest release
-        // /github/downloads-asset/{owner}/{repo}/{assetName}/{tag}     → specific asset, specific tag
-        case "downloads-asset": {
-          if (!extra[0]) return null
-          const assetName = extra[0]
-          if (!extra[1]) return getGitHubDownloadsAssetAllReleases(owner, repo, assetName)
-          if (extra[1] === "latest") return getGitHubDownloadsAssetLatest(owner, repo, assetName)
-          return getGitHubDownloadsAssetTag(owner, repo, extra[1], assetName)
-        }
-
-        default: return null
-      }
+      // Wrap GitHub resolution in a last-known-good cache. A transient
+      // upstream failure (rate limit, 429/503 backoff, network blip, empty
+      // token pool) then serves the previous good value instead of
+      // collapsing the badge into a red "not found".
+      const wf = searchParams.get("workflow")
+      const br = searchParams.get("branch")
+      const ghKey = rest.join("/") + (wf ? `|wf=${wf}` : "") + (br ? `|br=${br}` : "")
+      return cachedFetchStale(
+        "github",
+        ghKey,
+        () => resolveGitHubBadge(rest, searchParams),
+        GITHUB_FRESH_TTL,
+        GITHUB_STALE_TTL,
+      )
     }
 
     // /discord/{serverId} or /discord/{topic}/{inviteCode}
@@ -1424,22 +1471,24 @@ async function handleBadgeGroup(
   if (badgePaths.length === 0) {
     if (format === "svg") {
       return new Response(await renderErrorBadge("group", "no badges specified"), {
-        headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+        headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
       })
     }
-    return Response.json({ error: "no badges specified" }, { status: 400 })
+    return Response.json({ error: "no badges specified" }, { status: 400, headers: ERROR_CACHE_HEADERS })
   }
 
   // JSON: return array of badge data
   if (format === "json") {
+    let hadError = false
     const results = await Promise.all(
       badgePaths.map(async (bp) => {
         const segs = bp.split("/").filter(Boolean)
         const data = await fetchBadgeData(segs, searchParams)
+        if (!data) hadError = true
         return data || { label: segs[0] || "error", value: "not found" }
       })
     )
-    return Response.json(results, { headers: CACHE_HEADERS })
+    return Response.json(results, { headers: hadError ? ERROR_CACHE_HEADERS : CACHE_HEADERS })
   }
 
   // SVG/PNG: resolve each segment
@@ -1466,6 +1515,13 @@ async function handleBadgeGroup(
       return { segs, data }
     })
   )
+
+  // If any segment fell back to "not found", treat the whole group as an
+  // error response so the failure self-heals quickly instead of being
+  // pinned at the CDN for an hour.
+  const groupCacheHeaders = allData.some(({ data }) => !data)
+    ? ERROR_CACHE_HEADERS
+    : CACHE_HEADERS
 
   // Resolve each segment with its icon
   const segments: GroupSegment[] = await Promise.all(
@@ -1601,12 +1657,12 @@ async function handleBadgeGroup(
     const resvg = new Resvg(svg)
     const png = resvg.render().asPng()
     return new Response(Buffer.from(png), {
-      headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
+      headers: { "Content-Type": "image/png", ...groupCacheHeaders },
     })
   }
 
   return new Response(svg, {
-    headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+    headers: { "Content-Type": "image/svg+xml", ...groupCacheHeaders },
   })
 }
 
@@ -1640,10 +1696,10 @@ export async function handleBadgeGET(
     if (format === "svg" || format === "png" || format === "gif") {
       return new Response(
         await renderErrorBadge(cleanSegments[0] || "error", "error"),
-        { headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS } }
+        { headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS } }
       )
     }
-    return Response.json({ error: "internal error" }, { status: 500 })
+    return Response.json({ error: "internal error" }, { status: 500, headers: ERROR_CACHE_HEADERS })
   }
 }
 
@@ -1661,10 +1717,10 @@ async function handleBadgeGETInner(
   if (cleanSegments.length === 0) {
     if (format === "svg") {
       return new Response(await renderErrorBadge("error", "invalid url"), {
-        headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+        headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
       })
     }
-    return Response.json({ error: "invalid url" }, { status: 400 })
+    return Response.json({ error: "invalid url" }, { status: 400, headers: ERROR_CACHE_HEADERS })
   }
 
   // ---------------------------------------------------------------------------
@@ -1702,13 +1758,13 @@ async function handleBadgeGETInner(
       return new Response(
         await renderErrorBadge(cleanSegments[0] || "error", "not found"),
         {
-          headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+          headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
         }
       )
     }
     return Response.json(
       { error: "not found" },
-      { status: 404, headers: CACHE_HEADERS }
+      { status: 404, headers: ERROR_CACHE_HEADERS }
     )
   }
 

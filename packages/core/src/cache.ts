@@ -331,6 +331,98 @@ export async function cachedFetch<T>(
 }
 
 /**
+ * Cached provider fetch with last-known-good fallback ("stale on error").
+ *
+ * Unlike {@link cachedFetch}, this keeps two copies of every successful
+ * result:
+ *   - a "fresh" copy with a short TTL (`freshTtl`), and
+ *   - a "stale" copy with a long TTL (`staleTtl`).
+ *
+ * When a fetch fails (returns `null`) or the provider is currently backed
+ * off, the stale copy is served instead of failing. This prevents a
+ * transient upstream blip (429/503, network error, empty token pool) from
+ * collapsing a previously-good badge into a "not found" — the badge keeps
+ * showing its last-known value until the upstream recovers.
+ *
+ * Only non-null results are cached; a genuine miss with no prior good value
+ * still returns `null` (caller decides how to render / cache that).
+ *
+ * @param provider - provider name (e.g. "github")
+ * @param key - unique cache key for this request
+ * @param fetcher - async function that fetches the data
+ * @param freshTtl - fresh-copy TTL in seconds (default 300)
+ * @param staleTtl - last-known-good TTL in seconds (default 7 days)
+ */
+export async function cachedFetchStale<T>(
+  provider: string,
+  key: string,
+  fetcher: () => Promise<T | null>,
+  freshTtl: number = 300,
+  staleTtl: number = 60 * 60 * 24 * 7,
+): Promise<T | null> {
+  const freshKey = cacheKey(provider, key)
+  const staleKey = cacheKey(provider, "stale", key)
+
+  // 1. Fresh cache hit?
+  const fresh = await cacheGet<T>(freshKey)
+  if (fresh !== undefined) {
+    cacheMetricsCallback?.({
+      type: "counter", name: "badge.cache", value: 1,
+      tags: { provider, result: "hit" },
+    })
+    return fresh
+  }
+  cacheMetricsCallback?.({
+    type: "counter", name: "badge.cache", value: 1,
+    tags: { provider, result: "miss" },
+  })
+
+  // Helper: serve last-known-good if we have it.
+  const serveStale = async (): Promise<T | null> => {
+    const stale = await cacheGet<T>(staleKey)
+    if (stale !== undefined) {
+      cacheMetricsCallback?.({
+        type: "counter", name: "badge.cache", value: 1,
+        tags: { provider, result: "stale" },
+      })
+      return stale
+    }
+    return null
+  }
+
+  // 2. Provider backed off — don't hammer it, serve last-known-good.
+  if (isBackedOff(provider)) {
+    cacheMetricsCallback?.({
+      type: "counter", name: "badge.backoff", value: 1,
+      tags: { provider },
+    })
+    return serveStale()
+  }
+
+  // 3. Fetch.
+  let data: T | null = null
+  try {
+    data = await fetcher()
+  } catch (err) {
+    if (err instanceof Response && (err.status === 429 || err.status === 503)) {
+      recordBackoff(provider)
+    }
+    data = null
+  }
+
+  if (data !== null) {
+    clearBackoff(provider)
+    // Refresh both the short-lived and the long-lived copy.
+    await cacheSet(freshKey, data, freshTtl)
+    await cacheSet(staleKey, data, staleTtl)
+    return data
+  }
+
+  // 4. Fetch failed — fall back to last-known-good rather than failing.
+  return serveStale()
+}
+
+/**
  * Record a fetch response status for backoff tracking.
  * Call this from provider fetch helpers when they get a response.
  */
