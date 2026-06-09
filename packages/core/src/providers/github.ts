@@ -18,36 +18,61 @@ import { isBackedOff, recordBackoff, clearBackoff } from "../cache"
 // Fetch helper
 // ---------------------------------------------------------------------------
 
+/**
+ * GitHub signals a primary rate limit as 429 *or* 403 with the remaining
+ * budget at 0 (a plain 403 means "forbidden", not rate-limited). Detecting
+ * both prevents a rate limit from masquerading as a definitive "not found".
+ */
+function isGitHubRateLimited(res: Response): boolean {
+  return res.status === 429 ||
+    (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0")
+}
+
+/**
+ * Fetch from the GitHub API. The result distinguishes two failure modes for
+ * the caller (cachedFetchStale):
+ *   - THROWS on a transient problem (backoff, network error, rate limit, 5xx)
+ *     → the caller serves the last-known-good value instead of breaking.
+ *   - returns `null` on a definitive negative (e.g. 404) → short "not found".
+ */
 async function githubFetch(url: string, revalidate: number = 3600): Promise<Response | null> {
-  if (isBackedOff("github")) return null
+  // Already backed off → transient; let the caller serve last-known-good.
+  if (isBackedOff("github")) throw new Error("github: backed off")
 
-  try {
-    const token = await pickToken()
-    const headers: HeadersInit = {
-      Accept: "application/vnd.github.v3+json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
-    const response = await fetch(url, { headers, next: { revalidate } })
-
-    // Track rate limits — recordBackoff also surfaces the Sentry alert.
-    if (response.status === 429 || response.status === 503) {
-      recordBackoff("github", response.status)
-      return null
-    }
-
-    if (response.status === 401 && token) {
-      await invalidateToken(token)
-      return fetch(url, {
-        headers: { Accept: "application/vnd.github.v3+json" },
-        next: { revalidate },
-      })
-    }
-    if (!response.ok) return null
-    clearBackoff("github")
-    return response
-  } catch {
-    return null
+  const token = await pickToken()
+  const headers: HeadersInit = {
+    Accept: "application/vnd.github.v3+json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
+  // A network failure throws here and is handled as transient by the caller.
+  const response = await fetch(url, { headers, next: { revalidate } })
+
+  // Rate limit (429 / exhausted-403) and 5xx are transient: back off and throw
+  // so the caller serves last-known-good. recordBackoff also fires the alert.
+  if (isGitHubRateLimited(response) || response.status >= 500) {
+    recordBackoff("github", isGitHubRateLimited(response) ? 429 : response.status)
+    throw new Error(`github: transient upstream ${response.status}`)
+  }
+
+  // Expired/invalid token → drop it and retry once unauthenticated.
+  if (response.status === 401 && token) {
+    await invalidateToken(token)
+    const retry = await fetch(url, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      next: { revalidate },
+    })
+    if (isGitHubRateLimited(retry) || retry.status >= 500) {
+      recordBackoff("github", isGitHubRateLimited(retry) ? 429 : retry.status)
+      throw new Error(`github: transient upstream ${retry.status}`)
+    }
+    if (!retry.ok) return null // definitive negative
+    clearBackoff("github")
+    return retry
+  }
+
+  if (!response.ok) return null // definitive negative (e.g. 404)
+  clearBackoff("github")
+  return response
 }
 
 async function githubJson(url: string, revalidate?: number): Promise<Record<string, unknown> | null> {
@@ -122,8 +147,8 @@ export async function githubRepoExists(owner: string, repo: string): Promise<boo
       next: { revalidate: 3600 },
     })
     if (response.status === 404) return false
-    if (response.status === 429 || response.status === 503) {
-      recordBackoff("github", response.status)
+    if (isGitHubRateLimited(response) || response.status >= 500) {
+      recordBackoff("github", isGitHubRateLimited(response) ? 429 : response.status)
       return null
     }
     if (response.ok) {

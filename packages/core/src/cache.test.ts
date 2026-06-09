@@ -2,8 +2,13 @@
  * shieldcn
  * cache.test
  *
- * Covers the last-known-good ("stale on error") behavior that keeps GitHub
- * badges from collapsing into "not found" on a transient upstream failure.
+ * Covers the last-known-good ("stale on error") behavior that keeps badges
+ * from collapsing into "not found" on a transient upstream failure.
+ *
+ * Contract under test (cachedFetchStale):
+ *   - fetcher THROWS        → transient failure → serve last-known-good
+ *   - fetcher returns null  → definitive negative → "not found" (no stale)
+ *   - fetcher returns value → success (cached fresh + stale)
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest"
@@ -36,27 +41,36 @@ describe("cachedFetchStale", () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
-  it("serves last-known-good when a later fetch fails", async () => {
+  it("serves last-known-good when a later fetch fails transiently (throws)", async () => {
     const key = freshKey()
+    const staleKey = `shieldcn:test:stale:${key}`
+    // Seed the last-known-good store directly (fresh cache stays empty, so the
+    // next call actually runs the fetcher rather than serving a fresh hit).
+    await cacheSet(staleKey, { label: "stars", value: "325" }, 3600)
 
-    // Prime the stale store with a good value, using a tiny fresh TTL so the
-    // fresh copy expires immediately but the stale copy survives.
-    const good = await cachedFetchStale(
-      "test", key,
-      vi.fn().mockResolvedValue({ label: "stars", value: "325" }),
-      0,        // fresh TTL: expire right away
-      3600,     // stale TTL: keep last-known-good
-    )
-    expect(good).toEqual({ label: "stars", value: "325" })
-
-    // Upstream now fails (returns null). We must still get the old value.
+    // Upstream now fails transiently (throws). We must still get the old value.
     const stale = await cachedFetchStale(
       "test", key,
-      vi.fn().mockResolvedValue(null),
-      0,
-      3600,
+      vi.fn().mockRejectedValue(new Error("network")),
+      300, 3600,
     )
     expect(stale).toEqual({ label: "stars", value: "325" })
+  })
+
+  it("a definitive negative (null) returns null and never serves stale", async () => {
+    const key = freshKey()
+    const staleKey = `shieldcn:test:stale:${key}`
+    // A good value sits in the stale store...
+    await cacheSet(staleKey, { label: "stars", value: "325" }, 3600)
+
+    // ...but a definitive negative (the resource genuinely isn't there) must
+    // surface as "not found", NOT as some unrelated last-known-good value.
+    const result = await cachedFetchStale(
+      "test", key,
+      vi.fn().mockResolvedValue(null),
+      300, 3600,
+    )
+    expect(result).toBeNull()
   })
 
   it("returns a terminal-error result but never persists it as last-known-good", async () => {
@@ -80,16 +94,7 @@ describe("cachedFetchStale", () => {
     expect(await cacheGet(staleKey)).toEqual({ label: "stars", value: "325" })
   })
 
-  it("returns null when a fetch fails and there is no prior good value", async () => {
-    const key = freshKey()
-    const result = await cachedFetchStale(
-      "test", key,
-      vi.fn().mockResolvedValue(null),
-    )
-    expect(result).toBeNull()
-  })
-
-  it("treats a thrown error like a failed fetch (last-known-good or null)", async () => {
+  it("returns null when a transient failure has no prior good value", async () => {
     const key = freshKey()
     const result = await cachedFetchStale(
       "test", key,
@@ -102,13 +107,13 @@ describe("cachedFetchStale", () => {
 describe("provider alerts", () => {
   afterEach(() => setProviderAlertCallback(null))
 
-  it("fires a badge_unavailable alert when a fetch fails with no cached value", async () => {
+  it("fires a badge_unavailable alert on a transient failure with no cached value", async () => {
     const alerts: ProviderAlert[] = []
     setProviderAlertCallback((a) => alerts.push(a))
 
     const result = await cachedFetchStale(
       "test", freshKey(),
-      vi.fn().mockResolvedValue(null),
+      vi.fn().mockRejectedValue(new Error("network")),
     )
 
     expect(result).toBeNull()
@@ -116,15 +121,29 @@ describe("provider alerts", () => {
     expect(alerts[0]).toMatchObject({ provider: "test", reason: "badge_unavailable" })
   })
 
+  it("does NOT alert on a definitive negative (a genuine not-found)", async () => {
+    const alerts: ProviderAlert[] = []
+    setProviderAlertCallback((a) => alerts.push(a))
+
+    // A typo'd package returning null must not alert-storm Sentry.
+    const result = await cachedFetchStale(
+      "test", freshKey(),
+      vi.fn().mockResolvedValue(null),
+    )
+
+    expect(result).toBeNull()
+    expect(alerts).toHaveLength(0)
+  })
+
   it("does NOT alert when a stale value is available to serve", async () => {
     const key = freshKey()
-    // Prime stale store, expire fresh immediately.
-    await cachedFetchStale("test", key, vi.fn().mockResolvedValue({ label: "x", value: "1" }), 0, 3600)
+    const staleKey = `shieldcn:test:stale:${key}`
+    await cacheSet(staleKey, { label: "x", value: "1" }, 3600)
 
     const alerts: ProviderAlert[] = []
     setProviderAlertCallback((a) => alerts.push(a))
 
-    const result = await cachedFetchStale("test", key, vi.fn().mockResolvedValue(null), 0, 3600)
+    const result = await cachedFetchStale("test", key, vi.fn().mockRejectedValue(new Error("network")), 300, 3600)
 
     expect(result).toEqual({ label: "x", value: "1" })
     expect(alerts).toHaveLength(0)

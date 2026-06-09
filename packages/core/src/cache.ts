@@ -103,15 +103,18 @@ export function recordBackoff(provider: string, status?: number): void {
   })
 
   if (newCycle) {
+    // 429 (and 403 w/ exhausted rate limit, normalized to 429 by callers) is a
+    // rate limit; any other 5xx is an upstream outage.
+    const rateLimited = status === 429
     reportProviderAlert({
       provider,
-      reason: status === 503 ? "unavailable" : "rate_limit",
+      reason: rateLimited ? "rate_limit" : "unavailable",
       status,
-      message: status === 503
-        ? `${provider} API unavailable (503)`
+      message: rateLimited
+        ? `${provider} API rate limited (429)`
         : status
-          ? `${provider} API rate limited (${status})`
-          : `${provider} API rate limited`,
+          ? `${provider} API unavailable (${status})`
+          : `${provider} API unavailable`,
     })
   }
 }
@@ -459,11 +462,11 @@ export async function cachedFetchStale<T>(
     tags: { provider, result: "miss" },
   })
 
-  // Helper: serve last-known-good if we have it, otherwise surface that the
-  // badge could not be served at all (upstream failed and there is no cached
-  // value to fall back to) so it shows up in Sentry rather than silently
-  // rendering "not found".
-  const serveStale = async (): Promise<T | null> => {
+  // Helper: serve last-known-good if we have it. When nothing is cached and
+  // `alertIfMissing` is set, surface that the badge could not be served at all
+  // (a fresh transient failure with no fallback) so it shows up in Sentry
+  // rather than silently rendering "not found".
+  const serveStale = async (alertIfMissing: boolean): Promise<T | null> => {
     const stale = await cacheGet<T>(staleKey)
     if (stale !== undefined) {
       cacheMetricsCallback?.({
@@ -472,33 +475,43 @@ export async function cachedFetchStale<T>(
       })
       return stale
     }
-    reportProviderAlert({
-      provider,
-      reason: "badge_unavailable",
-      message: `${provider} badge unavailable (upstream failed, no cached value)`,
-      context: { key },
-    })
+    if (alertIfMissing) {
+      reportProviderAlert({
+        provider,
+        reason: "badge_unavailable",
+        message: `${provider} badge unavailable (upstream failed, no cached value)`,
+        context: { key },
+      })
+    }
     return null
   }
 
-  // 2. Provider backed off — don't hammer it, serve last-known-good.
+  // 2. Provider backed off — don't hammer it. Serve last-known-good. No alert:
+  //    the request that started the backoff cycle already alerted.
   if (isBackedOff(provider)) {
     cacheMetricsCallback?.({
       type: "counter", name: "badge.backoff", value: 1,
       tags: { provider },
     })
-    return serveStale()
+    return serveStale(false)
   }
 
-  // 3. Fetch.
-  let data: T | null = null
+  // 3. Fetch. The fetcher contract distinguishes two failure modes:
+  //    - throws        → TRANSIENT (network, 429/5xx, parse error). The
+  //                      upstream is unhealthy; serve last-known-good so the
+  //                      badge keeps working, and back off on rate/5xx.
+  //    - returns null  → DEFINITIVE negative (the upstream answered: the
+  //                      resource genuinely isn't there). Surface a short-lived
+  //                      "not found" — never serve stale, never alert (a typo'd
+  //                      package must not alert-storm or show someone's value).
+  let data: T | null
   try {
     data = await fetcher()
   } catch (err) {
-    if (err instanceof Response && (err.status === 429 || err.status === 503)) {
+    if (err instanceof Response && (err.status === 429 || err.status >= 500)) {
       recordBackoff(provider, err.status)
     }
-    data = null
+    return serveStale(true)
   }
 
   if (data !== null) {
@@ -516,8 +529,8 @@ export async function cachedFetchStale<T>(
     return data
   }
 
-  // 4. Fetch failed — fall back to last-known-good rather than failing.
-  return serveStale()
+  // 4. Definitive negative: the upstream answered but there's nothing to show.
+  return null
 }
 
 /**
@@ -525,7 +538,7 @@ export async function cachedFetchStale<T>(
  * Call this from provider fetch helpers when they get a response.
  */
 export function handleUpstreamStatus(provider: string, status: number): void {
-  if (status === 429 || status === 503) {
+  if (status === 429 || status >= 500) {
     recordBackoff(provider, status)
   } else if (status >= 200 && status < 400) {
     clearBackoff(provider)

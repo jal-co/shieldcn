@@ -10,7 +10,10 @@
  * trigger exponential backoff per provider.
  */
 
-import { cachedFetch, handleUpstreamStatus } from "./cache"
+import { cachedFetchStale, handleUpstreamStatus } from "./cache"
+
+/** Last-known-good fallback window for provider data (7 days). */
+const PROVIDER_STALE_TTL = 60 * 60 * 24 * 7
 
 interface ProviderFetchOptions {
   /** Provider name (e.g. "npm", "discord"). Used for backoff + budgets. */
@@ -28,15 +31,28 @@ interface ProviderFetchOptions {
 }
 
 /**
+ * Classify a response status. A 429 or any 5xx is a TRANSIENT upstream
+ * problem: we throw the response so the caller (cachedFetchStale) serves the
+ * last-known-good value and backs the provider off, instead of letting a
+ * blip collapse a working badge to "not found". Any other non-2xx (e.g. a
+ * genuine 404) is a DEFINITIVE negative: return null for a short-lived
+ * "not found".
+ */
+function isTransientStatus(status: number): boolean {
+  return status === 429 || status >= 500
+}
+
+/**
  * Fetch JSON from an upstream provider with caching + resilience.
- * Returns parsed JSON or null on failure.
+ * Returns parsed JSON, or null when the resource genuinely doesn't exist.
+ * On a transient upstream failure it serves the last-known-good value.
  */
 export async function providerFetch<T = Record<string, unknown>>(
   opts: ProviderFetchOptions
 ): Promise<T | null> {
   const { provider, cacheKey, url, ttl = 300, headers = {}, revalidate } = opts
 
-  return cachedFetch<T>(
+  return cachedFetchStale<T>(
     provider,
     cacheKey,
     async () => {
@@ -49,12 +65,15 @@ export async function providerFetch<T = Record<string, unknown>>(
         next: { revalidate: revalidate ?? ttl },
       })
 
-      handleUpstreamStatus(provider, response.status)
+      // Transient → throw so the caller falls back to last-known-good.
+      if (isTransientStatus(response.status)) throw response
 
-      if (!response.ok) return null
+      handleUpstreamStatus(provider, response.status)
+      if (!response.ok) return null // definitive negative (e.g. 404)
       return response.json() as Promise<T>
     },
     ttl,
+    PROVIDER_STALE_TTL,
   )
 }
 
@@ -67,7 +86,7 @@ export async function providerFetchText(
 ): Promise<string | null> {
   const { provider, cacheKey, url, ttl = 300, headers = {}, revalidate } = opts
 
-  return cachedFetch<string>(
+  return cachedFetchStale<string>(
     provider,
     cacheKey,
     async () => {
@@ -79,11 +98,14 @@ export async function providerFetchText(
         next: { revalidate: revalidate ?? ttl },
       })
 
-      handleUpstreamStatus(provider, response.status)
+      // Transient → throw so the caller falls back to last-known-good.
+      if (isTransientStatus(response.status)) throw response
 
-      if (!response.ok) return null
+      handleUpstreamStatus(provider, response.status)
+      if (!response.ok) return null // definitive negative (e.g. 404)
       return response.text()
     },
     ttl,
+    PROVIDER_STALE_TTL,
   )
 }

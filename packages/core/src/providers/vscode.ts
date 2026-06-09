@@ -8,7 +8,10 @@
 
 import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
-import { cachedFetch, handleUpstreamStatus } from "../cache"
+import { cachedFetchStale, handleUpstreamStatus } from "../cache"
+
+/** Last-known-good fallback window (7 days). */
+const VSCODE_STALE_TTL = 60 * 60 * 24 * 7
 
 interface VSCodeExtension {
   results: Array<{
@@ -20,7 +23,7 @@ interface VSCodeExtension {
 }
 
 async function vscodeFetch(publisher: string, extension: string): Promise<VSCodeExtension | null> {
-  return cachedFetch<VSCodeExtension>(
+  return cachedFetchStale<VSCodeExtension>(
     "vscode",
     `ext:${publisher}:${extension}`,
     async () => {
@@ -38,11 +41,15 @@ async function vscodeFetch(publisher: string, extension: string): Promise<VSCode
         }),
         next: { revalidate: 3600 },
       })
+      // Transient (429/5xx) → throw so we serve last-known-good; a definitive
+      // negative returns null.
+      if (r.status === 429 || r.status >= 500) throw r
       handleUpstreamStatus("vscode", r.status)
       if (!r.ok) return null
       return r.json()
     },
     3600,
+    VSCODE_STALE_TTL,
   )
 }
 
