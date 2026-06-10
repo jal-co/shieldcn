@@ -1,0 +1,56 @@
+name: Vercel Preview Cleanup
+
+# Vercel keeps every preview deployment around after its PR closes. Idle
+# previews don't bill compute, but they pile up in the dashboard and any
+# traffic to a stale preview URL still hits the production database (badge
+# requests query the token pool). Delete a branch's preview deployments when
+# its PR closes.
+#
+# Requires:
+#   - repository variable VERCEL_PROJECT_ID (Vercel -> Project -> Settings)
+#   - repository variable VERCEL_TEAM_ID (only for team-scoped projects)
+#   - repository secret VERCEL_TOKEN (Vercel -> Account -> Tokens)
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  delete-preview-deployments:
+    runs-on: ubuntu-latest
+    if: vars.VERCEL_PROJECT_ID != ''
+    steps:
+      - name: Delete preview deployments for this branch
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          team_param=""
+          if [ -n "${VERCEL_TEAM_ID}" ]; then
+            team_param="&teamId=${VERCEL_TEAM_ID}"
+          fi
+          branch_encoded=$(jq -rn --arg v "$BRANCH" '$v|@uri')
+
+          ids=$(curl -sf \
+            "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&target=preview&meta-githubCommitRef=${branch_encoded}&limit=100${team_param}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            | jq -r '.deployments[].uid')
+
+          if [ -z "$ids" ]; then
+            echo "No preview deployments found for branch: ${BRANCH}"
+            exit 0
+          fi
+
+          for id in $ids; do
+            echo "Deleting deployment ${id}"
+            curl -sf -X DELETE \
+              "https://api.vercel.com/v13/deployments/${id}?${team_param#&}" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" > /dev/null
+          done
