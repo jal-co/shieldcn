@@ -25,6 +25,46 @@ async function ensureInit() {
 }
 
 // ---------------------------------------------------------------------------
+// In-memory token cache
+// ---------------------------------------------------------------------------
+//
+// Decrypted tokens are cached in process memory only — never in Redis or any
+// external store. The process already holds decrypted tokens transiently on
+// every request (and the encryption key lives in the same env), so this adds
+// no new exposure. Tokens are zero-scope (read-only public data).
+//
+// The cache exists so badge traffic doesn't query the database on every
+// request: without it, the Neon endpoint can never autosuspend and burns
+// compute 24/7. The TTL is deliberately longer than Neon's 5-minute
+// autosuspend window. Revoked tokens self-heal faster than the TTL because
+// invalidateToken() also drops them from this cache.
+
+let tokenCache: string[] = []
+let tokenCacheExpires = 0
+
+/** How long to serve tokens from memory before re-reading the pool. */
+const TOKEN_CACHE_TTL_MS = 10 * 60 * 1000
+
+/** Re-check an empty pool (or an unreachable DB) sooner than a full pool. */
+const EMPTY_POOL_TTL_MS = 5 * 60 * 1000
+
+/** Max tokens held in memory per refresh. */
+const TOKEN_CACHE_SIZE = 25
+
+/** Fraction of pool refreshes that also sweep old invalid tokens. */
+const CLEANUP_PROBABILITY = 0.02
+
+/** Expire the cache so the next pick re-reads the pool. */
+function expireTokenCache() {
+  tokenCacheExpires = 0
+}
+
+function randomCachedToken(): string | undefined {
+  if (tokenCache.length === 0) return undefined
+  return tokenCache[Math.floor(Math.random() * tokenCache.length)]
+}
+
+// ---------------------------------------------------------------------------
 // Crypto helpers
 // ---------------------------------------------------------------------------
 
@@ -74,50 +114,76 @@ export async function addToken(githubUser: string, accessToken: string) {
      DO UPDATE SET access_token = $2, is_valid = TRUE, created_at = NOW()`,
     [githubUser, encrypted]
   )
+  expireTokenCache()
 }
 
 /**
  * Pick a random valid token from the pool.
  * Falls back to GITHUB_TOKEN env var if pool is empty.
  * Returns undefined if no tokens available.
+ *
+ * Reads the pool from the in-memory cache; the database is only queried when
+ * the cache expires, so badge traffic doesn't keep the DB awake. An empty
+ * pool is cached too — while running on the env-var fallback, the badge path
+ * makes no DB queries at all.
  */
 export async function pickToken(): Promise<string | undefined> {
-  // Try the pool first
+  if (Date.now() < tokenCacheExpires) {
+    return randomCachedToken() ?? process.env.GITHUB_TOKEN ?? undefined
+  }
+
   try {
     await ensureInit()
     const db = getPool()
 
-    // Periodically clean up invalid tokens older than 7 days
-    await db.query(
-      `DELETE FROM github_tokens WHERE is_valid = FALSE AND last_used_at < NOW() - INTERVAL '7 days'`
-    )
+    // Occasionally sweep invalid tokens that haven't healed in 7 days.
+    // Kept off the per-request path — this is housekeeping, not serving.
+    if (Math.random() < CLEANUP_PROBABILITY) {
+      await db.query(
+        `DELETE FROM github_tokens
+         WHERE is_valid = FALSE
+           AND COALESCE(last_used_at, created_at) < NOW() - INTERVAL '7 days'`
+      )
+    }
 
     const result = await db.query(
-      `UPDATE github_tokens
-       SET last_used_at = NOW()
-       WHERE id = (
-         SELECT id FROM github_tokens
-         WHERE is_valid = TRUE
-         ORDER BY last_used_at ASC NULLS FIRST
-         LIMIT 1
-       )
-       RETURNING access_token`
+      `SELECT access_token FROM github_tokens
+       WHERE is_valid = TRUE
+       ORDER BY random()
+       LIMIT $1`,
+      [TOKEN_CACHE_SIZE]
     )
-    if (result.rows.length > 0) {
-      return decryptToken(result.rows[0].access_token)
+
+    const tokens: string[] = []
+    for (const row of result.rows) {
+      try {
+        tokens.push(decryptToken(row.access_token))
+      } catch {
+        // Stored with a different key — unusable, skip. The cleanup sweep
+        // (via invalidateToken on 401) eventually removes these.
+      }
     }
+    tokenCache = tokens
+    tokenCacheExpires =
+      Date.now() + (tokens.length > 0 ? TOKEN_CACHE_TTL_MS : EMPTY_POOL_TTL_MS)
   } catch {
-    // DB not available — fall through to env var
+    // DB not available — back off briefly so we don't hammer a down DB,
+    // then fall through to the env var.
+    tokenCache = []
+    tokenCacheExpires = Date.now() + EMPTY_POOL_TTL_MS
   }
 
-  // Fallback to env var
-  return process.env.GITHUB_TOKEN || undefined
+  return randomCachedToken() ?? process.env.GITHUB_TOKEN ?? undefined
 }
 
 /**
  * Mark a token as invalid (e.g. after a 401 response from GitHub).
  */
 export async function invalidateToken(accessToken: string) {
+  // Drop it from the in-memory cache immediately so this instance stops
+  // using it without waiting for the cache TTL.
+  tokenCache = tokenCache.filter((t) => t !== accessToken)
+
   try {
     await ensureInit()
     const db = getPool()
@@ -125,18 +191,26 @@ export async function invalidateToken(accessToken: string) {
     // For efficiency, mark all tokens invalid that fail auth — GitHub will
     // reject them anyway. In practice, the caller retries without auth.
     // Better approach: store a hash of the plaintext for lookup.
+    // last_used_at records when the token was invalidated, so the cleanup
+    // sweep in pickToken can remove it 7 days later.
     const result = await db.query(
       `SELECT id, access_token FROM github_tokens WHERE is_valid = TRUE`
     )
     for (const row of result.rows) {
       try {
         if (decryptToken(row.access_token) === accessToken) {
-          await db.query(`UPDATE github_tokens SET is_valid = FALSE WHERE id = $1`, [row.id])
+          await db.query(
+            `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW() WHERE id = $1`,
+            [row.id]
+          )
           return
         }
       } catch {
         // Decryption failed — token was stored with different key, mark invalid
-        await db.query(`UPDATE github_tokens SET is_valid = FALSE WHERE id = $1`, [row.id])
+        await db.query(
+          `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW() WHERE id = $1`,
+          [row.id]
+        )
       }
     }
   } catch {
@@ -154,6 +228,7 @@ export async function removeToken(githubUser: string) {
     `DELETE FROM github_tokens WHERE github_user = $1`,
     [githubUser]
   )
+  expireTokenCache()
 }
 
 /**

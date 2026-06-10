@@ -62,6 +62,13 @@ export async function GET(request: Request) {
     redirect(`/token-pool?error=token_error_${tokenData.error || "no_token"}`)
   }
 
+  // The pool only holds zero-scope tokens (read-only public data). The
+  // authorize redirect requests no scopes, but the URL is user-visible and
+  // tamperable — verify what GitHub actually granted before pooling it.
+  if (tokenData.scope) {
+    redirect("/token-pool?error=scoped_token")
+  }
+
   const accessToken = tokenData.access_token
 
   // Fetch the user's GitHub login (verify token works)
