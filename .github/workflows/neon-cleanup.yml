@@ -1,0 +1,28 @@
+name: Neon Preview Branch Cleanup
+
+# The Neon <-> Vercel integration creates a database branch per preview
+# deployment (named "preview/<git-branch>"). Idle branches cost storage, not
+# compute, but they pile up against the project's branch limit. Delete the
+# branch when its PR closes.
+#
+# Requires:
+#   - repository variable NEON_PROJECT_ID (Neon console -> Project settings)
+#   - repository secret NEON_API_KEY (Neon console -> Account -> API keys)
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  delete-neon-branch:
+    runs-on: ubuntu-latest
+    if: vars.NEON_PROJECT_ID != ''
+    steps:
+      - uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: preview/${{ github.head_ref }}
+          api_key: ${{ secrets.NEON_API_KEY }}

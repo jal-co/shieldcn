@@ -59,6 +59,19 @@ function expireTokenCache() {
   tokenCacheExpires = 0
 }
 
+// Tokens invalidated recently (e.g. 401 from GitHub), keyed by invalidation
+// time. A cache refresh racing with invalidateToken can SELECT a snapshot
+// from before the invalidation committed and would re-admit the revoked
+// token — refreshes filter against this set to prevent that. Entries expire
+// after one cache TTL, by which point the DB row is marked invalid.
+const recentlyInvalidated = new Map<string, number>()
+
+function pruneRecentlyInvalidated(now: number) {
+  for (const [token, at] of recentlyInvalidated) {
+    if (now - at > TOKEN_CACHE_TTL_MS) recentlyInvalidated.delete(token)
+  }
+}
+
 function randomCachedToken(): string | undefined {
   if (tokenCache.length === 0) return undefined
   return tokenCache[Math.floor(Math.random() * tokenCache.length)]
@@ -154,10 +167,17 @@ export async function pickToken(): Promise<string | undefined> {
       [TOKEN_CACHE_SIZE]
     )
 
+    const now = Date.now()
+    pruneRecentlyInvalidated(now)
     const tokens: string[] = []
     for (const row of result.rows) {
       try {
-        tokens.push(decryptToken(row.access_token))
+        const token = decryptToken(row.access_token)
+        // Skip tokens invalidated while this SELECT was in flight — the
+        // snapshot may predate the invalidation commit.
+        if (!recentlyInvalidated.has(token)) {
+          tokens.push(token)
+        }
       } catch {
         // Stored with a different key — unusable, skip. The cleanup sweep
         // (via invalidateToken on 401) eventually removes these.
@@ -181,7 +201,9 @@ export async function pickToken(): Promise<string | undefined> {
  */
 export async function invalidateToken(accessToken: string) {
   // Drop it from the in-memory cache immediately so this instance stops
-  // using it without waiting for the cache TTL.
+  // using it without waiting for the cache TTL, and remember it so a
+  // concurrent cache refresh can't re-admit it from a pre-commit snapshot.
+  recentlyInvalidated.set(accessToken, Date.now())
   tokenCache = tokenCache.filter((t) => t !== accessToken)
 
   try {
