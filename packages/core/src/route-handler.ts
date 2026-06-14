@@ -536,6 +536,7 @@ async function fetchBadgeData(
       const wf = searchParams.get("workflow")
       const br = searchParams.get("branch")
       const ghKey = rest.join("/") + (wf ? `|wf=${wf}` : "") + (br ? `|br=${br}` : "")
+      let servedStale = false
       const ghData = await cachedFetchStale(
         "github",
         ghKey,
@@ -545,9 +546,21 @@ async function fetchBadgeData(
         // An "invalid repository" verdict is a terminal error, not a value:
         // cache it briefly and never persist it as last-known-good, so a repo
         // that later becomes available self-heals quickly.
-        { isError: (d) => d.error === true, errorTtl: GITHUB_ERROR_TTL },
+        {
+          isError: (d) => d.error === true,
+          errorTtl: GITHUB_ERROR_TTL,
+          onStale: () => { servedStale = true },
+        },
       )
-      if (ghData !== null) return ghData
+      if (ghData !== null) {
+        // A last-known-good value is real and renderable, but possibly out of
+        // date — flag it so the route serves it with short cache headers and it
+        // refreshes within ~a minute of GitHub recovering instead of being
+        // pinned at the CDN for the full success-cache window. Don't re-mark a
+        // terminal-error verdict (already short-cached via `error`).
+        if (servedStale && !ghData.error) return { ...ghData, stale: true }
+        return ghData
+      }
 
       // No data and no last-known-good. When GitHub is in a backoff window
       // the fetcher was never called, so the transient-failure verdict from
@@ -1617,11 +1630,11 @@ async function handleBadgeGroup(
     })
   )
 
-  // If any segment fell back to "not found" or carries a terminal-error
-  // verdict (e.g. "unavailable"), treat the whole group as an error response
-  // so the failure self-heals quickly instead of being pinned at the CDN
-  // for an hour.
-  const groupCacheHeaders = allData.some(({ data }) => !data || data.error)
+  // If any segment fell back to "not found", carries a terminal-error verdict
+  // (e.g. "unavailable"), or is a last-known-good value served because the live
+  // fetch failed (`stale`), treat the whole group as an error response so it
+  // self-heals quickly instead of being pinned at the CDN for an hour.
+  const groupCacheHeaders = allData.some(({ data }) => !data || data.error || data.stale)
     ? ERROR_CACHE_HEADERS
     : CACHE_HEADERS
 
@@ -1870,10 +1883,13 @@ async function handleBadgeGETInner(
     )
   }
 
-  // A terminal-error verdict (e.g. a genuine 404 → "invalid repository")
-  // renders a real badge but must not be cached like a success — short
-  // headers let it self-heal quickly instead of being pinned at the CDN.
-  const dataCacheHeaders = data.error ? ERROR_CACHE_HEADERS : CACHE_HEADERS
+  // A terminal-error verdict (e.g. a genuine 404 → "invalid repository") or a
+  // last-known-good value served because the live fetch failed (`stale`)
+  // renders a real badge but must not be cached like a success — short headers
+  // let it self-heal quickly instead of being pinned at the CDN. `stale` in
+  // particular ensures a frozen badge picks up fresh data within ~a minute of
+  // the upstream recovering, not up to an hour later.
+  const dataCacheHeaders = data.error || data.stale ? ERROR_CACHE_HEADERS : CACHE_HEADERS
 
   // JSON response
   if (format === "json") {

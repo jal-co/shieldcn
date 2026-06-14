@@ -218,9 +218,20 @@ function cacheKey(provider: string, ...parts: string[]): string {
  * Returns undefined on miss.
  */
 export async function cacheGet<T>(key: string): Promise<T | undefined> {
+  const entry = await cacheGetEntry<T>(key)
+  return entry?.data
+}
+
+/**
+ * Like {@link cacheGet} but returns the full cache entry, including `ts` (the
+ * time the value was written). Callers that need to reason about how old a
+ * cached value is — e.g. to escalate when a last-known-good value has been
+ * served for too long — use this instead of {@link cacheGet}.
+ */
+export async function cacheGetEntry<T>(key: string): Promise<CachedValue<T> | undefined> {
   // Tier 1: memory
   const mem = memoryCache.get(key) as CachedValue<T> | undefined
-  if (mem) return mem.data
+  if (mem) return mem
 
   // Tier 2: Redis
   const r = getRedis()
@@ -230,7 +241,7 @@ export async function cacheGet<T>(key: string): Promise<T | undefined> {
       if (val) {
         // Backfill memory cache
         memoryCache.set(key, val as CachedValue<unknown>)
-        return val.data
+        return val
       }
     } catch {
       // Redis unavailable, continue without it
@@ -313,7 +324,7 @@ export interface ProviderAlert {
   /** Provider name, e.g. "github". */
   provider: string
   /** What went wrong — used for triage and Sentry grouping. */
-  reason: "rate_limit" | "unavailable" | "badge_unavailable"
+  reason: "rate_limit" | "unavailable" | "badge_unavailable" | "stale"
   /** HTTP status, when applicable (e.g. 429, 503). */
   status?: number
   /** Stable human-readable summary (avoid per-request detail here). */
@@ -340,6 +351,48 @@ export function reportProviderAlert(alert: ProviderAlert): void {
   } catch {
     // Alerting must never break a badge response.
   }
+}
+
+// ---------------------------------------------------------------------------
+// Stale-served escalation
+// ---------------------------------------------------------------------------
+//
+// Serving last-known-good is normal and healthy for a brief upstream blip. But
+// when a badge has been served from the stale store for a long time, the
+// upstream (or the GitHub token pool / DB behind it) is genuinely broken and
+// the badge is silently frozen — exactly the failure that otherwise goes
+// unnoticed for days. Escalate to a Sentry alert when that happens, throttled
+// so one frozen badge doesn't spam an alert per request.
+
+/** Escalate when a last-known-good value has been frozen longer than this. */
+const STALE_ALERT_AFTER_MS = 60 * 60 * 1000 // 1 hour
+/** At most one stale alert per provider+key within this window. */
+const STALE_ALERT_THROTTLE_MS = 60 * 60 * 1000 // 1 hour
+
+const staleAlerted = new Map<string, number>()
+
+/**
+ * Emit a throttled "stale" alert when a last-known-good value served from the
+ * stale store is older than {@link STALE_ALERT_AFTER_MS}. `ts` is the time the
+ * value was last written (i.e. the last successful upstream fetch), so
+ * `now - ts` is exactly how long the badge has been frozen.
+ */
+function maybeAlertStale(provider: string, key: string, ts: number): void {
+  const age = Date.now() - ts
+  if (age < STALE_ALERT_AFTER_MS) return
+
+  const alertKey = `${provider}:${key}`
+  const last = staleAlerted.get(alertKey)
+  const now = Date.now()
+  if (last && now - last < STALE_ALERT_THROTTLE_MS) return
+  staleAlerted.set(alertKey, now)
+
+  reportProviderAlert({
+    provider,
+    reason: "stale",
+    message: `${provider} serving stale last-known-good (>${Math.round(STALE_ALERT_AFTER_MS / 60000)}m old) — upstream likely broken`,
+    context: { key, ageMs: String(age) },
+  })
 }
 
 export async function cachedFetch<T>(
@@ -441,7 +494,16 @@ export async function cachedFetchStale<T>(
   fetcher: () => Promise<T | null>,
   freshTtl: number = 300,
   staleTtl: number = 60 * 60 * 24 * 7,
-  opts?: { isError?: (data: T) => boolean; errorTtl?: number },
+  opts?: {
+    isError?: (data: T) => boolean
+    errorTtl?: number
+    /**
+     * Called when the returned value came from the last-known-good ("stale")
+     * store rather than a fresh fetch. The caller uses this to serve the
+     * response with short cache headers so it self-heals quickly.
+     */
+    onStale?: () => void
+  },
 ): Promise<T | null> {
   const freshKey = cacheKey(provider, key)
   const staleKey = cacheKey(provider, "stale", key)
@@ -465,13 +527,17 @@ export async function cachedFetchStale<T>(
   // value to fall back to) so it shows up in Sentry rather than silently
   // rendering "not found".
   const serveStale = async (): Promise<T | null> => {
-    const stale = await cacheGet<T>(staleKey)
-    if (stale !== undefined) {
+    const staleEntry = await cacheGetEntry<T>(staleKey)
+    if (staleEntry !== undefined) {
       cacheMetricsCallback?.({
         type: "counter", name: "badge.cache", value: 1,
         tags: { provider, result: "stale" },
       })
-      return stale
+      // Tell the caller this is last-known-good (so it can shorten cache
+      // headers) and escalate if the badge has been frozen for too long.
+      opts?.onStale?.()
+      maybeAlertStale(provider, key, staleEntry.ts)
+      return staleEntry.data
     }
     reportProviderAlert({
       provider,

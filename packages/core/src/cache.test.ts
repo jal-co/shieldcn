@@ -80,6 +80,36 @@ describe("cachedFetchStale", () => {
     expect(await cacheGet(staleKey)).toEqual({ label: "stars", value: "325" })
   })
 
+  it("invokes onStale only when it serves a last-known-good value, not on a fresh fetch", async () => {
+    // Fresh success → onStale must NOT fire.
+    const okKey = freshKey()
+    let okStaleHits = 0
+    const ok = await cachedFetchStale(
+      "test", okKey,
+      vi.fn().mockResolvedValue({ label: "stars", value: "1" }),
+      300, 3600,
+      { onStale: () => { okStaleHits++ } },
+    )
+    expect(ok).toEqual({ label: "stars", value: "1" })
+    expect(okStaleHits).toBe(0)
+
+    // Seed last-known-good directly (fresh store stays empty), then fail the
+    // fetch → last-known-good is served → onStale fires exactly once.
+    const key = freshKey()
+    const staleKey = `shieldcn:test:stale:${key}`
+    await cacheSet(staleKey, { label: "stars", value: "325" }, 3600)
+
+    let staleHits = 0
+    const stale = await cachedFetchStale(
+      "test", key,
+      vi.fn().mockResolvedValue(null),
+      300, 3600,
+      { onStale: () => { staleHits++ } },
+    )
+    expect(stale).toEqual({ label: "stars", value: "325" })
+    expect(staleHits).toBe(1)
+  })
+
   it("returns null when a fetch fails and there is no prior good value", async () => {
     const key = freshKey()
     const result = await cachedFetchStale(
@@ -128,6 +158,36 @@ describe("provider alerts", () => {
 
     expect(result).toEqual({ label: "x", value: "1" })
     expect(alerts).toHaveLength(0)
+  })
+
+  it("escalates a 'stale' alert when the last-known-good value served is very old", async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"))
+      const key = freshKey()
+      const staleKey = `shieldcn:test:stale:${key}`
+      // Seed last-known-good "now"; fresh store stays empty so the fetch runs.
+      // Long TTL keeps the entry alive (lru TTL uses performance.now, which the
+      // fake Date clock doesn't advance) while its Date-based timestamp ages.
+      await cacheSet(staleKey, { label: "x", value: "1" }, 7 * 24 * 3600)
+
+      // 90 minutes pass with the upstream still broken.
+      vi.setSystemTime(new Date("2026-01-01T01:30:00Z"))
+
+      const alerts: ProviderAlert[] = []
+      setProviderAlertCallback((a) => alerts.push(a))
+
+      const stale = await cachedFetchStale(
+        "test", key,
+        vi.fn().mockResolvedValue(null),
+        300, 7 * 24 * 3600,
+      )
+      expect(stale).toEqual({ label: "x", value: "1" })
+      expect(alerts.filter((a) => a.reason === "stale")).toHaveLength(1)
+      expect(alerts.find((a) => a.reason === "stale")).toMatchObject({ provider: "test" })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it("alerts any provider once per backoff cycle on a rate limit", async () => {

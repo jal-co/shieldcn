@@ -13,7 +13,7 @@
  */
 
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from "node:crypto"
-import { getPool, initDB } from "./db"
+import { query, initDB } from "./db"
 
 let initialized = false
 
@@ -118,9 +118,8 @@ function hashToken(token: string): string {
  */
 export async function addToken(githubUser: string, accessToken: string) {
   await ensureInit()
-  const db = getPool()
   const encrypted = encryptToken(accessToken)
-  await db.query(
+  await query(
     `INSERT INTO github_tokens (github_user, access_token, is_valid)
      VALUES ($1, $2, TRUE)
      ON CONFLICT (github_user)
@@ -147,19 +146,18 @@ export async function pickToken(): Promise<string | undefined> {
 
   try {
     await ensureInit()
-    const db = getPool()
 
     // Occasionally sweep invalid tokens that haven't healed in 7 days.
     // Kept off the per-request path — this is housekeeping, not serving.
     if (Math.random() < CLEANUP_PROBABILITY) {
-      await db.query(
+      await query(
         `DELETE FROM github_tokens
          WHERE is_valid = FALSE
            AND COALESCE(last_used_at, created_at) < NOW() - INTERVAL '7 days'`
       )
     }
 
-    const result = await db.query(
+    const result = await query<{ access_token: string }>(
       `SELECT access_token FROM github_tokens
        WHERE is_valid = TRUE
        ORDER BY random()
@@ -208,20 +206,19 @@ export async function invalidateToken(accessToken: string) {
 
   try {
     await ensureInit()
-    const db = getPool()
     // We can't match on encrypted token directly, so find by decrypting
     // For efficiency, mark all tokens invalid that fail auth — GitHub will
     // reject them anyway. In practice, the caller retries without auth.
     // Better approach: store a hash of the plaintext for lookup.
     // last_used_at records when the token was invalidated, so the cleanup
     // sweep in pickToken can remove it 7 days later.
-    const result = await db.query(
+    const result = await query<{ id: number; access_token: string }>(
       `SELECT id, access_token FROM github_tokens WHERE is_valid = TRUE`
     )
     for (const row of result.rows) {
       try {
         if (decryptToken(row.access_token) === accessToken) {
-          await db.query(
+          await query(
             `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW() WHERE id = $1`,
             [row.id]
           )
@@ -229,7 +226,7 @@ export async function invalidateToken(accessToken: string) {
         }
       } catch {
         // Decryption failed — token was stored with different key, mark invalid
-        await db.query(
+        await query(
           `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW() WHERE id = $1`,
           [row.id]
         )
@@ -245,8 +242,7 @@ export async function invalidateToken(accessToken: string) {
  */
 export async function removeToken(githubUser: string) {
   await ensureInit()
-  const db = getPool()
-  await db.query(
+  await query(
     `DELETE FROM github_tokens WHERE github_user = $1`,
     [githubUser]
   )
@@ -263,8 +259,7 @@ export async function getPoolStats(): Promise<{
 }> {
   try {
     await ensureInit()
-    const db = getPool()
-    const result = await db.query(
+    const result = await query<{ total: string; valid: string; invalid: string }>(
       `SELECT
          COUNT(*) as total,
          COUNT(*) FILTER (WHERE is_valid = TRUE) as valid,

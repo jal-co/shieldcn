@@ -142,4 +142,13 @@ export interface BadgeData {
    * instead of being pinned at the CDN like a success.
    */
   error?: boolean
+  /**
+   * Marks a value served from the last-known-good ("stale") store because the
+   * live upstream fetch failed. The data is real and renderable, but it may be
+   * out of date — so the route serves it with short cache headers (like an
+   * error) instead of pinning it at the CDN for an hour. That way the badge
+   * picks up fresh data within ~a minute of the upstream recovering rather than
+   * staying frozen for up to the full success-cache window.
+   */
+  stale?: boolean
 }
