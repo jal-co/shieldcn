@@ -52,6 +52,7 @@ export const featuredBadges: ShowcaseBadge[] = [
   dynamicBadge("Bluesky Followers", "featured social", "/bluesky/jay.bsky.team.svg?variant=outline", "Social proof badge for Bluesky profiles.", "/docs/badges/bluesky"),
   dynamicBadge("Bundle Size", "featured bundlephobia", "/bundlephobia/minzip/react.svg?variant=secondary", "Show how lightweight your package is.", "/docs/badges/bundlephobia"),
   dynamicBadge("Built in the USA", "featured location", "/flag/us.svg", "Country flag badge with a natural-aspect flag chip.", "/docs/badges/flag"),
+  dynamicBadge("2026 Champs Knicks", "featured nba", "/nba.svg", "Default Knicks champs badge with full-color logo art and branded team color.", "/docs/badges/nba"),
   dynamicBadge("Ship It", "featured emoji", "/badge/ship-it.svg?logo=twemoji:\uD83D\uDE80&variant=secondary", "Any emoji as a logo, rendered via Twemoji.", "/docs/customization/logos"),
   dynamicBadge("Skill Installs", "featured skills.sh", "/skills/installs/vercel-labs/agent-skills/vercel-react-best-practices.svg?variant=branded", "Install count for an agent skill on skills.sh.", "/docs/badges/skills"),
 ]
@@ -107,12 +108,18 @@ export const categories: Category[] = [
     ],
   },
   {
-    name: "Discord",
-    description: "Community badges using either the widget API or invite-count API.",
+    name: "Social",
+    description: "Community and fan badges for social proof, groups, and team identity.",
     icons: [
       dynamicBadge("Discord Online", "widget api", "/discord/1316199667142496307.svg?variant=secondary", "Live online count using the server widget API.", "/docs/badges/discord"),
       dynamicBadge("Discord Members", "invite api", "/discord/members/reactiflux.svg?variant=outline", "Approximate member count using the invite API with counts.", "/docs/badges/discord"),
       dynamicBadge("Discord Online Members", "invite api", "/discord/online-members/reactiflux.svg?variant=branded", "Approximate online members using invite counts.", "/docs/badges/discord"),
+      dynamicBadge("2026 Champs Knicks", "nba team", "/nba.svg", "Default Knicks champs badge with full-color logo art and branded team color.", "/docs/badges/nba"),
+      dynamicBadge("Celtics Fan", "nba team", "/nba/celtics.svg?variant=branded", "Boston Celtics badge with full-color logo art.", "/docs/badges/nba"),
+      dynamicBadge("Warriors Fan", "nba team", "/nba/warriors.svg?variant=secondary", "Golden State Warriors fan badge.", "/docs/badges/nba"),
+      dynamicBadge("Bulls Fan", "nba team", "/nba/bulls.svg?variant=outline", "Chicago Bulls outline badge.", "/docs/badges/nba"),
+      dynamicBadge("Lakers Fan", "nba team", "/nba/lakers.svg?variant=ghost", "Los Angeles Lakers ghost badge.", "/docs/badges/nba"),
+      dynamicBadge("Heat Fan", "nba team", "/nba/heat.svg?variant=branded", "Miami Heat team-color badge.", "/docs/badges/nba"),
     ],
   },
   {

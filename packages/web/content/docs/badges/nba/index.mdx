@@ -1,0 +1,75 @@
+---
+title: NBA
+description: NBA team fan badges with team logos and team colors.
+badge: "/nba.svg"
+---
+
+Show which NBA team you support with a fan badge that renders the team logo next to the badge text.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/nba/knicks.svg?variant=branded" alt="fan New York Knicks" description="Knicks (branded)" />
+  <BadgePreviewCard src="/nba/celtics.svg?variant=branded" alt="fan Boston Celtics" description="Celtics (branded)" />
+  <BadgePreviewCard src="/nba/warriors.svg?variant=secondary" alt="fan Golden State Warriors" description="Warriors" />
+  <BadgePreviewCard src="/nba/bulls.svg?variant=outline" alt="fan Chicago Bulls" description="Bulls outline" />
+  <BadgePreviewCard src="/nba/lakers.svg?variant=ghost" alt="fan Los Angeles Lakers" description="Lakers ghost" />
+  <BadgePreviewCard src="/nba/heat.svg?variant=branded" alt="fan Miami Heat" description="Heat (branded)" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| NBA champs | `/nba` | Default “2026 champs / Knicks” badge using the branded Knicks color |
+| NBA team | `/nba/{team}` | Fan badge with NBA team name, logo, and team color |
+
+`{team}` accepts common team slugs, names, abbreviations, and nicknames. For example, `knicks`, `ny`, `new-york-knicks`, and `celtics` all resolve to a team badge. Omit `{team}` for the default “2026 champs / Knicks” badge.
+
+<BadgeSandbox
+  endpoint="/nba/:team.svg"
+  pathParams={[
+    { name: "team", label: "NBA team", placeholder: "knicks", required: true, description: "Team slug, abbreviation, city, or nickname." },
+  ]}
+  defaults={{ team: "knicks" }}
+/>
+
+## Quick examples
+
+<CodeLine language="markdown" code='![2026 Champs Knicks](https://shieldcn.dev/nba.svg)' />
+
+<CodeLine language="markdown" code='![Celtics fan](https://shieldcn.dev/nba/celtics.svg?variant=branded)' />
+
+<CodeLine language="markdown" code='![Warriors fan](https://shieldcn.dev/nba/warriors.svg?variant=outline)' />
+
+<CodeLine language="markdown" code='![Bulls fan](https://shieldcn.dev/nba/chi.svg?variant=secondary)' />
+
+## Team slugs
+
+Use lowercase team names with spaces replaced by dashes, a team abbreviation, or a common nickname:
+
+- `/nba/knicks`, `/nba/ny`, `/nba/new-york-knicks`
+- `/nba/celtics`, `/nba/bos`, `/nba/boston`
+- `/nba/warriors`, `/nba/gs`, `/nba/golden-state-warriors`
+- `/nba/lakers`, `/nba/lal`, `/nba/los-angeles-lakers`
+- `/nba/sixers`, `/nba/phi`, `/nba/76ers`
+
+Unknown teams return a readable error badge instead of a broken image.
+
+## Customizing
+
+All standard badge query params apply (`variant`, `size`, `mode`, `font`, `label`, colors, etc.). The `branded` variant uses the resolved team's primary color.
+
+<BadgePreview
+  src="/nba/knicks.svg?variant=branded&label=team"
+  alt="team New York Knicks"
+  description="Override the label while keeping the Knicks logo and team color."
+/>
+
+<BadgePreview
+  src="/nba/celtics.svg?variant=outline&mode=light"
+  alt="fan Boston Celtics outline"
+  description="Outline badges stay readable in light mode while preserving the full-color team logo."
+/>
+
+## Data source
+
+Team names, aliases, and primary colors are resolved from a static NBA team map. Team logo images are fetched from ESPN's public team logo CDN and cached for 24 hours. No API key required.

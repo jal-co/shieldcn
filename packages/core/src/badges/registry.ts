@@ -191,6 +191,14 @@ export const REGISTRY: BadgeProvider[] = [
     ],
   },
   {
+    provider: "nba",
+    description: "NBA team fan badges with team logos.",
+    defaultTopic: "team",
+    topics: [
+      t("team", "Team fan badge", ["knicks"]),
+    ],
+  },
+  {
     provider: "reddit",
     description: "Reddit karma and subreddit subscribers.",
     topics: [

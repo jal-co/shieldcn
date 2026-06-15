@@ -134,43 +134,20 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
   }
 }
 
-// A curated set of emoji (Twemoji) badges, seeded onto the canvas so
-// /dev/social opens ready to screenshot an emoji-logo showcase for social
-// posts. Each entry: [static badge path, emoji logo, variant].
-const EMOJI_SAMPLE: Array<[string, string, Variant]> = [
-  ["/badge/ship-it", "\uD83D\uDE80", "secondary"],
-  ["/badge/made%20with-love", "\u2764\uFE0F", "outline"],
-  ["/badge/status-on%20fire", "\uD83D\uDD25", "destructive"],
-  ["/badge/coffee-driven", "\u2615", "secondary"],
-  ["/badge/release-shipped", "\uD83C\uDF89", "outline"],
-  ["/badge/built%20by-a%20human", "\uD83D\uDC68\u200D\uD83D\uDCBB", "default"],
-  ["/badge/quality-magic", "\u2728", "secondary"],
-  ["/badge/score-100", "\uD83D\uDCAF", "outline"],
-  ["/badge/speed-blazing", "\u26A1", "default"],
-  ["/badge/mood-chill", "\uD83D\uDE0E", "secondary"],
-  ["/badge/star-this%20repo", "\u2B50", "outline"],
-  ["/badge/packaged%20with-care", "\uD83D\uDCE6", "secondary"],
-  ["/badge/idea-bright", "\uD83D\uDCA1", "outline"],
-  ["/badge/powered%20by-vibes", "\uD83C\uDF08", "secondary"],
-  ["/badge/tests-passing", "\u2705", "outline"],
-  ["/badge/build-rocketing", "\uD83D\uDEF0\uFE0F", "default"],
-  ["/badge/security-locked", "\uD83D\uDD12", "secondary"],
-  ["/badge/docs-sparkling", "\uD83D\uDCDA", "outline"],
-  ["/badge/made%20in-the%20usa", "\uD83C\uDDFA\uD83C\uDDF8", "secondary"],
-  ["/badge/party-time", "\uD83E\uDD73", "outline"],
+// Default social canvas: the Knicks champs badge. This page opens ready to
+// export the `/nba` social card without needing to add a badge manually.
+const DEFAULT_ITEMS: BadgeItem[] = [
+  {
+    id: nextId(),
+    path: "/nba",
+    variant: "branded",
+    size: "lg",
+    font: "inter",
+    animate: "none",
+    label: "none",
+    labelText: "",
+  },
 ]
-
-const DEFAULT_ITEMS: BadgeItem[] = EMOJI_SAMPLE.map(([path, logo, variant]) => ({
-  id: nextId(),
-  path,
-  logo,
-  variant,
-  size: "sm",
-  font: "inter",
-  animate: "none",
-  label: "none",
-  labelText: "",
-}))
 
 // ---------------------------------------------------------------------------
 // Inline SVG badge — pure renderer. The page fetches each badge's base SVG
@@ -327,10 +304,10 @@ export default function DevSocialPage() {
   const [preset, setPreset] = useState<PresetKey>("og")
   const [bg, setBg] = useState<Bg>("black")
   const [gap, setGap] = useState(16)
-  const [showText, setShowText] = useState(false)
+  const [showText, setShowText] = useState(true)
   const [showLogo, setShowLogo] = useState(true)
-  const [title, setTitle] = useState("shieldcn")
-  const [subtitle, setSubtitle] = useState("Beautiful README badges")
+  const [title, setTitle] = useState("2026 Champs")
+  const [subtitle, setSubtitle] = useState("Knicks")
   const [saving, setSaving] = useState(false)
   // Resolved SVG (base + animated preview + dot color) per badge id.
   const [svgMap, setSvgMap] = useState<Record<string, BadgeSvg>>({})

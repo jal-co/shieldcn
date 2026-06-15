@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/metadata"
 export const metadata: Metadata = pageMetadata({
   title: "Showcase",
   description:
-    "Live badge examples for GitHub, npm, and Discord. Click any badge to customize variant, size, theme, and mode — then copy the markdown for your README.",
+    "Live badge examples for GitHub, npm, Discord, and NBA teams. Click any badge to customize variant, size, theme, and mode — then copy the markdown for your README.",
   path: "/showcase",
 })
 

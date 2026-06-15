@@ -14,6 +14,7 @@
  * that changes per variant is bg/fg/border color values.
  */
 
+import * as React from "react"
 import satori from "satori"
 import { optimize } from "svgo"
 import { readFileSync } from "node:fs"
@@ -208,6 +209,9 @@ interface ResolvedBadge {
 
   // Full-color emoji (Twemoji) SVG rendered as a square left inset
   emojiSvg: string | undefined
+
+  // Full-color logo data URI rendered as a square left inset
+  logoDataUri: string | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -369,6 +373,7 @@ function resolve(config: BadgeConfig): ResolvedBadge {
     iconRotation: config.iconRotation,
     flagSvg: config.flagSvg,
     emojiSvg: config.emojiSvg,
+    logoDataUri: config.logoDataUri,
   }
 }
 
@@ -576,6 +581,19 @@ function EmojiEl({ r }: { r: ResolvedBadge }) {
   )
 }
 
+function LogoEl({ r }: { r: ResolvedBadge }) {
+  if (!r.logoDataUri) return null
+  const size = Math.round(r.iconSize * 1.35)
+  return (
+    <img
+      src={r.logoDataUri}
+      width={size}
+      height={size}
+      style={{ width: size, height: size, objectFit: "contain", flexShrink: 0 }}
+    />
+  )
+}
+
 function IconEl({ r }: { r: ResolvedBadge }) {
   if (!r.icon) return null
   const vb = r.iconViewBox || "0 0 16 16"
@@ -697,6 +715,8 @@ function renderSingle(r: ResolvedBadge): React.ReactElement {
       {r.flagSvg && <div style={{ width: r.gap }} />}
       <EmojiEl r={r} />
       {r.emojiSvg && <div style={{ width: r.gap }} />}
+      <LogoEl r={r} />
+      {r.logoDataUri && <div style={{ width: r.gap }} />}
       <IconEl r={r} />
       {r.icon && <div style={{ width: r.gap }} />}
       {r.label && (
@@ -744,6 +764,8 @@ function renderSplit(r: ResolvedBadge): React.ReactElement {
         <DotEl r={r} />
         <EmojiEl r={r} />
         {r.emojiSvg && <div style={{ width: r.gap }} />}
+        <LogoEl r={r} />
+        {r.logoDataUri && <div style={{ width: r.gap }} />}
         <IconEl r={r} />
         {r.icon && <div style={{ width: r.gap }} />}
         {r.label && <span style={{ color: r.labelFg, ...textStyle }}>{r.label}</span>}

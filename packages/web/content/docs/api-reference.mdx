@@ -5,10 +5,10 @@ description: Complete URL specification, query parameters, and response formats.
 
 ## URL format
 
-<InlineHint variant="tip">All endpoints support both `.png` and `.svg` — swap `.json` to get raw badge data, or append `/shields.json` for shields.io compatibility.</InlineHint>
+<InlineHint variant="tip">All endpoints support both `.svg` and `.png` — swap `.json` to get raw badge data, or append `/shields.json` for shields.io compatibility. Use SVG by default for the crispest rendering.</InlineHint>
 
-<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.png" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.svg" />
+<CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.png" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}.json" />
 <CodeLine language="bash" code="https://shieldcn.dev/{provider}/{...params}/shields.json" />
 
@@ -44,6 +44,15 @@ description: Complete URL specification, query parameters, and response formats.
 | `/discord/{serverId}.svg` | Online member count |
 | `/discord/members/{inviteCode}.svg` | Approximate member count from invite |
 | `/discord/online-members/{inviteCode}.svg` | Approximate online member count from invite |
+
+### NBA
+
+| Endpoint | Description |
+|----------|-------------|
+| `/nba.svg` | Default “2026 champs / Knicks” badge using the branded Knicks color |
+| `/nba/{team}.svg` | NBA team fan badge with team logo and team color |
+
+`{team}` accepts common team slugs, names, abbreviations, and nicknames such as `knicks`, `ny`, `celtics`, `bos`, `warriors`, and `gs`. Omit `{team}` for the default “2026 champs / Knicks” badge. See [NBA docs](/docs/badges/nba).
 
 ### X / Twitter
 
@@ -291,7 +300,7 @@ Join any badge paths with `+`. Query params apply to all segments. See [Badge Gr
 
 <CodeBlock language="http" code={"Content-Type: image/png\nCache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"} />
 
-PNG badges are rasterized at the exact badge dimensions. Recommended for GitHub READMEs and maximum cross-platform compatibility.
+PNG badges are rasterized at exact badge dimensions. Use SVG when you want the crispest badge rendering; use PNG only where SVG is not accepted.
 
 ### SVG
 

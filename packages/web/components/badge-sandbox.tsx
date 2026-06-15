@@ -80,7 +80,7 @@ export function BadgeSandbox({
   })
 
   // Standard styling params (same for every badge)
-  const [imageFormat, setImageFormat] = useState<"png" | "svg">("png")
+  const [imageFormat, setImageFormat] = useState<"png" | "svg">("svg")
   const [variant, setVariant] = useState("default")
   const [size, setSize] = useState("sm")
   const [mode, setMode] = useState("dark")

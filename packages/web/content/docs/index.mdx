@@ -11,11 +11,11 @@ shieldcn serves SVG badge images that look like **shadcn/ui Button components** 
 
 Add a badge to your README:
 
-<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.png)" />
+<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.svg)" />
 
-That's it. No configuration, no API keys, no build step. Both `.png` and `.svg` extensions are supported — just swap the extension.
+That's it. No configuration, no API keys, no build step. Both `.svg` and `.png` extensions are supported — just swap the extension.
 
-<InlineHint variant="tip">Use `.png` for GitHub READMEs — it renders more consistently across clients than `.svg`.</InlineHint>
+<InlineHint variant="tip">Use `.svg` by default for the crispest badge rendering. Use `.png` only where SVG images are not accepted.</InlineHint>
 
 ## Badge types
 
@@ -35,13 +35,14 @@ That's it. No configuration, no API keys, no build step. Both `.png` and `.svg` 
 | GitHub commits | `/github/commits/{owner}/{repo}` |
 | Discord online | `/discord/{serverId}` |
 | Discord members | `/discord/members/{inviteCode}` |
+| NBA team fan | `/nba` or `/nba/{team}` |
 | Reddit karma | `/reddit/{type}/u/{user}` |
 | Static | `/badge/{label}-{message}-{color}` |
 | Dynamic JSON | `/badge/dynamic/json?url=...&query=...` |
 | HTTPS endpoint | `/https/{hostname}/{path}` |
 | Memo | `/memo/{key}` |
 
-Append `.png` or `.svg` to any endpoint (e.g. `/npm/react.png` or `/npm/react.svg`).
+Append `.svg` or `.png` to any endpoint (e.g. `/npm/react.svg` or `/npm/react.png`).
 
 ## Variants
 
@@ -72,12 +73,12 @@ Badges auto-detect icons per provider. Override with any [Simple Icons](https://
 
 ## Response formats
 
-- **`.png`** — PNG image (recommended for GitHub READMEs and most use cases)
-- **`.svg`** — SVG image (scalable, smaller file size)
+- **`.svg`** — SVG image (crisp, scalable, recommended default)
+- **`.png`** — PNG image (raster fallback for clients that reject SVG)
 - **`.json`** — raw badge data
 - **`/shields.json`** — shields.io-compatible endpoint
 
-Both `.png` and `.svg` work everywhere GitHub renders images. Use `.png` for maximum compatibility across platforms.
+Use `.svg` for the sharpest result. Use `.png` only for platforms that reject SVG images.
 
 ## Built with
 

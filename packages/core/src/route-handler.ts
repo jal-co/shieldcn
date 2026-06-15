@@ -109,6 +109,7 @@ import {
   githubRepoExists,
 } from "./providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
+import { getNbaTeamBadge } from "./providers/nba"
 import { parseStaticBadgeContent, getDynamicJsonBadge, getFlagBadge } from "./providers/badge"
 import { getRedditKarma, getRedditSubscribers } from "./providers/reddit"
 import { getMemoBadge, upsertMemoBadge } from "./providers/memo"
@@ -581,6 +582,12 @@ async function fetchBadgeData(
       }
 
       return getDiscordOnline(segments[1])
+    }
+
+    // /nba/{team} → fan badge with team logo
+    case "nba": {
+      if (segments.length < 2) return getNbaTeamBadge("knicks", { label: "2026 champs", value: "Knicks" })
+      return getNbaTeamBadge(segments.slice(1).join("/"))
     }
 
     // /reddit/karma/u/{user} or /reddit/subscribers/r/{subreddit}
@@ -1492,6 +1499,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
 
   if (provider === "npm") return { simpleIcon: "npm" }
   if (provider === "discord") return { simpleIcon: "discord" }
+  if (provider === "nba") return null // NBA badges render the team logo as full-color art.
   if (provider === "pypi") return { simpleIcon: "pypi" }
   if (provider === "crates") return { simpleIcon: "rust" }
   if (provider === "docker") return { simpleIcon: "docker" }
@@ -1929,7 +1937,12 @@ async function handleBadgeGETInner(
   // Flag badges: fetch the full-color flag SVG to render as a left inset.
   // Default to the `secondary` variant so the flag chip sits on a soft surface.
   const isFlag = cleanSegments[0] === "flag"
+  const isNba = cleanSegments[0] === "nba"
+  if (isNba && cleanSegments.length === 1 && !searchParams.get("style") && !searchParams.get("variant")) {
+    style = "branded"
+  }
   let flagSvg: string | undefined
+  let logoDataUri: string | undefined
   if (isFlag) {
     if (!searchParams.get("style") && !searchParams.get("variant")) {
       style = "secondary"
@@ -1945,6 +1958,22 @@ async function handleBadgeGETInner(
       } catch {
         // No flag art — fall back to a normal text badge.
       }
+    }
+  }
+
+  if (isNba && data.link && !logoParam) {
+    try {
+      const logoRes = await raceTimeout(fetch(data.link, {
+        next: { revalidate: 86400 },
+        headers: { Accept: "image/png,image/svg+xml,image/*", "User-Agent": "shieldcn/1.0" },
+      }))
+      if (logoRes?.ok) {
+        const contentType = logoRes.headers.get("content-type")?.split(";")[0] || "image/png"
+        const bytes = Buffer.from(await logoRes.arrayBuffer())
+        logoDataUri = `data:${contentType};base64,${bytes.toString("base64")}`
+      }
+    } catch {
+      // No logo art — fall back to the default provider icon.
     }
   }
 
@@ -2090,6 +2119,10 @@ async function handleBadgeGETInner(
 
     }
 
+    if (isNba && data.color) {
+      brandColor = data.color
+    }
+
     // Fallback to provider brand color if no icon brand color found,
     // or if the icon brand color is black/near-black and the provider has a real color
     if (!brandColor && providerBrand) {
@@ -2187,6 +2220,7 @@ async function handleBadgeGETInner(
     gradient,
     flagSvg,
     emojiSvg,
+    logoDataUri,
     animate,
     valueColor: resolveColor(searchParams.get("valueColor")),
     labelTextColor: resolveColor(searchParams.get("labelTextColor")),

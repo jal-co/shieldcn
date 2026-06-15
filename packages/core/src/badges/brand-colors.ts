@@ -14,6 +14,7 @@ export const providerBrandColors: Record<string, string> = {
   npm: "CB3837",
   github: "181717",
   discord: "5865F2",
+  nba: "17408B",
   reddit: "FF4500",
   pypi: "3775A9",
   crates: "dea584",

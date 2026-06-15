@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
 import { BadgeCard } from "@/components/badge-card"
@@ -19,6 +20,7 @@ export default function ShowcasePage() {
   const [activeCategory, setActiveCategory] = useState("All")
 
   const activeCategoryData = categories.find((c) => c.name === activeCategory)
+  const nbaCategory = categories.find((c) => c.name === "NBA")
 
   const filteredIcons = useMemo(() => {
     const icons = activeCategory === "All"
@@ -66,6 +68,23 @@ export default function ShowcasePage() {
           </div>
         </div>
 
+        {nbaCategory ? (
+          <div className="space-y-3 rounded-xl border border-border bg-card/40 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">NBA team badges</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Fan badges with full-color team logos and team-color branded variants.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setActiveCategory("NBA")}>View all</Button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {nbaCategory.icons.slice(0, 6).map((badge) => (
+                <BadgeCard key={`nba-featured-${badge.badgePath}-${badge.title}`} badge={badge} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {/* Animated badges — live <img> row */}
         <AnimatedShowcase />
 
@@ -73,7 +92,7 @@ export default function ShowcasePage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Badge Groups</h2>
-            <a href="/docs/badges/group" className="text-xs text-muted-foreground hover:text-foreground transition-colors">docs →</a>
+            <Link href="/docs/badges/group" className="text-xs text-muted-foreground hover:text-foreground transition-colors">docs →</Link>
           </div>
           <GroupShowcase items={groupShowcaseItems} />
         </div>

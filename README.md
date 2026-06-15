@@ -152,6 +152,7 @@ See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive
 | Provider | Badges | Endpoint |
 |----------|--------|----------|
 | **Discord** | online count, members | `/discord/{serverId}` |
+| **NBA** | team fan badges with logos and team colors (2026 Champs Knicks by default) | `/nba` or `/nba/{team}` |
 | **Reddit** | karma, subscribers | `/reddit/subscribers/r/{subreddit}` |
 | **Bluesky** | followers, following, posts | `/bluesky/{handle}` |
 | **X / Twitter** | follow CTA, mention CTA | `/x/follow/{username}` |
@@ -216,12 +217,12 @@ Three icon libraries (40,000+ icons) plus custom SVG upload:
 
 ## Response formats
 
-- **`.png`** — PNG image (recommended for GitHub READMEs and maximum compatibility)
-- **`.svg`** — SVG image (scalable, smaller file size)
+- **`.svg`** — SVG image (crisp, scalable, recommended default)
+- **`.png`** — PNG image (raster fallback for clients that reject SVG)
 - **`.json`** — raw badge data
 - **`/shields.json`** — shields.io-compatible endpoint
 
-Both `.png` and `.svg` work everywhere GitHub renders images. Just swap the extension.
+Use `.svg` for the sharpest result. Use `.png` only where SVG images are not accepted.
 
 ## Design principles
 

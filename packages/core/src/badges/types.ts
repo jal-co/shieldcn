@@ -121,6 +121,8 @@ export interface BadgeConfig {
    * original multi-color fills instead of recoloring it.
    */
   emojiSvg?: string
+  /** Full-color logo image data URI rendered as a square left inset. */
+  logoDataUri?: string
   /** Animation mode: "pulse" | "glow" | "shimmer" | "none". Default: none. */
   animate?: "pulse" | "glow" | "shimmer" | "none"
 }

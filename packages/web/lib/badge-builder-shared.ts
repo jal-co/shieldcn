@@ -65,6 +65,7 @@ export const BADGE_PRESETS: BadgePreset[] = [
 
   // Social
   { label: "Discord — online", template: "/discord/{serverId}.svg", params: [{ key: "serverId", label: "Server ID", placeholder: "1316199667142496307", default: "1316199667142496307" }], group: "Social" },
+  { label: "NBA — team fan", template: "/nba/{team}.svg", params: [{ key: "team", label: "Team", placeholder: "knicks", default: "knicks" }], group: "Social", defaultLinkUrl: "https://www.nba.com/{team}" },
   { label: "Reddit — subscribers", template: "/reddit/{subreddit}.svg", params: [{ key: "subreddit", label: "Subreddit", placeholder: "typescript", default: "typescript" }], group: "Social", defaultLinkUrl: "https://www.reddit.com/r/{subreddit}" },
   { label: "X — follow", template: "/x/follow/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },
   { label: "X — mention", template: "/x/mention/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },

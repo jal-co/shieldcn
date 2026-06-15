@@ -114,6 +114,7 @@ const docsNav: NavGroup[] = [
     title: "Social & Community",
     items: [
       { title: "Discord", href: "/docs/badges/discord" },
+      { title: "NBA", href: "/docs/badges/nba" },
       { title: "Bluesky", href: "/docs/badges/bluesky" },
       { title: "X / Twitter", href: "/docs/badges/x" },
       { title: "YouTube", href: "/docs/badges/youtube" },
