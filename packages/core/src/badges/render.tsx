@@ -386,7 +386,7 @@ export async function renderBadge(config: BadgeConfig): Promise<string> {
   const el = r.split ? renderSplit(r) : renderSingle(r)
   const fonts = getFonts(config.font)
   const raw = await satori(el, { height: r.height, fonts })
-  const svg = inlineDataUriImages(raw)
+  const svg = rgbaToHexOpacity(inlineDataUriImages(raw))
   const optimized = optimizeSvg(svg)
   const mode = config.animate ?? "none"
   if (mode === "none") return optimized
@@ -405,7 +405,7 @@ export async function renderBadgeBase(
   const el = r.split ? renderSplit(r) : renderSingle(r)
   const fonts = getFonts(config.font)
   const raw = await satori(el, { height: r.height, fonts })
-  const svg = optimizeSvg(inlineDataUriImages(raw))
+  const svg = optimizeSvg(rgbaToHexOpacity(inlineDataUriImages(raw)))
   return { svg, dotColor: r.dotColor }
 }
 
@@ -465,61 +465,131 @@ function optimizeSvg(svg: string): string {
 
 /**
  * Post-process SVG to inline data URI images as actual SVG elements.
- * Satori converts nested <svg> to <image href="data:image/svg+xml;...">.
- * Some renderers don't handle these well, so we convert them back to inline paths.
+ *
+ * Satori emits nested SVG content as <image href="data:image/svg+xml;...">
+ * (both the JSX <svg> icons it serializes as `utf8` data URIs, and the
+ * <img src="data:...;base64"> flags/emoji/custom logos we pass in). WebKit
+ * (Quick Look, browsers) renders an SVG embedded inside an <image>, but
+ * Photoshop / Illustrator / Figma do NOT — the logo silently disappears on
+ * import. Satori also wraps these <image> tags in `mask`/`clip-path`
+ * references that those editors handle poorly.
+ *
+ * So we decode every SVG data URI and splice its real markup back in as a
+ * positioned <g>. This preserves multi-color art (flags, emoji) verbatim and
+ * keeps the logo as a first-class part of the badge in any editor.
  */
 function inlineDataUriImages(svg: string): string {
-  // Match <image> tags with SVG data URIs
-  const imageRegex = /<image\s+x="([^"]+)"\s+y="([^"]+)"\s+width="([^"]+)"\s+height="([^"]+)"\s+href="data:image\/svg\+xml;[^"]+"[^>]*\/>/g
+  // Match any <image .../> regardless of attribute order.
+  const imageRegex = /<image\b([^>]*?)\/>/g
 
-  return svg.replace(imageRegex, (match, x, y, width, height) => {
-    // Extract the data URI content
-    const hrefMatch = match.match(/href="data:image\/svg\+xml;utf8,([^"]+)"/)
+  return svg.replace(imageRegex, (match, attrs: string) => {
+    // Only handle SVG data URIs — leave raster (png/jpeg) images alone.
+    const hrefMatch = attrs.match(/href="(data:image\/svg\+xml;[^"]+)"/)
     if (!hrefMatch) return match
+    const href = hrefMatch[1]
 
-    // Decode the URI-encoded SVG
+    // Decode the inner SVG — Satori uses `utf8` for serialized JSX icons and
+    // `base64` for the <img> data URIs we pass (flags, emoji, custom logos).
     let innerSvg: string
     try {
-      innerSvg = decodeURIComponent(hrefMatch[1])
+      if (/;base64,/.test(href)) {
+        const b64 = href.replace(/^data:image\/svg\+xml;base64,/, "")
+        innerSvg = Buffer.from(b64, "base64").toString("utf8")
+      } else {
+        const enc = href.replace(/^data:image\/svg\+xml;(?:charset=utf-8|utf8)?,?/, "")
+        innerSvg = decodeURIComponent(enc)
+      }
     } catch {
       return match
     }
+
+    // Position/size of the placed image (attribute order is not guaranteed).
+    const num = (name: string, fallback: number) => {
+      const m = attrs.match(new RegExp(`\\b${name}="([^"]+)"`))
+      const n = m ? parseFloat(m[1]) : NaN
+      return Number.isFinite(n) ? n : fallback
+    }
+    const x = num("x", 0)
+    const y = num("y", 0)
+    const width = num("width", 0)
+    const height = num("height", 0)
+    if (width <= 0 || height <= 0) return match
 
     // Extract viewBox from inner SVG. Guard against malformed values (a
     // user-supplied ?logo= data URI can carry a garbage viewBox) — a NaN or
     // zero dimension would otherwise produce scale(NaN) and a broken badge.
     const vbMatch = innerSvg.match(/viewBox="([^"]+)"/)
-    const viewBox = vbMatch ? vbMatch[1].split(/\s+/).map(Number) : [0, 0, 24, 24]
+    const viewBox = vbMatch ? vbMatch[1].split(/[\s,]+/).map(Number) : [0, 0, 24, 24]
     let [, , vbWidth, vbHeight] = viewBox
     if (!Number.isFinite(vbWidth) || vbWidth <= 0) vbWidth = 24
     if (!Number.isFinite(vbHeight) || vbHeight <= 0) vbHeight = 24
 
-    // Extract any <g transform="..."> wrapper from inner SVG (e.g. rotation)
-    const gTransformMatch = innerSvg.match(/<g\s+transform="([^"]+)">/)
-    const innerTransform = gTransformMatch ? gTransformMatch[1] : null
+    // Take the inner SVG's content verbatim (everything between the outer
+    // <svg> tags). This preserves nested groups, multiple fills, rotation
+    // transforms, etc. — exactly what makes flags/emoji multi-color.
+    let inner = innerSvg
+      .replace(/^[\s\S]*?<svg\b[^>]*>/, "")
+      .replace(/<\/svg>\s*$/, "")
+      .trim()
+    // Strip serialization artifacts: Satori writes undefined props out as the
+    // literal string "undefined" (e.g. fill-rule="undefined"), which is an
+    // invalid value that strict SVG parsers reject.
+    inner = inner.replace(/\s+[a-zA-Z-]+="undefined"/g, "")
+    if (!inner) return match
 
-    // Extract path(s) from inner SVG
-    const paths: string[] = []
-    const pathRegex = /<path\s+([^>]+)>/g
-    let pathMatch: RegExpExecArray | null
-    while ((pathMatch = pathRegex.exec(innerSvg)) !== null) {
-      paths.push(`<path ${pathMatch[1]}/>`)
+    // Respect the placement intent. Satori uses preserveAspectRatio="none"
+    // for <img> insets that should fill the box (flags), and the default
+    // meet behaviour for icons that should keep aspect (contain + center).
+    const par = (attrs.match(/preserveAspectRatio="([^"]+)"/)?.[1] ?? "").trim()
+    const scaleX = width / vbWidth
+    const scaleY = height / vbHeight
+
+    let transform: string
+    if (par === "none") {
+      transform = `translate(${x},${y}) scale(${scaleX},${scaleY})`
+    } else {
+      const scale = Math.min(scaleX, scaleY)
+      const tx = x + (width - vbWidth * scale) / 2
+      const ty = y + (height - vbHeight * scale) / 2
+      transform = `translate(${tx},${ty}) scale(${scale})`
     }
 
-    if (paths.length === 0) return match
-
-    // Calculate scale to fit width x height
-    const scaleX = parseFloat(width) / vbWidth
-    const scaleY = parseFloat(height) / vbHeight
-    const scale = Math.min(scaleX, scaleY)
-
-    // Create a group with transform to position and scale the paths
-    // If inner SVG had a transform (e.g. rotation), nest it inside
-    const pathContent = innerTransform
-      ? `<g transform="${innerTransform}">${paths.join("")}</g>`
-      : paths.join("")
-    return `<g transform="translate(${x},${y}) scale(${scale})">${pathContent}</g>`
+    return `<g transform="${transform}">${inner}</g>`
   })
+}
+
+/**
+ * Rewrite `rgba()` color values into editor-portable `#hex` + `*-opacity`.
+ *
+ * Satori bakes opacity into `fill="rgba(r,g,b,a)"` (we deliberately avoid the
+ * CSS `opacity` property because of a Satori bug). Browsers and Quick Look
+ * accept `rgba()` in a presentation attribute, but it is NOT valid SVG 1.1 —
+ * Photoshop / Illustrator drop the color and paint the element black or
+ * transparent. That is why downloaded badges "lose their colors" in editors.
+ *
+ * Converting to `fill="#rrggbb" fill-opacity="a"` is universally supported and
+ * renders identically everywhere.
+ */
+function rgbaToHexOpacity(svg: string): string {
+  let out = svg
+  for (const attr of ["fill", "stroke", "stop-color"] as const) {
+    const re = new RegExp(
+      `${attr}="rgba\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*\\)"`,
+      "g",
+    )
+    out = out.replace(re, (_m, r: string, g: string, b: string, a: string) => {
+      const hex =
+        "#" +
+        [r, g, b]
+          .map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))).toString(16).padStart(2, "0"))
+          .join("")
+      const alpha = Number(a)
+      if (!Number.isFinite(alpha) || alpha >= 1) return `${attr}="${hex}"`
+      const op = Math.max(0, alpha)
+      return `${attr}="${hex}" ${attr}-opacity="${+op.toFixed(3)}"`
+    })
+  }
+  return out
 }
 
 export async function renderErrorBadge(label: string, message: string): Promise<string> {
