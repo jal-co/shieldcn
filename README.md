@@ -18,6 +18,10 @@
 </p>
 
 <p align="center">
+  <a href="https://vercel.com/oss"><img src="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&logo=vercel" alt="Vercel OSS Program Member" /></a>
+</p>
+
+<p align="center">
   <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
   <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
   <a href="https://sentry.io/?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/monitored%20by-sentry.svg?variant=branded&logo=sentry" alt="monitored by sentry" /></a>

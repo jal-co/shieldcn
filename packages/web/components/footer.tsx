@@ -110,6 +110,17 @@ export function SiteFooter() {
             </Link>
 
             <p className="text-sm text-muted-foreground">
+              Member of the{" "}
+              <a
+                href="https://vercel.com/oss"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-foreground"
+              >
+                Vercel OSS Program
+              </a>
+            </p>
+            <p className="text-sm text-muted-foreground">
               Analytics provided by{" "}
               <a
                 href="https://openpanel.dev/open-source?utm_source=shieldcn.dev"
