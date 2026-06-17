@@ -8,7 +8,7 @@
 
 "use client"
 
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { Send, Loader2, Check, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,8 +51,11 @@ export function ShowcaseSubmitDialog() {
   const [errorMsg, setErrorMsg] = useState("")
   const [prUrl, setPrUrl] = useState("")
 
-  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
-  useEffect(() => { setBaseUrl(window.location.origin) }, [])
+  const baseUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "https://shieldcn.dev"
+  )
 
   const badgeUrl = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
   const badgePath = useMemo(() => buildBadgePath(s), [s])
@@ -118,7 +121,7 @@ export function ShowcaseSubmitDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button size="sm" className="gap-2">
           <Send className="size-3.5" />
           Submit your badge
         </Button>
