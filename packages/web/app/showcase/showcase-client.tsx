@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Search, X } from "lucide-react"
 import { BadgeGroupModal } from "@/components/badge-group-modal"
 import { BadgeModal } from "@/components/badge-modal"
+import { ShowcaseSubmitDialog } from "@/components/showcase-submit-dialog"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
@@ -170,13 +171,16 @@ export default function ShowcasePage() {
         className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-8 md:py-10"
       >
         <div className="space-y-4">
-          <div>
-            <h1 id="badge-explorer-title" className="font-heading text-3xl font-semibold tracking-tight md:text-5xl">
-              Showcased badges
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {filteredItems.length} visible of {totalIconCount} showcased badges
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 id="badge-explorer-title" className="font-heading text-3xl font-semibold tracking-tight md:text-5xl">
+                Showcased badges
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {filteredItems.length} visible of {totalIconCount} showcased badges
+              </p>
+            </div>
+            <ShowcaseSubmitDialog />
           </div>
           <CategorySearch
             searchQuery={searchQuery}
