@@ -171,7 +171,7 @@ export default function ShowcasePage() {
         className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-8 md:py-10"
       >
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 id="badge-explorer-title" className="font-heading text-3xl font-semibold tracking-tight md:text-5xl">
                 Showcased badges
