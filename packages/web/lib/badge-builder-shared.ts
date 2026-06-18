@@ -44,7 +44,7 @@ export const BADGE_PRESETS: BadgePreset[] = [
 
   // Package
   { label: "npm — version", template: "/npm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
-  { label: "npm — downloads", template: "/npm/{package}/dm.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
+  { label: "npm — downloads", template: "/npm/dm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
   { label: "npm — license", template: "/npm/{package}/license.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
   { label: "npm — types", template: "/npm/{package}/types.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
   { label: "PyPI — version", template: "/pypi/{package}/v.svg", params: [{ key: "package", label: "Package", placeholder: "django", default: "django" }], group: "Package", defaultLinkUrl: "https://pypi.org/project/{package}" },
