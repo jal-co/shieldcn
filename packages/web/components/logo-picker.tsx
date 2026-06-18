@@ -16,22 +16,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, Search, X, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { SearchablePicker, type SearchablePickerSection } from "@/components/searchable-picker"
 import {
   parseCompactIcons,
   ICON_SOURCES,
@@ -141,26 +126,47 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
   const [allIcons, setAllIcons] = React.useState<IconEntry[] | null>(null)
   const [loading, setLoading] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
+  const loadingRef = React.useRef(false)
+  const mountedRef = React.useRef(true)
 
-  // Load icon index on first open
   React.useEffect(() => {
-    if (open && !allIcons && !loading) {
-      setLoading(true)
-      loadIconIndex().then(icons => {
-        setAllIcons(icons)
-        setLoading(false)
-      })
+    return () => {
+      mountedRef.current = false
     }
-  }, [open, allIcons, loading])
+  }, [])
 
-  // Focus input on open
-  React.useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50)
+  const ensureIconIndex = React.useCallback(() => {
+    if (allIcons || loadingRef.current) return
+    loadingRef.current = true
+    setLoading(true)
+    loadIconIndex()
+      .then(icons => {
+        if (mountedRef.current) setAllIcons(icons)
+      })
+      .catch(() => {
+        if (mountedRef.current) setAllIcons([])
+      })
+      .finally(() => {
+        loadingRef.current = false
+        if (mountedRef.current) setLoading(false)
+      })
+  }, [allIcons])
+
+  const handleOpenChange = React.useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen) {
+      ensureIconIndex()
     } else {
       setSearch("")
       setSourceFilter("all")
     }
+  }, [ensureIconIndex])
+
+  // Focus input on open
+  React.useEffect(() => {
+    if (!open) return
+    const timeout = window.setTimeout(() => inputRef.current?.focus(), 50)
+    return () => window.clearTimeout(timeout)
   }, [open])
 
   // Display label for current value
@@ -222,6 +228,7 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
     onChange(slug)
     setOpen(false)
     setSearch("")
+    setSourceFilter("all")
   }
 
   const showingSearch = search.length >= 2
@@ -229,200 +236,117 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
   const showingPopular = !showingSearch && !showingBrowse
   const resultCount = showingSearch ? searchResults.length : showingBrowse ? browseResults.length : 0
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal h-9"
-        >
-          <span className="truncate text-xs font-mono">{displayLabel}</span>
-          <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[380px] p-0" align="start">
-        <Command shouldFilter={false}>
-          {/* Search input */}
-          <div className="flex items-center border-b px-3">
-            <Search className="mr-2 size-3.5 shrink-0 opacity-50" />
-            <input
-              ref={inputRef}
-              placeholder="Search 30,000+ icons..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && search.trim()) {
-                  // If there's a result, select the first one
-                  if (searchResults.length > 0) {
-                    handleSelect(searchResults[0].slug)
-                  } else {
-                    // Use as custom slug
-                    handleSelect(search.trim())
-                  }
-                }
-              }}
-              className="flex h-9 w-full bg-transparent py-2 text-xs outline-none placeholder:text-muted-foreground"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="ml-1 rounded-sm p-0.5 opacity-50 hover:opacity-100"
-              >
-                <X className="size-3" />
-              </button>
-            )}
+  const sections = React.useMemo<SearchablePickerSection[]>(() => {
+    if (showingSearch) {
+      if (searchResults.length === 0) return []
+      return [{
+        heading: `${resultCount} result${resultCount === 1 ? "" : "s"}`,
+        items: searchResults.map(icon => ({
+          value: icon.slug,
+          label: icon.title,
+          tag: SOURCE_SHORT[icon.source] || icon.source,
+          tagClassName: SOURCE_COLORS[icon.source] || "bg-muted text-muted-foreground",
+          meta: icon.slug,
+        })),
+        footer: resultCount >= 50 && (
+          <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
+            Showing first 50 results. Refine your search for more.
           </div>
+        ),
+      }]
+    }
 
-          {/* Source filter tabs */}
-          <div className="flex flex-wrap gap-1 border-b px-3 py-2">
-            {ICON_SOURCES.map(src => (
-              <button
-                key={src.value}
-                type="button"
-                onClick={() => setSourceFilter(sourceFilter === src.value ? "all" : src.value)}
-                className={cn(
-                  "inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors",
-                  sourceFilter === src.value
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {src.label}
-              </button>
-            ))}
+    if (showingBrowse) {
+      return [{
+        heading: `${ICON_SOURCES.find(s => s.value === sourceFilter)?.label} (${resultCount}${browseResults.length >= 50 ? "+" : ""})`,
+        items: browseResults.map(icon => ({
+          value: icon.slug,
+          label: icon.title,
+          tag: SOURCE_SHORT[icon.source] || icon.source,
+          tagClassName: SOURCE_COLORS[icon.source] || "bg-muted text-muted-foreground",
+          meta: icon.slug,
+        })),
+        footer: browseResults.length >= 50 && (
+          <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
+            Type to search within this source.
           </div>
+        ),
+      }]
+    }
 
-          <CommandList className="max-h-[320px]">
-            {loading && (
-              <div className="flex items-center justify-center gap-2 p-6 text-xs text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-                Loading icon index...
-              </div>
-            )}
+    if (showingPopular) {
+      return Array.from(popularGroups.entries()).map(([group, opts]) => ({
+        heading: group,
+        items: opts.map(opt => ({
+          value: opt.value,
+          commandValue: opt.value || opt.label,
+          label: opt.label,
+          tag: opt.source || undefined,
+          tagClassName: SOURCE_COLORS[opt.source] || "bg-muted text-muted-foreground",
+        })),
+      }))
+    }
 
-            {/* Search results */}
-            {showingSearch && !loading && (
-              <>
-                {searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-muted-foreground">
-                    <p>No icons found for &ldquo;{search}&rdquo;</p>
-                    <button
-                      onClick={() => handleSelect(search.trim())}
-                      className="mt-2 text-foreground hover:underline"
-                    >
-                      Use &ldquo;{search}&rdquo; as custom slug →
-                    </button>
-                  </div>
-                ) : (
-                  <CommandGroup heading={`${resultCount} result${resultCount === 1 ? "" : "s"}`}>
-                    {searchResults.map(icon => (
-                      <IconItem
-                        key={icon.slug}
-                        icon={icon}
-                        isSelected={value === icon.slug}
-                        onSelect={handleSelect}
-                      />
-                    ))}
-                    {resultCount >= 50 && (
-                      <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
-                        Showing first 50 results. Refine your search for more.
-                      </div>
-                    )}
-                  </CommandGroup>
-                )}
-              </>
-            )}
+    return []
+  }, [
+    browseResults,
+    popularGroups,
+    resultCount,
+    searchResults,
+    showingBrowse,
+    showingPopular,
+    showingSearch,
+    sourceFilter,
+  ])
 
-            {/* Browse by source */}
-            {showingBrowse && !loading && (
-              <CommandGroup heading={`${ICON_SOURCES.find(s => s.value === sourceFilter)?.label} (${resultCount}${browseResults.length >= 50 ? "+" : ""})`}>
-                {browseResults.map(icon => (
-                  <IconItem
-                    key={icon.slug}
-                    icon={icon}
-                    isSelected={value === icon.slug}
-                    onSelect={handleSelect}
-                  />
-                ))}
-                {browseResults.length >= 50 && (
-                  <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
-                    Type to search within this source.
-                  </div>
-                )}
-              </CommandGroup>
-            )}
+  const emptyContent = showingSearch && !loading ? (
+    <div className="p-4 text-center text-xs text-muted-foreground">
+      <p>No icons found for &ldquo;{search}&rdquo;</p>
+      <button
+        type="button"
+        onClick={() => handleSelect(search.trim())}
+        className="mt-2 text-foreground hover:underline"
+      >
+        Use &ldquo;{search}&rdquo; as custom slug →
+      </button>
+    </div>
+  ) : undefined
 
-            {/* Popular icons (default view) */}
-            {showingPopular && !loading && (
-              <>
-                <div className="px-3 py-2 text-[10px] text-muted-foreground">
-                  Search or filter by source to browse 30,000+ icons
-                </div>
-                <CommandSeparator />
-                {Array.from(popularGroups.entries()).map(([group, opts]) => (
-                  <React.Fragment key={group}>
-                    <CommandGroup heading={group}>
-                      {opts.map(opt => (
-                        <CommandItem
-                          key={opt.value}
-                          value={opt.value}
-                          onSelect={() => handleSelect(opt.value)}
-                          className="text-xs"
-                        >
-                          <Check className={cn("mr-1.5 size-3", value === opt.value ? "opacity-100" : "opacity-0")} />
-                          <span className="flex-1">{opt.label}</span>
-                          {opt.source && (
-                            <span className="text-[10px] text-muted-foreground">{opt.source}</span>
-                          )}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                    <CommandSeparator />
-                  </React.Fragment>
-                ))}
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Icon list item with source badge
-// ---------------------------------------------------------------------------
-
-function IconItem({
-  icon,
-  isSelected,
-  onSelect,
-}: {
-  icon: IconEntry
-  isSelected: boolean
-  onSelect: (slug: string) => void
-}) {
   return (
-    <CommandItem
-      value={icon.slug}
-      onSelect={() => onSelect(icon.slug)}
-      className="text-xs gap-1.5"
-    >
-      <Check className={cn("size-3 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
-      <span className="flex-1 truncate">{icon.title}</span>
-      <span className={cn(
-        "inline-flex items-center rounded px-1 py-0.5 text-[9px] font-medium leading-none shrink-0",
-        SOURCE_COLORS[icon.source] || "bg-muted text-muted-foreground",
-      )}>
-        {SOURCE_SHORT[icon.source] || icon.source}
-      </span>
-      <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[100px]">
-        {icon.slug}
-      </span>
-    </CommandItem>
+    <SearchablePicker
+      value={value}
+      triggerLabel={displayLabel}
+      triggerLabelClassName="font-mono"
+      placeholder="Search 30,000+ icons..."
+      emptyLabel="No icons found."
+      emptyContent={emptyContent}
+      search={search}
+      onSearchChange={setSearch}
+      searchInputRef={inputRef}
+      onSearchKeyDown={event => {
+        if (event.key === "Enter" && search.trim()) {
+          if (searchResults.length > 0) {
+            handleSelect(searchResults[0].slug)
+          } else {
+            handleSelect(search.trim())
+          }
+        }
+      }}
+      filters={[...ICON_SOURCES]}
+      activeFilter={sourceFilter}
+      onFilterChange={setSourceFilter}
+      sections={sections}
+      onValueChange={handleSelect}
+      open={open}
+      onOpenChange={handleOpenChange}
+      loading={loading}
+      loadingLabel="Loading icon index..."
+      listHeader={showingPopular && !loading ? (
+        <div className="border-b px-3 py-2 text-[10px] text-muted-foreground">
+          Search or filter by source to browse 30,000+ icons
+        </div>
+      ) : undefined}
+      showSectionSeparators={showingPopular}
+    />
   )
 }
