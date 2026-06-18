@@ -49,7 +49,7 @@ export const BADGE_PRESETS: BadgePreset[] = [
   { label: "npm — types", template: "/npm/{package}/types.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
   { label: "PyPI — version", template: "/pypi/{package}/v.svg", params: [{ key: "package", label: "Package", placeholder: "django", default: "django" }], group: "Package", defaultLinkUrl: "https://pypi.org/project/{package}" },
   { label: "Crates.io — version", template: "/crates/{crate}/v.svg", params: [{ key: "crate", label: "Crate", placeholder: "serde", default: "serde" }], group: "Package", defaultLinkUrl: "https://crates.io/crates/{crate}" },
-  { label: "JSR — score", template: "/jsr/{scope}/{package}/score.svg", params: [{ key: "scope", label: "Scope", placeholder: "@std", default: "@std" }, { key: "package", label: "Package", placeholder: "path", default: "path" }], group: "Package", defaultLinkUrl: "https://jsr.io/{scope}/{package}" },
+  { label: "JSR — score", template: "/jsr/score/{scope}/{package}.svg", params: [{ key: "scope", label: "Scope", placeholder: "@std", default: "@std" }, { key: "package", label: "Package", placeholder: "path", default: "path" }], group: "Package", defaultLinkUrl: "https://jsr.io/{scope}/{package}" },
   { label: "Docker — pulls", template: "/docker/{namespace}/{image}/pulls.svg", params: [{ key: "namespace", label: "Namespace", placeholder: "library", default: "library" }, { key: "image", label: "Image", placeholder: "nginx", default: "nginx" }], group: "Package", defaultLinkUrl: "https://hub.docker.com/r/{namespace}/{image}" },
 
   // GitHub
