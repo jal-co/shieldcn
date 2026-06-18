@@ -18,6 +18,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { RotateCcw, Code2, Link } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
+import { SearchablePicker, type SearchablePickerFilter, type SearchablePickerSection } from "@/components/searchable-picker"
 import { ColorSwatch } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { Button } from "@/components/ui/button"
@@ -26,9 +27,7 @@ import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -67,7 +66,91 @@ function groupPresets(): Map<string, BadgePreset[]> {
 }
 
 const PRESET_GROUPS = groupPresets()
-const PRESET_GROUP_ORDER = ["Custom", "Package", "GitHub", "Social", "Other", "Group"]
+const PRESET_GROUP_ORDER = [
+  "Custom",
+  "Package",
+  "GitHub",
+  "Social",
+  "Community",
+  "Quality",
+  "Funding",
+  "Editor marketplaces",
+  "App stores",
+  "Localization",
+  "Game/modding",
+  "Other",
+  "Group",
+]
+const PRESET_SERVICE_FILTER_ORDER = [
+  "Custom",
+  "npm",
+  "GitHub",
+  "Docker",
+  "PyPI",
+  "Crates.io",
+  "JSR",
+  "Discord",
+  "NBA",
+  "Reddit",
+  "X",
+  "YouTube",
+  "Country flag",
+  "Group",
+]
+
+function getPresetService(preset: BadgePreset): string {
+  return preset.service ?? preset.group
+}
+
+function getPresetDisplayLabel(preset: BadgePreset): string {
+  const service = getPresetService(preset)
+  if (!service || preset.label.toLowerCase().startsWith(service.toLowerCase())) {
+    return preset.label
+  }
+  return `${service} ${preset.label}`
+}
+
+function getOrderedPresetGroups(): string[] {
+  const groupNames = Array.from(PRESET_GROUPS.keys())
+  return [
+    ...PRESET_GROUP_ORDER.filter(group => PRESET_GROUPS.has(group)),
+    ...groupNames.filter(group => !PRESET_GROUP_ORDER.includes(group)),
+  ]
+}
+
+function buildPresetFilters(): SearchablePickerFilter[] {
+  const services = Array.from(new Set(BADGE_PRESETS.map(getPresetService)))
+  const orderedServices = [
+    ...PRESET_SERVICE_FILTER_ORDER.filter(service => services.includes(service)),
+    ...services.filter(service => !PRESET_SERVICE_FILTER_ORDER.includes(service)),
+  ]
+  return [
+    { value: "all", label: "All" },
+    ...orderedServices.map(service => ({ value: service, label: service })),
+  ]
+}
+
+const PRESET_GROUP_NAMES = getOrderedPresetGroups()
+const PRESET_FILTERS = buildPresetFilters()
+
+function presetMatchesSearch(preset: BadgePreset, search: string, serviceFilter: string): boolean {
+  const service = getPresetService(preset)
+  if (serviceFilter !== "all" && service !== serviceFilter) return false
+
+  const q = search.trim().toLowerCase()
+  if (!q) return true
+
+  const haystack = [
+    preset.label,
+    service,
+    preset.group,
+    preset.template,
+    ...(preset.searchKeywords ?? []),
+    ...preset.params.flatMap(param => [param.key, param.label, param.placeholder]),
+  ].join(" ").toLowerCase()
+
+  return haystack.includes(q)
+}
 
 /** Find a preset that matches a given path */
 function findMatchingPreset(path: string): { preset: BadgePreset; values: Record<string, string> } | null {
@@ -157,6 +240,8 @@ export function BadgeBuilderCore({
 }: BadgeBuilderCoreProps) {
   const [showRawPath, setShowRawPath] = useState(false)
   const [imgError, setImgError] = useState(false)
+  const [presetSearch, setPresetSearch] = useState("")
+  const [presetServiceFilter, setPresetServiceFilter] = useState("all")
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   // --- Preset state ---
@@ -174,6 +259,25 @@ export function BadgeBuilderCore({
   })
 
   const selectedPreset = BADGE_PRESETS[selectedPresetIndex]
+
+  const presetSections = useMemo<SearchablePickerSection[]>(() => {
+    return PRESET_GROUP_NAMES.map(group => {
+      const presets = PRESET_GROUPS.get(group) ?? []
+      const items = presets
+        .map(preset => ({ preset, idx: BADGE_PRESETS.indexOf(preset) }))
+        .filter(({ preset }) => presetMatchesSearch(preset, presetSearch, presetServiceFilter))
+        .map(({ preset, idx }) => {
+          const service = getPresetService(preset)
+          return {
+            value: String(idx),
+            label: getPresetDisplayLabel(preset),
+            tag: service,
+          }
+        })
+
+      return { heading: group, items }
+    })
+  }, [presetSearch, presetServiceFilter])
 
   const set = useCallback(<K extends keyof BuilderState>(key: K, val: BuilderState[K]) => {
     onChange({ ...s, [key]: val })
@@ -198,6 +302,11 @@ export function BadgeBuilderCore({
     const linkUrl = resolveDefaultLinkUrl(preset, defaults)
     updatePath(preset, defaults, { linkUrl })
   }, [updatePath])
+
+  const handlePresetPickerChange = useCallback((indexStr: string) => {
+    handlePresetChange(indexStr)
+    setPresetSearch("")
+  }, [handlePresetChange])
 
   const handleParamChange = useCallback((key: string, value: string) => {
     const next = { ...paramValues, [key]: value }
@@ -277,6 +386,8 @@ export function BadgeBuilderCore({
     for (const p of BADGE_PRESETS[0].params) defaults[p.key] = p.default
     setParamValues(defaults)
     setShowRawPath(false)
+    setPresetSearch("")
+    setPresetServiceFilter("all")
   }, [onChange])
 
   return (
@@ -348,30 +459,21 @@ export function BadgeBuilderCore({
             <SectionLabel>Badge type</SectionLabel>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Type</Label>
-              <Select value={String(selectedPresetIndex)} onValueChange={handlePresetChange}>
-                <SelectTrigger className="w-full text-sm h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRESET_GROUP_ORDER.map(group => {
-                    const presets = PRESET_GROUPS.get(group)
-                    if (!presets) return null
-                    return (
-                      <SelectGroup key={group}>
-                        <SelectLabel className="text-xs text-muted-foreground font-medium">{group}</SelectLabel>
-                        {presets.map(preset => {
-                          const idx = BADGE_PRESETS.indexOf(preset)
-                          return (
-                            <SelectItem key={idx} value={String(idx)}>
-                              {preset.label}
-                            </SelectItem>
-                          )
-                        })}
-                      </SelectGroup>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
+              <SearchablePicker
+                value={String(selectedPresetIndex)}
+                triggerLabel={getPresetDisplayLabel(selectedPreset)}
+                placeholder="Search badge types..."
+                emptyLabel="No badge type found."
+                search={presetSearch}
+                onSearchChange={setPresetSearch}
+                filters={PRESET_FILTERS}
+                activeFilter={presetServiceFilter}
+                onFilterChange={setPresetServiceFilter}
+                sections={presetSections}
+                onValueChange={handlePresetPickerChange}
+                contentClassName="w-[min(520px,calc(100vw-2rem))]"
+                listClassName="max-h-[360px]"
+              />
             </div>
             <div className={cn("grid gap-3 pt-3", selectedPreset.params.length >= 2 ? "grid-cols-2" : "grid-cols-1")}>
               {selectedPreset.params.map(param => (
@@ -590,4 +692,3 @@ function Ctrl({
     </div>
   )
 }
-
