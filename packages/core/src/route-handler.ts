@@ -8,6 +8,8 @@
 
 import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
 import { renderChart, resolveAccent, resolveFontFamily, type ChartSeries, type ChartPoint } from "./badges/render-chart"
+import { renderHeader, type HeaderLogoInput } from "./badges/render-header"
+import { resolveHeaderBackground } from "./badges/header-backgrounds"
 import { getStarHistory, getIssueHistory } from "./providers/starhistory"
 import { getNpmDownloadSeries } from "./providers/npm"
 import { formatCount } from "./format"
@@ -1982,6 +1984,222 @@ async function handleChart(
   })
 }
 
+// ---------------------------------------------------------------------------
+// Repository headers
+// ---------------------------------------------------------------------------
+
+/**
+ * Named canvas size presets [width, height]. `banner` (the default) is sized to
+ * the GitHub README content column (~750px) so it renders crisp without being
+ * downscaled; the larger presets are explicit opt-ins for full-width heroes and
+ * social cards.
+ */
+const HEADER_SIZE_PRESETS: Record<string, [number, number]> = {
+  banner: [750, 260], // default — README header at content width
+  wide: [1280, 400], // full-width hero
+  social: [1280, 640], // GitHub repository social-preview slot (2:1)
+  square: [640, 640],
+}
+
+/**
+ * Resolve a `?logo=` value into renderable logo data for a header.
+ * Supports: SimpleIcons/React Icons/Lucide slugs, `data:` URIs (svg or raster),
+ * and remote `http(s)` image/SVG URLs (fetched + embedded). `false`/`none`
+ * hides the logo.
+ */
+async function resolveHeaderLogo(
+  logoParam: string | null,
+  logoColorRaw: string | null,
+): Promise<HeaderLogoInput | undefined> {
+  if (!logoParam || logoParam === "false" || logoParam === "none" || logoParam === "0") {
+    return undefined
+  }
+  const logoColor = resolveColor(logoColorRaw)
+
+  // Inline data URI.
+  if (logoParam.startsWith("data:")) {
+    if (logoParam.startsWith("data:image/svg+xml")) {
+      const decoded = decodeSvgDataUri(logoParam)
+      const parsed = decoded ? parseSvg(decoded) : null
+      if (parsed) return { icon: parsed.icon, color: logoColor }
+    }
+    return { imageDataUri: logoParam }
+  }
+
+  // Remote image / SVG — fetch and embed (never hot-link from a sandboxed img).
+  if (/^https?:\/\//.test(logoParam)) {
+    try {
+      const res = await raceTimeout(
+        fetch(logoParam, {
+          next: { revalidate: 86400 },
+          headers: { Accept: "image/svg+xml,image/png,image/*", "User-Agent": "shieldcn/1.0" },
+        }),
+      )
+      if (res?.ok) {
+        const ct = res.headers.get("content-type")?.split(";")[0] || "image/png"
+        if (ct.includes("svg")) {
+          const text = await res.text()
+          const parsed = parseSvg(text)
+          if (parsed) return { icon: parsed.icon, color: logoColor }
+          return { imageDataUri: `data:image/svg+xml;base64,${Buffer.from(text).toString("base64")}` }
+        }
+        const bytes = Buffer.from(await res.arrayBuffer())
+        return { imageDataUri: `data:${ct};base64,${bytes.toString("base64")}` }
+      }
+    } catch {
+      // No logo art — render without a logo.
+    }
+    return undefined
+  }
+
+  // Icon slug (SimpleIcons / React Icons / Lucide / custom).
+  const si = await getSimpleIcon(logoParam, logoColor)
+  if (!si) return undefined
+  // `?logoColor=brand` paints the icon in its SimpleIcons brand color.
+  let color = logoColor
+  if (logoColorRaw === "brand") color = si.defaultColor.replace(/^#/, "")
+  return { icon: si.icon, color }
+}
+
+async function handleHeader(
+  cleanSegments: string[],
+  searchParams: URLSearchParams,
+  format: Format,
+  options?: BadgeRequestOptions,
+): Promise<Response> {
+  const rest = cleanSegments.slice(1) // after "header"
+  const preset = rest[0] || searchParams.get("preset") || undefined
+  const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
+
+  // Canvas: size preset (default "banner") + width/height overrides.
+  const sizeParam = searchParams.get("size")
+  const [baseW, baseH] = (sizeParam && HEADER_SIZE_PRESETS[sizeParam]) || HEADER_SIZE_PRESETS.banner
+  const width = clampNum(searchParams.get("width"), 240, 2400, baseW)
+  const height = clampNum(searchParams.get("height"), 100, 1600, baseH)
+
+  const align = (searchParams.get("align") === "left" ? "left" : "center") as "left" | "center"
+  const radius = clampNum(searchParams.get("radius"), 0, 120, 12)
+  const fontFamily = resolveFontFamily(searchParams.get("font"))
+  const falsy = (v: string | null) => v === "false" || v === "0"
+  const truthy = (v: string | null) => v === "true" || v === "1"
+  // Border defaults ON (shadcn card hairline); watermark defaults OFF.
+  const border = !falsy(searchParams.get("border"))
+  const watermark = truthy(searchParams.get("watermark"))
+
+  const title = searchParams.get("title") ?? ""
+  const subtitle = searchParams.get("subtitle") ?? searchParams.get("description") ?? undefined
+  const titleColor = resolveColor(searchParams.get("titleColor"))
+  const subtitleColor = resolveColor(searchParams.get("subtitleColor"))
+
+  // Background color: `transparent`/`none` blends into the host page; otherwise
+  // a named/hex color resolves to hex. Checked before resolveColor (which only
+  // understands colors, not the transparent keyword).
+  const bgRaw = searchParams.get("bg") ?? searchParams.get("background")
+  const transparent = bgRaw === "transparent" || bgRaw === "none"
+
+  const background = resolveHeaderBackground({
+    preset,
+    mode,
+    width,
+    height,
+    radius,
+    theme: searchParams.get("theme"),
+    transparent,
+    bg: transparent ? null : resolveColor(bgRaw),
+    gradient: searchParams.get("gradient"),
+    pattern: searchParams.get("pattern"),
+    glow: resolveColor(searchParams.get("glow")),
+    accent: resolveColor(searchParams.get("accent")),
+  })
+
+  const logo = await resolveHeaderLogo(searchParams.get("logo"), searchParams.get("logoColor"))
+
+  if (format === "json") {
+    return Response.json(
+      {
+        type: "header",
+        preset: preset ?? "surface",
+        title,
+        subtitle: subtitle ?? null,
+        width,
+        height,
+        mode,
+        align,
+        hasLogo: !!logo,
+      },
+      { headers: CACHE_HEADERS },
+    )
+  }
+
+  const svg = renderHeader({
+    title,
+    subtitle,
+    width,
+    height,
+    mode,
+    align,
+    radius,
+    background,
+    logo,
+    fontFamily,
+    titleColor,
+    subtitleColor,
+    border,
+    watermark,
+  })
+
+  if (options?.onTrack) {
+    void options.onTrack({
+      name: "header_rendered",
+      data: { preset: preset ?? "surface", format, mode, size: sizeParam ?? "banner", hasLogo: !!logo },
+    })
+  }
+
+  if (format === "png") {
+    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
+    try {
+      let wasmLoaded = false
+      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+        try {
+          const fs = await import("node:fs")
+          const path = await import("node:path")
+          const candidates = [
+            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
+          ]
+          for (const p of candidates) {
+            if (fs.existsSync(p)) {
+              await initWasm(fs.readFileSync(p))
+              wasmLoaded = true
+              break
+            }
+          }
+        } catch { /* fs not available */ }
+      }
+      if (!wasmLoaded) {
+        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
+      }
+    } catch { /* already initialized */ }
+    // Headers are text-centric: supply the bundled fonts so resvg can
+    // rasterize the title/subtitle (the wasm sandbox has no system fonts).
+    const { getFontBuffers, DEFAULT_FONT_FAMILY } = await import("./badges/fonts")
+    const resvg = new Resvg(svg, {
+      font: {
+        fontBuffers: getFontBuffers(),
+        defaultFontFamily: DEFAULT_FONT_FAMILY,
+        loadSystemFonts: false,
+      },
+    })
+    const png = resvg.render().asPng()
+    return new Response(Buffer.from(png), {
+      headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
+    })
+  }
+
+  return new Response(svg, {
+    headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+  })
+}
+
 /** Number formatter that never throws on weird input. */
 function formatCountSafe(n: number): string {
   try {
@@ -2235,6 +2453,14 @@ async function handleBadgeGETInner(
   // ---------------------------------------------------------------------------
   if (cleanSegments[0] === "chart") {
     return handleChart(cleanSegments, searchParams, format, options)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Repository headers: /header/{preset}.svg?title=…&logo=…&subtitle=…
+  // Renders a premade/prop-driven banner image (logo + title + subtitle).
+  // ---------------------------------------------------------------------------
+  if (cleanSegments[0] === "header") {
+    return handleHeader(cleanSegments, searchParams, format, options)
   }
 
   // Fetch badge data from provider
