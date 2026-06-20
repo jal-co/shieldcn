@@ -4,7 +4,9 @@ import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
 import { GenHeroInput } from "@/components/gen-hero-input"
-import { HeroIconCloud } from "@/components/hero-icon-cloud"
+import { HeroShowcase } from "@/components/hero-showcase"
+import { HeroGlow } from "@/components/hero-glow"
+import { HeroEntrance } from "@/components/hero-entrance"
 import { ScrollCta } from "@/components/scroll-cta"
 import { SiteShell } from "@/components/site-shell"
 import { pageMetadata } from "@/lib/metadata"
@@ -30,13 +32,13 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppJsonLd()) }}
       />
       <main className="min-w-0 flex-1">
-        {/* Hero — split layout */}
+        {/* Hero — split layout, staged page-transition-in (HeroEntrance) */}
         <section className="relative overflow-hidden px-6 py-10 md:px-10 md:py-16">
-          <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
-            {/* Left — text content */}
-            <div className="relative z-10 space-y-6 lg:w-1/2">
-              <SiteAnnouncement />
-
+          <HeroGlow />
+          <HeroEntrance
+            variant="unfold"
+            announcement={<SiteAnnouncement />}
+            heading={
               <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 The badges your{" "}
                 <span className="inline-flex items-baseline">
@@ -48,18 +50,12 @@ export default async function Home() {
                 </span>{" "}
                 crave.
               </h1>
-
-              <HeroSubtext />
-
-              <GenHeroInput />
-            </div>
-
-            {/* Right — 3D badge icon cloud (oversized, bleeds behind text) */}
-            <div className="relative z-0 hidden items-center justify-center md:flex lg:w-1/2 lg:-ml-20 lg:-mt-16">
-              <HeroIconCloud />
-            </div>
-          </div>
-          <ScrollCta targetId="builder" />
+            }
+            subtext={<HeroSubtext />}
+            input={<GenHeroInput />}
+            cloud={<HeroShowcase />}
+            scrollCta={<ScrollCta targetId="builder" />}
+          />
         </section>
 
         <div className="mx-auto max-w-6xl px-6 md:px-10">
