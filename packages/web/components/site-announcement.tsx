@@ -11,8 +11,8 @@ export function SiteAnnouncement() {
     <Announcement>
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
-        <Link href="/docs/badges/skills" className="hover:underline underline-offset-4">
-          New: skills.sh badges — skill installs, rank &amp; audits
+        <Link href="/docs/charts" className="hover:underline underline-offset-4">
+          New: charts — star history, issues &amp; npm downloads
           <ArrowRight className="size-3" />
         </Link>
       </AnnouncementContent>

@@ -3,6 +3,7 @@ import { SiteAnnouncement } from "@/components/site-announcement"
 import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
+import { HomeCharts } from "@/components/home-charts"
 import { GenHeroInput } from "@/components/gen-hero-input"
 import { HeroIconCloud } from "@/components/hero-icon-cloud"
 import { ScrollCta } from "@/components/scroll-cta"
@@ -11,9 +12,9 @@ import { pageMetadata } from "@/lib/metadata"
 import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
 
 export const metadata: Metadata = pageMetadata({
-  title: "shieldcn — Beautiful README Badges",
+  title: "shieldcn — Beautiful README Badges & Charts",
   description:
-    "Beautiful GitHub README badges styled as shadcn/ui buttons. Generate SVG and PNG badges for npm, GitHub, GitLab, Discord, NBA, and 45+ providers. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
+    "Beautiful GitHub README badges and charts styled as shadcn/ui. Generate SVG and PNG badges for npm, GitHub, GitLab, Discord, NBA, and 45+ providers, plus star-history, issues, and npm-download charts. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
   path: "/",
   ogTitle: "shieldcn — Beautiful README Badges",
 })
@@ -75,6 +76,10 @@ export default async function Home() {
             </div>
             <BadgeBuilder />
           </section>
+
+          <Separator />
+
+          <HomeCharts />
         </div>
       </main>
     </SiteShell>
