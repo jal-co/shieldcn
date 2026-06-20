@@ -234,7 +234,79 @@ export default function ShowcasePage() {
       </section>
 
       <ChartShowcase />
+      <HeaderShowcase />
     </main>
+  )
+}
+
+const HEADER_EXAMPLES: { title: string; description: string; src: string; href: string }[] = [
+  {
+    title: "Surface",
+    description: "A clean zinc card — the default, logo plus title and tagline.",
+    src: "/header/surface.svg?title=Acme+Toolkit&subtitle=A+delightful+component+library&logo=react",
+    href: "/header",
+  },
+  {
+    title: "Glow",
+    description: "A soft themed spotlight from the top — here with the blue theme.",
+    src: "/header/glow.svg?title=Lumen&subtitle=Illuminate+your+data&logo=react&theme=blue",
+    href: "/header",
+  },
+  {
+    title: "Dots",
+    description: "A subtle dot grid, the shadcn-docs look.",
+    src: "/header/dots.svg?title=shieldcn&subtitle=Headers+for+your+README&logo=shieldcn",
+    href: "/header",
+  },
+  {
+    title: "Grid, left aligned",
+    description: "A hairline grid with left-aligned content.",
+    src: "/header/grid.svg?title=Blueprint&subtitle=Design+tokens+for+engineers&logo=figma&align=left",
+    href: "/header",
+  },
+]
+
+function HeaderShowcase() {
+  const hydrated = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+  return (
+    <section
+      id="header-showcase"
+      aria-labelledby="header-showcase-title"
+      className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-16 md:px-8"
+    >
+      <div>
+        <h2 id="header-showcase-title" className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">
+          Headers
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Banner images for the top of your README — your logo, a premade
+          background, a title, and a tagline.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {HEADER_EXAMPLES.map((h) => (
+          <Link
+            key={h.src}
+            href={h.href}
+            className="group rounded-2xl border border-border bg-card p-3 transition-colors hover:border-foreground/20"
+          >
+            <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+              {hydrated ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={adaptUrl(h.src)} alt={h.title} className="w-full" />
+              ) : (
+                <div className="aspect-[750/260] w-full" />
+              )}
+            </div>
+            <div className="px-1 pt-3">
+              <p className="text-sm font-medium">{h.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{h.description}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }
 

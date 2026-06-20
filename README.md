@@ -125,6 +125,26 @@ Available as `.svg`, `.png`, and `.json`. Customize with `mode`, `theme`,
 `color`, `fill`, `area`, `bg`, `border`, `font`, `width`, `height`, and
 `title`. See the [Charts docs](https://shieldcn.dev/docs/charts).
 
+### Headers
+
+Repository header banners for the top of your README — your logo, a premade
+shadcn-styled background, a title, and a tagline, all from one image URL:
+
+<p>
+  <img src="https://shieldcn.dev/header/dots.svg?title=Acme+Toolkit&subtitle=A+delightful+component+library&logo=react" alt="Acme Toolkit repository header" />
+</p>
+
+```md
+![Header](https://shieldcn.dev/header/dots.svg?title=Acme+Toolkit&subtitle=A+delightful+component+library&logo=react)
+```
+
+Premade backgrounds: `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`,
+`transparent`. Available as `.svg`, `.png`, and `.json`. Customize with `title`,
+`subtitle`, `logo`, `size`, `align`, `theme`, `gradient`, `bg` (incl.
+`transparent`), and more. Build one with the
+[header generator](https://shieldcn.dev/header) or see the
+[Headers docs](https://shieldcn.dev/docs/headers).
+
 ## Supported providers
 
 See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive sandboxes, and copy-paste examples.

@@ -94,6 +94,7 @@ const NAV = {
   items: [
     { href: "/docs", label: "Docs" },
     { href: "/showcase", label: "Showcase" },
+    { href: "/header", label: "Headers" },
     { href: "/gen", label: "Generator" },
     { href: "/migrate", label: "Migrate" },
   ],

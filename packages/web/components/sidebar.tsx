@@ -172,6 +172,14 @@ const docsNav: NavGroup[] = [
     items: [{ title: "Overview", href: "/docs/charts" }],
   },
   {
+    title: "Headers",
+    alwaysOpen: true,
+    items: [
+      { title: "Overview", href: "/docs/headers" },
+      { title: "Generator", href: "/header" },
+    ],
+  },
+  {
     title: "Registry",
     items: [
       { title: "Overview", href: "/docs/registry" },

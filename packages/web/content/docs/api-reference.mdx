@@ -137,6 +137,22 @@ Shadcn-styled line/area charts. Support `mode`, `theme`, `color`, `fill`,
 `area`, `bg`, `border`, `font`, `width`, `height`, `title`, `days` (npm), and
 `values`/`dates`/`labels` or `url`/`query` (JSON). See [Charts docs](/docs/charts).
 
+### Headers
+
+| Endpoint | Description |
+|----------|-------------|
+| `/header/{preset}.svg` | Repository header banner |
+| `/header.svg` | Default preset (`surface`) |
+| `/header/{preset}.png` | PNG banner |
+| `/header/{preset}.json` | Resolved header config |
+
+Premade backgrounds: `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`,
+`transparent`. Support `title`, `subtitle`, `logo`, `logoColor`, `size`
+(`banner`, `wide`, `social`, `square`), `width`, `height`, `align`, `bg`,
+`gradient`, `glow`, `accent`, `titleColor`, `subtitleColor`, `radius`, `border`,
+`watermark`, `pattern`, plus `mode`, `theme`, and `font`. See
+[Headers docs](/docs/headers).
+
 ## Query parameters
 
 <ApiRefTable
