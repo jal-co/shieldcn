@@ -1,12 +1,11 @@
 // shieldcn — components/hero-glow.tsx
 // Subtle ambient radial glow behind the hero showcase. Decorative only.
-// Fully tunable (intensity / size / position / hue) via DialKit — set
+// Intensity / size / position / hue tuned with DialKit and baked in — set
 // intensity to 0 to disable. Renders behind all hero content.
 
 "use client"
 
 import { useSyncExternalStore } from "react"
-import { useDialKit } from "dialkit"
 
 /** Hydration flag without setState-in-effect (lint-clean, mirrors HomeCharts). */
 function useHydrated() {
@@ -27,16 +26,17 @@ function hexToRgba(hex: string, alpha: number): string {
 export function HeroGlow() {
   const hydrated = useHydrated()
 
-  const g = useDialKit("Hero Glow", {
-    intensity: [0.19, 0, 0.6, 0.01], // peak alpha at the center of the glow
-    sizeX: [49, 10, 100, 1], //         horizontal radius (% of hero)
-    sizeY: [55, 10, 100, 1], //         vertical radius (% of hero)
-    x: [70, 0, 100, 1], //              center X (%) — anchored over the showcase
-    y: [48, 0, 100, 1], //              center Y (%)
-    color: { type: "color", default: "#737373" }, // neutral grey wash
-    noise: [0.03, 0, 0.4, 0.01], //     film-grain overlay opacity (0 = off)
-    dither: [0.05, 0, 0.5, 0.01], //    ordered Bayer dither opacity (0 = off)
-  })
+  // Tuned values baked out of DialKit before shipping.
+  const g = {
+    intensity: 0.19, // peak alpha at the center of the glow
+    sizeX: 49, //      horizontal radius (% of hero)
+    sizeY: 55, //      vertical radius (% of hero)
+    x: 70, //          center X (%) — anchored over the showcase
+    y: 48, //          center Y (%)
+    color: "#737373", // neutral grey wash
+    noise: 0.03, //    film-grain overlay opacity (0 = off)
+    dither: 0.05, //   ordered Bayer dither opacity (0 = off)
+  }
 
   // Shared radial mask so both grain layers fade out exactly where the glow does.
   const glowMask = `radial-gradient(${g.sizeX}% ${g.sizeY}% at ${g.x}% ${g.y}%, #000, transparent 70%)`

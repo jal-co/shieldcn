@@ -5,8 +5,7 @@
  * Homepage "page transition in". Stages the hero elements (announcement,
  * heading, subtext, input, icon cloud, scroll cta) into view on mount using
  * the Storyboard Animation pattern. Ships three variants (cascade / snap /
- * unfold); each timing value is exposed as a live DialKit slider and the
- * variant is switchable from a live DialKit dropdown.
+ * unfold). Timings were tuned with DialKit and baked into the variant presets.
  */
 
 /* ─────────────────────────────────────────────────────────
@@ -29,16 +28,13 @@
 
 import { useEffect, useState } from "react"
 import { motion, type Transition } from "motion/react"
-import { DialRoot } from "dialkit"
-import "dialkit/styles.css"
 
 // ---------------------------------------------------------------------------
 // Storyboard variants
 //
 // Each variant is a full preset: stage timings (ms after mount) + the motion
-// "feel" of the rising text column and the icon cloud. Switch live via the
-// DialKit "Variant" dropdown, or set the default per-page with the `variant`
-// prop.
+// "feel" of the rising text column and the icon cloud. Set the default
+// per-page with the `variant` prop.
 //
 //   cascade — smooth staggered rise + blur burn-off (the default)
 //   snap    — fast, tight, minimal travel; everything lands quickly
@@ -111,14 +107,7 @@ interface HeroEntranceProps {
 }
 
 export function HeroEntrance({ variant = DEFAULT_VARIANT, ...slots }: HeroEntranceProps) {
-  return (
-    <>
-      {/* One DialRoot for the whole hero — renders the Hero Glow / Hero
-          Showcase panels in dev. The entrance itself is not dial-tunable. */}
-      <DialRoot position="bottom-right" />
-      <HeroEntranceStage variant={variant} {...slots} />
-    </>
-  )
+  return <HeroEntranceStage variant={variant} {...slots} />
 }
 
 function HeroEntranceStage({

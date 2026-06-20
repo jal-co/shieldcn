@@ -8,11 +8,11 @@
  *
  * Built with the Storyboard Animation pattern (single `stage` integer drives a
  * staged entrance) plus a continuous idle float. Every layout + motion value is
- * a named constant AND a live DialKit control.
+ * a named constant, tuned with DialKit and baked in.
  */
 
 /* ─────────────────────────────────────────────────────────
- * ANIMATION STORYBOARD  (defaults shown; all live via DialKit)
+ * ANIMATION STORYBOARD  (tuned with DialKit, baked in)
  *
  *    0ms   hidden (cards down + blurred, badges scaled to 0)
  *  120ms   back chart card rises in
@@ -25,8 +25,6 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { motion, type Transition } from "motion/react"
-import { useDialKit } from "dialkit"
-import "dialkit/styles.css"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
 // ---------------------------------------------------------------------------
@@ -98,33 +96,33 @@ export function HeroShowcase() {
   const hydrated = useHydrated()
   const { adaptUrl } = useBadgeMode()
 
-  // Live-tunable layout + motion. Defaults seed from the constants above.
-  const d = useDialKit("Hero Showcase", {
-    backCard: [520, 0, 2000, 10],
-    frontCard: [530, 0, 2000, 10],
-    badges: [800, 0, 2000, 10],
+  // Tuned layout + motion values baked out of DialKit before shipping.
+  const d = {
+    backCard: 520,
+    frontCard: 530,
+    badges: 800,
     cards: {
-      riseY: [26, 0, 80, 1],
-      blur: [12, 0, 40, 1],
-      floatAmp: [10, 0, 40, 1],
-      floatSecs: [7, 1, 20, 0.5],
+      riseY: 26,
+      blur: 12,
+      floatAmp: 10,
+      floatSecs: 7,
       spring: { type: "spring", stiffness: 100, damping: 25, mass: 1.5 },
     },
     badgeGroup: {
-      scale: [1, 0.6, 1.6, 0.05],
-      stagger: [0.09, 0, 0.4, 0.01],
-      floatAmp: [7, 0, 30, 1],
-      floatSecs: [5, 1, 15, 0.5],
+      scale: 1,
+      stagger: 0.09,
+      floatAmp: 7,
+      floatSecs: 5,
       spring: { type: "spring", visualDuration: 0.45, bounce: 0.45 },
     },
-  })
+  }
 
   // Single integer stage drives the whole entrance.
   // 1: back card  2: front card  3: badges
   const [stage, setStage] = useState(0)
 
   useEffect(() => {
-    // Reset so adjusting a DialKit timing replays the sequence.
+    // Reset so the entrance sequence replays on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0)
     const timers: ReturnType<typeof setTimeout>[] = []
