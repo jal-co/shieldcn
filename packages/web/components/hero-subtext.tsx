@@ -22,7 +22,7 @@ export function HeroSubtext() {
       >
         shadcn/ui
       </UnderlineToBackground>
-      . Unlimited combinations.
+      . Badges and charts. Unlimited combinations.
     </div>
   )
 }

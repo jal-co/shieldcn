@@ -104,6 +104,27 @@ For `.svg` badges the animation is pure CSS — no JavaScript — and automatica
 
 See the [API reference](https://shieldcn.dev/docs/api-reference) for the full list of animation options.
 
+### Charts
+
+Shadcn-styled line/area graphs — GitHub star history (like
+[starcharts](https://github.com/caarlos0/starcharts)), issues over time, npm
+downloads, and your own JSON data — all as portable SVGs:
+
+<p>
+  <img src="https://shieldcn.dev/chart/github/stars/vercel/next.js.svg" alt="vercel/next.js star history" />
+</p>
+
+```md
+![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)
+![Issues](https://shieldcn.dev/chart/github/issues/honojs/hono.svg)
+![npm downloads](https://shieldcn.dev/chart/npm/zod.svg)
+![Custom](https://shieldcn.dev/chart/json.svg?values=10,25,40,30,60&title=Metric)
+```
+
+Available as `.svg`, `.png`, and `.json`. Customize with `mode`, `theme`,
+`color`, `fill`, `area`, `bg`, `border`, `font`, `width`, `height`, and
+`title`. See the [Charts docs](https://shieldcn.dev/docs/charts).
+
 ## Supported providers
 
 See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive sandboxes, and copy-paste examples.

@@ -44,12 +44,12 @@ export const BADGE_PRESETS: BadgePreset[] = [
 
   // Package
   { label: "npm — version", template: "/npm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
-  { label: "npm — downloads", template: "/npm/{package}/dm.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
-  { label: "npm — license", template: "/npm/{package}/license.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
-  { label: "npm — types", template: "/npm/{package}/types.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
-  { label: "PyPI — version", template: "/pypi/{package}/v.svg", params: [{ key: "package", label: "Package", placeholder: "django", default: "django" }], group: "Package", defaultLinkUrl: "https://pypi.org/project/{package}" },
-  { label: "Crates.io — version", template: "/crates/{crate}/v.svg", params: [{ key: "crate", label: "Crate", placeholder: "serde", default: "serde" }], group: "Package", defaultLinkUrl: "https://crates.io/crates/{crate}" },
-  { label: "JSR — score", template: "/jsr/{scope}/{package}/score.svg", params: [{ key: "scope", label: "Scope", placeholder: "@std", default: "@std" }, { key: "package", label: "Package", placeholder: "path", default: "path" }], group: "Package", defaultLinkUrl: "https://jsr.io/{scope}/{package}" },
+  { label: "npm — downloads", template: "/npm/dm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
+  { label: "npm — license", template: "/npm/license/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
+  { label: "npm — types", template: "/npm/types/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
+  { label: "PyPI — version", template: "/pypi/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "django", default: "django" }], group: "Package", defaultLinkUrl: "https://pypi.org/project/{package}" },
+  { label: "Crates.io — version", template: "/crates/{crate}.svg", params: [{ key: "crate", label: "Crate", placeholder: "serde", default: "serde" }], group: "Package", defaultLinkUrl: "https://crates.io/crates/{crate}" },
+  { label: "JSR — score", template: "/jsr/score/{scope}/{package}.svg", params: [{ key: "scope", label: "Scope", placeholder: "@std", default: "@std" }, { key: "package", label: "Package", placeholder: "path", default: "path" }], group: "Package", defaultLinkUrl: "https://jsr.io/{scope}/{package}" },
   { label: "Docker — pulls", template: "/docker/{namespace}/{image}/pulls.svg", params: [{ key: "namespace", label: "Namespace", placeholder: "library", default: "library" }, { key: "image", label: "Image", placeholder: "nginx", default: "nginx" }], group: "Package", defaultLinkUrl: "https://hub.docker.com/r/{namespace}/{image}" },
 
   // GitHub
@@ -66,11 +66,12 @@ export const BADGE_PRESETS: BadgePreset[] = [
   // Social
   { label: "Discord — online", template: "/discord/{serverId}.svg", params: [{ key: "serverId", label: "Server ID", placeholder: "1316199667142496307", default: "1316199667142496307" }], group: "Social" },
   { label: "NBA — team fan", template: "/nba/{team}.svg", params: [{ key: "team", label: "Team", placeholder: "knicks", default: "knicks" }], group: "Social", defaultLinkUrl: "https://www.nba.com/{team}" },
-  { label: "Reddit — subscribers", template: "/reddit/{subreddit}.svg", params: [{ key: "subreddit", label: "Subreddit", placeholder: "typescript", default: "typescript" }], group: "Social", defaultLinkUrl: "https://www.reddit.com/r/{subreddit}" },
+  { label: "Reddit — subscribers", template: "/reddit/subscribers/r/{subreddit}.svg", params: [{ key: "subreddit", label: "Subreddit", placeholder: "typescript", default: "typescript" }], group: "Social", defaultLinkUrl: "https://www.reddit.com/r/{subreddit}" },
   { label: "X — follow", template: "/x/follow/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },
   { label: "X — mention", template: "/x/mention/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },
-  { label: "YouTube — subscribers", template: "/youtube/{channelId}/subscribers.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social", defaultLinkUrl: "https://www.youtube.com/channel/{channelId}" },
-  { label: "Twitch — status", template: "/twitch/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
+  { label: "YouTube — subscribers", template: "/youtube/subscribers/{channelId}.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social", defaultLinkUrl: "https://www.youtube.com/channel/{channelId}" },
+  // TODO: The Twitch provider route is currently disabled. There's no point enabling this option if the badge returns a 404. When it is re-enabled, we can uncomment this line
+  // { label: "Twitch — status", template: "/twitch/status/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
 
   // Other
   { label: "Country flag — built in", template: "/flag/{code}.svg", params: [{ key: "code", label: "Country code", placeholder: "us", default: "us" }], group: "Other" },

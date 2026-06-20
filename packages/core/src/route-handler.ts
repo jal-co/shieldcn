@@ -7,6 +7,11 @@
  */
 
 import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
+import { renderChart, resolveAccent, resolveFontFamily, type ChartSeries, type ChartPoint } from "./badges/render-chart"
+import { getStarHistory, getIssueHistory } from "./providers/starhistory"
+import { getNpmDownloadSeries } from "./providers/npm"
+import { formatCount } from "./format"
+import { JSONPath } from "jsonpath-plus"
 import { parseAnimate } from "./badges/animate"
 import { renderGif } from "./badges/gif"
 import { renderBadgeGroup, type GroupSegment, type GroupConfig } from "./badges/render-group"
@@ -1790,6 +1795,376 @@ async function handleBadgeGroup(
 }
 
 /**
+ * Clamp a numeric query param to a sane range, with a default.
+ */
+function clampNum(
+  raw: string | null,
+  min: number,
+  max: number,
+  fallback: number,
+): number {
+  if (raw === null) return fallback
+  const n = parseFloat(raw)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(max, Math.max(min, n))
+}
+
+/**
+ * Handle a chart request.
+ *
+ * URL format: /chart/github/stars/{owner}/{repo}.svg
+ * Query params: width, height, mode, theme, color, area, title.
+ */
+async function handleChart(
+  cleanSegments: string[],
+  searchParams: URLSearchParams,
+  format: Format,
+  options?: BadgeRequestOptions,
+): Promise<Response> {
+  const rest = cleanSegments.slice(1) // after "chart"
+  const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
+  const width = clampNum(searchParams.get("width"), 200, 2000, 800)
+  const height = clampNum(searchParams.get("height"), 120, 1200, 400)
+  const areaParam = searchParams.get("area")
+  const area = areaParam !== "false" && areaParam !== "0"
+  const accent = resolveAccent(searchParams.get("theme"), searchParams.get("color"))
+  const fillParam = resolveColor(searchParams.get("fill"))
+  const fill = fillParam ? `#${fillParam}` : undefined
+  const fontFamily = resolveFontFamily(searchParams.get("font"))
+  const logoParam = searchParams.get("logo")
+  const logo = logoParam !== "false" && logoParam !== "0" && logoParam !== "none"
+  const logoColorParam = resolveColor(searchParams.get("logoColor"))
+  const logoColor = logoColorParam ? `#${logoColorParam}` : undefined
+  const borderParam = searchParams.get("border")
+  const border = borderParam !== "false" && borderParam !== "0"
+  // Background: `transparent`, a hex color, or undefined (mode default surface).
+  const bgParam = searchParams.get("background") ?? searchParams.get("bg")
+  // Axis scale controls.
+  const yScale = searchParams.get("yScale") === "log" ? "log" as const : "linear" as const
+  const yMinRaw = searchParams.get("yMin")
+  const yMaxRaw = searchParams.get("yMax")
+  const yMin = yMinRaw !== null && Number.isFinite(parseFloat(yMinRaw)) ? parseFloat(yMinRaw) : undefined
+  const yMax = yMaxRaw !== null && Number.isFinite(parseFloat(yMaxRaw)) ? parseFloat(yMaxRaw) : undefined
+  const yTicks = searchParams.get("yTicks") !== null ? clampNum(searchParams.get("yTicks"), 1, 10, 4) : undefined
+  const xTicks = searchParams.get("xTicks") !== null ? clampNum(searchParams.get("xTicks"), 2, 12, 3) : undefined
+  let background: string | undefined
+  if (bgParam === "transparent" || bgParam === "none") {
+    background = "transparent"
+  } else {
+    const bgHex = resolveColor(bgParam)
+    if (bgHex) background = `#${bgHex}`
+  }
+
+  const fail = (msg: string, status: number): Response => {
+    if (format === "json") {
+      return Response.json({ error: msg }, { status, headers: ERROR_CACHE_HEADERS })
+    }
+    const svg = renderChart({
+      title: "chart",
+      subtitle: msg,
+      series: [],
+      width,
+      height,
+      mode,
+      area: false,
+      background,
+      border,
+      fontFamily,
+    })
+    return new Response(svg, {
+      headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
+    })
+  }
+
+  // Resolve the chart kind → data series.
+  const resolved = await resolveChartData(rest, searchParams)
+  if (!resolved.ok) return fail(resolved.msg, resolved.status)
+
+  if (format === "json") {
+    return Response.json(resolved.json, { headers: CACHE_HEADERS })
+  }
+
+  // Resolve an optional leading title icon. Explicit `?icon=` wins; otherwise
+  // a sensible per-kind default (github mark, npm mark). `?icon=false` hides it.
+  const iconParam = searchParams.get("icon")
+  const iconColorParam = resolveColor(searchParams.get("iconColor"))
+  let titleIcon:
+    | { path?: string; paths?: string[]; viewBox?: string; fillRule?: string; isStroke?: boolean; strokeWidth?: number; strokeLinecap?: string; strokeLinejoin?: string }
+    | undefined
+  if (iconParam !== "false" && iconParam !== "0" && iconParam !== "none") {
+    const defaultIcon =
+      resolved.provider === "github" ? "github"
+      : resolved.provider === "npm" ? "npm"
+      : undefined
+    const slug = iconParam || defaultIcon
+    if (slug) {
+      const si = await getSimpleIcon(slug, iconColorParam)
+      if (si) titleIcon = {
+        path: si.icon.path,
+        paths: si.icon.paths,
+        viewBox: si.icon.viewBox,
+        fillRule: si.icon.fillRule,
+        isStroke: si.icon.isStroke,
+        strokeWidth: si.icon.strokeWidth,
+        strokeLinecap: si.icon.strokeLinecap,
+        strokeLinejoin: si.icon.strokeLinejoin,
+      }
+    }
+  }
+  const titleIconColor = iconColorParam ? `#${iconColorParam}` : undefined
+
+  const series: ChartSeries[] = [
+    { label: resolved.seriesLabel, points: resolved.points, color: accent, fill },
+  ]
+  const svg = renderChart({
+    title: searchParams.get("title") || resolved.title,
+    subtitle: resolved.subtitle,
+    series,
+    width,
+    height,
+    mode,
+    area,
+    background,
+    border,
+    fontFamily,
+    yScale,
+    yMin,
+    yMax,
+    yTicks,
+    xTicks,
+    logo,
+    logoColor,
+    titleIcon,
+    titleIconColor,
+    link: resolved.link,
+  })
+
+  if (options?.onTrack) {
+    void options.onTrack({
+      name: "chart_rendered",
+      data: { provider: resolved.provider, kind: resolved.kind, format, mode, points: resolved.points.length },
+    })
+  }
+
+  if (format === "png") {
+    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
+    try {
+      let wasmLoaded = false
+      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+        try {
+          const fs = await import("node:fs")
+          const path = await import("node:path")
+          const candidates = [
+            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
+          ]
+          for (const p of candidates) {
+            if (fs.existsSync(p)) {
+              await initWasm(fs.readFileSync(p))
+              wasmLoaded = true
+              break
+            }
+          }
+        } catch { /* fs not available */ }
+      }
+      if (!wasmLoaded) {
+        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
+      }
+    } catch { /* already initialized */ }
+    const resvg = new Resvg(svg)
+    const png = resvg.render().asPng()
+    return new Response(Buffer.from(png), {
+      headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
+    })
+  }
+
+  return new Response(svg, {
+    headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
+  })
+}
+
+/** Number formatter that never throws on weird input. */
+function formatCountSafe(n: number): string {
+  try {
+    return formatCount(n)
+  } catch {
+    return String(n)
+  }
+}
+
+/** Successful chart resolution. */
+interface ChartOk {
+  ok: true
+  provider: string
+  kind: string
+  title: string
+  subtitle?: string
+  seriesLabel: string
+  link?: string
+  points: ChartPoint[]
+  json: unknown
+}
+type ChartResolved = ChartOk | { ok: false; status: number; msg: string }
+
+/** Coerce an unknown JSONPath result into a finite number, or null. */
+function asNumber(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v
+  if (typeof v === "string") {
+    const n = parseFloat(v)
+    if (Number.isFinite(n)) return n
+  }
+  return null
+}
+
+/**
+ * Resolve a `/chart/...` path + params into a renderable series.
+ *
+ * Supported kinds:
+ *   /chart/github/stars/{owner}/{repo}
+ *   /chart/github/issues/{owner}/{repo}
+ *   /chart/npm/{package}            (weekly downloads, last `days`)
+ *   /chart/json?values=1,2,3        (inline data)
+ *   /chart/json?url=...&query=...   (remote JSON array)
+ */
+async function resolveChartData(
+  rest: string[],
+  searchParams: URLSearchParams,
+): Promise<ChartResolved> {
+  const provider = rest[0]
+
+  // --- GitHub stars / issues over time ---
+  if (provider === "github" || provider === "stars" || provider === "issues") {
+    let kind: string | undefined
+    let owner: string | undefined
+    let repo: string | undefined
+    if (provider === "github" && (rest[1] === "stars" || rest[1] === "issues")) {
+      kind = rest[1]; owner = rest[2]; repo = rest[3]
+    } else if (provider === "stars" || provider === "issues") {
+      kind = provider; owner = rest[1]; repo = rest[2]
+    }
+    if (!kind || !owner || !repo) {
+      return { ok: false, status: 400, msg: "usage: /chart/github/{stars|issues}/{owner}/{repo}.svg" }
+    }
+    const history = kind === "issues"
+      ? await getIssueHistory(owner, repo)
+      : await getStarHistory(owner, repo)
+    if (!history) {
+      return { ok: false, status: 404, msg: `could not load ${kind} for ${owner}/${repo}` }
+    }
+    const noun = kind === "issues" ? "issues" : "stars"
+    return {
+      ok: true,
+      provider: "github",
+      kind,
+      title: `${owner}/${repo}`,
+      subtitle: `${formatCountSafe(history.total)} ${noun}`,
+      seriesLabel: `${owner}/${repo}`,
+      link: `https://github.com/${owner}/${repo}`,
+      points: history.points,
+      json: history,
+    }
+  }
+
+  // --- npm weekly downloads ---
+  if (provider === "npm") {
+    const pkg = rest.slice(1).join("/")
+    if (!pkg) {
+      return { ok: false, status: 400, msg: "usage: /chart/npm/{package}.svg" }
+    }
+    const days = clampNum(searchParams.get("days"), 30, 540, 365)
+    const series = await getNpmDownloadSeries(pkg, days)
+    if (!series) {
+      return { ok: false, status: 404, msg: `could not load downloads for ${pkg}` }
+    }
+    return {
+      ok: true,
+      provider: "npm",
+      kind: "downloads",
+      title: pkg,
+      subtitle: `${formatCountSafe(series.total)} downloads · ${days}d`,
+      seriesLabel: pkg,
+      link: `https://www.npmjs.com/package/${pkg}`,
+      points: series.points,
+      json: series,
+    }
+  }
+
+  // --- Generic JSON ---
+  if (provider === "json" || provider === "dynamic") {
+    const url = searchParams.get("url")
+    let values: number[] = []
+    let dates: (string | undefined)[] = []
+    let labels: (string | undefined)[] = []
+
+    if (url) {
+      // Remote JSON: `query` selects the value array, `dateQuery` (optional)
+      // selects a parallel date/label array.
+      const query = searchParams.get("query")
+      if (!query) {
+        return { ok: false, status: 400, msg: "json url charts need a ?query=" }
+      }
+      try {
+        const res = await raceTimeout(fetch(url, {
+          next: { revalidate: 300 },
+          headers: { Accept: "application/json", "User-Agent": "shieldcn/1.0" },
+        }))
+        if (!res || !res.ok) {
+          return { ok: false, status: 502, msg: `fetch failed (${res?.status ?? "timeout"})` }
+        }
+        const data = await res.json()
+        const rawValues = JSONPath({ path: query, json: data }) as unknown[]
+        values = (Array.isArray(rawValues) ? rawValues : [])
+          .map(asNumber)
+          .filter((n): n is number => n !== null)
+        const dateQuery = searchParams.get("dateQuery")
+        if (dateQuery) {
+          const rawDates = JSONPath({ path: dateQuery, json: data }) as unknown[]
+          dates = (Array.isArray(rawDates) ? rawDates : []).map((d) =>
+            typeof d === "string" || typeof d === "number" ? String(d) : undefined,
+          )
+        }
+      } catch {
+        return { ok: false, status: 502, msg: "fetch failed" }
+      }
+    } else {
+      // Inline data via ?values=, optional ?dates= / ?labels=.
+      const rawValues = searchParams.get("values") ?? searchParams.get("data")
+      if (!rawValues) {
+        return { ok: false, status: 400, msg: "usage: /chart/json.svg?values=1,2,3" }
+      }
+      values = rawValues.split(",").map((s) => asNumber(s.trim())).filter((n): n is number => n !== null)
+      const rawDates = searchParams.get("dates")
+      if (rawDates) dates = rawDates.split(",").map((s) => s.trim())
+      const rawLabels = searchParams.get("labels")
+      if (rawLabels) labels = rawLabels.split(",").map((s) => s.trim())
+    }
+
+    if (values.length === 0) {
+      return { ok: false, status: 400, msg: "no numeric data points" }
+    }
+
+    const points: ChartPoint[] = values.map((value, i) => {
+      const date = dates[i]
+      const isValidDate = date && !isNaN(new Date(date).getTime())
+      return { value, date: isValidDate ? new Date(date as string).toISOString() : undefined, label: labels[i] }
+    })
+    const total = values.reduce((a, b) => a + b, 0)
+    const label = searchParams.get("label") || "value"
+    return {
+      ok: true,
+      provider: "json",
+      kind: "json",
+      title: searchParams.get("title") || "chart",
+      subtitle: searchParams.get("subtitle") ?? `${formatCountSafe(total)} total`,
+      seriesLabel: label,
+      points,
+      json: { points },
+    }
+  }
+
+  return { ok: false, status: 400, msg: "unknown chart kind" }
+}
+
+/**
  * Handle a badge GET request.
  *
  * @param request - The incoming request
@@ -1852,6 +2227,14 @@ async function handleBadgeGETInner(
   // ---------------------------------------------------------------------------
   if (cleanSegments[0] === "group") {
     return handleBadgeGroup(cleanSegments, searchParams, format, options)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Charts: /chart/github/stars/{owner}/{repo}.svg
+  // Renders a shadcn-styled star-history line/area chart.
+  // ---------------------------------------------------------------------------
+  if (cleanSegments[0] === "chart") {
+    return handleChart(cleanSegments, searchParams, format, options)
   }
 
   // Fetch badge data from provider

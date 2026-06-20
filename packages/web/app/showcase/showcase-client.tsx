@@ -1,167 +1,205 @@
 "use client"
 
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
-import { BadgeCard } from "@/components/badge-card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { BadgeGroupModal } from "@/components/badge-group-modal"
+import { BadgeModal } from "@/components/badge-modal"
 import { ShowcaseSubmitDialog } from "@/components/showcase-submit-dialog"
-import { featuredBadges, categories, groupShowcaseItems } from "@/lib/showcase-data"
-import { GroupShowcase } from "@/components/group-showcase"
-import { AnimatedShowcase } from "@/components/animated-showcase"
+import { Button } from "@/components/ui/button"
+import { Kbd } from "@/components/ui/kbd"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { useBadgeMode } from "@/lib/use-badge-mode"
+import { cn } from "@/lib/utils"
+import {
+  categories,
+  featuredBadges,
+  groupShowcaseItems,
+  type GroupShowcaseItem,
+  type ShowcaseBadge,
+} from "@/lib/showcase-data"
 
-const ALL_CATEGORY_NAMES = ["All", ...categories.map((c) => c.name)]
-const totalIconCount = categories.reduce((sum, c) => sum + c.icons.length, 0)
+type ShowcaseCategory = (typeof categories)[number]
+type ShowcaseItem =
+  | { kind: "badge"; badge: ShowcaseBadge; weight: number }
+  | { kind: "group"; group: GroupShowcaseItem; weight: number }
+
+const displayCategories = combineCategories(categories)
+const categoryNames = ["All", "Groups", ...displayCategories.map((category) => category.name)]
+const totalIconCount = uniqueBadges([
+  ...featuredBadges,
+  ...displayCategories.flatMap((category) => category.icons),
+]).length + groupShowcaseItems.length
+
+const subscribeToHydration = () => () => {}
+const getHydratedSnapshot = () => true
+const getServerSnapshot = () => false
+
+function useHydrated() {
+  return useSyncExternalStore(subscribeToHydration, getHydratedSnapshot, getServerSnapshot)
+}
+
+function uniqueBadges(badges: ShowcaseBadge[]) {
+  return Array.from(new Map(badges.map((badge) => [badge.badgePath, badge])).values())
+}
+
+function badgeItems(badges: ShowcaseBadge[], offset = 0): ShowcaseItem[] {
+  return uniqueBadges(badges).map((badge, index) => ({
+    kind: "badge",
+    badge,
+    weight: index + offset,
+  }))
+}
+
+function groupItems(offset = 0): ShowcaseItem[] {
+  return groupShowcaseItems.map((group, index) => ({
+    kind: "group",
+    group,
+    weight: index + offset,
+  }))
+}
+
+function combineCategories(source: ShowcaseCategory[]) {
+  return source.reduce<ShowcaseCategory[]>((acc, category) => {
+    const existing = acc.find((item) => item.name === category.name)
+
+    if (existing) {
+      existing.icons = uniqueBadges([...existing.icons, ...category.icons])
+      return acc
+    }
+
+    acc.push({ ...category })
+    return acc
+  }, [])
+}
+
+function allShowcaseItems() {
+  const badges = badgeItems([
+    ...featuredBadges,
+    ...displayCategories.flatMap((category) => category.icons),
+  ])
+  const groups = groupItems(500)
+  const firstGroups = groups.slice(0, 3)
+  const remainingGroups = groups.slice(3)
+
+  return [
+    ...badges.slice(0, 5),
+    ...firstGroups,
+    ...badges.slice(5, 18),
+    ...remainingGroups,
+    ...badges.slice(18),
+  ]
+}
+
+const ALL_ITEMS = allShowcaseItems()
+const AUTO_CLOSE_THRESHOLD = 10
+
+function categoryCount(name: string) {
+  if (name === "All") return totalIconCount
+  if (name === "Groups") return groupShowcaseItems.length
+  return displayCategories.find((category) => category.name === name)?.icons.length ?? 0
+}
+
+function computeItems(category: string, query: string): ShowcaseItem[] {
+  const base = category === "All"
+    ? ALL_ITEMS
+    : category === "Groups"
+      ? groupItems()
+      : badgeItems(displayCategories.find((c) => c.name === category)?.icons ?? [])
+
+  const q = query.trim().toLowerCase()
+  if (!q) return base
+
+  return base.filter((item) =>
+    item.kind === "badge" ? badgeMatches(item.badge, q) : groupMatches(item.group, q)
+  )
+}
+
+function badgeMatches(badge: ShowcaseBadge, q: string) {
+  return [badge.title, badge.subtitle, badge.description ?? ""].some((value) =>
+    value.toLowerCase().includes(q)
+  )
+}
+
+function groupMatches(group: GroupShowcaseItem, q: string) {
+  return [group.title, group.description].some((value) => value.toLowerCase().includes(q))
+}
+
+function buildCategoryOptions(q: string): { name: string; count: number }[] {
+  if (!q) {
+    return categoryNames.map((name) => ({ name, count: categoryCount(name) }))
+  }
+
+  const groupCount = groupShowcaseItems.filter((group) => groupMatches(group, q)).length
+  const badgeCount = uniqueBadges([
+    ...featuredBadges,
+    ...displayCategories.flatMap((category) => category.icons),
+  ]).filter((badge) => badgeMatches(badge, q)).length
+
+  const options: { name: string; count: number }[] = [
+    { name: "All", count: badgeCount + groupCount },
+  ]
+
+  if (groupCount > 0) options.push({ name: "Groups", count: groupCount })
+
+  for (const category of displayCategories) {
+    const count = category.icons.filter((badge) => badgeMatches(badge, q)).length
+    if (count > 0) options.push({ name: category.name, count })
+  }
+
+  return options
+}
 
 export default function ShowcasePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
 
-  const activeCategoryData = categories.find((c) => c.name === activeCategory)
-  const nbaCategory = categories.find((c) => c.name === "NBA")
+  const filteredItems = useMemo(
+    () => computeItems(activeCategory, searchQuery),
+    [activeCategory, searchQuery]
+  )
 
-  const filteredIcons = useMemo(() => {
-    const icons = activeCategory === "All"
-      ? Array.from(
-          new Map(categories.flatMap((c) => c.icons).map((icon) => [icon.badgePath, icon])).values()
-        )
-      : activeCategoryData?.icons ?? []
-
-    if (!searchQuery.trim()) return icons
-
-    const q = searchQuery.toLowerCase()
-    return icons.filter((icon) =>
-      [icon.title, icon.subtitle, icon.description ?? ""].some((value) =>
-        value.toLowerCase().includes(q)
-      )
-    )
-  }, [activeCategory, activeCategoryData, searchQuery])
+  const countFor = useCallback(
+    (query: string) => computeItems(activeCategory, query).length,
+    [activeCategory]
+  )
 
   return (
     <main className="min-w-0 flex-1">
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-14 md:px-8">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight">Badge Showcase</h1>
-          <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            A curated set of shieldcn badge examples designed to look good in real-world README rows,
-            docs pages, package pages, and community sections. Click any card to tweak it and copy the exact output.
-          </p>
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-muted-foreground">
-              {totalIconCount}+ curated examples · focused on useful, polished badge patterns
-            </p>
+      <section
+        id="badge-explorer"
+        aria-labelledby="badge-explorer-title"
+        className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-8 md:py-10"
+      >
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 id="badge-explorer-title" className="font-heading text-3xl font-semibold tracking-tight md:text-5xl">
+                Showcased badges
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {filteredItems.length} visible of {totalIconCount} showcased badges
+              </p>
+            </div>
             <ShowcaseSubmitDialog />
           </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Featured examples</h2>
-            <span className="text-xs text-muted-foreground">starter row ideas</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {featuredBadges.map((badge) => (
-              <BadgeCard key={`featured-${badge.badgePath}-${badge.title}`} badge={badge} />
-            ))}
-          </div>
-        </div>
-
-        {nbaCategory ? (
-          <div className="space-y-3 rounded-xl border border-border bg-card/40 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">NBA team badges</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Fan badges with full-color team logos and team-color branded variants.</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setActiveCategory("NBA")}>View all</Button>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {nbaCategory.icons.slice(0, 6).map((badge) => (
-                <BadgeCard key={`nba-featured-${badge.badgePath}-${badge.title}`} badge={badge} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Animated badges — live <img> row */}
-        <AnimatedShowcase />
-
-        {/* Badge Groups — bento grid */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Badge Groups</h2>
-            <Link href="/docs/badges/group" className="text-xs text-muted-foreground hover:text-foreground transition-colors">docs →</Link>
-          </div>
-          <GroupShowcase items={groupShowcaseItems} />
-        </div>
-
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search badges by name, provider, or use case…"
-            className="h-10 pl-9 pr-9"
+          <CategorySearch
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            countFor={countFor}
           />
-          {searchQuery ? (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {ALL_CATEGORY_NAMES.map((cat) => {
-            const count = cat === "All"
-              ? totalIconCount
-              : categories.find((c) => c.name === cat)?.icons.length ?? 0
-            const isActive = activeCategory === cat
-
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-foreground hover:bg-muted"
-                }`}
-              >
-                <span>{cat}</span>
-                <Badge
-                  variant={isActive ? "outline" : "secondary"}
-                  className={isActive
-                    ? "h-4 min-w-[18px] justify-center border-primary-foreground/20 bg-primary-foreground/10 px-1 text-[10px] text-primary-foreground"
-                    : "h-4 min-w-[18px] justify-center px-1 text-[10px]"
-                  }
-                >
-                  {count}
-                </Badge>
-              </button>
-            )
-          })}
-        </div>
-
-        {activeCategory !== "All" && activeCategoryData ? (
-          <div className="rounded-lg border border-border bg-card/50 p-4">
-            <p className="text-sm font-medium">{activeCategoryData.name}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{activeCategoryData.description}</p>
-          </div>
-        ) : null}
-
-        {filteredIcons.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <div className="text-4xl opacity-30">🔍</div>
+        {filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
+            <div className="rounded-full bg-muted p-4 text-3xl">🔍</div>
             <div>
-              <p className="text-sm font-medium">No badges found</p>
-              <p className="mt-1 text-xs text-muted-foreground">Try a different search or switch category.</p>
+              <p className="text-sm font-medium">No matching badges</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Nothing matches that search and category. Clear the filters to see all badges.
+              </p>
             </div>
             <Button
               variant="outline"
@@ -175,21 +213,394 @@ export default function ShowcasePage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filteredIcons.map((badge) => (
-              <BadgeCard key={`${activeCategory}-${badge.badgePath}-${badge.title}`} badge={badge} />
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {filteredItems.map((item) =>
+              item.kind === "badge" ? (
+                <BadgeBrick
+                  key={`${activeCategory}-${item.badge.badgePath}-${item.badge.title}`}
+                  badge={item.badge}
+                  weight={item.weight}
+                />
+              ) : (
+                <GroupBrick
+                  key={`${activeCategory}-${item.group.badgePath}-${item.group.title}`}
+                  item={item.group}
+                  weight={item.weight}
+                />
+              )
+            )}
           </div>
         )}
+      </section>
 
-        {filteredIcons.length > 0 ? (
-          <p className="text-center text-xs text-muted-foreground">
-            {filteredIcons.length} badge{filteredIcons.length === 1 ? "" : "s"}
-            {searchQuery ? ` matching "${searchQuery}"` : ""}
-            {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
-          </p>
-        ) : null}
-      </div>
+      <ChartShowcase />
     </main>
+  )
+}
+
+const CHART_EXAMPLES: { title: string; description: string; src: string; href: string }[] = [
+  {
+    title: "GitHub stars over time",
+    description: "Star history for any repo — like starcharts, shadcn-styled.",
+    src: "/chart/github/stars/shadcn-ui/ui.svg?theme=blue",
+    href: "/docs/charts",
+  },
+  {
+    title: "GitHub issues over time",
+    description: "Cumulative issues opened, sampled from the search API.",
+    src: "/chart/github/issues/honojs/hono.svg?theme=rose",
+    href: "/docs/charts",
+  },
+  {
+    title: "npm downloads",
+    description: "Weekly downloads for the last year from the npm API.",
+    src: "/chart/npm/zod.svg?theme=emerald",
+    href: "/docs/charts",
+  },
+  {
+    title: "Inline JSON data",
+    description: "Bring your own numbers with ?values= — or a remote ?url=.",
+    src: "/chart/json.svg?values=120,180,150,210,260,240,300,280,340&title=Latency&label=ms&theme=violet",
+    href: "/docs/charts",
+  },
+]
+
+function ChartShowcase() {
+  const hydrated = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+  return (
+    <section
+      id="chart-showcase"
+      aria-labelledby="chart-showcase-title"
+      className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-16 md:px-8"
+    >
+      <div>
+        <h2 id="chart-showcase-title" className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">
+          Charts
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Shadcn-styled graphs for GitHub stars, issues, npm downloads, and your own JSON data.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {CHART_EXAMPLES.map((c) => (
+          <Link
+            key={c.src}
+            href={c.href}
+            className="group rounded-2xl border border-border bg-card p-3 transition-colors hover:border-foreground/20"
+          >
+            <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+              {hydrated ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={adaptUrl(c.src)} alt={c.title} className="w-full" />
+              ) : (
+                <div className="aspect-[2/1] w-full" />
+              )}
+            </div>
+            <div className="px-1 pt-3">
+              <p className="text-sm font-medium">{c.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{c.description}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CategorySearch({
+  searchQuery,
+  setSearchQuery,
+  activeCategory,
+  setActiveCategory,
+  countFor,
+}: {
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  activeCategory: string
+  setActiveCategory: (category: string) => void
+  countFor: (query: string) => number
+}) {
+  const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "/") return
+
+      const target = event.target as HTMLElement | null
+      const tag = target?.tagName
+      const isEditable =
+        tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable
+      if (isEditable) return
+
+      event.preventDefault()
+      inputRef.current?.focus()
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
+  const q = searchQuery.trim().toLowerCase()
+  const options = buildCategoryOptions(q)
+  const currentIndex = Math.min(activeIndex, options.length - 1)
+
+  function scrollOptionIntoView(index: number) {
+    listRef.current
+      ?.querySelector(`[data-option-index="${index}"]`)
+      ?.scrollIntoView({ block: "nearest" })
+  }
+
+  function moveActive(delta: number) {
+    if (!open) {
+      setOpen(true)
+      return
+    }
+    const next = (currentIndex + delta + options.length) % options.length
+    setActiveIndex(next)
+    scrollOptionIntoView(next)
+  }
+
+  function commitActive() {
+    const option = options[currentIndex]
+    if (!option) return
+    setActiveCategory(option.name)
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <div
+          className="flex h-11 w-full items-center gap-2 rounded-xl border border-border bg-card px-3 shadow-xs transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring"
+          onClick={() => {
+            setOpen(true)
+            inputRef.current?.focus()
+          }}
+        >
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+
+          {activeCategory !== "All" ? (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs">
+              {activeCategory}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setActiveCategory("All")
+                }}
+                className="rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Clear category filter"
+              >
+                <X className="size-3" />
+              </button>
+            </span>
+          ) : null}
+
+          <input
+            ref={inputRef}
+            value={searchQuery}
+            onChange={(event) => {
+              const value = event.target.value
+              setSearchQuery(value)
+              setActiveIndex(0)
+              const count = countFor(value)
+              setOpen(!(value.trim() && count > 0 && count <= AUTO_CLOSE_THRESHOLD))
+            }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setOpen(false)
+              } else if (event.key === "ArrowDown") {
+                event.preventDefault()
+                moveActive(1)
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault()
+                moveActive(-1)
+              } else if (event.key === "Enter" && open) {
+                event.preventDefault()
+                commitActive()
+              }
+            }}
+            placeholder="Search badges or filter by category"
+            className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls="showcase-category-list"
+            aria-activedescendant={open ? `showcase-category-${currentIndex}` : undefined}
+            aria-label="Search badges or filter by category"
+          />
+
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                setSearchQuery("")
+              }}
+              className="rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Clear badge search"
+            >
+              <X className="size-4" />
+            </button>
+          ) : (
+            <Kbd className="shrink-0">/</Kbd>
+          )}
+        </div>
+      </PopoverAnchor>
+
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        className="max-h-80 w-(--radix-popover-trigger-width) overflow-y-auto p-1.5"
+      >
+        <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+          {q ? "Categories with matches" : "Filter by category"}
+        </p>
+        <div ref={listRef} id="showcase-category-list" role="listbox" className="flex flex-col">
+          {options.map((option, index) => {
+            const isSelected = activeCategory === option.name
+            const isActive = index === currentIndex
+            return (
+              <button
+                key={option.name}
+                id={`showcase-category-${index}`}
+                data-option-index={index}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onPointerMove={() => setActiveIndex(index)}
+                onClick={() => {
+                  setActiveCategory(option.name)
+                  setOpen(false)
+                }}
+                className={cn(
+                  "flex min-h-10 items-center justify-between gap-3 rounded-md px-2 text-sm transition-colors duration-150 ease-out",
+                  isActive ? "bg-muted text-foreground" : "text-foreground",
+                  isSelected && !isActive ? "bg-muted/50" : ""
+                )}
+              >
+                <span className="truncate">{option.name}</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                  {option.count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function getBadgeFlex(weight: number, title: string) {
+  if (title.length > 24 || weight % 13 === 0) {
+    return "min-w-[15rem] max-w-[26rem] grow-[3]"
+  }
+  if (weight % 7 === 0 || weight % 11 === 0) {
+    return "min-w-[12.5rem] max-w-[22rem] grow-[2]"
+  }
+  return "min-w-[10rem] max-w-[18rem] grow"
+}
+
+function BadgeBrick({ badge, weight }: { badge: ShowcaseBadge; weight: number }) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const mounted = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setModalOpen(true)}
+        className={cn(
+          "group flex h-28 min-w-0 basis-40 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-background p-3.5 text-center shadow-xs transition duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/35 hover:shadow-md hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0 active:scale-[0.99]",
+          getBadgeFlex(weight, badge.title)
+        )}
+        aria-label={`Customize ${badge.title} badge`}
+      >
+        <span className="flex flex-1 w-full items-center justify-center overflow-hidden">
+          {mounted ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={adaptUrl(badge.badgePath)}
+              alt={badge.title}
+              className="inline-block h-8 max-w-full"
+              loading="lazy"
+            />
+          ) : (
+            <span className="h-8" />
+          )}
+        </span>
+
+        <span className="w-full min-w-0">
+          <span className="block truncate text-sm font-medium leading-tight">{badge.title}</span>
+          <span className="mt-1 block truncate font-mono text-[10px] text-muted-foreground">
+            {badge.subtitle}
+          </span>
+        </span>
+      </button>
+
+      <BadgeModal
+        title={badge.title}
+        subtitle={badge.subtitle}
+        badgePath={badge.badgePath}
+        description={badge.description}
+        docsHref={badge.docsHref}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+    </>
+  )
+}
+
+function GroupBrick({ item, weight }: { item: GroupShowcaseItem; weight: number }) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const mounted = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setModalOpen(true)}
+        className={cn(
+          "group flex h-28 min-w-0 basis-72 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-background p-3.5 text-center shadow-xs transition duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/35 hover:shadow-md hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0 active:scale-[0.99]",
+          weight % 2 === 0 ? "min-w-[18rem] max-w-[34rem] grow-[4]" : "min-w-[16rem] max-w-[30rem] grow-[3]"
+        )}
+        aria-label={`Customize ${item.title} badge group`}
+      >
+        <span className="flex flex-1 w-full items-center justify-center overflow-hidden">
+          {mounted ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={adaptUrl(item.badgePath)}
+              alt={item.title}
+              className="inline-block h-8 max-w-full"
+              loading="lazy"
+            />
+          ) : (
+            <span className="h-8" />
+          )}
+        </span>
+
+        <span className="w-full min-w-0">
+          <span className="block truncate text-sm font-medium leading-tight">{item.title}</span>
+          <span className="mt-1 block truncate text-[11px] text-muted-foreground">badge group</span>
+        </span>
+      </button>
+
+      <BadgeGroupModal
+        title={item.title}
+        description={item.description}
+        badgePath={item.badgePath}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+    </>
   )
 }

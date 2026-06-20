@@ -573,6 +573,10 @@ function inlineDataUriImages(svg: string): string {
 function rgbaToHexOpacity(svg: string): string {
   let out = svg
   for (const attr of ["fill", "stroke", "stop-color"] as const) {
+    // The opacity attribute name is NOT always `${attr}-opacity`: a gradient
+    // stop's color is `stop-color` but its opacity is `stop-opacity` (per
+    // SVG 1.1), not `stop-color-opacity`. fill/stroke follow the regular form.
+    const opacityAttr = attr === "stop-color" ? "stop-opacity" : `${attr}-opacity`
     const re = new RegExp(
       `${attr}="rgba\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*\\)"`,
       "g",
@@ -586,7 +590,7 @@ function rgbaToHexOpacity(svg: string): string {
       const alpha = Number(a)
       if (!Number.isFinite(alpha) || alpha >= 1) return `${attr}="${hex}"`
       const op = Math.max(0, alpha)
-      return `${attr}="${hex}" ${attr}-opacity="${+op.toFixed(3)}"`
+      return `${attr}="${hex}" ${opacityAttr}="${+op.toFixed(3)}"`
     })
   }
   return out

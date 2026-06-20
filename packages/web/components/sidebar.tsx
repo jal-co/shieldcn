@@ -73,6 +73,13 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
+    title: "Charts",
+    alwaysOpen: true,
+    items: [
+      { title: "Overview", href: "/docs/charts" },
+    ],
+  },
+  {
     title: "Source Control",
     items: [
       { title: "GitHub", href: "/docs/badges/github" },
