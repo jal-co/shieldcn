@@ -31,7 +31,7 @@ import { useBadgeMode } from "@/lib/use-badge-mode"
 // Storyboard constants
 // ---------------------------------------------------------------------------
 
-/** Two chart cards — the "charts" half of the story. */
+/** Surface cards — the header banner + two chart cards. */
 const CARDS = {
   riseY: 26, //  px each card slides up from
   blur: 12, //   px blur burned off on entrance
@@ -40,13 +40,23 @@ const CARDS = {
   floatSecs: 7, //   seconds per idle loop
   items: [
     {
+      key: "header",
+      src: "/header/dots.svg?title=shieldcn&subtitle=Headers for your README&logo=shieldcn",
+      alt: "repository header banner — shieldcn",
+      // position within the stage (% of container)
+      top: "2%",
+      left: "2%",
+      width: 330,
+      rotate: -3,
+      z: 30,
+    },
+    {
       key: "stars",
       src: "/chart/github/stars/vercel/next.js.svg?theme=blue",
       alt: "GitHub star history — vercel/next.js",
-      // position within the stage (% of container)
-      top: "9%",
-      left: "2%",
-      width: 320,
+      top: "30%",
+      left: "-2%",
+      width: 260,
       rotate: -5,
       z: 20,
     },
@@ -54,9 +64,9 @@ const CARDS = {
       key: "downloads",
       src: "/chart/npm/zod.svg?theme=emerald",
       alt: "npm weekly downloads — zod",
-      top: "46%",
-      left: "30%",
-      width: 300,
+      top: "54%",
+      left: "34%",
+      width: 250,
       rotate: 5,
       z: 10,
     },
@@ -71,12 +81,14 @@ const BADGES = {
   floatAmp: 7, //      px idle vertical drift
   floatSecs: 5, //     seconds per idle loop
   items: [
-    { key: "npm", src: "/npm/zod.svg?variant=branded", alt: "npm zod badge", top: "3%", left: "40%", z: 40 },
-    { key: "build", src: "/badge/build-passing.svg?variant=branded&logo=githubactions", alt: "build passing badge", top: "26%", left: "63%", z: 40 },
-    { key: "stars", src: "/badge/stars-140k.svg?variant=branded&logo=github", alt: "GitHub stars badge", top: "34%", left: "0%", z: 40 },
-    { key: "typescript", src: "/badge/typescript-5.x.svg?variant=branded&logo=typescript", alt: "TypeScript badge", top: "56%", left: "2%", z: 40 },
-    { key: "license", src: "/badge/license-MIT.svg?variant=secondary", alt: "license MIT badge", top: "74%", left: "18%", z: 40 },
-    { key: "discord", src: "/badge/discord-online.svg?variant=branded&logo=discord", alt: "discord badge", top: "78%", left: "56%", z: 40 },
+    { key: "npm", src: "/badge/npm-3.24.1.svg?variant=branded&logo=npm", alt: "npm version badge", top: "4%", left: "68%", z: 40 },
+    { key: "build", src: "/badge/build-passing.svg?variant=branded&logo=githubactions", alt: "build passing badge", top: "24%", left: "60%", z: 40 },
+    { key: "stars", src: "/badge/stars-140k.svg?variant=branded&logo=github", alt: "GitHub stars badge", top: "44%", left: "-2%", z: 40 },
+    { key: "coverage", src: "/badge/coverage-98%25.svg?variant=branded&logo=codecov", alt: "coverage badge", top: "46%", left: "70%", z: 40 },
+    { key: "typescript", src: "/badge/typescript-5.x.svg?variant=branded&logo=typescript", alt: "TypeScript badge", top: "74%", left: "2%", z: 40 },
+    { key: "license", src: "/badge/license-MIT.svg?variant=secondary", alt: "license MIT badge", top: "86%", left: "26%", z: 40 },
+    { key: "prs", src: "/badge/PRs-welcome.svg?variant=outline", alt: "PRs welcome badge", top: "70%", left: "72%", z: 40 },
+    { key: "discord", src: "/badge/discord-online.svg?variant=branded&logo=discord", alt: "discord badge", top: "88%", left: "54%", z: 40 },
   ],
 }
 
@@ -98,9 +110,10 @@ export function HeroShowcase() {
 
   // Tuned layout + motion values baked out of DialKit before shipping.
   const d = {
-    backCard: 520,
-    frontCard: 530,
-    badges: 800,
+    card1: 200,
+    card2: 380,
+    card3: 540,
+    badges: 760,
     cards: {
       riseY: 26,
       blur: 12,
@@ -126,17 +139,18 @@ export function HeroShowcase() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0)
     const timers: ReturnType<typeof setTimeout>[] = []
-    timers.push(setTimeout(() => setStage(s => Math.max(s, 1)), d.backCard))
-    timers.push(setTimeout(() => setStage(s => Math.max(s, 2)), d.frontCard))
-    timers.push(setTimeout(() => setStage(s => Math.max(s, 3)), d.badges))
+    timers.push(setTimeout(() => setStage(s => Math.max(s, 1)), d.card1))
+    timers.push(setTimeout(() => setStage(s => Math.max(s, 2)), d.card2))
+    timers.push(setTimeout(() => setStage(s => Math.max(s, 3)), d.card3))
+    timers.push(setTimeout(() => setStage(s => Math.max(s, 4)), d.badges))
     return () => timers.forEach(clearTimeout)
-  }, [d.backCard, d.frontCard, d.badges])
+  }, [d.card1, d.card2, d.card3, d.badges])
 
   // Keep the placeholder identical in size to avoid layout shift pre-hydration.
   if (!hydrated) return <div className="h-[500px] w-full" />
 
   return (
-    <div className="relative mx-auto h-[500px] w-full max-w-[460px] translate-y-10 lg:translate-y-20">
+    <div className="relative mx-auto h-[500px] w-full max-w-[460px] -translate-y-2 lg:-translate-y-6">
         {/* ── Chart cards (the "charts" story) ── */}
         {CARDS.items.map((card, i) => {
           const atStage = i + 1 // back=1, front=2
@@ -175,13 +189,13 @@ export function HeroShowcase() {
             style={{ top: badge.top, left: badge.left, zIndex: badge.z }}
             initial={{ opacity: 0, scale: BADGES.initialScale }}
             animate={{
-              opacity: stage >= 3 ? 1 : 0,
-              scale: stage >= 3 ? d.badgeGroup.scale : BADGES.initialScale,
+              opacity: stage >= 4 ? 1 : 0,
+              scale: stage >= 4 ? d.badgeGroup.scale : BADGES.initialScale,
             }}
-            transition={{ ...(d.badgeGroup.spring as Transition), delay: stage >= 3 ? i * d.badgeGroup.stagger : 0 }}
+            transition={{ ...(d.badgeGroup.spring as Transition), delay: stage >= 4 ? i * d.badgeGroup.stagger : 0 }}
           >
             <motion.div
-              animate={{ y: stage >= 3 ? [0, -d.badgeGroup.floatAmp, 0] : 0 }}
+              animate={{ y: stage >= 4 ? [0, -d.badgeGroup.floatAmp, 0] : 0 }}
               transition={{ repeat: Infinity, duration: d.badgeGroup.floatSecs, ease: "easeInOut", delay: i * 0.4 }}
               className="drop-shadow-md"
             >
