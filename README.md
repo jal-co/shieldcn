@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://shieldcn.dev">
-    <img src="./packages/web/brand/repo-header.png" alt="shieldcn" />
+    <img alt="shieldcn" src="https://shieldcn.dev/header/graph.svg?title=shieldcn&subtitle=badges%2C+headers%2C+and+charts+for+your+readme&logo=shieldcn&logoColor=848484&mode=dark&align=left&font=geist-mono&border=false" />
   </a>
 </p>
 

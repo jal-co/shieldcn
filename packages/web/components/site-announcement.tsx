@@ -105,8 +105,8 @@ export function SiteAnnouncement() {
 
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
-        <Link href="/docs/charts" className="hover:underline underline-offset-4">
-          Charts — star history, issues &amp; npm downloads
+        <Link href="/header" className="hover:underline underline-offset-4">
+          Headers — banner images for your README
           <ArrowRight className={`size-3 ${ARROW.ease} ${ARROW.nudge}`} />
         </Link>
       </AnnouncementContent>
