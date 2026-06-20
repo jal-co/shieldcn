@@ -53,3 +53,11 @@ visual-test.html
 
 sponsorship-application.txt
 logo-dev-email.txt
+.claude
+
+# pi agent session/goal state (local only)
+.pi/
+
+# interface-craft skill + local-only skills
+/interface-craft/
+.github/skills/

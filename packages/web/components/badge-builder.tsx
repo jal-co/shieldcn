@@ -12,8 +12,8 @@ import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { BadgeBuilderCore } from "@/components/badge-builder-core"
-import { cn } from "@/lib/utils"
 import {
   BUILDER_DEFAULTS,
   buildBadgeUrl,
@@ -60,6 +60,7 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
 export function BadgeBuilder() {
   const [s, setS] = useState<BuilderState>(BUILDER_DEFAULTS)
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const [copyFormat, setCopyFormat] = useState<CopyFormat>("markdown")
   const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
   const { resolvedTheme } = useTheme()
@@ -80,9 +81,16 @@ export function BadgeBuilder() {
 
   const handleCopy = useCallback(() => {
     if (!output) return
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(output).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => {
+        setCopyError(true)
+        setTimeout(() => setCopyError(false), 2000)
+      },
+    )
   }, [output])
 
   return (
@@ -91,22 +99,20 @@ export function BadgeBuilder() {
       {url && (
         <div className="space-y-3">
           {/* Format tabs */}
-          <div className="flex items-center gap-1">
+          <ToggleGroup
+            type="single"
+            value={copyFormat}
+            onValueChange={v => v && setCopyFormat(v as CopyFormat)}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
             {COPY_FORMATS.map(f => (
-              <button
-                key={f.value}
-                onClick={() => setCopyFormat(f.value)}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors",
-                  copyFormat === f.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                )}
-              >
+              <ToggleGroupItem key={f.value} value={f.value} className="flex-1 text-xs">
                 {f.label}
-              </button>
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
 
           {/* Output + copy */}
           <div className="flex items-start gap-2">
@@ -115,8 +121,10 @@ export function BadgeBuilder() {
             </code>
             <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0 h-9">
               {copied
-                ? <><Check className="size-3.5 text-green-500" /> Copied</>
-                : <><Copy className="size-3.5" /> Copy</>
+                ? <><Check className="size-3.5 text-success" /> Copied</>
+                : copyError
+                  ? <><Copy className="size-3.5 text-destructive" /> Failed</>
+                  : <><Copy className="size-3.5" /> Copy</>
               }
             </Button>
           </div>

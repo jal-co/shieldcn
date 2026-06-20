@@ -122,6 +122,15 @@ Minimal self-hosted Next.js app published as a Docker image. Badge API only — 
 
 ## Rules
 
+### Never commit interface-craft dev tools (InterfaceKit + DialKit)
+
+InterfaceKit (`interface-kit`) and DialKit (`dialkit`) are local-only tuning tools from the interface-craft skill for tweaking animation/design values. Both MUST be baked out entirely before any commit, push, or PR.
+
+- MUST NOT commit any InterfaceKit or DialKit code, controls, imports, styles, or render wiring — e.g. `<InterfaceKit />`, `<DialRoot />`, `import { InterfaceKit } from "interface-kit/react"`, `import { DialRoot } from "dialkit"`, or `import "dialkit/styles.css"`.
+- Their panels, roots, sliders, and dev-only wiring are development scaffolding ONLY — strip them out and bake the tuned values in as static literals before committing.
+- Neither `interface-kit` nor `dialkit` may appear in `package.json` — not as a `dependency` and not as a `devDependency`. Add them locally only while tuning (`pnpm add -D interface-kit dialkit`) and remove them again before committing. They must never ship in a production bundle or lockfile.
+- Before committing, verify no `InterfaceKit`, `DialRoot`, `DialKit`, `interface-kit`, or `dialkit` imports or usages remain in staged changes (including `package.json` and `pnpm-lock.yaml`).
+
 ### When adding or updating a badge category:
 
 1. **Update the provider** in `packages/core/src/providers/` with the new fetch functions
