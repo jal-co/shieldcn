@@ -1,6 +1,8 @@
 import type { MDXComponents } from "mdx/types"
 import { BadgeSandbox } from "@/components/badge-sandbox"
 import { BadgePreview, BadgePreviewGroup, BadgePreviewCard } from "@/components/badge-preview"
+import { ChartPreview } from "@/components/chart-preview"
+import { ChartSandbox } from "@/components/chart-sandbox"
 import { CodeBlock } from "@/components/code-block"
 import { CodeLine } from "@/components/code-line"
 import { ApiRefTable } from "@/components/api-ref-table"
@@ -18,6 +20,8 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     BadgePreview,
     BadgePreviewGroup,
     BadgePreviewCard,
+    ChartPreview,
+    ChartSandbox,
 
     // jalco-ui registry components
     CodeBlock,

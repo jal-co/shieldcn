@@ -1,0 +1,175 @@
+---
+title: Charts
+description: Shadcn-styled graphs for GitHub stars, GitHub issues, npm downloads, and your own JSON data — rendered as portable SVGs.
+---
+
+Shadcn-styled line/area charts you can drop in a README, docs site, or anywhere
+an image works — plain SVG, no JavaScript, no iframe. Four kinds: GitHub star
+history (like [starcharts](https://github.com/caarlos0/starcharts)), GitHub
+issues over time, npm downloads, and arbitrary JSON.
+
+<ChartPreview
+  src="/chart/github/stars/vercel/next.js.svg"
+  alt="vercel/next.js star history"
+/>
+
+## Builder
+
+Pick a chart kind, tweak the styling, and copy the URL or markdown.
+
+<ChartSandbox kind="stars" />
+
+## URL format
+
+```
+/chart/github/stars/{owner}/{repo}.svg     → GitHub star history
+/chart/github/issues/{owner}/{repo}.svg    → GitHub issues over time
+/chart/npm/{package}.svg                    → npm weekly downloads
+/chart/json.svg?values=1,2,3                → inline JSON data
+/chart/json.svg?url=...&query=...           → remote JSON data
+```
+
+Every endpoint also serves `.png` and `.json` (the raw time series).
+
+Use it in markdown:
+
+```md
+![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)
+```
+
+Or as a clickable image linking back to the repo:
+
+```md
+[![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)](https://github.com/vercel/next.js)
+```
+
+## GitHub stars
+
+<ChartPreview
+  src="/chart/github/stars/shadcn-ui/ui.svg?theme=blue"
+  alt="shadcn-ui/ui star history"
+  description="Blue accent via theme"
+/>
+
+<ChartPreview
+  src="/chart/github/stars/withastro/astro.svg?bg=transparent&border=false&theme=orange"
+  alt="withastro/astro star history"
+  description="Transparent background, no border — drops onto any page"
+/>
+
+## GitHub issues over time
+
+Cumulative issues opened, sampled from the GitHub search API (pull requests
+excluded).
+
+```
+/chart/github/issues/{owner}/{repo}.svg
+```
+
+<ChartPreview
+  src="/chart/github/issues/honojs/hono.svg?theme=rose"
+  alt="honojs/hono issues over time"
+  description="Issues opened over time"
+/>
+
+## npm downloads
+
+Weekly download buckets over the last year (configurable with `?days=`).
+
+```
+/chart/npm/{package}.svg
+/chart/npm/@scope/{package}.svg
+```
+
+<ChartPreview
+  src="/chart/npm/zod.svg?theme=emerald"
+  alt="zod npm downloads"
+  description="Weekly npm downloads"
+/>
+
+## Your own data (JSON)
+
+Bring numbers inline with `?values=` (comma-separated). Add `?dates=` for a
+time axis or `?labels=` for category ticks — omit both and points are spaced
+evenly and labelled `1, 2, 3, …`.
+
+```
+/chart/json.svg?values=120,180,150,210,260&title=Latency&label=ms
+/chart/json.svg?values=10,20,30&dates=2024-01-01,2024-02-01,2024-03-01
+```
+
+<ChartPreview
+  src="/chart/json.svg?values=120,180,150,210,260,240,300,280,340&title=Latency&label=ms&theme=violet"
+  alt="inline JSON chart"
+  description="Inline values, evenly spaced index axis"
+/>
+
+Or pull from a remote endpoint with [JSONPath](https://github.com/JSONPath-Plus/JSONPath),
+exactly like the [dynamic JSON badge](/docs/badges/dynamic-json). `query`
+selects the value array; optional `dateQuery` selects a parallel date array.
+
+```
+/chart/json.svg?url=https://api.example.com/metrics.json&query=$.points[*].count&dateQuery=$.points[*].date
+```
+
+## Query parameters
+
+| Param | Values | Default | Description |
+|-------|--------|---------|-------------|
+| `mode` | `dark`, `light` | `dark` | Surface and text colors |
+| `theme` | `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald`, … | — | Accent color from the shadcn palette |
+| `color` | hex (no `#`) | `3b82f6` | Line + end-dot color (wins over `theme`) |
+| `fill` | hex (no `#`) | line color | Area fill color, independent of the line |
+| `area` | `true`, `false` | `true` | Show the gradient area fill under the line |
+| `bg` / `background` | `transparent`, hex | mode surface | Card background |
+| `border` | `true`, `false` | `true` | Draw the rounded card border |
+| `font` | `inter`, `geist`, `geist-mono`, `jetbrains-mono`, `fira-code`, `roboto`, `space-grotesk` | `inter` | Font-family stack (same keywords as badges) |
+| `logo` | `false` | shown | Show/hide the shieldcn corner watermark |
+| `logoColor` | hex (no `#`) | muted | Watermark color |
+| `icon` | SimpleIcons slug, `ri:Name`, `false` | auto (github/npm) | Icon left of the title |
+| `iconColor` | hex (no `#`) | title color | Title icon color |
+| `yScale` | `linear`, `log` | `linear` | Y-axis scale type |
+| `yMin` | number | `0` (auto) | Force the y-axis minimum |
+| `yMax` | number | auto | Force the y-axis maximum |
+| `yTicks` | 1–10 | `4` | Number of y-axis gridline intervals |
+| `xTicks` | 2–12 | `3` | Number of x-axis labels |
+| `width` | 200–2000 | `800` | Chart width in px |
+| `height` | 120–1200 | `400` | Chart height in px |
+| `title` | string | per kind | Override the chart title |
+| `days` | 30–540 | `365` | npm download window |
+| `values` | comma numbers | — | Inline JSON data points |
+| `dates` | comma dates | — | Inline JSON x-axis dates |
+| `labels` | comma strings | — | Inline JSON x-axis labels |
+| `url` + `query` | URL + JSONPath | — | Remote JSON data source |
+
+> **Note** — `font` only swaps the **family stack**. Charts are raw SVG (needed
+> for the line paths), and a sandboxed `<img>` SVG can't load embedded fonts —
+> so the rendered typeface depends on what's available to the viewer.
+
+## How star history works
+
+GitHub has no "stars over time" API. shieldcn reconstructs the curve from the
+stargazers endpoint, which (with the `star+json` media type) returns a
+`starred_at` timestamp per stargazer:
+
+- **Small / medium repos** — every page is fetched and the full list is sampled
+  down to ~30 points for an exact curve.
+- **Large repos** — pages are sampled evenly and the first stargazer of each is
+  read, then the curve is anchored to the live star count, exactly like
+  starcharts.
+
+Requests are distributed across the donated [token pool](/token-pool) and
+cached with a 6-hour fresh window plus a 30-day last-known-good fallback, so a
+transient rate limit never collapses the chart.
+
+## Data sources
+
+| Chart | Source | Cache |
+|-------|--------|-------|
+| Stars | [GitHub Stargazers API](https://docs.github.com/en/rest/activity/starring) | 6h fresh · 30d last-known-good |
+| Issues | [GitHub Search API](https://docs.github.com/en/rest/search) (`type:issue`) | 6h fresh · 30d last-known-good |
+| npm | [npm downloads API](https://github.com/npm/registry/blob/main/docs/download-counts.md) | 1h |
+| JSON | inline, or your `url` | 5m (remote) |
+
+GitHub requests are distributed across the donated [token pool](/token-pool)
+and serve a last-known-good copy if the upstream is briefly unavailable.

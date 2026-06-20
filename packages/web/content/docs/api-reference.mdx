@@ -123,6 +123,20 @@ Join any badge paths with `+`. Query params apply to all segments. See [Badge Gr
 | `/badge/{label}-{message}-{color}.svg` | Custom text badge |
 | `/badge/dynamic/json.svg?url=...&query=...` | Dynamic JSON badge |
 
+### Charts
+
+| Endpoint | Description |
+|----------|-------------|
+| `/chart/github/stars/{owner}/{repo}.svg` | GitHub star history |
+| `/chart/github/issues/{owner}/{repo}.svg` | GitHub issues over time |
+| `/chart/npm/{package}.svg` | npm weekly downloads |
+| `/chart/json.svg?values=1,2,3` | Inline JSON data |
+| `/chart/json.svg?url=...&query=...` | Remote JSON (JSONPath) |
+
+Shadcn-styled line/area charts. Support `mode`, `theme`, `color`, `fill`,
+`area`, `bg`, `border`, `font`, `width`, `height`, `title`, `days` (npm), and
+`values`/`dates`/`labels` or `url`/`query` (JSON). See [Charts docs](/docs/charts).
+
 ## Query parameters
 
 <ApiRefTable

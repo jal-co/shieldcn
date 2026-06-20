@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
+import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { BadgeGroupModal } from "@/components/badge-group-modal"
 import { BadgeModal } from "@/components/badge-modal"
@@ -231,7 +232,79 @@ export default function ShowcasePage() {
           </div>
         )}
       </section>
+
+      <ChartShowcase />
     </main>
+  )
+}
+
+const CHART_EXAMPLES: { title: string; description: string; src: string; href: string }[] = [
+  {
+    title: "GitHub stars over time",
+    description: "Star history for any repo — like starcharts, shadcn-styled.",
+    src: "/chart/github/stars/shadcn-ui/ui.svg?theme=blue",
+    href: "/docs/charts",
+  },
+  {
+    title: "GitHub issues over time",
+    description: "Cumulative issues opened, sampled from the search API.",
+    src: "/chart/github/issues/honojs/hono.svg?theme=rose",
+    href: "/docs/charts",
+  },
+  {
+    title: "npm downloads",
+    description: "Weekly downloads for the last year from the npm API.",
+    src: "/chart/npm/zod.svg?theme=emerald",
+    href: "/docs/charts",
+  },
+  {
+    title: "Inline JSON data",
+    description: "Bring your own numbers with ?values= — or a remote ?url=.",
+    src: "/chart/json.svg?values=120,180,150,210,260,240,300,280,340&title=Latency&label=ms&theme=violet",
+    href: "/docs/charts",
+  },
+]
+
+function ChartShowcase() {
+  const hydrated = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+  return (
+    <section
+      id="chart-showcase"
+      aria-labelledby="chart-showcase-title"
+      className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-16 md:px-8"
+    >
+      <div>
+        <h2 id="chart-showcase-title" className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">
+          Charts
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Shadcn-styled graphs for GitHub stars, issues, npm downloads, and your own JSON data.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {CHART_EXAMPLES.map((c) => (
+          <Link
+            key={c.src}
+            href={c.href}
+            className="group rounded-2xl border border-border bg-card p-3 transition-colors hover:border-foreground/20"
+          >
+            <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+              {hydrated ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={adaptUrl(c.src)} alt={c.title} className="w-full" />
+              ) : (
+                <div className="aspect-[2/1] w-full" />
+              )}
+            </div>
+            <div className="px-1 pt-3">
+              <p className="text-sm font-medium">{c.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{c.description}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }
 

@@ -72,6 +72,76 @@ export async function getNpmTotalDownloads(pkg: string): Promise<BadgeData | nul
 }
 
 // ---------------------------------------------------------------------------
+// Downloads time series (for charts)
+// ---------------------------------------------------------------------------
+
+/** A weekly downloads bucket. */
+export interface DownloadPoint {
+  date: string
+  value: number
+}
+
+/** Resolved npm downloads time series. */
+export interface NpmDownloadSeries {
+  pkg: string
+  total: number
+  points: DownloadPoint[]
+}
+
+/** Format a Date as YYYY-MM-DD (UTC). */
+function ymd(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * Daily downloads over the last `days`, aggregated into weekly buckets so the
+ * chart stays readable. Uses the npm downloads/range API.
+ */
+export async function getNpmDownloadSeries(
+  pkg: string,
+  days: number = 365,
+): Promise<NpmDownloadSeries | null> {
+  const end = new Date()
+  const start = new Date(end.getTime() - days * 86400000)
+  const range = `${ymd(start)}:${ymd(end)}`
+  const encoded = encodeURIComponent(pkg)
+  const data = await npmFetch(
+    `https://api.npmjs.org/downloads/range/${range}/${encoded}`,
+    `dlseries:${pkg}:${range}`,
+  )
+  const daily = data?.downloads as Array<{ day?: string; downloads?: number }> | undefined
+  if (!Array.isArray(daily) || daily.length === 0) return null
+
+  // Aggregate consecutive days into weekly buckets.
+  const points: DownloadPoint[] = []
+  let total = 0
+  let bucketStart: string | null = null
+  let bucketSum = 0
+  let count = 0
+  for (const d of daily) {
+    if (typeof d.downloads !== "number" || typeof d.day !== "string") continue
+    if (bucketStart === null) bucketStart = d.day
+    bucketSum += d.downloads
+    total += d.downloads
+    count++
+    if (count === 7) {
+      points.push({ date: bucketStart, value: bucketSum })
+      bucketStart = null
+      bucketSum = 0
+      count = 0
+    }
+  }
+  // Drop the trailing partial week (the current, incomplete week sums only a
+  // day or two and would plunge the curve to ~0 at the right edge). Keep it
+  // only if it's the sole bucket, so short ranges still render something.
+  if (bucketStart !== null && count > 0 && points.length === 0) {
+    points.push({ date: bucketStart, value: bucketSum })
+  }
+  if (points.length === 0) return null
+  return { pkg, total, points }
+}
+
+// ---------------------------------------------------------------------------
 // License
 // ---------------------------------------------------------------------------
 
