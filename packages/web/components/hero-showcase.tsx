@@ -44,9 +44,9 @@ const CARDS = {
       src: "/header/dots.svg?title=shieldcn&subtitle=Headers for your README&logo=shieldcn",
       alt: "repository header banner — shieldcn",
       // position within the stage (% of container)
-      top: "2%",
-      left: "2%",
-      width: 330,
+      top: "10%",
+      left: "3%",
+      width: 312,
       rotate: -3,
       z: 30,
     },
@@ -54,9 +54,9 @@ const CARDS = {
       key: "stars",
       src: "/chart/github/stars/vercel/next.js.svg?theme=blue",
       alt: "GitHub star history — vercel/next.js",
-      top: "30%",
-      left: "-2%",
-      width: 260,
+      top: "40%",
+      left: "3%",
+      width: 244,
       rotate: -5,
       z: 20,
     },
@@ -64,9 +64,9 @@ const CARDS = {
       key: "downloads",
       src: "/chart/npm/zod.svg?theme=emerald",
       alt: "npm weekly downloads — zod",
-      top: "54%",
-      left: "34%",
-      width: 250,
+      top: "58%",
+      left: "35%",
+      width: 236,
       rotate: 5,
       z: 10,
     },
@@ -81,14 +81,13 @@ const BADGES = {
   floatAmp: 7, //      px idle vertical drift
   floatSecs: 5, //     seconds per idle loop
   items: [
-    { key: "npm", src: "/badge/npm-3.24.1.svg?variant=branded&logo=npm", alt: "npm version badge", top: "4%", left: "68%", z: 40 },
-    { key: "build", src: "/badge/build-passing.svg?variant=branded&logo=githubactions", alt: "build passing badge", top: "24%", left: "60%", z: 40 },
-    { key: "stars", src: "/badge/stars-140k.svg?variant=branded&logo=github", alt: "GitHub stars badge", top: "44%", left: "-2%", z: 40 },
-    { key: "coverage", src: "/badge/coverage-98%25.svg?variant=branded&logo=codecov", alt: "coverage badge", top: "46%", left: "70%", z: 40 },
-    { key: "typescript", src: "/badge/typescript-5.x.svg?variant=branded&logo=typescript", alt: "TypeScript badge", top: "74%", left: "2%", z: 40 },
-    { key: "license", src: "/badge/license-MIT.svg?variant=secondary", alt: "license MIT badge", top: "86%", left: "26%", z: 40 },
-    { key: "prs", src: "/badge/PRs-welcome.svg?variant=outline", alt: "PRs welcome badge", top: "70%", left: "72%", z: 40 },
-    { key: "discord", src: "/badge/discord-online.svg?variant=branded&logo=discord", alt: "discord badge", top: "88%", left: "54%", z: 40 },
+    { key: "npm", src: "/badge/npm-3.24.1.svg?variant=branded&logo=npm", alt: "npm version badge", top: "14%", left: "64%", z: 40 },
+    { key: "build", src: "/badge/build-passing.svg?variant=branded&logo=githubactions", alt: "build passing badge", top: "30%", left: "56%", z: 40 },
+    { key: "stars", src: "/badge/stars-140k.svg?variant=branded&logo=github", alt: "GitHub stars badge", top: "46%", left: "4%", z: 40 },
+    { key: "coverage", src: "/badge/coverage-98%25.svg?variant=branded&logo=codecov", alt: "coverage badge", top: "60%", left: "64%", z: 40 },
+    { key: "typescript", src: "/badge/typescript-5.x.svg?variant=branded&logo=typescript", alt: "TypeScript badge", top: "74%", left: "4%", z: 40 },
+    { key: "license", src: "/badge/license-MIT.svg?variant=secondary", alt: "license MIT badge", top: "84%", left: "30%", z: 40 },
+    { key: "discord", src: "/badge/discord-online.svg?variant=branded&logo=discord", alt: "discord badge", top: "82%", left: "56%", z: 40 },
   ],
 }
 
@@ -150,7 +149,7 @@ export function HeroShowcase() {
   if (!hydrated) return <div className="h-[500px] w-full" />
 
   return (
-    <div className="relative mx-auto h-[500px] w-full max-w-[460px] -translate-y-2 lg:-translate-y-6">
+    <div className="relative mx-auto h-[440px] w-full max-w-[440px] translate-y-0">
         {/* ── Chart cards (the "charts" story) ── */}
         {CARDS.items.map((card, i) => {
           const atStage = i + 1 // back=1, front=2
