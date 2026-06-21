@@ -4,6 +4,8 @@ import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
 import { Heart, ExternalLink, Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SponsorReveal } from "@/components/sponsor-entrance"
 import { SiteShell } from "@/components/site-shell"
 
 function ShadcnCraftLogo({ className }: { className?: string }) {
@@ -206,17 +208,9 @@ export default async function SponsorPage() {
   return (
     <SiteShell>
       <main className="min-w-0 flex-1 flex items-start justify-center">
-        <div
-          className="hidden w-4 shrink-0 self-stretch border-l border-dashed border-border md:block"
-          style={{
-            background:
-              "repeating-linear-gradient(45deg, transparent, transparent 2px, color-mix(in oklab, var(--color-border) 60%, transparent) 2px, color-mix(in oklab, var(--color-border) 60%, transparent) 3.5px), var(--background)",
-          }}
-        />
-
-        <div className="flex w-full max-w-3xl flex-col border-x border-dashed border-border bg-background">
+        <div className="flex w-full max-w-3xl flex-col bg-background">
           {/* Hero */}
-          <section className="flex flex-col gap-6 border-b px-6 py-14 sm:px-10">
+          <SponsorReveal step={0} className="flex flex-col gap-6 px-6 py-14 sm:px-10">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 <Heart className="size-3.5" />
@@ -230,14 +224,14 @@ export default async function SponsorPage() {
                 design language. Every badge endpoint is free and that&apos;s not
                 changing.
               </p>
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
                 I&apos;m not going to paywall features or gate badge types behind
                 a sponsorship tier. But if shieldcn made your README look
                 better, or you just like that this exists in the open,
                 sponsoring is a nice way to say so. It helps me justify spending
                 real time on it instead of treating it like a side-of-desk thing.
               </p>
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
                 Any amount is genuinely appreciated. And if money&apos;s not your
                 thing, starring the repo or sharing a badge you liked works too.
               </p>
@@ -254,16 +248,16 @@ export default async function SponsorPage() {
                 <ExternalLink className="size-3.5 opacity-60" />
               </Button>
             </a>
-          </section>
+          </SponsorReveal>
 
           {/* Sponsor tiers */}
           <section className="flex flex-col">
-            {tiers.map((tier) => {
+            {tiers.map((tier, tierIndex) => {
               const filled = tier.sponsors.length
               const empty = tier.slots - filled
 
               return (
-                <div key={tier.name} className="flex flex-col gap-3 border-b px-6 py-6 sm:px-10">
+                <SponsorReveal key={tier.name} step={1 + tierIndex} className="flex flex-col gap-3 px-6 py-6 sm:px-10">
                   <div
                     className="relative flex items-center justify-center rounded-md px-8 py-2.5"
                     style={{
@@ -335,54 +329,57 @@ export default async function SponsorPage() {
                       </a>
                     ))}
                   </div>
-                </div>
+                </SponsorReveal>
               )
             })}
           </section>
 
           {/* Stargazers */}
           {stargazers.length > 0 && (
-            <section className="flex flex-col border-b">
-              <div className="flex items-center gap-3 px-6 py-3 sm:px-10">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-foreground">
-                  Stargazers
-                </h3>
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {stargazers.length}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-0 border-t py-4">
-                {stargazers.map((user) => (
-                  <a
-                    key={user.login}
-                    href={`https://github.com/${user.login}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={user.login}
-                    className="group relative p-1.5 transition-colors hover:bg-accent/50"
-                  >
-                    <Image
-                      src={user.avatar_url}
-                      alt={user.login}
-                      width={36}
-                      height={36}
-                      className="rounded-full ring-1 ring-border transition-all group-hover:ring-foreground/30 group-hover:scale-110"
-                      unoptimized
-                    />
-                  </a>
-                ))}
-              </div>
-            </section>
+            <SponsorReveal step={1 + tiers.length} className="px-6 py-6 sm:px-10">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-xs font-bold uppercase tracking-wide">
+                    Stargazers
+                    <span className="text-xs tabular-nums font-normal text-muted-foreground">
+                      {stargazers.length}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap justify-center gap-0">
+                    {stargazers.map((user) => (
+                      <a
+                        key={user.login}
+                        href={`https://github.com/${user.login}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={user.login}
+                        className="group relative p-1.5 transition-colors hover:bg-accent/50"
+                      >
+                        <Image
+                          src={user.avatar_url}
+                          alt={user.login}
+                          width={36}
+                          height={36}
+                          className="rounded-full ring-1 ring-border transition-all group-hover:ring-foreground/30 group-hover:scale-110"
+                          unoptimized
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </SponsorReveal>
           )}
 
           {/* CTA */}
-          <section className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
+          <SponsorReveal step={2 + tiers.length} className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
             <div className="flex flex-col items-center gap-2 text-center">
-              <h2 className="text-lg font-bold tracking-tight">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Want to support the project?
               </h2>
-              <p className="max-w-sm text-sm text-muted-foreground">
+              <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
                 Every bit helps — whether it&apos;s a sponsorship, a star, or sharing
                 something you found useful.
               </p>
@@ -402,16 +399,8 @@ export default async function SponsorPage() {
                 </Button>
               </a>
             </div>
-          </section>
+          </SponsorReveal>
         </div>
-
-        <div
-          className="hidden w-4 shrink-0 self-stretch border-r border-dashed border-border md:block"
-          style={{
-            background:
-              "repeating-linear-gradient(45deg, transparent, transparent 2px, color-mix(in oklab, var(--color-border) 60%, transparent) 2px, color-mix(in oklab, var(--color-border) 60%, transparent) 3.5px), var(--background)",
-          }}
-        />
       </main>
     </SiteShell>
   )
