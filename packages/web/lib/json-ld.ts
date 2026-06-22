@@ -91,6 +91,53 @@ export function profileReadmeJsonLd() {
   }
 }
 
+/** WebApplication schema for the README Studio — visual README builder */
+export function studioJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "shieldcn README Studio",
+    alternateName: ["README Builder", "GitHub README Maker", "README Generator"],
+    url: `${SITE_URL}/studio`,
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any",
+    browserRequirements: "Requires a modern web browser. No signup or install.",
+    description:
+      "A free, browser-based visual tool to build a GitHub README. Compose headers, badges, charts, tables, images, and Markdown with a live preview and a property inspector, then export clean GitHub-flavored Markdown.",
+    featureList: [
+      "Visual block editor for README files",
+      "Drag-and-drop headers, badges, charts, tables, images, and Markdown",
+      "Live preview with a Figma-style property inspector",
+      "Photo header backgrounds (Unsplash) with auto scrim",
+      "Light/dark adaptive badges via GitHub <picture>",
+      "One-click export to clean GitHub-flavored Markdown",
+    ],
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    author: {
+      "@type": "Person",
+      name: "Justin Levine",
+      url: "https://justinlevine.me",
+    },
+    isAccessibleForFree: true,
+    keywords: [
+      "github readme tool",
+      "readme builder",
+      "readme generator",
+      "readme maker",
+      "github readme builder",
+      "readme editor",
+      "readme badges",
+      "readme charts",
+      "markdown readme builder",
+      "shadcn badges",
+    ],
+  }
+}
+
 /** TechArticle schema for doc pages */
 export function techArticleJsonLd({
   title,

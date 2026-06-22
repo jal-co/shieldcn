@@ -51,6 +51,7 @@ const docsNav: NavGroup[] = [
     alwaysOpen: true,
     items: [
       { title: "Introduction", href: "/docs" },
+      { title: "README Studio", href: "/docs/studio" },
       { title: "CLI", href: "/docs/cli" },
       { title: "Agent Skill", href: "/docs/skill" },
       { title: "Self-Hosting", href: "/docs/self-hosting" },

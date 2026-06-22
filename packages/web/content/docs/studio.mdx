@@ -1,0 +1,55 @@
+---
+title: README Studio
+description: A free visual GitHub README builder. Compose headers, badges, charts, tables, and Markdown with a live preview, then export clean Markdown.
+---
+
+**[README Studio](/studio)** is a free, browser-based visual tool for building a GitHub README. It is a Figma-style editor: a document of reorderable blocks, a live preview, and a property inspector that maps to the real badge, header, and chart options. When you are done, it exports clean GitHub-flavored Markdown you can paste straight into `README.md`.
+
+No signup, no install, no build step. Everything runs in your browser and the output renders identically on GitHub.
+
+<InlineHint variant="tip">Open the builder at <a href="/studio">shieldcn.dev/studio</a> and start from the example document, or reset to a blank canvas.</InlineHint>
+
+## Why use a visual README builder?
+
+Writing a README by hand means hand-crafting badge URLs, remembering `<picture>` markup for light/dark images, and eyeballing alignment. The Studio removes that friction:
+
+- **See it as you build it.** The live preview renders Markdown (via GitHub-flavored Markdown) and your badges, headers, and charts exactly as GitHub will.
+- **Edit real props, not raw URLs.** Pick a badge type, variant, theme, logo, and colors from an inspector. The Studio writes the URL for you.
+- **Export clean Markdown.** Copy the whole README or download `README.md` in one click.
+
+## Block types
+
+A README in the Studio is an ordered list of blocks. Add any of:
+
+| Block | What it does |
+|-------|--------------|
+| **Text** | A Markdown editor with a formatting toolbar (bold, italic, link, heading, list, table) and per-block alignment. Renders full GitHub-flavored Markdown — headings, lists, tables, code blocks, task lists. |
+| **Header** | A repository [header banner](/docs/headers): logo, title, tagline, a shadcn-styled or **photo (Unsplash) background**, served from a single image URL. |
+| **Badges** | A row of [badges](/docs/badges/github) with a searchable type picker, variants, themes, logos, split styling, per-row alignment, and links. |
+| **Chart** | A [star-history, issues, npm-downloads, or inline-JSON chart](/docs/charts). |
+| **Table** | A spreadsheet-style grid editor with per-column alignment, exported as a GitHub-flavored Markdown table. |
+| **Image** | Any image by URL or repo-relative path, with alignment, width, and an optional link. |
+
+## How it works
+
+1. **Add blocks** from the toolbar (Text, Header, Badges, Chart, Table, Image).
+2. **Select a block** to edit its properties in the inspector. Drag blocks in the Layers panel to reorder.
+3. **Toggle Adaptive** to export every badge, header, and chart as a GitHub `<picture>` that follows the reader's light or dark theme. See [Light & Dark Mode](/docs/customization/light-dark-mode).
+4. **Copy or Download** the generated Markdown from the toolbar, or switch to the Markdown view to see the source.
+
+Your work is saved to your browser automatically, so a work-in-progress README survives a reload.
+
+## Export
+
+The Studio produces standard GitHub-flavored Markdown:
+
+<CodeLine language="markdown" code="![npm version](https://shieldcn.dev/npm/react.svg)" />
+
+Badges, headers, and charts become image URLs; text blocks pass through as Markdown; tables become Markdown tables; and centered content is wrapped in the small HTML (`<p align>` / `<div align>`) that GitHub supports.
+
+## Related
+
+- [Repository headers](/docs/headers) — the header banners you can drop into the Studio, including photo backgrounds.
+- [Badges](/docs/badges/github) — every badge provider the Studio can add.
+- [Charts](/docs/charts) — star-history, issues, and npm-download charts.
+- [Agent Skill](/docs/skill) — let AI coding agents add shieldcn badges and build READMEs for you.

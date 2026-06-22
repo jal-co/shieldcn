@@ -29,7 +29,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${BASE_URL}/studio`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE_URL}/showcase`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/header`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/gen`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/gen/profile`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/sponsor`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },

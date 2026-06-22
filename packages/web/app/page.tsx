@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { SiteAnnouncement } from "@/components/site-announcement"
 import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
@@ -16,7 +17,7 @@ import { websiteJsonLd, softwareAppJsonLd } from "@/lib/json-ld"
 export const metadata: Metadata = pageMetadata({
   title: "shieldcn — Beautiful README Badges & Charts",
   description:
-    "Beautiful GitHub README badges and charts styled as shadcn/ui. Generate SVG and PNG badges for npm, GitHub, GitLab, Discord, NBA, and 45+ providers, plus star-history, issues, and npm-download charts. 6 variants, 16 themes, 40,000+ icons. Free and open source.",
+    "Beautiful GitHub README badges and charts styled as shadcn/ui, plus a free visual README builder. Generate SVG and PNG badges for npm, GitHub, GitLab, Discord, and 45+ providers, build charts and header banners, and compose a whole README in the Studio. Free and open source.",
   path: "/",
   ogTitle: "shieldcn — Beautiful README Badges",
 })
@@ -67,7 +68,11 @@ export default async function Home() {
             <div className="mb-8 max-w-lg">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Build your badge</h2>
               <p className="mt-3 text-pretty text-muted-foreground">
-                Pick a type, customize the look, copy the output.
+                Pick a type, customize the look, copy the output. Or{" "}
+                <Link href="/studio" className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80">
+                  build your whole README in the README Studio
+                </Link>{" "}
+                — a visual GitHub README builder for headers, badges, and charts.
               </p>
             </div>
             <BadgeBuilder />

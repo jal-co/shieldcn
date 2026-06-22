@@ -16,6 +16,28 @@ Add a badge to any markdown file:
 
 No configuration, no API keys, no build step.
 
+## README Studio (visual README builder)
+
+The README Studio is a free, browser-based visual tool for building an entire GitHub README: https://shieldcn.dev/studio
+
+It is a Figma-style editor with a block document, a live preview, and a property inspector. Add and reorder blocks, then export clean GitHub-flavored Markdown:
+
+- Text — a Markdown editor with a formatting toolbar, alignment, and table insert
+- Header — repository header banners with logo, title, tagline, and shadcn-styled or photo (Unsplash) backgrounds
+- Badges — rows of badges with a searchable type picker, variants, themes, logos, and links
+- Chart — star-history, issues, npm-downloads, and inline-JSON charts
+- Table — a spreadsheet-style grid exported as a Markdown table
+- Image — any image by URL or path
+
+It also has a one-click "Adaptive" toggle that exports badges, headers, and charts as GitHub `<picture>` elements that follow the reader's light/dark theme. No signup, no install. Docs: https://shieldcn.dev/docs/studio
+
+## Charts and headers
+
+Beyond badges, shieldcn renders:
+
+- Charts — star-history, GitHub issues, and npm-download line charts: `https://shieldcn.dev/chart/github/stars/{owner}/{repo}.svg`
+- Headers — repository header banners (logo + title + tagline, premade or photo/Unsplash backgrounds): `https://shieldcn.dev/header/{preset}.svg?title=...`
+
 ## Supported providers
 
 npm, GitHub, Discord, Reddit, PyPI, Crates.io, Docker Hub, Bluesky, JSR, Bundlephobia, YouTube, VS Code Marketplace, Open Collective, Hacker News, Mastodon, Lemmy, Packagist, RubyGems, NuGet, Pub.dev, Homebrew, Maven, CocoaPods, Codecov, WakaTime, Tokscale, IndieDevs, GitLab, Conda, Chrome Web Store, Firefox Add-ons (AMO), Coveralls, SonarQube, jsDelivr, Chocolatey, Flathub, Snapcraft, F-Droid, Discourse, Stack Exchange, Modrinth, Open VSX, Liberapay, Matrix, Weblate, static badges, dynamic JSON, HTTPS endpoint, and memo badges.
@@ -36,7 +58,10 @@ Works with Claude Code, Cursor, Codex, Windsurf, and 40+ more agents via skills.
 - Documentation: https://shieldcn.dev/docs
 - Agent Skill: https://shieldcn.dev/docs/skill
 - API Reference: https://shieldcn.dev/docs/api-reference
+- README Studio (visual README builder): https://shieldcn.dev/studio
 - Showcase: https://shieldcn.dev/showcase
 - Badge Generator: https://shieldcn.dev/gen
+- Header Generator: https://shieldcn.dev/header
+- Studio docs: https://shieldcn.dev/docs/studio
 - GitHub: https://github.com/jal-co/shieldcn
 - Full LLM context: https://shieldcn.dev/llms-full.txt

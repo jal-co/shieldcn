@@ -260,7 +260,7 @@ export function Studio() {
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-sm font-semibold tracking-tight">README Studio</h1>
+          <span className="text-sm font-semibold tracking-tight">README Studio</span>
           <Badge variant="secondary" className="h-5 rounded-full px-2 text-[10px] font-medium uppercase tracking-wide">Beta</Badge>
           <span className="hidden truncate text-xs text-muted-foreground sm:inline">· {blocks.length} blocks</span>
         </div>

@@ -551,6 +551,44 @@ Three icon libraries with 40,000+ icons total, plus custom SVG upload.
 ![gitlab](https://shieldcn.dev/gitlab/inkscape/inkscape/stars.svg)
 ```
 
+## README Studio (visual README builder)
+
+The README Studio is a free, browser-based visual tool for building an entire GitHub README at https://shieldcn.dev/studio (docs: https://shieldcn.dev/docs/studio).
+
+It is a Figma-style editor: a document of reorderable blocks, a live preview, and a property inspector that maps to the real badge/header/chart options. You compose the README visually and export clean GitHub-flavored Markdown. Block types:
+
+- Text — a Markdown editor with a formatting toolbar (bold, italic, link, heading, list, table) and per-block alignment; renders full GitHub-flavored Markdown.
+- Header — repository header banners: logo, title, tagline, and a shadcn-styled or photo (Unsplash) background.
+- Badges — rows of badges with a searchable type picker, variants, themes, logos, split styling, per-row alignment, and links.
+- Chart — star-history, GitHub issues, npm-downloads, or inline-JSON charts.
+- Table — a spreadsheet-style grid exported as a GitHub-flavored Markdown table.
+- Image — any image by URL or repo-relative path, with alignment, width, and an optional link.
+
+A one-click "Adaptive" toggle exports badges, headers, and charts as GitHub `<picture>` elements that follow the reader's light/dark theme. Work is auto-saved to the browser. No signup, no install.
+
+## Charts
+
+shieldcn renders line charts as inlined SVG/PNG, styled like the badges:
+
+```
+https://shieldcn.dev/chart/github/stars/{owner}/{repo}.svg   → star-history chart
+https://shieldcn.dev/chart/github/issues/{owner}/{repo}.svg  → issues over time
+https://shieldcn.dev/chart/npm/{package}.svg                 → npm downloads
+https://shieldcn.dev/chart/json.svg?values=10,25,40,30,60    → inline JSON data
+```
+
+Supports `theme`, `font`, `color`, `fill`, `area`, `width`, `height`, `title`, `icon`, and `mode` query parameters. Docs: https://shieldcn.dev/docs/charts
+
+## Headers
+
+shieldcn renders repository header banners (logo + title + tagline) from a single image URL:
+
+```
+https://shieldcn.dev/header/{preset}.svg?title=Acme&subtitle=A%20toolkit
+```
+
+Presets: surface, gradient, dots, grid, graph, glow, transparent. Supports `logo`, `theme`, `size`, `align`, `font`, `border`, plus a photo background via `image=<url>` (any image or Unsplash URL, fetched and inlined, with an auto scrim and tunable `overlay`/`tint`). Docs: https://shieldcn.dev/docs/headers
+
 ## Key differences from shields.io
 
 - Badges look like shadcn/ui Button components, not flat rectangles
@@ -591,8 +629,11 @@ npx skills add jal-co/shieldcn -a claude-code
 
 - Homepage: https://shieldcn.dev
 - Documentation: https://shieldcn.dev/docs
+- README Studio (visual README builder): https://shieldcn.dev/studio
+- Studio docs: https://shieldcn.dev/docs/studio
 - Agent Skill: https://shieldcn.dev/docs/skill
 - API Reference: https://shieldcn.dev/docs/api-reference
 - Showcase: https://shieldcn.dev/showcase
 - Badge Generator: https://shieldcn.dev/gen
+- Header Generator: https://shieldcn.dev/header
 - GitHub: https://github.com/jal-co/shieldcn

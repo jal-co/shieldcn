@@ -3,6 +3,7 @@
   "pages": [
     "---Getting Started---",
     "index",
+    "studio",
     "cli",
     "skill",
     "self-hosting",

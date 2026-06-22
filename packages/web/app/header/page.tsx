@@ -5,9 +5,9 @@ import { HeaderBuilder } from "@/components/header-builder"
 import { pageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Repository Header Generator",
+  title: "GitHub README Header Generator",
   description:
-    "Generate beautiful repository header banners for your GitHub README — your logo, premade shadcn-styled backgrounds, a title and tagline, all served from a single image URL. SVG and PNG, dark and light.",
+    "Free tool to generate GitHub README header banners: your logo, a title and tagline, shadcn-styled or photo (Unsplash) backgrounds, all served from one image URL. SVG and PNG, dark and light.",
   path: "/header",
 })
 
