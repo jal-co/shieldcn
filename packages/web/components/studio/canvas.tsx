@@ -143,6 +143,7 @@ export const BlockFrame = memo(function BlockFrame({ block, selected, siteMode, 
       className={cn(
         "group relative cursor-pointer rounded-lg border-2 border-transparent px-4 py-3 transition-colors",
         "hover:border-border/70 hover:bg-muted/30",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         selected && "border-primary bg-primary/[0.03] hover:border-primary",
       )}
     >

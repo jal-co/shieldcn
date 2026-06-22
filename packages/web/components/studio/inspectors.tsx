@@ -796,7 +796,7 @@ export function TableInspector({ block, onChange }: { block: TableBlock; onChang
           {block.headers.map((_, c) => (
             <Tip key={`del-${c}`} label="Delete column">
               <button
-                className="flex h-5 items-center justify-center rounded text-muted-foreground/50 hover:text-destructive disabled:opacity-30"
+                className="flex h-5 items-center justify-center rounded text-muted-foreground/50 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-30"
                 onClick={() => removeColumn(c)}
                 disabled={cols <= 1}
                 aria-label={`Delete column ${c + 1}`}
@@ -820,7 +820,7 @@ export function TableInspector({ block, onChange }: { block: TableBlock; onChang
             return (
               <Tip key={`a-${c}`} label={`Column alignment: ${a} — click to change`}>
                 <button
-                  className="flex h-6 items-center justify-center gap-1 rounded border border-border bg-muted/40 text-[10px] text-muted-foreground hover:text-foreground"
+                  className="flex h-6 items-center justify-center gap-1 rounded border border-border bg-muted/40 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                   onClick={() => setAlign(c)}
                   aria-label={`Column ${c + 1} alignment: ${a}`}
                 >
@@ -839,7 +839,7 @@ export function TableInspector({ block, onChange }: { block: TableBlock; onChang
               ))}
               <Tip label="Delete row">
                 <button
-                  className="flex items-center justify-center rounded text-muted-foreground/50 hover:text-destructive disabled:opacity-30"
+                  className="flex items-center justify-center rounded text-muted-foreground/50 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-30"
                   onClick={() => removeRow(r)}
                   disabled={block.rows.length <= 1}
                   aria-label={`Delete row ${r + 1}`}

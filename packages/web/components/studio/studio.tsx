@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useState } from "react"
 import {
   Copy, Check, Download, RotateCcw, Plus, Trash2, Copy as Duplicate,
-  ChevronUp, ChevronDown, Type, Image as ImageIcon, Images, Tag, LineChart, Table as TableIcon, Code2, Eye, GripVertical, SunMoon,
+  ChevronUp, ChevronDown, Type, Image as ImageIcon, Images, Tag, LineChart, Table as TableIcon, Code2, Eye, GripVertical, SunMoon, X,
 } from "lucide-react"
 import { useSyncExternalStore } from "react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
@@ -110,6 +110,7 @@ export function Studio() {
   const [copied, setCopied] = useState(false)
   const [view, setView] = useState<"design" | "code">("design")
   const [themeAware, setThemeAware] = useState(false)
+  const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
@@ -147,6 +148,14 @@ export function Studio() {
   }, [themeAware, hydrated])
 
   const selected = blocks.find(b => b.id === selectedId) ?? null
+  const selectedIndex = blocks.findIndex(b => b.id === selectedId)
+
+  // Selecting a block opens the inspector. On mobile that inspector is a
+  // bottom sheet; on desktop the open flag is inert (sheet is md:hidden).
+  const selectBlock = useCallback((id: string) => {
+    setSelectedId(id)
+    setMobileInspectorOpen(true)
+  }, [])
 
   // --- mutations -----------------------------------------------------------
 
@@ -164,6 +173,7 @@ export function Studio() {
       return copy
     })
     setSelectedId(block.id)
+    setMobileInspectorOpen(true)
   }, [selectedId])
 
   const removeBlock = useCallback((id: string) => {
@@ -227,6 +237,22 @@ export function Studio() {
   if (!hydrated) {
     return <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading studio…</div>
   }
+
+  const inspectorBody = !selected ? (
+    <p className="text-sm text-muted-foreground">Select a block to edit its properties.</p>
+  ) : selected.type === "markdown" ? (
+    <MarkdownInspector block={selected as MarkdownBlock} onChange={updateBlock} />
+  ) : selected.type === "header" ? (
+    <HeaderInspector block={selected as HeaderBlock} onChange={updateBlock} />
+  ) : selected.type === "badges" ? (
+    <BadgesInspector block={selected as BadgesBlock} onChange={updateBlock} />
+  ) : selected.type === "table" ? (
+    <TableInspector block={selected as TableBlock} onChange={updateBlock} />
+  ) : selected.type === "image" ? (
+    <ImageInspector block={selected as ImageBlock} onChange={updateBlock} />
+  ) : (
+    <ChartInspector block={selected as ChartBlock} onChange={updateBlock} />
+  )
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -321,15 +347,15 @@ export function Studio() {
                     )}
                   >
                     <GripVertical className="size-3.5 shrink-0 cursor-grab text-muted-foreground/60 active:cursor-grabbing" aria-hidden />
-                    <button className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => setSelectedId(block.id)}>
+                    <button className="flex min-w-0 flex-1 items-center gap-2 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" onClick={() => setSelectedId(block.id)}>
                       <Icon className="size-3.5 shrink-0" />
                       <span className="truncate text-xs">{blockSummary(block)}</span>
                     </button>
-                    <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100">
-                      <Tip label="Move up"><button className="rounded p-0.5 hover:text-foreground disabled:opacity-30" disabled={i === 0} onClick={() => moveBlock(i, i - 1)} aria-label="Move up"><ChevronUp className="size-3.5" /></button></Tip>
-                      <Tip label="Move down"><button className="rounded p-0.5 hover:text-foreground disabled:opacity-30" disabled={i === blocks.length - 1} onClick={() => moveBlock(i, i + 1)} aria-label="Move down"><ChevronDown className="size-3.5" /></button></Tip>
-                      <Tip label="Duplicate"><button className="rounded p-0.5 hover:text-foreground" onClick={() => duplicateBlock(block.id)} aria-label="Duplicate"><Duplicate className="size-3" /></button></Tip>
-                      <Tip label="Delete"><button className="rounded p-0.5 hover:text-destructive" onClick={() => removeBlock(block.id)} aria-label="Delete"><Trash2 className="size-3.5" /></button></Tip>
+                    <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <Tip label="Move up"><button className="rounded p-1 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-30" disabled={i === 0} onClick={() => moveBlock(i, i - 1)} aria-label="Move up"><ChevronUp className="size-3.5" /></button></Tip>
+                      <Tip label="Move down"><button className="rounded p-1 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-30" disabled={i === blocks.length - 1} onClick={() => moveBlock(i, i + 1)} aria-label="Move down"><ChevronDown className="size-3.5" /></button></Tip>
+                      <Tip label="Duplicate"><button className="rounded p-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" onClick={() => duplicateBlock(block.id)} aria-label="Duplicate"><Duplicate className="size-3" /></button></Tip>
+                      <Tip label="Delete"><button className="rounded p-1 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" onClick={() => removeBlock(block.id)} aria-label="Delete"><Trash2 className="size-3.5" /></button></Tip>
                     </div>
                   </li>
                 )
@@ -360,7 +386,25 @@ export function Studio() {
             <div className="mx-auto max-w-3xl p-4 sm:p-6">
               <div className="rounded-xl border border-border bg-background p-4 shadow-sm sm:p-6">
                 {blocks.length === 0 ? (
-                  <p className="py-12 text-center text-sm text-muted-foreground">No blocks yet. Add one from the toolbar.</p>
+                  <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+                    <div className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
+                      <Type className="size-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Start your README</p>
+                      <p className="mx-auto max-w-xs text-sm text-muted-foreground">Add a block to begin. Mix text, headers, badges, charts, tables, and images, then export clean Markdown.</p>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {(["markdown", "header", "badges", "chart", "table", "image"] as BlockType[]).map(type => {
+                        const Icon = BLOCK_ICONS[type]
+                        return (
+                          <Button key={type} variant="outline" size="sm" className="gap-1.5" onClick={() => addBlock(type)}>
+                            <Icon className="size-3.5" /> {BLOCK_LABELS[type]}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-1">
                     {blocks.map(block => (
@@ -370,7 +414,7 @@ export function Studio() {
                         siteMode={mode}
                         themeAware={themeAware}
                         selected={block.id === selectedId}
-                        onSelect={() => setSelectedId(block.id)}
+                        onSelect={() => selectBlock(block.id)}
                       />
                     ))}
                   </div>
@@ -395,24 +439,31 @@ export function Studio() {
             ) : null}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            {!selected ? (
-              <p className="text-sm text-muted-foreground">Select a block to edit its properties.</p>
-            ) : selected.type === "markdown" ? (
-              <MarkdownInspector block={selected as MarkdownBlock} onChange={updateBlock} />
-            ) : selected.type === "header" ? (
-              <HeaderInspector block={selected as HeaderBlock} onChange={updateBlock} />
-            ) : selected.type === "badges" ? (
-              <BadgesInspector block={selected as BadgesBlock} onChange={updateBlock} />
-            ) : selected.type === "table" ? (
-              <TableInspector block={selected as TableBlock} onChange={updateBlock} />
-            ) : selected.type === "image" ? (
-              <ImageInspector block={selected as ImageBlock} onChange={updateBlock} />
-            ) : (
-              <ChartInspector block={selected as ChartBlock} onChange={updateBlock} />
-            )}
+            {inspectorBody}
           </div>
         </aside>
       </div>
+
+      {/* Mobile inspector — bottom sheet (below md, where the side panel is hidden) */}
+      {mobileInspectorOpen && selected ? (
+        <div className="md:hidden" role="dialog" aria-modal="true" aria-label={`${BLOCK_LABELS[selected.type]} settings`}>
+          <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setMobileInspectorOpen(false)} aria-hidden="true" />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl border-t border-border bg-background shadow-xl">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{BLOCK_LABELS[selected.type]} settings</p>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="size-8" disabled={selectedIndex <= 0} onClick={() => moveBlock(selectedIndex, selectedIndex - 1)} aria-label="Move block up"><ChevronUp className="size-4" /></Button>
+                <Button variant="ghost" size="icon" className="size-8" disabled={selectedIndex >= blocks.length - 1} onClick={() => moveBlock(selectedIndex, selectedIndex + 1)} aria-label="Move block down"><ChevronDown className="size-4" /></Button>
+                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" onClick={() => { removeBlock(selected.id); setMobileInspectorOpen(false) }} aria-label="Delete block"><Trash2 className="size-4" /></Button>
+                <Button variant="ghost" size="icon" className="size-8" onClick={() => setMobileInspectorOpen(false)} aria-label="Close"><X className="size-4" /></Button>
+              </div>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              {inspectorBody}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
     </TooltipProvider>
   )
