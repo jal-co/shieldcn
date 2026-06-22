@@ -357,7 +357,11 @@ function alignWrap(align: Alignment, inner: string): string {
 }
 
 function escapeAttr(s: string): string {
-  return s.replace(/"/g, "&quot;")
+  return s
+    .replace(/&/g, "&amp;") // must run first
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
 }
 
 /**
@@ -366,13 +370,12 @@ function escapeAttr(s: string): string {
  * renderer that ignores <picture> (npm, PyPI, plain Markdown previews).
  */
 function picture(darkUrl: string, lightUrl: string, alt: string, link?: string): string {
-  const a = escapeAttr(alt)
   const pic =
     `<picture>` +
-    `<source media="(prefers-color-scheme: dark)" srcset="${darkUrl}" />` +
-    `<img alt="${a}" src="${lightUrl}" />` +
+    `<source media="(prefers-color-scheme: dark)" srcset="${escapeAttr(darkUrl)}" />` +
+    `<img alt="${escapeAttr(alt)}" src="${escapeAttr(lightUrl)}" />` +
     `</picture>`
-  return link ? `<a href="${link}">${pic}</a>` : pic
+  return link ? `<a href="${escapeAttr(link)}">${pic}</a>` : pic
 }
 
 /**
@@ -401,7 +404,7 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
         return `<p align="center">\n  ${picture(dark, light, block.alt)}\n</p>`
       }
       const url = buildHeaderUrl(block.state, baseUrl)
-      const img = `<img alt="${block.alt}" src="${url}" />`
+      const img = `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`
       // Headers are full-width banners — center them.
       return `<p align="center">\n  ${img}\n</p>`
     }
@@ -426,8 +429,8 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
       if (block.align === "left") return imgs.join("\n")
       const inner = block.badges.map(b => {
         const url = buildBadgeUrl(b.state, baseUrl)
-        const img = `<img alt="${b.alt}" src="${url}" />`
-        return b.state.linkUrl ? `<a href="${b.state.linkUrl}">${img}</a>` : img
+        const img = `<img alt="${escapeAttr(b.alt)}" src="${escapeAttr(url)}" />`
+        return b.state.linkUrl ? `<a href="${escapeAttr(b.state.linkUrl)}">${img}</a>` : img
       }).join("\n  ")
       return `<p align="${block.align}">\n  ${inner}\n</p>`
     }
@@ -443,7 +446,7 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
       const url = buildChartUrl(block.state, baseUrl)
       if (!url) return ""
       if (block.align === "left") return `![${block.alt}](${url})`
-      return alignWrap(block.align, `<img alt="${block.alt}" src="${url}" />`)
+      return alignWrap(block.align, `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`)
     }
 
     case "table": {
@@ -457,14 +460,14 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
 
     case "image": {
       if (!block.src) return ""
-      const widthAttr = block.width ? ` width="${block.width}"` : ""
+      const widthAttr = block.width ? ` width="${escapeAttr(block.width)}"` : ""
       // Plain left-aligned images with no width export as clean Markdown.
       if ((!block.align || block.align === "left") && !block.width) {
         const img = `![${block.alt}](${block.src})`
         return block.link ? `[${img}](${block.link})` : img
       }
-      const img = `<img alt="${block.alt}" src="${block.src}"${widthAttr} />`
-      const wrapped = block.link ? `<a href="${block.link}">${img}</a>` : img
+      const img = `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(block.src)}"${widthAttr} />`
+      const wrapped = block.link ? `<a href="${escapeAttr(block.link)}">${img}</a>` : img
       return block.align && block.align !== "left" ? `<p align="${block.align}">\n  ${wrapped}\n</p>` : wrapped
     }
   }
