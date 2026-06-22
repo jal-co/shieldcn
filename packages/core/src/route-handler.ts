@@ -2065,6 +2065,12 @@ async function resolveHeaderLogo(
 const MAX_HEADER_IMAGE_BYTES = 4_000_000
 /** Raster image types allowed as a header background (no SVG — photos only). */
 const HEADER_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"])
+/**
+ * Strict raster `data:` image URI. The value is embedded into an SVG attribute,
+ * so it must match exactly — `data:image/<type>;base64,<base64>` with nothing
+ * else — to rule out attribute-breakout payloads (e.g. an embedded `"`).
+ */
+const DATA_IMAGE_RE = /^data:image\/(?:png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/]+={0,2}$/
 
 /**
  * Resolve a `?image=` value into an inlined data URI for a header background.
@@ -2078,11 +2084,12 @@ async function resolveHeaderImage(imageParam: string | null): Promise<string | u
     return undefined
   }
 
-  // Pre-inlined data URI — accept raster only, with a rough size cap.
-  if (imageParam.startsWith("data:image/")) {
-    if (imageParam.startsWith("data:image/svg+xml")) return undefined
+  // Pre-inlined data URI — accept only a well-formed base64 raster URI. The
+  // strict regex (not a `startsWith` check) ensures the value cannot contain
+  // characters that would break out of the SVG `href` attribute it's placed in.
+  if (imageParam.startsWith("data:")) {
     if (imageParam.length > MAX_HEADER_IMAGE_BYTES * 1.4) return undefined
-    return imageParam
+    return DATA_IMAGE_RE.test(imageParam) ? imageParam : undefined
   }
 
   if (!/^https?:\/\//.test(imageParam)) return undefined

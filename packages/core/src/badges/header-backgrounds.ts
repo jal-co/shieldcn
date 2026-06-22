@@ -134,6 +134,15 @@ function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n))
 }
 
+/** Escape a value for safe embedding inside a double-quoted SVG/XML attribute. */
+function escAttr(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+}
+
 /** Parse a "c1,c2[,c3][,angle]" gradient param into stops + angle. */
 function parseGradientSpec(raw: string): { stops: string[]; angle: number } | null {
   const parts = raw.split(",").map((s) => s.trim()).filter(Boolean)
@@ -213,7 +222,7 @@ export function resolveHeaderBackground(input: HeaderBgInput): ResolvedHeaderBg 
     const tintHex = normHex(input.tint) ?? "#000000"
     const scrimId = `${uid}scrim`
     layers.push(
-      `<image href="${image}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />`,
+      `<image href="${escAttr(image)}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />`,
     )
     // Flat tint for overall contrast.
     layers.push(`<rect x="0" y="0" width="${width}" height="${height}" fill="${rgba(tintHex, r2(overlay * 0.5))}" />`)
