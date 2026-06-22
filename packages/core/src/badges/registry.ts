@@ -178,6 +178,7 @@ export const REGISTRY: BadgeProvider[] = [
       // User-level (2-segment) endpoints.
       t("followers", "GitHub user followers", ["followers", "torvalds"]),
       t("user-stars", "Total stars across a user's repos", ["user-stars", "torvalds"]),
+      t("sponsors", "Active GitHub Sponsors", ["sponsors", "jal-co"]),
     ],
   },
   {

@@ -180,6 +180,11 @@ const SHIELDS_PATTERNS: Array<[RegExp, PathTransformer]> = [
     query: new URLSearchParams(),
     description: `GitHub followers for ${m[1]}`,
   })],
+  [/^\/github\/sponsors\/([^/]+)$/, (m) => ({
+    path: `/github/sponsors/${m[1]}`,
+    query: new URLSearchParams(),
+    description: `GitHub sponsors for ${m[1]}`,
+  })],
 
   // --- PyPI ---
   [/^\/pypi\/v\/(.+)$/, (m) => ({

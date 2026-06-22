@@ -38,6 +38,7 @@ All GitHub badges support both URL formats:
 | Pull Requests | `prs`, `open-prs`, `closed-prs`, `merged-prs` | PR counts by state |
 | Commits | `commits`, `last-commit` | Commit count and recency |
 | Repository | `watchers`, `branches`, `contributors`, `dependabot`, `milestones` | Other repo metadata |
+| Sponsors | `sponsors` | Active GitHub Sponsors for a user or org |
 
 ## Quick examples
 
@@ -516,6 +517,38 @@ Shows completion percentage for a specific milestone.
 <BadgePreview src="/github/contributors/vercel/next.js.svg" alt="contributors" description="Default — contributor count for community sections" />
 
 <BadgePreview src="/github/watchers/vercel/next.js.svg?variant=secondary" alt="watchers" description="Secondary — watcher count for social proof" />
+
+### GitHub Sponsors
+
+This section covers the `github/sponsors` badge endpoint.
+
+Show how many people and organizations actively sponsor an account through [GitHub Sponsors](https://github.com/sponsors). Sponsors are account-scoped, so the badge takes a single username or organization — not a repository. It ships branded with the GitHub Sponsors heart and pink by default, so a bare URL drops straight into a README funding section.
+
+<BadgeSandbox
+  endpoint="/github/sponsors/:login.svg"
+  pathParams={[
+    { name: "login", label: "GitHub user or org", placeholder: "jal-co", required: true },
+  ]}
+  defaults={{ login: "jal-co" }}
+/>
+
+### URL format
+
+<CodeLine language="bash" code="/github/sponsors/{login}.svg" hideCopy />
+
+The count is the number of *active* sponsors (private sponsors are included in the total, never named). An account with GitHub Sponsors enabled but no sponsors shows `0`.
+
+### Examples
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/github/sponsors/jal-co.svg" alt="sponsors" description="Default — branded pink with the Sponsors heart" />
+  <BadgePreviewCard src="/github/sponsors/jal-co.svg?variant=outline" alt="sponsors" description="Outline" />
+  <BadgePreviewCard src="/github/sponsors/jal-co.svg?size=xs" alt="sponsors" description="Extra small" />
+</BadgePreviewGroup>
+
+### Copy-paste examples
+
+<BadgePreview src="/github/sponsors/jal-co.svg" alt="sponsors" description="Default — active sponsor count for a README funding section" />
 
 ### GitHub Stars
 

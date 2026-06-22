@@ -6,7 +6,7 @@
  * Supports: stars, forks, watchers, branches, releases, tags, license,
  *           contributors, checks, issues, PRs, milestones, commits,
  *           last-commit, assets-dl, dependabot,
- *           followers, user-stars.
+ *           followers, user-stars, sponsors.
  */
 
 import type { BadgeData } from "../badges/types"
@@ -83,6 +83,79 @@ async function githubJson(url: string, revalidate?: number): Promise<Record<stri
     return await r.json()
   } catch {
     // Truncated / malformed body — treat as a transient failure.
+    return null
+  }
+}
+
+/**
+ * POST a GraphQL query to the GitHub GraphQL API and return its `data` object.
+ * Mirrors {@link githubFetch}: pooled token, 401 token rotation, rate-limit /
+ * outage backoff. Returns null on any failure (including GraphQL-level errors,
+ * which arrive as HTTP 200 with an `errors` array) so callers fall back to the
+ * last-known-good cache instead of rendering a red badge.
+ */
+async function githubGraphQL(
+  query: string,
+  variables: Record<string, unknown>,
+  revalidate: number = 3600,
+): Promise<Record<string, unknown> | null> {
+  if (isBackedOff("github")) return null
+
+  try {
+    const token = await pickToken()
+    const doFetch = (auth?: string) =>
+      raceTimeout(
+        fetch("https://api.github.com/graphql", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+          },
+          body: JSON.stringify({ query, variables }),
+          next: { revalidate },
+        }),
+      )
+
+    let response = await doFetch(token)
+    if (!response) return null
+
+    // GraphQL rejects unauthenticated requests with 401 (unlike REST, which
+    // still serves public data unauthenticated at a low limit). Rotating out a
+    // revoked pooled token and retrying is still correct; the bare retry only
+    // helps when a fresh token is available — otherwise it 401s again → null.
+    if (response.status === 401 && token) {
+      await invalidateToken(token)
+      response = await doFetch()
+      if (!response) return null
+    }
+
+    if (isRateLimitResponse(response) || response.status === 503) {
+      recordBackoff("github", response.status)
+      return null
+    }
+
+    if (!response.ok) return null
+
+    const json = (await response.json().catch(() => null)) as { data?: unknown } | null
+    const data = json?.data
+    if (data && typeof data === "object") {
+      clearBackoff("github")
+      return data as Record<string, unknown>
+    }
+
+    // No data: GitHub signals a GraphQL *primary* rate limit as HTTP 200 with
+    // `x-ratelimit-remaining: 0` (secondary limits add `retry-after`) — neither
+    // of which `isRateLimitResponse` catches on a 200. Back off so we stop
+    // hammering GitHub (and surface the alert) instead of clearing the window.
+    if (
+      response.headers.get("x-ratelimit-remaining") === "0" ||
+      response.headers.get("retry-after") !== null
+    ) {
+      recordBackoff("github", 429)
+    }
+    return null
+  } catch {
     return null
   }
 }
@@ -653,5 +726,33 @@ export async function getGitHubUserStars(username: string): Promise<BadgeData | 
     label: "stars",
     value: formatCount(total),
     link: `https://github.com/${username}?tab=repositories`,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sponsors (GitHub Sponsors — account-scoped, GraphQL only)
+// ---------------------------------------------------------------------------
+
+// `repositoryOwner` resolves both users and organizations; both expose the
+// `sponsors` connection, so concrete-type spreads cover either account type in
+// one query. `sponsors` is the set of accounts *currently* sponsoring this one,
+// i.e. the active-sponsor count. `totalCount` includes private sponsors in the
+// number (never their identities), exactly as GitHub exposes it to our token.
+const SPONSORS_QUERY = `query($login: String!) {
+  repositoryOwner(login: $login) {
+    ... on User { sponsors { totalCount } }
+    ... on Organization { sponsors { totalCount } }
+  }
+}`
+
+export async function getGitHubSponsors(login: string): Promise<BadgeData | null> {
+  const data = await githubGraphQL(SPONSORS_QUERY, { login })
+  const owner = data?.repositoryOwner as { sponsors?: { totalCount?: unknown } } | null | undefined
+  const count = owner?.sponsors?.totalCount
+  if (typeof count !== "number") return null
+  return {
+    label: "Sponsors",
+    value: formatCount(count),
+    link: `https://github.com/sponsors/${login}`,
   }
 }

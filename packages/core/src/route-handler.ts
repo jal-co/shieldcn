@@ -113,6 +113,7 @@ import {
   getGitHubDownloadsAssetTag,
   getGitHubFollowers,
   getGitHubUserStars,
+  getGitHubSponsors,
   githubRepoExists,
 } from "./providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
@@ -296,13 +297,14 @@ async function resolveGitHubBadge(
   rest: string[],
   searchParams: URLSearchParams,
 ): Promise<BadgeData | null> {
-  // User-level endpoints (2 segments: topic + username)
-  const userTopics = new Set(["followers", "user-stars"])
+  // User-level endpoints (2 segments: topic + username/login)
+  const userTopics = new Set(["followers", "user-stars", "sponsors"])
   if (rest.length >= 2 && userTopics.has(rest[0])) {
     const username = rest[1]
     switch (rest[0]) {
       case "followers":  return getGitHubFollowers(username)
       case "user-stars": return getGitHubUserStars(username)
+      case "sponsors":   return getGitHubSponsors(username)
       default: return null
     }
   }
@@ -1561,9 +1563,10 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
       "license","release","contributors","ci","checks","issues","open-issues","closed-issues",
       "label-issues","prs","open-prs","closed-prs","merged-prs","milestones","commits",
       "last-commit","assets-dl","dt","downloads","downloads-all","downloads-asset",
-      "dependabot"])
+      "dependabot","sponsors"])
     const topic = knownTopics.has(rest[0]) ? rest[0] : rest[2]
 
+    if (topic === "sponsors") return { simpleIcon: "githubsponsors" }
     if (topic === "stars") return { reactIcon: "GoStarFill" }
     if (topic === "forks") return { reactIcon: "GoRepoForked" }
     if (topic === "release" || topic === "tag") return { reactIcon: "GoTag" }
@@ -2622,7 +2625,13 @@ async function handleBadgeGETInner(
   // Default to the `secondary` variant so the flag chip sits on a soft surface.
   const isFlag = cleanSegments[0] === "flag"
   const isNba = cleanSegments[0] === "nba"
+  // GitHub Sponsors badges default to the branded GitHub Sponsors pink so a bare
+  // /github/sponsors/{login}.svg renders the heart-on-pink chip without params.
+  const isSponsors = cleanSegments[0] === "github" && cleanSegments[1] === "sponsors"
   if (isNba && cleanSegments.length === 1 && !searchParams.get("style") && !searchParams.get("variant")) {
+    style = "branded"
+  }
+  if (isSponsors && !searchParams.get("style") && !searchParams.get("variant")) {
     style = "branded"
   }
   let flagSvg: string | undefined
@@ -2805,6 +2814,14 @@ async function handleBadgeGETInner(
 
     if (isNba && data.color) {
       brandColor = data.color
+    }
+
+    // GitHub's Primer "sponsors" pink. White text + heart on this clears WCAG
+    // AA (~5:1). The lighter heart pinks (#db61a2, simple-icons' #ea4aaa) only
+    // reach ~3.4:1 with white, so the contrast picker would flip the label to a
+    // low-contrast dark — this darker shade keeps the whole chip white and legible.
+    if (isSponsors) {
+      brandColor = "bf3989"
     }
 
     // Fallback to provider brand color if no icon brand color found,
