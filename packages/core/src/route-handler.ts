@@ -2061,6 +2061,65 @@ async function resolveHeaderLogo(
   return { icon: si.icon, color }
 }
 
+/** Max bytes for a fetched/inlined header background photo (~4 MB). */
+const MAX_HEADER_IMAGE_BYTES = 4_000_000
+/** Raster image types allowed as a header background (no SVG — photos only). */
+const HEADER_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"])
+
+/**
+ * Resolve a `?image=` value into an inlined data URI for a header background.
+ * Supports a `data:image/*` URI (used as-is) or an `http(s)` URL that is fetched
+ * and base64-embedded (never hot-linked from a sandboxed `<img>` SVG). For
+ * `images.unsplash.com` URLs we request a sized JPEG via Unsplash's imgix
+ * params so the inlined payload stays small. Returns undefined on any failure.
+ */
+async function resolveHeaderImage(imageParam: string | null): Promise<string | undefined> {
+  if (!imageParam || imageParam === "false" || imageParam === "none" || imageParam === "0") {
+    return undefined
+  }
+
+  // Pre-inlined data URI — accept raster only, with a rough size cap.
+  if (imageParam.startsWith("data:image/")) {
+    if (imageParam.startsWith("data:image/svg+xml")) return undefined
+    if (imageParam.length > MAX_HEADER_IMAGE_BYTES * 1.4) return undefined
+    return imageParam
+  }
+
+  if (!/^https?:\/\//.test(imageParam)) return undefined
+
+  // Build the fetch URL; ask Unsplash for a banner-sized JPEG.
+  let fetchUrl = imageParam
+  try {
+    const u = new URL(imageParam)
+    if (u.hostname === "images.unsplash.com") {
+      if (!u.searchParams.has("w")) u.searchParams.set("w", "1600")
+      if (!u.searchParams.has("q")) u.searchParams.set("q", "70")
+      if (!u.searchParams.has("fit")) u.searchParams.set("fit", "crop")
+      u.searchParams.set("fm", "jpg")
+      fetchUrl = u.toString()
+    }
+  } catch {
+    return undefined
+  }
+
+  try {
+    const res = await raceTimeout(
+      fetch(fetchUrl, {
+        next: { revalidate: 86400 },
+        headers: { Accept: "image/*", "User-Agent": "shieldcn/1.0" },
+      }),
+    )
+    if (!res?.ok) return undefined
+    const ct = res.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() || ""
+    if (!HEADER_IMAGE_TYPES.has(ct)) return undefined
+    const bytes = Buffer.from(await res.arrayBuffer())
+    if (bytes.byteLength === 0 || bytes.byteLength > MAX_HEADER_IMAGE_BYTES) return undefined
+    return `data:${ct};base64,${bytes.toString("base64")}`
+  } catch {
+    return undefined
+  }
+}
+
 async function handleHeader(
   cleanSegments: string[],
   searchParams: URLSearchParams,
@@ -2097,6 +2156,12 @@ async function handleHeader(
   const bgRaw = searchParams.get("bg") ?? searchParams.get("background")
   const transparent = bgRaw === "transparent" || bgRaw === "none"
 
+  // Photo background (Unsplash or any image URL / data URI), fetched + inlined.
+  const imageDataUri = await resolveHeaderImage(searchParams.get("image") ?? searchParams.get("bgImage"))
+  const overlay = searchParams.has("overlay")
+    ? clampNum(searchParams.get("overlay"), 0, 1, 0.45)
+    : undefined
+
   const background = resolveHeaderBackground({
     preset,
     mode,
@@ -2110,6 +2175,9 @@ async function handleHeader(
     pattern: searchParams.get("pattern"),
     glow: resolveColor(searchParams.get("glow")),
     accent: resolveColor(searchParams.get("accent")),
+    imageDataUri,
+    overlay,
+    tint: resolveColor(searchParams.get("tint")),
   })
 
   const logo = await resolveHeaderLogo(searchParams.get("logo"), searchParams.get("logoColor"))

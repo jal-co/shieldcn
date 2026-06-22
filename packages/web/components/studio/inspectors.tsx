@@ -51,6 +51,7 @@ import {
   HEADER_SIZE_LABELS,
   HEADER_FONTS,
   HEADER_THEMES,
+  randomUnsplashHeader,
   type HeaderState,
 } from "@/lib/header-builder-shared"
 import {
@@ -377,6 +378,22 @@ export function HeaderInspector({ block, onChange }: { block: HeaderBlock; onCha
       {s.logo ? (
         <Field label="Logo color">
           <ColorInput value={s.logoColor} onChange={v => set({ logoColor: v })} />
+        </Field>
+      ) : null}
+
+      <Field label="Background image">
+        <div className="flex gap-1.5">
+          <Input value={s.image} onChange={e => set({ image: e.target.value })} placeholder="Unsplash or image URL" className="text-xs" />
+          <Tip label="Random Unsplash photo">
+            <Button variant="outline" size="icon" className="size-9 shrink-0" aria-label="Random Unsplash photo" onClick={() => set({ image: randomUnsplashHeader(s.image) })}>
+              <Shuffle className="size-3.5" />
+            </Button>
+          </Tip>
+        </div>
+      </Field>
+      {s.image ? (
+        <Field label="Overlay (0–1)">
+          <Input value={s.overlay} onChange={e => set({ overlay: e.target.value })} placeholder="0.45" />
         </Field>
       ) : null}
 

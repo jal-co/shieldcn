@@ -11,7 +11,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, Shuffle } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,6 +37,7 @@ import {
   HEADER_FONTS,
   HEADER_THEMES,
   buildHeaderUrl,
+  randomUnsplashHeader,
   type HeaderState,
 } from "@/lib/header-builder-shared"
 
@@ -220,6 +221,36 @@ export function HeaderBuilder() {
             </div>
             <ColorSwatch label="Logo color" value={s.logoColor} onChange={(v) => set("logoColor", v)} />
           </div>
+        </div>
+
+        {/* Background image */}
+        <div className="space-y-2">
+          <FieldLabel>Background image</FieldLabel>
+          <div className="flex gap-2">
+            <Input
+              value={s.image}
+              onChange={(e) => set("image", e.target.value)}
+              placeholder="Unsplash or image URL"
+              className="text-xs"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-9 shrink-0"
+              aria-label="Random Unsplash photo"
+              title="Random Unsplash photo"
+              onClick={() => set("image", randomUnsplashHeader(s.image))}
+            >
+              <Shuffle className="size-3.5" />
+            </Button>
+          </div>
+          {s.image ? (
+            <div className="space-y-1.5">
+              <FieldLabel>Overlay (0–1)</FieldLabel>
+              <Input value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
+            </div>
+          ) : null}
         </div>
 
         {/* Selects */}

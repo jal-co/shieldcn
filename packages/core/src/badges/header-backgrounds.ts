@@ -71,6 +71,16 @@ export interface HeaderBgInput {
   glow?: string | null
   /** Accent color hex (no `#`). */
   accent?: string | null
+  /**
+   * Inlined background photo as a data URI (already fetched + base64 by the
+   * route). Renders edge-to-edge under an auto scrim so text stays legible.
+   * Wins over bg / gradient / preset patterns.
+   */
+  imageDataUri?: string | null
+  /** Scrim strength over the photo, 0 (none) – 1 (opaque). Default 0.45. */
+  overlay?: number | null
+  /** Scrim tint color hex (no `#`). Default black. */
+  tint?: string | null
 }
 
 export interface ResolvedHeaderBg {
@@ -84,6 +94,8 @@ export interface ResolvedHeaderBg {
   accent: string
   /** Hairline border color (#rrggbb) matching the surface. */
   border: string
+  /** True when a photo background is in use (text renders light + legible). */
+  hasImage: boolean
 }
 
 const HEX_RE = /^[0-9a-fA-F]{3,8}$/
@@ -116,6 +128,10 @@ function rgba(hex: string, alpha: number): string {
 
 function r2(n: number): number {
   return Math.round(n * 100) / 100
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n))
 }
 
 /** Parse a "c1,c2[,c3][,angle]" gradient param into stops + angle. */
@@ -187,9 +203,30 @@ export function resolveHeaderBackground(input: HeaderBgInput): ResolvedHeaderBg 
   const transparent = !!input.transparent || style === "transparent"
   const bgOverride = normHex(input.bg)
   const gradOverride = input.gradient ? parseGradientSpec(input.gradient) : null
+  const image = input.imageDataUri || null
 
   // --- Base fill ---
-  if (transparent && !bgOverride && !gradOverride) {
+  if (image) {
+    // Photo background — edge-to-edge cover, then an auto scrim so the title and
+    // subtitle stay legible on any image. Text is forced light.
+    const overlay = clamp(input.overlay ?? 0.45, 0, 1)
+    const tintHex = normHex(input.tint) ?? "#000000"
+    const scrimId = `${uid}scrim`
+    layers.push(
+      `<image href="${image}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />`,
+    )
+    // Flat tint for overall contrast.
+    layers.push(`<rect x="0" y="0" width="${width}" height="${height}" fill="${rgba(tintHex, r2(overlay * 0.5))}" />`)
+    // Bottom-weighted vertical gradient so the subtitle reads on busy photos.
+    defs.push(
+      `<linearGradient id="${scrimId}" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0%" stop-color="${rgba(tintHex, r2(overlay * 0.25))}" />` +
+        `<stop offset="100%" stop-color="${rgba(tintHex, r2(Math.min(1, overlay * 1.1)))}" />` +
+        `</linearGradient>`,
+    )
+    layers.push(`<rect x="0" y="0" width="${width}" height="${height}" fill="url(#${scrimId})" />`)
+    isLight = false
+  } else if (transparent && !bgOverride && !gradOverride) {
     // No surface fill — blend into the host page. Text contrast follows mode.
   } else if (gradOverride) {
     const { x1, y1, x2, y2 } = angleToCoords(gradOverride.angle)
@@ -226,7 +263,7 @@ export function resolveHeaderBackground(input: HeaderBgInput): ResolvedHeaderBg 
   } else if (patParam === "dots" || patParam === "grid" || patParam === "graph") {
     pattern = patParam
   }
-  if (pattern) {
+  if (pattern && !image) {
     const lineColor = rgba(isLight ? "#000000" : "#ffffff", isLight ? 0.06 : 0.06)
     const dotColor = rgba(isLight ? "#000000" : "#ffffff", isLight ? 0.1 : 0.09)
     if (pattern === "dots") {
@@ -261,7 +298,7 @@ export function resolveHeaderBackground(input: HeaderBgInput): ResolvedHeaderBg 
   // --- Spotlight glow (style "glow" default, or ?glow=). Skipped on a fully
   // transparent background unless explicitly requested. ---
   const glowColor = normHex(input.glow) ?? (style === "glow" && !transparent ? tint.glow : undefined)
-  if (glowColor) {
+  if (glowColor && !image) {
     const id = `${uid}glow`
     const cx = r2(width / 2)
     const cy = 0
@@ -282,5 +319,6 @@ export function resolveHeaderBackground(input: HeaderBgInput): ResolvedHeaderBg 
     isLight,
     accent,
     border: surf.border,
+    hasImage: !!image,
   }
 }

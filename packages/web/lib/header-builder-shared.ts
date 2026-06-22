@@ -73,6 +73,35 @@ export interface HeaderState {
   font: string
   border: boolean
   watermark: boolean
+  /** Background photo URL (Unsplash or any image). Fetched + inlined server-side. */
+  image: string
+  /** Scrim strength over the photo, "0"–"1". Blank = default (0.45). */
+  overlay: string
+}
+
+// Curated Unsplash photos that read well as wide banners (sized via imgix).
+const UNSPLASH_SAMPLES = [
+  "photo-1517336714731-489689fd1ca8", // laptop / code
+  "photo-1451187580459-43490279c0fa", // earth / network
+  "photo-1462331940025-496dfbfc7564", // galaxy
+  "photo-1550745165-9bc0b252726f", // retro tech
+  "photo-1499951360447-b19be8fe80f5", // workspace
+  "photo-1480506132288-68f7705954bd", // mountains
+  "photo-1509822929063-6b6cfc9b42f2", // gradient paper
+  "photo-1614850523459-c2f4c699c52e", // abstract gradient
+]
+
+/** Build an Unsplash image URL (banner-sized) for a given photo id. */
+export function unsplashUrl(id: string): string {
+  return `https://images.unsplash.com/${id}?w=1600&q=70&fit=crop&fm=jpg`
+}
+
+/** A random curated Unsplash banner URL, different from `current` when possible. */
+export function randomUnsplashHeader(current?: string): string {
+  const currentId = current?.match(/photo-[\w-]+/)?.[0]
+  const pool = UNSPLASH_SAMPLES.filter(id => id !== currentId)
+  const list = pool.length ? pool : UNSPLASH_SAMPLES
+  return unsplashUrl(list[Math.floor(Math.random() * list.length)])
 }
 
 export const HEADER_DEFAULTS: HeaderState = {
@@ -88,6 +117,8 @@ export const HEADER_DEFAULTS: HeaderState = {
   font: "inter",
   border: true,
   watermark: false,
+  image: "",
+  overlay: "",
 }
 
 /** Build the `/header/{preset}.svg?...` URL from builder state. */
@@ -105,6 +136,8 @@ export function buildHeaderUrl(s: HeaderState, baseUrl: string): string {
   if (s.font && s.font !== "inter") params.set("font", s.font)
   if (s.watermark) params.set("watermark", "true")
   if (!s.border) params.set("border", "false")
+  if (s.image) params.set("image", s.image)
+  if (s.image && s.overlay) params.set("overlay", s.overlay)
 
   const preset = s.preset || "surface"
   const qs = params.toString()
