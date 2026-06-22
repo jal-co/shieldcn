@@ -93,6 +93,7 @@ const NAV = {
   spring: { type: "spring" as const, visualDuration: 0.4, bounce: 0.3 },
   items: [
     { href: "/docs", label: "Docs" },
+    { href: "/studio", label: "Studio" },
     { href: "/showcase", label: "Showcase" },
     { href: "/header", label: "Headers" },
     { href: "/gen", label: "Generator" },
