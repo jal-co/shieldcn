@@ -1,9 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { Copy, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+
+/**
+ * True only after client hydration. Lets a badge <img> wait for the resolved
+ * site theme before `useBadgeMode` picks a `mode`, so the first paint isn't a
+ * mismatched (e.g. light-text-on-light-page) badge. Uses useSyncExternalStore
+ * to stay lint-clean — no setState-in-effect cascading render.
+ */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+}
 
 interface BadgePreviewProps {
   /** Badge URL path (e.g., "/npm/react.svg?variant=secondary") */
@@ -18,10 +31,8 @@ interface BadgePreviewProps {
 
 export function BadgePreview({ src, alt, description, code }: BadgePreviewProps) {
   const [copied, setCopied] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const { adaptUrl } = useBadgeMode()
-
-  useEffect(() => { setMounted(true) }, [])
 
   const adaptedSrc = adaptUrl(src)
   const fullUrl = `https://shieldcn.dev${src}`
@@ -37,8 +48,8 @@ export function BadgePreview({ src, alt, description, code }: BadgePreviewProps)
     <div className="rounded-lg border border-border overflow-hidden not-prose my-4">
       {/* Preview area */}
       <div className="flex items-center justify-center bg-muted/30 px-6 py-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         {mounted ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={adaptedSrc} alt={alt || "badge preview"} className="h-8" />
         ) : (
           <div className="h-8" />
@@ -82,6 +93,11 @@ export function BadgePreviewGroup({ children }: { children: React.ReactNode }) {
  */
 export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
   const [copied, setCopied] = useState(false)
+  // Gate the image on mount: before hydration `resolvedTheme` is undefined, so
+  // `adaptUrl` falls back to `mode=dark`. On a light page that paints an
+  // invisible (light-on-light) outline badge until the theme is toggled. Wait
+  // for the resolved theme so the first `src` already carries the right mode.
+  const mounted = useMounted()
   const { adaptUrl } = useBadgeMode()
 
   const adaptedSrc = adaptUrl(src)
@@ -97,8 +113,12 @@ export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <div className="flex items-center justify-center bg-muted/30 px-4 py-5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={adaptedSrc} alt={alt || "badge preview"} className="h-7" />
+        {mounted ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={adaptedSrc} alt={alt || "badge preview"} className="h-7" />
+        ) : (
+          <div className="h-7" />
+        )}
       </div>
       <div className="flex items-center gap-2 border-t border-border bg-muted/50 px-3 py-2.5">
         <span className="flex-1 text-[11px] text-muted-foreground truncate">

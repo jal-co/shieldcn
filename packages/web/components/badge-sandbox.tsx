@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { allowedVariantsForPath, VARIANT_LABELS } from "@shieldcn/core/badges/registry"
+import { useBadgeMode } from "@/lib/use-badge-mode"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,7 +84,13 @@ export function BadgeSandbox({
   const [imageFormat, setImageFormat] = useState<"png" | "svg">("svg")
   const [variant, setVariant] = useState("default")
   const [size, setSize] = useState("sm")
-  const [mode, setMode] = useState("dark")
+  // Default the preview mode to the current site theme so transparent-background
+  // variants (ghost/outline) stay legible on the theme-following preview surface
+  // — a hardcoded "dark" renders light text invisibly on the light docs page.
+  // A manual pick (userMode) wins and stops tracking the theme.
+  const { mode: siteMode } = useBadgeMode()
+  const [userMode, setUserMode] = useState<string | null>(null)
+  const mode = userMode ?? siteMode
   const [theme, setTheme] = useState("_none")
   const [logo, setLogo] = useState("")
   const [logoColor, setLogoColor] = useState("")
@@ -298,7 +305,7 @@ export function BadgeSandbox({
           </SField>
 
           <SField label="mode">
-            <Select value={mode} onValueChange={setMode}>
+            <Select value={mode} onValueChange={setUserMode}>
               <SelectTrigger aria-label="Badge color mode" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="dark">dark</SelectItem>
