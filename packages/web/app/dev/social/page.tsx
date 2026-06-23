@@ -134,18 +134,41 @@ async function downloadGif(item: BadgeItem, mode: Bg): Promise<void> {
   }
 }
 
-// Default social canvas: the Knicks champs badge. This page opens ready to
-// export the `/nba` social card without needing to add a badge manually.
+// Default social canvas: the Notra friend-of-shieldcn badges. This page opens
+// ready to export the Notra social card without adding badges manually.
 const DEFAULT_ITEMS: BadgeItem[] = [
   {
     id: nextId(),
-    path: "/nba",
+    path: "/badge/powered%20by-Notra-C8B2EE",
     variant: "branded",
     size: "lg",
     font: "inter",
     animate: "none",
     label: "none",
     labelText: "",
+    logo: "notra",
+  },
+  {
+    id: nextId(),
+    path: "/badge/powered%20by-Notra-C8B2EE",
+    variant: "outline",
+    size: "lg",
+    font: "inter",
+    animate: "none",
+    label: "none",
+    labelText: "",
+    logo: "notra",
+  },
+  {
+    id: nextId(),
+    path: "/badge/powered%20by-Notra-C8B2EE",
+    variant: "secondary",
+    size: "lg",
+    font: "inter",
+    animate: "none",
+    label: "none",
+    labelText: "",
+    logo: "notra",
   },
 ]
 
@@ -306,8 +329,8 @@ export default function DevSocialPage() {
   const [gap, setGap] = useState(16)
   const [showText, setShowText] = useState(true)
   const [showLogo, setShowLogo] = useState(true)
-  const [title, setTitle] = useState("2026 Champs")
-  const [subtitle, setSubtitle] = useState("Knicks")
+  const [title, setTitle] = useState("Powered by Notra")
+  const [subtitle, setSubtitle] = useState("Friend of shieldcn · @usenotra")
   const [saving, setSaving] = useState(false)
   // Resolved SVG (base + animated preview + dot color) per badge id.
   const [svgMap, setSvgMap] = useState<Record<string, BadgeSvg>>({})
