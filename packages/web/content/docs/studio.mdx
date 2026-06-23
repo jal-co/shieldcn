@@ -23,19 +23,20 @@ A README in the Studio is an ordered list of blocks. Add any of:
 
 | Block | What it does |
 |-------|--------------|
-| **Text** | A Markdown editor with a formatting toolbar (bold, italic, link, heading, list, table) and per-block alignment. Renders full GitHub-flavored Markdown — headings, lists, tables, code blocks, task lists. |
+| **Text** | Rich text with **inline WYSIWYG editing** — double-click on the canvas and a selection toolbar appears (bold, italic, code, H1/H2, highlight, link, lists). Edits round-trip to clean Markdown, so headings, lists, tables, code blocks, and task lists all export correctly. Per-block alignment too. |
 | **Header** | A repository [header banner](/docs/headers): logo, title, tagline, a shadcn-styled or **photo (Unsplash) background**, served from a single image URL. |
 | **Badges** | A row of [badges](/docs/badges/github) with a searchable type picker, variants, themes, logos, split styling, per-row alignment, and links. |
+| **Group** | A [badge group](/docs/badges/group) — multiple badges fused into one joined image with shared rounded edges (shadcn ButtonGroup style). One variant, size, theme, and font apply to every segment. |
 | **Chart** | A [star-history, issues, npm-downloads, or inline-JSON chart](/docs/charts). |
 | **Table** | A spreadsheet-style grid editor with per-column alignment, exported as a GitHub-flavored Markdown table. |
 | **Image** | Any image by URL or repo-relative path, with alignment, width, and an optional link. |
 
 ## How it works
 
-1. **Add blocks** from the toolbar (Text, Header, Badges, Chart, Table, Image).
-2. **Select a block** to edit its properties in the inspector. Drag blocks in the Layers panel to reorder.
+1. **Add blocks** from the toolbar (Text, Header, Badges, Group, Chart, Table, Image).
+2. **Select a block** to edit its properties in the inspector. On the canvas you can drag the grip handle to reorder, double-click a text block to edit it in place, and drag the corner handle on an image to resize it. The Layers panel also reorders blocks.
 3. **Toggle Adaptive** to export every badge, header, and chart as a GitHub `<picture>` that follows the reader's light or dark theme. See [Light & Dark Mode](/docs/customization/light-dark-mode).
-4. **Copy or Download** the generated Markdown from the toolbar, or switch to the Markdown view to see the source.
+4. **Copy or Download** the generated Markdown from the toolbar, or switch to the **Markdown** tab to edit the source directly — paste in existing GitHub-flavored Markdown and it parses back into typed blocks (badges, charts, tables, headers, images, and text). Pasted HTML is sanitized — scripts and event handlers are stripped.
 
 Your work is saved to your browser automatically, so a work-in-progress README survives a reload.
 

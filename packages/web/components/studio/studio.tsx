@@ -18,9 +18,21 @@
 
 import { useCallback, useEffect, useState } from "react"
 import {
-  Copy, Check, Download, RotateCcw, Plus, Trash2, Copy as Duplicate,
-  ChevronUp, ChevronDown, Type, Image as ImageIcon, Images, Tag, LineChart, Table as TableIcon, Code2, Eye, GripVertical, SunMoon, X,
+  Check, RotateCcw, Plus, Trash2, Copy as Duplicate,
+  ChevronUp, ChevronDown, Type, GripVertical, X,
 } from "lucide-react"
+import { IconAppearanceDarkMode } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAppearanceDarkMode"
+import { IconMarkdown } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconMarkdown"
+import { IconEyeOpen } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconEyeOpen"
+import { IconClipboard2 } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconClipboard2"
+import { IconFileDownload } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconFileDownload"
+import { IconText1 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconText1"
+import { IconImages1 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconImages1"
+import { IconTag } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconTag"
+import { IconBooleanGroupSubstract } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconBooleanGroupSubstract"
+import { IconTrending5 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconTrending5"
+import { IconLayoutGrid2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconLayoutGrid2"
+import { IconAddImage } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconAddImage"
 import { useSyncExternalStore } from "react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { Button } from "@/components/ui/button"
@@ -35,6 +47,7 @@ import {
   MarkdownInspector,
   HeaderInspector,
   BadgesInspector,
+  GroupInspector,
   ChartInspector,
   TableInspector,
   ImageInspector,
@@ -49,23 +62,26 @@ import {
   type Block,
   type BlockType,
   type BadgesBlock,
+  type GroupBlock,
   type ChartBlock,
   type HeaderBlock,
   type MarkdownBlock,
   type TableBlock,
   type ImageBlock,
 } from "@/lib/studio-shared"
+import { markdownToDocument } from "@/lib/studio-import"
 
 const STORAGE_KEY = "shieldcn:studio:v1"
 const SETTINGS_KEY = "shieldcn:studio:settings:v1"
 
 const BLOCK_ICONS: Record<BlockType, React.ComponentType<{ className?: string }>> = {
-  markdown: Type,
-  header: ImageIcon,
-  badges: Tag,
-  chart: LineChart,
-  table: TableIcon,
-  image: Images,
+  markdown: IconText1,
+  header: IconImages1,
+  badges: IconTag,
+  group: IconBooleanGroupSubstract,
+  chart: IconTrending5,
+  table: IconLayoutGrid2,
+  image: IconAddImage,
 }
 
 // ---------------------------------------------------------------------------
@@ -92,6 +108,7 @@ function blockSummary(block: Block): string {
     }
     case "header": return block.state.title || "Header"
     case "badges": return `${block.badges.length} badge${block.badges.length === 1 ? "" : "s"}`
+    case "group": return `${block.badges.length}-badge group`
     case "chart": return `${block.state.kind} chart`
     case "table": return `${block.rows.length}×${block.headers.length} table`
     case "image": return block.alt || "image"
@@ -109,6 +126,9 @@ export function Studio() {
   const [hydrated, setHydrated] = useState(false)
   const [copied, setCopied] = useState(false)
   const [view, setView] = useState<"design" | "code">("design")
+  // Editable Markdown-tab buffer. null = mirror the live export; a string = the
+  // user is editing raw Markdown (parsed back into blocks on commit).
+  const [codeDraft, setCodeDraft] = useState<string | null>(null)
   const [themeAware, setThemeAware] = useState(false)
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
@@ -176,6 +196,19 @@ export function Studio() {
     setMobileInspectorOpen(true)
   }, [selectedId])
 
+  const insertBlockAfter = useCallback((id: string, type: BlockType) => {
+    const block = makeBlock(type)
+    setBlocks(prev => {
+      const idx = prev.findIndex(b => b.id === id)
+      if (idx === -1) return [...prev, block]
+      const copy = [...prev]
+      copy.splice(idx + 1, 0, block)
+      return copy
+    })
+    setSelectedId(block.id)
+    setMobileInspectorOpen(true)
+  }, [])
+
   const removeBlock = useCallback((id: string) => {
     setBlocks(prev => {
       const idx = prev.findIndex(b => b.id === id)
@@ -217,22 +250,33 @@ export function Studio() {
   // --- export --------------------------------------------------------------
 
   const markdown = hydrated ? documentToMarkdown(blocks, baseUrl, themeAware) : ""
+  // What the Markdown tab shows / what Copy & Download emit: the in-progress
+  // edit when editing, otherwise the live export.
+  const shownMarkdown = codeDraft ?? markdown
+
+  // Parse the edited Markdown back into typed blocks.
+  const commitCode = useCallback((source: string) => {
+    const next = markdownToDocument(source, baseUrl)
+    setBlocks(next)
+    setSelectedId(next[0]?.id ?? null)
+    setCodeDraft(null)
+  }, [baseUrl])
 
   const copyMarkdown = useCallback(() => {
-    navigator.clipboard.writeText(documentToMarkdown(blocks, baseUrl, themeAware))
+    navigator.clipboard.writeText(shownMarkdown)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [blocks, baseUrl, themeAware])
+  }, [shownMarkdown])
 
   const downloadMarkdown = useCallback(() => {
-    const blob = new Blob([documentToMarkdown(blocks, baseUrl, themeAware)], { type: "text/markdown" })
+    const blob = new Blob([shownMarkdown], { type: "text/markdown" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
     a.download = "README.md"
     a.click()
     URL.revokeObjectURL(url)
-  }, [blocks, baseUrl, themeAware])
+  }, [shownMarkdown])
 
   if (!hydrated) {
     return <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading studio…</div>
@@ -246,6 +290,8 @@ export function Studio() {
     <HeaderInspector block={selected as HeaderBlock} onChange={updateBlock} />
   ) : selected.type === "badges" ? (
     <BadgesInspector block={selected as BadgesBlock} onChange={updateBlock} />
+  ) : selected.type === "group" ? (
+    <GroupInspector block={selected as GroupBlock} onChange={updateBlock} />
   ) : selected.type === "table" ? (
     <TableInspector block={selected as TableBlock} onChange={updateBlock} />
   ) : selected.type === "image" ? (
@@ -266,10 +312,15 @@ export function Studio() {
         </div>
         <div className="flex items-center gap-1.5">
           <div className="hidden md:flex">
-            <Tabs value={view} onValueChange={v => setView(v as "design" | "code")}>
+            <Tabs value={view} onValueChange={v => {
+              const next = v as "design" | "code"
+              if (next === "code") setCodeDraft(markdown)
+              else if (view === "code" && codeDraft !== null) commitCode(codeDraft)
+              setView(next)
+            }}>
               <TabsList className="h-8">
-                <TabsTrigger value="design" className="gap-1.5 text-xs"><Eye className="size-3.5" /> Design</TabsTrigger>
-                <TabsTrigger value="code" className="gap-1.5 text-xs"><Code2 className="size-3.5" /> Markdown</TabsTrigger>
+                <TabsTrigger value="design" className="gap-1.5 text-xs"><IconEyeOpen size={14} /> Design</TabsTrigger>
+                <TabsTrigger value="code" className="gap-1.5 text-xs"><IconMarkdown size={14} /> Markdown</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -284,19 +335,19 @@ export function Studio() {
                 aria-label="Adaptive light and dark mode for the whole README"
                 className="h-8 gap-1.5 data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90"
               >
-                <SunMoon className="size-3.5" /> <span className="hidden lg:inline">Adaptive</span>
+                <IconAppearanceDarkMode size={14} /> <span className="hidden lg:inline">Adaptive</span>
               </Toggle>
             </span>
           </Tip>
           <Tip label="Copy README Markdown">
             <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={copyMarkdown}>
-              {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+              {copied ? <Check className="size-3.5" /> : <IconClipboard2 size={14} />}
               <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
             </Button>
           </Tip>
           <Tip label="Download README.md">
             <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={downloadMarkdown}>
-              <Download className="size-3.5" /> <span className="hidden sm:inline">Download</span>
+              <IconFileDownload size={14} /> <span className="hidden sm:inline">Download</span>
             </Button>
           </Tip>
           <Tip label="Reset to the starter document">
@@ -314,7 +365,7 @@ export function Studio() {
           <div className="border-b border-border p-3">
             <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Add block</p>
             <div className="grid grid-cols-2 gap-1.5">
-              {(["markdown", "header", "badges", "chart", "table", "image"] as BlockType[]).map(type => {
+              {(["markdown", "header", "badges", "group", "chart", "table", "image"] as BlockType[]).map(type => {
                 const Icon = BLOCK_ICONS[type]
                 return (
                   <Button key={type} variant="outline" size="sm" className="h-auto flex-col gap-1 py-2.5 text-xs" onClick={() => addBlock(type)}>
@@ -368,7 +419,7 @@ export function Studio() {
         <main className="min-w-0 flex-1 overflow-y-auto bg-muted/40">
           {/* Mobile add bar */}
           <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border bg-background px-3 py-2 lg:hidden">
-            {(["markdown", "header", "badges", "chart", "table", "image"] as BlockType[]).map(type => {
+            {(["markdown", "header", "badges", "group", "chart", "table", "image"] as BlockType[]).map(type => {
               const Icon = BLOCK_ICONS[type]
               return (
                 <Button key={type} variant="outline" size="sm" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => addBlock(type)}>
@@ -379,9 +430,17 @@ export function Studio() {
           </div>
 
           {view === "code" ? (
-            <pre className="m-4 overflow-x-auto rounded-lg border border-border bg-background p-4 text-xs leading-relaxed">
-              <code className="font-mono">{markdown}</code>
-            </pre>
+            <div className="flex h-full flex-col gap-2 p-4">
+              <p className="text-xs text-muted-foreground">Edit or paste GitHub-flavored Markdown. Changes parse back into blocks when you click away or switch to Design.</p>
+              <textarea
+                value={shownMarkdown}
+                spellCheck={false}
+                onChange={e => setCodeDraft(e.target.value)}
+                onBlur={e => { if (codeDraft !== null) commitCode(e.target.value) }}
+                aria-label="README Markdown source"
+                className="min-h-[60vh] flex-1 resize-none rounded-lg border border-border bg-background p-4 font-mono text-xs leading-relaxed text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              />
+            </div>
           ) : (
             <div className="mx-auto max-w-3xl p-4 sm:p-6">
               <div className="rounded-xl border border-border bg-background p-4 shadow-sm sm:p-6">
@@ -395,7 +454,7 @@ export function Studio() {
                       <p className="mx-auto max-w-xs text-sm text-muted-foreground">Add a block to begin. Mix text, headers, badges, charts, tables, and images, then export clean Markdown.</p>
                     </div>
                     <div className="flex flex-wrap justify-center gap-1.5">
-                      {(["markdown", "header", "badges", "chart", "table", "image"] as BlockType[]).map(type => {
+                      {(["markdown", "header", "badges", "group", "chart", "table", "image"] as BlockType[]).map(type => {
                         const Icon = BLOCK_ICONS[type]
                         return (
                           <Button key={type} variant="outline" size="sm" className="gap-1.5" onClick={() => addBlock(type)}>
@@ -407,14 +466,25 @@ export function Studio() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {blocks.map(block => (
+                    {blocks.map((block, i) => (
                       <BlockFrame
                         key={block.id}
                         block={block}
+                        index={i}
                         siteMode={mode}
                         themeAware={themeAware}
                         selected={block.id === selectedId}
+                        isDragging={dragFrom === i}
+                        dropEdge={dragOverIndex === i && dragFrom !== null && dragFrom !== i ? (dragFrom > i ? "top" : "bottom") : null}
                         onSelect={() => selectBlock(block.id)}
+                        onDelete={() => removeBlock(block.id)}
+                        onDuplicate={() => duplicateBlock(block.id)}
+                        onInsertBelow={type => insertBlockAfter(block.id, type)}
+                        onChange={updateBlock}
+                        onDragStart={() => setDragFrom(i)}
+                        onDragEnter={() => { if (dragOverIndex !== i) setDragOverIndex(i) }}
+                        onDrop={() => { if (dragFrom !== null) moveBlock(dragFrom, i); setDragFrom(null); setDragOverIndex(null) }}
+                        onDragEnd={() => { setDragFrom(null); setDragOverIndex(null) }}
                       />
                     ))}
                   </div>

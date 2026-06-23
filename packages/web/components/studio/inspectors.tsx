@@ -12,6 +12,9 @@
 
 import { Fragment, useCallback, useMemo, useRef, useState } from "react"
 import { Plus, Trash2, GripVertical, Bold, Italic, Link2, Heading, List, Table, Shuffle, AlignLeft, AlignCenter, AlignRight } from "lucide-react"
+import { IconAlignmentLeft } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentLeft"
+import { IconAlignmentCenter } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentCenter"
+import { IconAlignmentRight } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentRight"
 import { LogoPicker } from "@/components/logo-picker"
 import { ColorInput } from "@/components/color-input"
 import { SearchablePicker, type SearchablePickerFilter, type SearchablePickerSection } from "@/components/searchable-picker"
@@ -61,6 +64,7 @@ import {
   type Alignment,
   type BadgeItem,
   type BadgesBlock,
+  type GroupBlock,
   type ChartBlock,
   randomPlaceholder,
   PLACEHOLDER_IMAGE,
@@ -128,9 +132,9 @@ function AlignControl({ value, onChange }: { value: Alignment; onChange: (v: Ali
         size="sm"
         className="w-full"
       >
-        <ToggleGroupItem value="left" className="flex-1">Left</ToggleGroupItem>
-        <ToggleGroupItem value="center" className="flex-1">Center</ToggleGroupItem>
-        <ToggleGroupItem value="right" className="flex-1">Right</ToggleGroupItem>
+        <ToggleGroupItem value="left" aria-label="Align left" className="flex-1"><IconAlignmentLeft size={15} /></ToggleGroupItem>
+        <ToggleGroupItem value="center" aria-label="Align center" className="flex-1"><IconAlignmentCenter size={15} /></ToggleGroupItem>
+        <ToggleGroupItem value="right" aria-label="Align right" className="flex-1"><IconAlignmentRight size={15} /></ToggleGroupItem>
       </ToggleGroup>
     </Field>
   )
@@ -294,21 +298,6 @@ export function MarkdownInspector({ block, onChange }: { block: MarkdownBlock; o
 
   return (
     <div className="space-y-4">
-      <Field label="Alignment">
-        <ToggleGroup
-          type="single"
-          value={block.align ?? "left"}
-          onValueChange={v => v && onChange({ ...block, align: v as Alignment })}
-          variant="outline"
-          size="sm"
-          className="w-full"
-        >
-          <ToggleGroupItem value="left" className="flex-1" aria-label="Align left"><AlignLeft className="size-3.5" /></ToggleGroupItem>
-          <ToggleGroupItem value="center" className="flex-1" aria-label="Align center"><AlignCenter className="size-3.5" /></ToggleGroupItem>
-          <ToggleGroupItem value="right" className="flex-1" aria-label="Align right"><AlignRight className="size-3.5" /></ToggleGroupItem>
-        </ToggleGroup>
-      </Field>
-
       <Field label="Markdown" htmlFor="md-content">
         <div className="flex items-center gap-0.5 rounded-md border border-border bg-muted/30 p-1">
           <ToolBtn title="Bold" onClick={() => surround("**")}><Bold className="size-3.5" /></ToolBtn>
@@ -331,7 +320,7 @@ export function MarkdownInspector({ block, onChange }: { block: MarkdownBlock; o
         />
       </Field>
       <p className="text-xs text-muted-foreground">
-        Select text and use the toolbar, or write GitHub-flavored Markdown directly. Centering exports as an aligned <code className="text-foreground">&lt;div&gt;</code>.
+        Edit raw Markdown here, or double-click the block to edit it inline. Select text in the block to bold, link, or align it — alignment is per-paragraph and exports as an aligned <code className="text-foreground">&lt;div&gt;</code>.
       </p>
     </div>
   )
@@ -637,9 +626,25 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
     onChange({ ...block, badges: [...block.badges, makeBadgeItem({ path: "/badge/label-value-22c55e.svg" })] })
   }, [block, onChange])
 
+  const sharedSize = block.badges.length > 0 && block.badges.every(b => b.state.size === block.badges[0].state.size)
+    ? block.badges[0].state.size
+    : ""
+
+  const setAllSize = useCallback((size: string) => {
+    onChange({ ...block, badges: block.badges.map(b => ({ ...b, state: { ...b.state, size } })) })
+  }, [block, onChange])
+
   return (
     <div className="space-y-4">
       <AlignControl value={block.align} onChange={v => onChange({ ...block, align: v })} />
+      <Field label="Size — all badges">
+        <Select value={sharedSize} onValueChange={setAllSize}>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Mixed" /></SelectTrigger>
+          <SelectContent>
+            {SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
       <Separator />
       <div className="space-y-3">
         {block.badges.map((item, i) => (
@@ -654,6 +659,190 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
       </div>
       <Button variant="outline" size="sm" className="w-full" onClick={addItem}>
         <Plus className="size-3.5" /> Add badge
+      </Button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Group inspector — segments share one group-wide style (the /group/ endpoint
+// applies variant/size/theme/font/mode to every segment, no per-segment params)
+// ---------------------------------------------------------------------------
+
+function GroupSegmentEditor({ item, onChange, onRemove, index }: {
+  item: BadgeItem
+  onChange: (b: BadgeItem) => void
+  onRemove: () => void
+  index: number
+}) {
+  const s = item.state
+  const set = useCallback((patch: Partial<BuilderState>) => onChange({ ...item, state: { ...item.state, ...patch } }), [item, onChange])
+
+  const [search, setSearch] = useState("")
+  const [filter, setFilter] = useState("all")
+
+  const matched = useMemo(() => findPresetForPath(s.path), [s.path])
+  const selectedValue = matched ? String(matched.idx) : ""
+  const paramValues = useMemo(() => matched?.values ?? {}, [matched])
+
+  const sections = useMemo<SearchablePickerSection[]>(() => {
+    return PRESET_GROUP_NAMES.map(group => {
+      const presets = PRESET_GROUPS.get(group) ?? []
+      const items = presets
+        .filter(p => presetMatchesSearch(p, search, filter))
+        .map(p => ({ value: String(BADGE_PRESETS.indexOf(p)), label: presetDisplay(p), tag: getPresetService(p) }))
+      return { heading: group, items }
+    })
+  }, [search, filter])
+
+  const onPresetChange = useCallback((indexStr: string) => {
+    const idx = parseInt(indexStr, 10)
+    const preset = BADGE_PRESETS[idx]
+    if (!preset) return
+    const values: Record<string, string> = {}
+    preset.params.forEach(p => { values[p.key] = p.default })
+    const path = resolveTemplate(preset, values)
+    onChange({ ...item, alt: preset.label, state: { ...item.state, path } })
+    setSearch("")
+  }, [item, onChange])
+
+  const onParamChange = useCallback((paramKey: string, value: string) => {
+    if (!matched) return
+    const values = { ...paramValues, [paramKey]: value }
+    const path = resolveTemplate(matched.preset, values)
+    set({ path })
+  }, [matched, paramValues, set])
+
+  return (
+    <div className="rounded-md border border-border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-foreground">Segment {index + 1}</span>
+        <Tip label="Remove segment">
+          <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={onRemove} aria-label={`Remove segment ${index + 1}`}>
+            <Trash2 className="size-3.5" />
+          </Button>
+        </Tip>
+      </div>
+
+      <Field label="Type">
+        <SearchablePicker
+          value={selectedValue}
+          triggerLabel={matched ? presetDisplay(matched.preset) : "Custom path"}
+          placeholder="Search badge types..."
+          emptyLabel="No badge type found."
+          search={search}
+          onSearchChange={setSearch}
+          filters={PRESET_FILTERS}
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          sections={sections}
+          onValueChange={onPresetChange}
+          triggerClassName="w-full"
+          contentClassName="w-[min(420px,calc(100vw-2rem))]"
+          listClassName="max-h-[320px]"
+        />
+      </Field>
+
+      {matched && matched.preset.params.length > 0 ? (
+        <div className="space-y-2">
+          {matched.preset.params.map(param => (
+            <Field key={param.key} label={param.label}>
+              <Input
+                value={paramValues[param.key] ?? ""}
+                onChange={e => onParamChange(param.key, e.target.value)}
+                placeholder={param.placeholder}
+              />
+            </Field>
+          ))}
+        </div>
+      ) : (
+        <Field label="Path">
+          <Input value={s.path} onChange={e => set({ path: e.target.value })} placeholder="/badge/build-passing-22c55e.svg" className="font-mono text-xs" />
+        </Field>
+      )}
+    </div>
+  )
+}
+
+export function GroupInspector({ block, onChange }: { block: GroupBlock; onChange: (b: GroupBlock) => void }) {
+  const updateItem = useCallback((id: string, next: BadgeItem) => {
+    onChange({ ...block, badges: block.badges.map(b => (b.id === id ? next : b)) })
+  }, [block, onChange])
+
+  const removeItem = useCallback((id: string) => {
+    onChange({ ...block, badges: block.badges.filter(b => b.id !== id) })
+  }, [block, onChange])
+
+  const addItem = useCallback(() => {
+    onChange({ ...block, badges: [...block.badges, makeBadgeItem({ path: "/badge/label-value-22c55e.svg" })] })
+  }, [block, onChange])
+
+  return (
+    <div className="space-y-4">
+      <AlignControl value={block.align} onChange={v => onChange({ ...block, align: v })} />
+
+      <Field label="Alt text">
+        <Input value={block.alt} onChange={e => onChange({ ...block, alt: e.target.value })} placeholder="badge group" />
+      </Field>
+
+      <p className="text-xs text-muted-foreground">Style applies to the whole group — every segment shares one variant, size, theme, and font.</p>
+
+      <Row>
+        <Field label="Variant">
+          <Select value={block.variant} onValueChange={v => onChange({ ...block, variant: v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {VARIANTS.map(v => <SelectItem key={v} value={v}>{VARIANT_LABELS[v] ?? v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Size">
+          <Select value={block.size} onValueChange={v => onChange({ ...block, size: v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SIZES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Row>
+        <Field label="Theme">
+          <Select value={block.theme || "_none"} onValueChange={v => onChange({ ...block, theme: v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {THEMES.map(v => <SelectItem key={v} value={v}>{v === "_none" ? "Default" : v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Font">
+          <Select value={block.font} onValueChange={v => onChange({ ...block, font: v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {FONTS.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Field label="Link URL">
+        <Input value={block.link ?? ""} onChange={e => onChange({ ...block, link: e.target.value })} placeholder="https://…" className="text-xs" />
+      </Field>
+
+      <Separator />
+      <div className="space-y-3">
+        {block.badges.map((item, i) => (
+          <GroupSegmentEditor
+            key={item.id}
+            item={item}
+            index={i}
+            onChange={next => updateItem(item.id, next)}
+            onRemove={() => removeItem(item.id)}
+          />
+        ))}
+      </div>
+      <Button variant="outline" size="sm" className="w-full" onClick={addItem}>
+        <Plus className="size-3.5" /> Add segment
       </Button>
     </div>
   )

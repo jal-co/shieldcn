@@ -130,7 +130,7 @@ export function buildChartUrl(s: ChartState, baseUrl: string): string | null {
 // Block model
 // ---------------------------------------------------------------------------
 
-export type BlockType = "markdown" | "header" | "badges" | "chart" | "table" | "image"
+export type BlockType = "markdown" | "header" | "badges" | "group" | "chart" | "table" | "image"
 
 /** Default placeholder image source. */
 export const PLACEHOLDER_IMAGE = "https://placeholdpicsum.dev/photo/600/400"
@@ -186,6 +186,32 @@ export interface BadgesBlock extends BaseBlock {
   badges: BadgeItem[]
 }
 
+/**
+ * A joined badge group rendered as a single `/group/...` image — multiple badge
+ * segments fused into one pill with shared rounded edges (shadcn ButtonGroup
+ * style). Unlike `BadgesBlock` (separate <img> tags), styling is group-wide:
+ * `variant`/`size`/`theme`/`font`/`mode` apply to every segment. Only each
+ * segment's `state.path` is used to build the URL.
+ */
+export interface GroupBlock extends BaseBlock {
+  type: "group"
+  align: Alignment
+  alt: string
+  /** Optional link wrapping the whole group image. */
+  link?: string
+  /** Group-wide style applied to every segment. */
+  variant: string
+  size: string
+  theme: string
+  font: string
+  mode: "dark" | "light"
+  format: "svg" | "png"
+  /** Emit a GitHub <picture> that swaps dark/light with the reader's theme. */
+  themeAware?: boolean
+  /** Segments — only each item's path is used; styling is group-wide. */
+  badges: BadgeItem[]
+}
+
 export interface ChartBlock extends BaseBlock {
   type: "chart"
   alt: string
@@ -219,12 +245,13 @@ export interface TableBlock extends BaseBlock {
   align?: Alignment
 }
 
-export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | ChartBlock | TableBlock | ImageBlock
+export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | GroupBlock | ChartBlock | TableBlock | ImageBlock
 
 export const BLOCK_LABELS: Record<BlockType, string> = {
   markdown: "Text",
   header: "Header",
   badges: "Badges",
+  group: "Group",
   chart: "Chart",
   table: "Table",
   image: "Image",
@@ -284,6 +311,52 @@ export function makeBadgesBlock(): BadgesBlock {
   }
 }
 
+export function makeGroupBlock(): GroupBlock {
+  return {
+    id: newId("group"),
+    type: "group",
+    align: "left",
+    alt: "badge group",
+    variant: "secondary",
+    size: "sm",
+    theme: "_none",
+    font: "inter",
+    mode: "dark",
+    format: "svg",
+    badges: [
+      makeBadgeItem({ path: "/npm/react.svg" }),
+      makeBadgeItem({ path: "/github/stars/vercel/next.js.svg" }),
+    ],
+  }
+}
+
+/**
+ * Build the `/group/{a}+{b}+...` URL for a group block. Each segment contributes
+ * its bare badge path (no leading slash, no extension); the extension and all
+ * style query params apply to the whole group. Returns null when empty.
+ */
+export function buildGroupUrl(block: GroupBlock, baseUrl: string, modeOverride?: "dark" | "light"): string | null {
+  const segments = block.badges
+    .map(b => b.state.path.trim())
+    .filter(Boolean)
+    .map(p => p.replace(/^\//, "").replace(/\.(svg|png)$/, ""))
+  if (segments.length === 0) return null
+
+  const ext = block.format === "png" ? ".png" : ".svg"
+  const path = `/group/${segments.join("+")}${ext}`
+  const mode = modeOverride ?? block.mode
+
+  const q = new URLSearchParams()
+  if (block.variant && block.variant !== "default") q.set("variant", block.variant)
+  if (block.size && block.size !== "sm") q.set("size", block.size)
+  if (block.theme && block.theme !== "_none") q.set("theme", block.theme)
+  if (block.font && block.font !== "inter") q.set("font", block.font)
+  if (mode && mode !== "dark") q.set("mode", mode)
+
+  const qs = q.toString()
+  return `${baseUrl}${path}${qs ? `?${qs}` : ""}`
+}
+
 export function makeChartBlock(): ChartBlock {
   return {
     id: newId("chart"),
@@ -341,6 +414,7 @@ export function makeBlock(type: BlockType): Block {
     case "markdown": return makeMarkdownBlock()
     case "header": return makeHeaderBlock()
     case "badges": return makeBadgesBlock()
+    case "group": return makeGroupBlock()
     case "chart": return makeChartBlock()
     case "table": return makeTableBlock()
     case "image": return makeImageBlock()
@@ -433,6 +507,22 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
         return b.state.linkUrl ? `<a href="${escapeAttr(b.state.linkUrl)}">${img}</a>` : img
       }).join("\n  ")
       return `<p align="${block.align}">\n  ${inner}\n</p>`
+    }
+
+    case "group": {
+      if (adaptive) {
+        const dark = buildGroupUrl(block, baseUrl, "dark")
+        const light = buildGroupUrl(block, baseUrl, "light")
+        if (!dark || !light) return ""
+        const pic = picture(dark, light, block.alt, block.link)
+        return block.align === "left" ? pic : `<p align="${block.align}">\n  ${pic}\n</p>`
+      }
+      const url = buildGroupUrl(block, baseUrl)
+      if (!url) return ""
+      if (block.align === "left" && !block.link) return `![${block.alt}](${url})`
+      const img = `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`
+      const wrapped = block.link ? `<a href="${escapeAttr(block.link)}">${img}</a>` : img
+      return block.align && block.align !== "left" ? `<p align="${block.align}">\n  ${wrapped}\n</p>` : wrapped
     }
 
     case "chart": {
