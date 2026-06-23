@@ -16,7 +16,7 @@
 
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   Check, RotateCcw, Plus, Trash2, Copy as Duplicate,
   ChevronUp, ChevronDown, Type, GripVertical, X,
@@ -127,8 +127,16 @@ export function Studio() {
   const [copied, setCopied] = useState(false)
   const [view, setView] = useState<"design" | "code">("design")
   // Editable Markdown-tab buffer. null = mirror the live export; a string = the
-  // user is editing raw Markdown (parsed back into blocks on commit).
-  const [codeDraft, setCodeDraft] = useState<string | null>(null)
+  // user is editing raw Markdown (parsed back into blocks on commit). The ref
+  // mirrors the state so commitCode can dedupe within a single event batch
+  // (the textarea's onBlur and the Tabs onValueChange can both fire on a tab
+  // switch before React re-renders).
+  const [codeDraft, setCodeDraftState] = useState<string | null>(null)
+  const codeDraftRef = useRef<string | null>(null)
+  const setCodeDraft = useCallback((value: string | null) => {
+    codeDraftRef.current = value
+    setCodeDraftState(value)
+  }, [])
   const [themeAware, setThemeAware] = useState(false)
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
@@ -254,13 +262,17 @@ export function Studio() {
   // edit when editing, otherwise the live export.
   const shownMarkdown = codeDraft ?? markdown
 
-  // Parse the edited Markdown back into typed blocks.
+  // Parse the edited Markdown back into typed blocks. Guarded so it runs at most
+  // once per batch, and skips re-parsing (which would regenerate every block ID)
+  // when the source is unchanged from the live export.
   const commitCode = useCallback((source: string) => {
+    if (codeDraftRef.current === null) return
+    setCodeDraft(null)
+    if (source === documentToMarkdown(blocks, baseUrl, themeAware)) return
     const next = markdownToDocument(source, baseUrl)
     setBlocks(next)
     setSelectedId(next[0]?.id ?? null)
-    setCodeDraft(null)
-  }, [baseUrl])
+  }, [blocks, baseUrl, themeAware, setCodeDraft])
 
   const copyMarkdown = useCallback(() => {
     navigator.clipboard.writeText(shownMarkdown)
