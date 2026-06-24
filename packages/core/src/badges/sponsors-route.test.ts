@@ -94,6 +94,48 @@ describe("handleBadgeGET /sponsors", () => {
     expect(body.sponsors.map((s) => s.login)).toEqual(["sponsor1", "sponsor2", "sponsor3"])
   })
 
+  it("uses SPONSORS_GITHUB_TOKEN for the list query when set", async () => {
+    // Listing sponsor nodes needs read:user, which the zero-scope pool lacks —
+    // a dedicated maintainer token must be used for the GraphQL list call.
+    const prev = process.env.SPONSORS_GITHUB_TOKEN
+    process.env.SPONSORS_GITHUB_TOKEN = "ghp_override_token"
+    let listAuth: string | null = null
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === "https://api.github.com/graphql" && init?.method === "POST") {
+          const headers = (init.headers ?? {}) as Record<string, string>
+          const body = JSON.parse(String(init.body)) as { query: string }
+          if (body.query.includes("nodes")) listAuth = headers.Authorization ?? null
+          return new Response(
+            JSON.stringify({
+              data: {
+                repositoryOwner: {
+                  __typename: "User",
+                  sponsors: { totalCount: 1, pageInfo: { hasNextPage: false, endCursor: null }, nodes: [sponsorNode(1)] },
+                },
+              },
+            }),
+            { status: 200 },
+          )
+        }
+        if (url.startsWith("https://avatars.githubusercontent.com/")) {
+          return new Response(PNG_1x1, { status: 200, headers: { "content-type": "image/png" } })
+        }
+        return new Response("not found", { status: 404 })
+      }),
+    )
+    try {
+      // Unique login so the list isn't served from another test's cache entry.
+      const res = await handleBadgeGET(new Request("https://x.dev/sponsors/token-override-acct.json"), ["sponsors", "token-override-acct.json"])
+      expect(res.status).toBe(200)
+      expect(listAuth).toBe("Bearer ghp_override_token")
+    } finally {
+      if (prev === undefined) delete process.env.SPONSORS_GITHUB_TOKEN
+      else process.env.SPONSORS_GITHUB_TOKEN = prev
+    }
+  })
+
   it("strips a leading @ from the login (intuitive hand-written URLs)", async () => {
     // /sponsors/@jal-co.svg should resolve the same account as /sponsors/jal-co.
     const req = new Request("https://x.dev/sponsors/@jal-co.json")

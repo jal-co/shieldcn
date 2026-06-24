@@ -98,11 +98,15 @@ async function githubGraphQL(
   query: string,
   variables: Record<string, unknown>,
   revalidate: number = 3600,
+  tokenOverride?: string,
 ): Promise<Record<string, unknown> | null> {
   if (isBackedOff("github")) return null
 
   try {
-    const token = await pickToken()
+    // An explicit override (e.g. the maintainer's read:user token for the
+    // sponsors list) bypasses the zero-scope donor pool; otherwise pick a
+    // pooled token as usual.
+    const token = tokenOverride ?? (await pickToken())
     const doFetch = (auth?: string) =>
       raceTimeout(
         fetch("https://api.github.com/graphql", {
@@ -124,7 +128,8 @@ async function githubGraphQL(
     // still serves public data unauthenticated at a low limit). Rotating out a
     // revoked pooled token and retrying is still correct; the bare retry only
     // helps when a fresh token is available — otherwise it 401s again → null.
-    if (response.status === 401 && token) {
+    // Never invalidate an explicit override token — it isn't in the pool.
+    if (response.status === 401 && token && !tokenOverride) {
       await invalidateToken(token)
       response = await doFetch()
       if (!response) return null
@@ -818,13 +823,19 @@ interface RawSponsorsConnection {
 const SPONSORS_PAGE_CAP = 3
 
 export async function getGitHubSponsorsList(login: string): Promise<SponsorsList | null> {
+  // Enumerating sponsor identities (`sponsors.nodes`) requires the `read:user`
+  // scope. The donor token pool is deliberately zero-scope, so it can read the
+  // aggregate `totalCount` (the count badge) but NOT the list. Prefer a
+  // dedicated maintainer token when configured; otherwise fall through to the
+  // pool (which yields no nodes → graceful empty card, never a crash).
+  const sponsorToken = process.env.SPONSORS_GITHUB_TOKEN || undefined
   const sponsors: SponsorEntry[] = []
   let totalCount = 0
   let after: string | null = null
   let resolvedAny = false
 
   for (let page = 0; page < SPONSORS_PAGE_CAP; page++) {
-    const data: Record<string, unknown> | null = await githubGraphQL(SPONSORS_LIST_QUERY, { login, after })
+    const data: Record<string, unknown> | null = await githubGraphQL(SPONSORS_LIST_QUERY, { login, after }, 3600, sponsorToken)
     const owner = data?.repositoryOwner as { sponsors?: RawSponsorsConnection } | null | undefined
     const conn = owner?.sponsors
     if (!conn) {
