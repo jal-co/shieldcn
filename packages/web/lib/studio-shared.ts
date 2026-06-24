@@ -20,6 +20,11 @@ import {
   buildHeaderUrl,
   type HeaderState,
 } from "@/lib/header-builder-shared"
+import {
+  SPONSORS_DEFAULTS,
+  buildSponsorsUrl,
+  type SponsorsState,
+} from "@/lib/sponsors-builder-shared"
 
 // ---------------------------------------------------------------------------
 // Chart state (the chart sandbox keeps state inline; the Studio needs it as a
@@ -130,7 +135,7 @@ export function buildChartUrl(s: ChartState, baseUrl: string): string | null {
 // Block model
 // ---------------------------------------------------------------------------
 
-export type BlockType = "markdown" | "header" | "badges" | "group" | "chart" | "table" | "image"
+export type BlockType = "markdown" | "header" | "badges" | "group" | "chart" | "table" | "image" | "sponsors"
 
 /** Default placeholder image source. */
 export const PLACEHOLDER_IMAGE = "https://placeholdpicsum.dev/photo/600/400"
@@ -221,6 +226,15 @@ export interface ChartBlock extends BaseBlock {
   state: ChartState
 }
 
+export interface SponsorsBlock extends BaseBlock {
+  type: "sponsors"
+  alt: string
+  align: Alignment
+  /** Emit a GitHub <picture> that swaps dark/light with the reader's theme. */
+  themeAware?: boolean
+  state: SponsorsState
+}
+
 export interface ImageBlock extends BaseBlock {
   type: "image"
   /** Image URL or absolute/relative path. */
@@ -245,7 +259,7 @@ export interface TableBlock extends BaseBlock {
   align?: Alignment
 }
 
-export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | GroupBlock | ChartBlock | TableBlock | ImageBlock
+export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | GroupBlock | ChartBlock | TableBlock | ImageBlock | SponsorsBlock
 
 export const BLOCK_LABELS: Record<BlockType, string> = {
   markdown: "Text",
@@ -255,6 +269,7 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   chart: "Chart",
   table: "Table",
   image: "Image",
+  sponsors: "Sponsors",
 }
 
 // ---------------------------------------------------------------------------
@@ -367,6 +382,16 @@ export function makeChartBlock(): ChartBlock {
   }
 }
 
+export function makeSponsorsBlock(): SponsorsBlock {
+  return {
+    id: newId("sponsors"),
+    type: "sponsors",
+    alt: "sponsors",
+    align: "center",
+    state: { ...SPONSORS_DEFAULTS },
+  }
+}
+
 export function makeTableBlock(): TableBlock {
   return {
     id: newId("table"),
@@ -418,6 +443,7 @@ export function makeBlock(type: BlockType): Block {
     case "chart": return makeChartBlock()
     case "table": return makeTableBlock()
     case "image": return makeImageBlock()
+    case "sponsors": return makeSponsorsBlock()
   }
 }
 
@@ -535,6 +561,18 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
       }
       const url = buildChartUrl(block.state, baseUrl)
       if (!url) return ""
+      if (block.align === "left") return `![${block.alt}](${url})`
+      return alignWrap(block.align, `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`)
+    }
+
+    case "sponsors": {
+      if (adaptive) {
+        const dark = buildSponsorsUrl({ ...block.state, mode: "dark" }, baseUrl)
+        const light = buildSponsorsUrl({ ...block.state, mode: "light" }, baseUrl)
+        const pic = picture(dark, light, block.alt)
+        return block.align === "left" ? pic : `<p align="${block.align}">\n  ${pic}\n</p>`
+      }
+      const url = buildSponsorsUrl(block.state, baseUrl)
       if (block.align === "left") return `![${block.alt}](${url})`
       return alignWrap(block.align, `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`)
     }

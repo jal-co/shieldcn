@@ -58,6 +58,15 @@ import {
   type HeaderState,
 } from "@/lib/header-builder-shared"
 import {
+  SPONSORS_PRESETS,
+  SPONSORS_PRESET_LABELS,
+  SPONSORS_SIZES,
+  SPONSORS_SIZE_LABELS,
+  SPONSORS_FONTS,
+  SPONSORS_THEMES,
+  type SponsorsState,
+} from "@/lib/sponsors-builder-shared"
+import {
   CHART_THEMES,
   CHART_FONTS,
   makeBadgeItem,
@@ -72,6 +81,7 @@ import {
   type HeaderBlock,
   type ImageBlock,
   type MarkdownBlock,
+  type SponsorsBlock,
   type TableBlock,
 } from "@/lib/studio-shared"
 
@@ -433,6 +443,90 @@ export function HeaderInspector({ block, onChange }: { block: HeaderBlock; onCha
       <Separator />
       <Field label="Alt text" htmlFor="hdr-alt">
         <Input id="hdr-alt" value={block.alt} onChange={e => onChange({ ...block, alt: e.target.value })} placeholder="header" />
+      </Field>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Sponsors inspector
+// ---------------------------------------------------------------------------
+
+export function SponsorsInspector({ block, onChange }: { block: SponsorsBlock; onChange: (b: SponsorsBlock) => void }) {
+  const s = block.state
+  const set = useCallback((patch: Partial<SponsorsState>) => onChange({ ...block, state: { ...block.state, ...patch } }), [block, onChange])
+
+  return (
+    <div className="space-y-4">
+      <Field label="GitHub login (user or org)" htmlFor="sp-login">
+        <Input id="sp-login" value={s.login} onChange={e => set({ login: e.target.value })} placeholder="shadcn" />
+      </Field>
+      <Field label="Title (empty to hide)" htmlFor="sp-title">
+        <Input id="sp-title" value={s.title} onChange={e => set({ title: e.target.value })} placeholder="Sponsors" />
+      </Field>
+
+      <Separator />
+      <Field label="Special sponsors (logins)" htmlFor="sp-special">
+        <Input id="sp-special" value={s.special} onChange={e => set({ special: e.target.value })} placeholder="vercel, clerk" />
+      </Field>
+      <Field label="Backers (logins)" htmlFor="sp-backers">
+        <Input id="sp-backers" value={s.backers} onChange={e => set({ backers: e.target.value })} placeholder="octocat" />
+      </Field>
+
+      <Separator />
+      <Field label="Background">
+        <Select value={s.preset} onValueChange={v => set({ preset: v as SponsorsState["preset"] })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SPONSORS_PRESETS.map(p => (
+              <SelectItem key={p} value={p}>{SPONSORS_PRESET_LABELS[p]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Row>
+        <Field label="Avatar size">
+          <Select value={s.size} onValueChange={v => set({ size: v as SponsorsState["size"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SPONSORS_SIZES.map(sz => <SelectItem key={sz} value={sz}>{SPONSORS_SIZE_LABELS[sz]}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Theme">
+          <Select value={s.theme || "_none"} onValueChange={v => set({ theme: v === "_none" ? "" : v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">Default</SelectItem>
+              {SPONSORS_THEMES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Row>
+        <Field label="Limit" htmlFor="sp-limit">
+          <Input id="sp-limit" value={s.limit} onChange={e => set({ limit: e.target.value })} placeholder="60" inputMode="numeric" />
+        </Field>
+        <Field label="Font">
+          <Select value={s.font} onValueChange={v => set({ font: v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SPONSORS_FONTS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Separator />
+      <ToggleField label="Names" checked={s.names} onCheckedChange={v => set({ names: v })} />
+      <ToggleField label="Border" checked={s.border} onCheckedChange={v => set({ border: v })} />
+      <ToggleField label="Watermark" checked={s.watermark} onCheckedChange={v => set({ watermark: v })} />
+
+      <Separator />
+      <Field label="Alt text" htmlFor="sp-alt">
+        <Input id="sp-alt" value={block.alt} onChange={e => onChange({ ...block, alt: e.target.value })} placeholder="sponsors" />
       </Field>
     </div>
   )

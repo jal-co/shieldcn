@@ -22,8 +22,9 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     BadgePreviewCard,
     ChartPreview,
     ChartSandbox,
-    // Headers reuse the generic full-width image preview.
+    // Headers and sponsors reuse the generic full-width image preview.
     HeaderPreview: ChartPreview,
+    SponsorsPreview: ChartPreview,
 
     // jalco-ui registry components
     CodeBlock,

@@ -35,8 +35,9 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 import { motion, useScroll, useMotionValueEvent, type Transition } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { SponsorButton } from "@/components/sponsor-button"
@@ -87,6 +88,9 @@ const LOGO = {
 // NAV — primary links, staggered in. Items rendered with .map().
 // ---------------------------------------------------------------------------
 
+type NavLink = { href: string; label: string }
+type NavItem = NavLink | { label: string; children: NavLink[] }
+
 const NAV = {
   offsetY: -8, //    px each link drops in from
   stagger: 0.06, //  seconds between each link
@@ -95,10 +99,82 @@ const NAV = {
     { href: "/docs", label: "Docs" },
     { href: "/studio", label: "Studio" },
     { href: "/showcase", label: "Showcase" },
-    { href: "/header", label: "Headers" },
-    { href: "/gen", label: "Generator" },
+    {
+      label: "Generator",
+      children: [
+        { href: "/gen", label: "All badges" },
+        { href: "/header", label: "Headers" },
+        { href: "/sponsors", label: "Sponsors" },
+      ],
+    },
     { href: "/migrate", label: "Migrate" },
-  ],
+  ] as NavItem[],
+}
+
+// ---------------------------------------------------------------------------
+// NavDropdown — a hover/click menu for a nav item with children. Lightweight
+// (no Radix dependency) so it slots cleanly into the staggered motion items.
+// ---------------------------------------------------------------------------
+
+function NavDropdown({ label, items }: { label: string; items: NavLink[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDoc)
+    return () => document.removeEventListener("mousedown", onDoc)
+  }, [open])
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {label}
+        <ChevronDown
+          className={`ml-0.5 size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </Button>
+      {open && (
+        // Positioned wrapper sits flush against the trigger (top-full) and uses
+        // top *padding* — not margin — as a hover-safe bridge: the visual gap is
+        // still part of the hoverable element, so the cursor can travel from the
+        // button to the menu without leaving the dropdown and closing it.
+        <div className="absolute left-0 top-full z-40 min-w-[180px] pt-1.5">
+          <div
+            role="menu"
+            className="rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          >
+            {items.map((it) => (
+              <Link
+                key={it.href}
+                href={it.href}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
+              >
+                {it.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -180,14 +256,18 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
       <nav className="ml-4 hidden items-center gap-1 text-sm md:flex">
         {NAV.items.map((item, i) => (
           <motion.div
-            key={item.href}
+            key={"children" in item ? item.label : item.href}
             initial={{ opacity: 0, y: NAV.offsetY }}
             animate={{ opacity: stage >= 3 ? 1 : 0, y: stage >= 3 ? 0 : NAV.offsetY }}
             transition={{ ...(NAV.spring as Transition), delay: stage >= 3 ? i * NAV.stagger : 0 }}
           >
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={item.href}>{item.label}</Link>
-            </Button>
+            {"children" in item ? (
+              <NavDropdown label={item.label} items={item.children} />
+            ) : (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href={item.href}>{item.label}</Link>
+              </Button>
+            )}
           </motion.div>
         ))}
       </nav>

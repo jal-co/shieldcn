@@ -31,6 +31,7 @@ import {
 } from "@/lib/studio-shared"
 import { BUILDER_DEFAULTS, type BuilderState } from "@/lib/badge-builder-shared"
 import { HEADER_DEFAULTS, type HeaderPreset, type HeaderSize, type HeaderState } from "@/lib/header-builder-shared"
+import { SPONSORS_DEFAULTS, type SponsorsPreset, type SponsorsSize, type SponsorsState } from "@/lib/sponsors-builder-shared"
 
 // Minimal mdast shape — only the fields this parser reads.
 interface MdNode {
@@ -43,7 +44,7 @@ interface MdNode {
   position?: { start: { offset: number }; end: { offset: number } }
 }
 
-type ImgKind = "header" | "group" | "chart" | "badge" | "image"
+type ImgKind = "header" | "group" | "chart" | "badge" | "image" | "sponsors"
 
 interface ImgRef {
   src: string
@@ -82,6 +83,7 @@ function classifyUrl(src: string, baseUrl: string): ImgKind {
   if (first === "header") return "header"
   if (first === "group") return "group"
   if (first === "chart") return "chart"
+  if (first === "sponsors") return "sponsors"
   if (first === "badge") return "badge"
   const base = originOf(baseUrl)
   const relative = !/^https?:\/\//i.test(src)
@@ -208,6 +210,33 @@ function headerStateFromUrl(u: URL): HeaderState {
   }
 }
 
+/** Reverse a `/sponsors/{login}.svg?...` URL into a SponsorsState. */
+function sponsorsStateFromUrl(u: URL): SponsorsState {
+  const q = u.searchParams
+  const segs = u.pathname.split("/").filter(Boolean) // ["sponsors", "{login}.svg"]
+  const login = decodeURIComponent((segs[1] || "").replace(/\.(svg|png)$/i, ""))
+  const titleParam = q.get("title")
+  return {
+    ...SPONSORS_DEFAULTS,
+    login: login || SPONSORS_DEFAULTS.login,
+    // title=false hides it (empty string); a value overrides; absent = default.
+    title: titleParam === null ? "Sponsors" : titleParam === "false" ? "" : titleParam,
+    preset: ((q.get("preset") || "surface") as SponsorsPreset),
+    theme: q.get("theme") || "",
+    size: ((q.get("size") as SponsorsSize) || "64"),
+    names: q.get("names") !== "false",
+    special: q.get("special") || "",
+    backers: q.get("backers") || "",
+    limit: q.get("limit") || "",
+    mode: (q.get("mode") as "dark" | "light") || "dark",
+    font: q.get("font") || "inter",
+    border: q.get("border") !== "false",
+    watermark: q.get("watermark") === "true",
+    image: q.get("image") || "",
+    overlay: q.get("overlay") || "",
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Image refs → blocks (groups adjacent badges into one Badges block)
 // ---------------------------------------------------------------------------
@@ -239,6 +268,8 @@ function blocksFromImageRefs(refs: ImgRef[], align: Alignment, baseUrl: string):
       out.push(groupBlockFromUrl(ref, align, baseUrl))
     } else if (kind === "chart" && u) {
       out.push({ id: newId("chart"), type: "chart", alt: ref.alt, align, themeAware: ref.themeAware || undefined, state: chartStateFromUrl(u) })
+    } else if (kind === "sponsors" && u) {
+      out.push({ id: newId("sponsors"), type: "sponsors", alt: ref.alt, align, themeAware: ref.themeAware || undefined, state: sponsorsStateFromUrl(u) })
     } else {
       out.push({ id: newId("img"), type: "image", src: ref.src, alt: ref.alt, align, width: ref.width, link: ref.link })
     }

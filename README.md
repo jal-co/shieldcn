@@ -145,6 +145,20 @@ Premade backgrounds: `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`,
 [header generator](https://shieldcn.dev/header) or see the
 [Headers docs](https://shieldcn.dev/docs/headers).
 
+### Sponsors
+
+A grid of your account's active public GitHub Sponsors — every sponsor's
+avatar, name, and link — as one portable image:
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg)
+```
+
+Pin logins into larger `special` and smaller `backers` rows; everyone else
+lands in the default `Sponsors` row. Available as `.svg`, `.png`, and `.json`.
+Customize with `special`, `backers`, `title`, `size`, `limit`, `names`, `bg`,
+and more. See the [Sponsors docs](https://shieldcn.dev/docs/sponsors).
+
 ## Supported providers
 
 See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive sandboxes, and copy-paste examples.

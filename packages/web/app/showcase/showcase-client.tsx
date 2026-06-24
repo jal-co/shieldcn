@@ -235,6 +235,7 @@ export default function ShowcasePage() {
 
       <ChartShowcase />
       <HeaderShowcase />
+      <SponsorsShowcase />
     </main>
   )
 }
@@ -302,6 +303,65 @@ function HeaderShowcase() {
             <div className="px-1 pt-3">
               <p className="text-sm font-medium">{h.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">{h.description}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+const SPONSOR_EXAMPLES: { title: string; description: string; src: string; href: string }[] = [
+  {
+    title: "Sponsors grid",
+    description: "Every active public GitHub Sponsor's avatar, names and all.",
+    src: "/sponsors/shadcn.svg",
+    href: "/docs/sponsors",
+  },
+  {
+    title: "Pinned tiers",
+    description: "Pin logins into a larger Special Sponsors row up top.",
+    src: "/sponsors/shadcn.svg?special=vercel,clerk",
+    href: "/docs/sponsors",
+  },
+]
+
+function SponsorsShowcase() {
+  const hydrated = useHydrated()
+  const { adaptUrl } = useBadgeMode()
+  return (
+    <section
+      id="sponsors-showcase"
+      aria-labelledby="sponsors-showcase-title"
+      className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-16 md:px-8"
+    >
+      <div>
+        <h2 id="sponsors-showcase-title" className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">
+          Sponsors
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          A grid of your account&apos;s active public GitHub Sponsors — avatars,
+          names, and links, with optional pinned tiers.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {SPONSOR_EXAMPLES.map((s) => (
+          <Link
+            key={s.src}
+            href={s.href}
+            className="group rounded-2xl border border-border bg-card p-3 transition-colors hover:border-foreground/20"
+          >
+            <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+              {hydrated ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={adaptUrl(s.src)} alt={s.title} className="w-full" />
+              ) : (
+                <div className="aspect-[2/1] w-full" />
+              )}
+            </div>
+            <div className="px-1 pt-3">
+              <p className="text-sm font-medium">{s.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{s.description}</p>
             </div>
           </Link>
         ))}

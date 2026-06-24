@@ -756,3 +756,105 @@ export async function getGitHubSponsors(login: string): Promise<BadgeData | null
     link: `https://github.com/sponsors/${login}`,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Sponsors list (public active sponsors — avatars, names, logins)
+// ---------------------------------------------------------------------------
+
+/** A single public sponsor of an account. */
+export interface SponsorEntry {
+  login: string
+  name: string | null
+  /** GitHub-hosted avatar URL (sized via the GraphQL `size:` argument). */
+  avatarUrl: string
+  url: string
+  type: "User" | "Organization"
+}
+
+/** Resolved public-sponsor list for an account. */
+export interface SponsorsList {
+  /** Total active sponsors (includes private ones in the number only). */
+  totalCount: number
+  /** The publicly-visible sponsors, in GitHub's returned order. */
+  sponsors: SponsorEntry[]
+}
+
+// `sponsors` is the set of accounts *currently* sponsoring this one. Only the
+// public sponsors expose identity (login/name/avatar); private sponsors are
+// counted in `totalCount` but never enumerated to a pooled token. `avatarUrl`
+// takes a pixel `size` so GitHub returns an already-downscaled image, keeping
+// the inlined data URI small. Both User and Organization owners expose the same
+// `sponsors` connection, so the concrete-type spreads cover either account.
+const SPONSORS_LIST_NODE = `__typename
+  ... on User { login name avatarUrl(size: 160) url }
+  ... on Organization { login name avatarUrl(size: 160) url }`
+const SPONSORS_LIST_QUERY = `query($login: String!, $after: String) {
+  repositoryOwner(login: $login) {
+    ... on User { sponsors(first: 100, after: $after) { totalCount pageInfo { hasNextPage endCursor } nodes { ${SPONSORS_LIST_NODE} } } }
+    ... on Organization { sponsors(first: 100, after: $after) { totalCount pageInfo { hasNextPage endCursor } nodes { ${SPONSORS_LIST_NODE} } } }
+  }
+}`
+
+interface RawSponsorNode {
+  __typename?: string
+  login?: unknown
+  name?: unknown
+  avatarUrl?: unknown
+  url?: unknown
+}
+
+interface RawSponsorsConnection {
+  totalCount?: unknown
+  pageInfo?: { hasNextPage?: unknown; endCursor?: unknown }
+  nodes?: unknown
+}
+
+/**
+ * Fetch the public active-sponsor list for a user or organization. Paginates
+ * up to {@link SPONSORS_PAGE_CAP} pages (100 each) so very large sponsor lists
+ * stay bounded. Returns null on any failure (so the route serves
+ * last-known-good instead of an error image).
+ */
+const SPONSORS_PAGE_CAP = 3
+
+export async function getGitHubSponsorsList(login: string): Promise<SponsorsList | null> {
+  const sponsors: SponsorEntry[] = []
+  let totalCount = 0
+  let after: string | null = null
+  let resolvedAny = false
+
+  for (let page = 0; page < SPONSORS_PAGE_CAP; page++) {
+    const data: Record<string, unknown> | null = await githubGraphQL(SPONSORS_LIST_QUERY, { login, after })
+    const owner = data?.repositoryOwner as { sponsors?: RawSponsorsConnection } | null | undefined
+    const conn = owner?.sponsors
+    if (!conn) {
+      // A null owner on the very first page means the account couldn't be
+      // resolved (or the call failed) — surface that as a miss. After at least
+      // one good page, stop and return what we have.
+      if (!resolvedAny) return null
+      break
+    }
+    resolvedAny = true
+    if (typeof conn.totalCount === "number") totalCount = conn.totalCount
+
+    const nodes = Array.isArray(conn.nodes) ? (conn.nodes as RawSponsorNode[]) : []
+    for (const n of nodes) {
+      if (typeof n?.login !== "string" || typeof n?.avatarUrl !== "string") continue
+      sponsors.push({
+        login: n.login,
+        name: typeof n.name === "string" && n.name.trim() ? n.name : null,
+        avatarUrl: n.avatarUrl,
+        url: typeof n.url === "string" ? n.url : `https://github.com/${n.login}`,
+        type: n.__typename === "Organization" ? "Organization" : "User",
+      })
+    }
+
+    const hasNext = conn.pageInfo?.hasNextPage === true
+    const endCursor = conn.pageInfo?.endCursor
+    if (!hasNext || typeof endCursor !== "string") break
+    after = endCursor
+  }
+
+  if (!resolvedAny) return null
+  return { totalCount, sponsors }
+}

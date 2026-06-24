@@ -1,0 +1,194 @@
+---
+title: Sponsors
+description: A grid of your account's active GitHub Sponsors — every public sponsor's avatar, rendered as one portable image for your README.
+---
+
+The sponsors image renders a grid of an account's **active public GitHub
+Sponsors** — their avatars, names, and links — as a single portable SVG (or
+PNG) served from shieldcn. Like [headers](headers) and [charts](charts),
+everything is encoded in the image URL, so it works anywhere a Markdown image
+does and never needs a build step or a CI job.
+
+<SponsorsPreview
+  src="/sponsors/shadcn.svg"
+  alt="shadcn's GitHub sponsors"
+/>
+
+## Builder
+
+The fastest way to make a sponsors image is the interactive generator. Enter a
+login, pin tiers, pick a background and theme, then copy the Markdown.
+
+[Open the sponsors generator](/sponsors)
+
+## URL format
+
+```
+/sponsors/{login}.svg     SVG grid
+/sponsors/{login}.png     PNG grid
+/sponsors/{login}.json    resolved sponsor list (JSON)
+```
+
+`{login}` is any GitHub user or organization that has GitHub Sponsors enabled.
+Drop it into your README with a Markdown image:
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg)
+```
+
+Or center it with an HTML block:
+
+```html
+<p align="center">
+  <a href="https://github.com/sponsors/shadcn">
+    <img src="https://shieldcn.dev/sponsors/shadcn.svg" alt="Sponsors" />
+  </a>
+</p>
+```
+
+## Tiers
+
+GitHub only exposes sponsor **dollar amounts** to the sponsored account's own
+token. shieldcn fetches through a shared pool of community tokens, so it can
+read the **public sponsor list** but not each sponsor's tier. Instead, you
+arrange tiers yourself by pinning logins:
+
+- `special` — a comma-separated list of logins shown **larger**, at the top, in
+  a "Special Sponsors" row.
+- `backers` — a comma-separated list of logins shown **smaller**, at the
+  bottom, in a "Backers" row.
+- Everyone else falls into the default "Sponsors" row.
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg?special=vercel,clerk&backers=octocat)
+```
+
+<SponsorsPreview
+  src="/sponsors/shadcn.svg?special=vercel,clerk"
+  alt="sponsors with a pinned special tier"
+  description="vercel and clerk pinned into the Special Sponsors row"
+/>
+
+Rename the rows with `specialTitle`, `sponsorsTitle`, and `backersTitle`. A
+`@login` prefix is accepted and ignored, so `special=@vercel` also works.
+
+## Sizing and layout
+
+The `size` parameter sets the base avatar diameter; the special and backers
+rows scale from it automatically. Use `width` to set the canvas width — avatars
+wrap into as many rows as needed.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `size` | 32–140 (px) | 64 |
+| `width` | 320–2000 (px) | 800 |
+| `limit` | 1–80 | 60 |
+| `names` | `true`, `false` | `true` |
+| `radius` | 0–80 (px) | 12 |
+| `border` | `true`, `false` | `true` |
+| `watermark` | `true`, `false` | `false` |
+
+`limit` caps how many avatars are shown — pinned `special` and `backers`
+sponsors are always rendered, and the cap applies to the default row. Pass
+`names=false` for a tighter, avatar-only grid.
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg?names=false&size=48&limit=40)
+```
+
+## Title and colors
+
+The grid has a "Sponsors" heading by default. Override it with `title=...`, or
+hide it with `title=false`. Color controls:
+
+- `bg` — a solid background color (hex without `#`), or `transparent` to blend
+  into the page.
+- `accent` — the color of the hairline rule under the title (hex without `#`).
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg?title=Our+Backers&bg=transparent)
+```
+
+## Backgrounds
+
+The card uses the **same premade background system as [headers](headers)** —
+so it's just as customizable. Set a preset with `?preset=`:
+
+| Preset | Description |
+| --- | --- |
+| `surface` | Clean flat zinc surface. The default. |
+| `gradient` | Subtle neutral vertical gradient. |
+| `dots` | Dot grid over the surface. |
+| `grid` | Line grid over the surface. |
+| `graph` | Fine and coarse graph paper. |
+| `glow` | Soft themed spotlight from the top. |
+| `transparent` | No surface fill — blends into the page. |
+
+<SponsorsPreview
+  src="/sponsors/shadcn.svg?preset=glow&theme=blue"
+  alt="sponsors with the glow preset and blue theme"
+  description="glow preset, blue theme"
+/>
+
+For full control, override the background directly:
+
+- `theme` — tints the glow/accent: `zinc`, `slate`, `blue`, `green`, `rose`,
+  `orange`, `violet`, `purple`, `cyan`, `emerald`.
+- `gradient` — comma-separated hex stops with an optional trailing angle, e.g.
+  `gradient=7c2d12,9f1239,86198f,135`.
+- `pattern` — `dots`, `grid`, `graph`, or `none`.
+- `glow` — the spotlight color (hex without `#`).
+- `bg` — a solid color (hex without `#`), or `transparent`.
+- `image` — a background photo (Unsplash or any image URL), inlined behind an
+  auto scrim; tune it with `overlay` (0–1) and `tint`.
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg?gradient=7c2d12,9f1239,86198f,135)
+```
+
+## Light and dark mode
+
+The grid reads correctly in both modes. Pass `mode=light` or `mode=dark`, or
+pair two images in a `<picture>` element so it follows the reader's GitHub
+theme. See [Light & Dark Mode](customization/light-dark-mode).
+
+## Parameters
+
+In addition to the shared `mode` and `font` parameters from the
+[API reference](api-reference):
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `special` | comma-separated logins | — |
+| `backers` | comma-separated logins | — |
+| `specialTitle` | string | `Special Sponsors` |
+| `sponsorsTitle` | string | `Sponsors` |
+| `backersTitle` | string | `Backers` |
+| `title` | string, or `false` | `Sponsors` |
+| `size` | 32–140 (px) | 64 |
+| `width` | 320–2000 (px) | 800 |
+| `limit` | 1–80 | 60 |
+| `names` | `true`, `false` | `true` |
+| `preset` | `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`, `transparent` | `surface` |
+| `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |
+| `bg` | hex without `#`, or `transparent` | card surface |
+| `gradient` | comma-separated hex stops, optional trailing angle | — |
+| `pattern` | `dots`, `grid`, `graph`, `none` | preset |
+| `glow` | hex without `#` | per preset |
+| `image` | Unsplash / image URL, or `data:` URI | — |
+| `overlay` | 0–1 | 0.45 |
+| `tint` | hex without `#` | `000000` |
+| `accent` | hex without `#` | — |
+| `radius` | 0–80 (px) | 12 |
+| `border` | `true`, `false` | `true` |
+| `watermark` | `true`, `false` | `false` |
+| `mode` | `dark`, `light` | `dark` |
+
+## Data source
+
+Sponsor data comes from the [GitHub Sponsors GraphQL API](https://docs.github.com/en/graphql/reference/objects#sponsorconnection),
+fetched through shieldcn's community token pool. Only **public** sponsors are
+listed; private sponsors are counted in the total but never shown. Avatars are
+fetched once and inlined into the image, and the list is cached for 30 minutes
+(serving the last-known-good list during any GitHub outage). Accounts without
+GitHub Sponsors enabled render an empty-state message.

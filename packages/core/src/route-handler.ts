@@ -9,6 +9,7 @@
 import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
 import { renderChart, resolveAccent, resolveFontFamily, type ChartSeries, type ChartPoint } from "./badges/render-chart"
 import { renderHeader, type HeaderLogoInput } from "./badges/render-header"
+import { renderSponsors, type SponsorAvatar, type SponsorTier } from "./badges/render-sponsors"
 import { resolveHeaderBackground } from "./badges/header-backgrounds"
 import { getStarHistory, getIssueHistory } from "./providers/starhistory"
 import { getNpmDownloadSeries } from "./providers/npm"
@@ -114,6 +115,8 @@ import {
   getGitHubFollowers,
   getGitHubUserStars,
   getGitHubSponsors,
+  getGitHubSponsorsList,
+  type SponsorEntry,
   githubRepoExists,
 } from "./providers/github"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
@@ -2130,6 +2133,312 @@ async function resolveHeaderImage(imageParam: string | null): Promise<string | u
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sponsors image (/sponsors/{login}.svg) — public active-sponsor avatar grid.
+// ---------------------------------------------------------------------------
+
+/** Max bytes for a single inlined avatar (~200 KB). */
+const MAX_AVATAR_BYTES = 200_000
+/** Avatar image types we inline (GitHub serves png/jpeg/webp/gif). */
+const AVATAR_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"])
+/** Hard cap on how many avatars a single sponsors image will inline. */
+const SPONSORS_RENDER_CAP = 80
+/** Sponsors-image cache tuning (sponsor lists change slowly). */
+const SPONSORS_FRESH_TTL = 60 * 30 // 30 min fresh copy
+const SPONSORS_STALE_TTL = 60 * 60 * 24 * 7 // 7 day last-known-good fallback
+
+/**
+ * Rasterize an SVG string to PNG bytes via resvg-wasm, with the bundled fonts
+ * supplied so text (sponsor names, titles) renders in the wasm sandbox (which
+ * has no system fonts). Mirrors the header PNG path.
+ */
+async function rasterizeToPng(svg: string): Promise<Uint8Array> {
+  const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
+  try {
+    let wasmLoaded = false
+    if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+      try {
+        const fs = await import("node:fs")
+        const path = await import("node:path")
+        const candidates = [
+          path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
+        ]
+        for (const p of candidates) {
+          if (fs.existsSync(p)) {
+            await initWasm(fs.readFileSync(p))
+            wasmLoaded = true
+            break
+          }
+        }
+      } catch { /* fs not available */ }
+    }
+    if (!wasmLoaded) {
+      await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
+    }
+  } catch { /* already initialized */ }
+  const { getFontBuffers, DEFAULT_FONT_FAMILY } = await import("./badges/fonts")
+  const resvg = new Resvg(svg, {
+    font: {
+      fontBuffers: getFontBuffers(),
+      defaultFontFamily: DEFAULT_FONT_FAMILY,
+      loadSystemFonts: false,
+    },
+  })
+  return resvg.render().asPng()
+}
+
+/** Default avatar diameters (px) per tier, scaled from the base `size`. */
+function tierSizes(base: number): { special: number; sponsors: number; backers: number } {
+  return {
+    special: Math.round(base * 1.35),
+    sponsors: base,
+    backers: Math.round(base * 0.72),
+  }
+}
+
+/**
+ * Fetch a GitHub avatar URL and return it as a base64 `data:` URI, or undefined
+ * on any failure. Never hot-links — a sandboxed `<img>` SVG cannot load remote
+ * images, so every avatar must be inlined.
+ */
+async function inlineAvatar(rawUrl: string): Promise<string | undefined> {
+  if (!/^https?:\/\//.test(rawUrl)) return undefined
+  try {
+    const res = await raceTimeout(
+      fetch(rawUrl, {
+        next: { revalidate: 86400 },
+        headers: { Accept: "image/*", "User-Agent": "shieldcn/1.0" },
+      }),
+    )
+    if (!res?.ok) return undefined
+    const ct = res.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() || ""
+    if (!AVATAR_IMAGE_TYPES.has(ct)) return undefined
+    const bytes = Buffer.from(await res.arrayBuffer())
+    if (bytes.byteLength === 0 || bytes.byteLength > MAX_AVATAR_BYTES) return undefined
+    return `data:${ct};base64,${bytes.toString("base64")}`
+  } catch {
+    return undefined
+  }
+}
+
+/** Inline a batch of avatars with bounded concurrency. */
+async function inlineAvatars(entries: SponsorEntry[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>()
+  const CONCURRENCY = 8
+  for (let i = 0; i < entries.length; i += CONCURRENCY) {
+    const batch = entries.slice(i, i + CONCURRENCY)
+    const results = await Promise.all(batch.map((e) => inlineAvatar(e.avatarUrl)))
+    results.forEach((uri, j) => {
+      if (uri) out.set(batch[j].login, uri)
+    })
+  }
+  return out
+}
+
+/** Parse a comma-separated login list into a lowercased, de-duped array. */
+function parseLoginList(raw: string | null): string[] {
+  if (!raw) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const part of raw.split(",")) {
+    const login = part.trim().toLowerCase().replace(/^@/, "")
+    if (login && !seen.has(login)) {
+      seen.add(login)
+      out.push(login)
+    }
+  }
+  return out
+}
+
+async function handleSponsors(
+  cleanSegments: string[],
+  searchParams: URLSearchParams,
+  format: Format,
+  options?: BadgeRequestOptions,
+): Promise<Response> {
+  const rest = cleanSegments.slice(1) // after "sponsors"
+  const login = rest[0]
+
+  const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
+  const width = clampNum(searchParams.get("width"), 320, 2000, 800)
+  const radius = clampNum(searchParams.get("radius"), 0, 80, 12)
+  const baseSize = clampNum(searchParams.get("size"), 32, 140, 64)
+  const limit = clampNum(searchParams.get("limit"), 1, SPONSORS_RENDER_CAP, 60)
+  const fontFamily = resolveFontFamily(searchParams.get("font"))
+  const falsy = (v: string | null) => v === "false" || v === "0" || v === "none"
+  const border = !falsy(searchParams.get("border"))
+  const watermark = searchParams.get("watermark") === "true" || searchParams.get("watermark") === "1"
+  const showNames = !falsy(searchParams.get("names"))
+
+  // Title: defaults to "Sponsors"; `title=false`/empty hides it.
+  const titleRaw = searchParams.get("title")
+  const title = titleRaw === null ? "Sponsors" : falsy(titleRaw) ? undefined : titleRaw
+
+  // Background: the same premade system as headers — presets, gradients,
+  // patterns, glow, themes, and photo backgrounds — so the sponsors card is as
+  // customizable as a header banner. `transparent`/`none` blends into the page.
+  const bgRaw = searchParams.get("bg") ?? searchParams.get("background")
+  const transparent = bgRaw === "transparent" || bgRaw === "none"
+  const imageDataUri = await resolveHeaderImage(searchParams.get("image") ?? searchParams.get("bgImage"))
+  const bgParams = {
+    preset: searchParams.get("preset"),
+    theme: searchParams.get("theme"),
+    bg: transparent ? null : resolveColor(bgRaw),
+    transparent,
+    gradient: searchParams.get("gradient"),
+    pattern: searchParams.get("pattern"),
+    glow: resolveColor(searchParams.get("glow")),
+    accent: resolveColor(searchParams.get("accent")),
+    imageDataUri,
+    overlay: searchParams.has("overlay") ? clampNum(searchParams.get("overlay"), 0, 1, 0.45) : undefined,
+    tint: resolveColor(searchParams.get("tint")),
+  }
+
+  // Manual tiers: owner pins logins into a larger "special" row and/or a
+  // smaller "backers" row; everyone else falls into the default "Sponsors" row.
+  const specialLogins = parseLoginList(searchParams.get("special"))
+  const backerLogins = parseLoginList(searchParams.get("backers"))
+  const specialTitle = searchParams.get("specialTitle") ?? "Special Sponsors"
+  const sponsorsTitle = searchParams.get("sponsorsTitle") ?? "Sponsors"
+  const backersTitle = searchParams.get("backersTitle") ?? "Backers"
+
+  // Image response helper (svg or png), shared by the success + fallback paths.
+  const imageResponse = async (svg: string, headers: Record<string, string>): Promise<Response> => {
+    if (format === "png") {
+      const png = await rasterizeToPng(svg)
+      return new Response(Buffer.from(png), { headers: { "Content-Type": "image/png", ...headers } })
+    }
+    return new Response(svg, { headers: { "Content-Type": "image/svg+xml", ...headers } })
+  }
+
+  // A sponsors image is a large element — a failure must degrade to a full,
+  // card-shaped empty state (same chrome as the grid), never a tiny badge
+  // pill scaled up huge. Short-cached so it self-heals when data appears.
+  const fallbackCard = (message: string): Promise<Response> => {
+    const { svg } = renderSponsors({
+      title,
+      tiers: [{ size: tierSizes(baseSize).sponsors, avatars: [] }],
+      width,
+      mode,
+      radius,
+      fontFamily,
+      border,
+      watermark,
+      showNames,
+      ...bgParams,
+      emptyText: message,
+    })
+    return imageResponse(svg, ERROR_CACHE_HEADERS)
+  }
+
+  if (!login) {
+    if (format === "json") {
+      return Response.json({ error: "missing login" }, { status: 400, headers: ERROR_CACHE_HEADERS })
+    }
+    return fallbackCard("Provide a GitHub username or org")
+  }
+
+  // Fetch the public sponsor list (last-known-good on transient failure).
+  let servedStale = false
+  const list = await cachedFetchStale(
+    "github",
+    `sponsors-list/${login.toLowerCase()}`,
+    () => getGitHubSponsorsList(login),
+    SPONSORS_FRESH_TTL,
+    SPONSORS_STALE_TTL,
+    { onStale: () => { servedStale = true } },
+  )
+
+  if (!list) {
+    if (format === "json") {
+      return Response.json({ error: "not found" }, { status: 404, headers: ERROR_CACHE_HEADERS })
+    }
+    // No list: the account has no GitHub Sponsors program, doesn't exist, or
+    // the upstream is transiently unavailable. All three read better as a
+    // calm card than a red error — and the short cache lets it self-heal.
+    return fallbackCard(`No public sponsors to show for @${login}`)
+  }
+
+  const cacheHeaders = servedStale ? ERROR_CACHE_HEADERS : CACHE_HEADERS
+
+  // Partition the public sponsors into tiers.
+  const specialSet = new Set(specialLogins)
+  const backerSet = new Set(backerLogins)
+  const byLogin = new Map(list.sponsors.map((s) => [s.login.toLowerCase(), s]))
+
+  const special: SponsorEntry[] = specialLogins.map((l) => byLogin.get(l)).filter((s): s is SponsorEntry => !!s)
+  const backers: SponsorEntry[] = backerLogins.map((l) => byLogin.get(l)).filter((s): s is SponsorEntry => !!s)
+  const middle: SponsorEntry[] = list.sponsors.filter(
+    (s) => !specialSet.has(s.login.toLowerCase()) && !backerSet.has(s.login.toLowerCase()),
+  )
+
+  // Cap the middle tier so the whole image stays bounded; pinned tiers are
+  // always shown (the owner chose them explicitly).
+  const middleBudget = Math.max(0, limit - special.length - backers.length)
+  const middleShown = middle.slice(0, middleBudget)
+
+  if (format === "json") {
+    return Response.json(
+      {
+        type: "sponsors",
+        login,
+        totalCount: list.totalCount,
+        publicCount: list.sponsors.length,
+        shown: special.length + middleShown.length + backers.length,
+        sponsors: list.sponsors.map((s) => ({ login: s.login, name: s.name, url: s.url, type: s.type })),
+      },
+      { headers: cacheHeaders },
+    )
+  }
+
+  // Inline avatars for everyone we'll actually render.
+  const toRender = [...special, ...middleShown, ...backers]
+  const avatarMap = await inlineAvatars(toRender)
+  const toAvatar = (s: SponsorEntry): SponsorAvatar => ({
+    login: s.login,
+    name: s.name,
+    url: s.url,
+    imageDataUri: avatarMap.get(s.login),
+  })
+
+  const sizes = tierSizes(baseSize)
+  const tiers: SponsorTier[] = []
+  const hasPinned = special.length > 0 || backers.length > 0
+  if (special.length) tiers.push({ title: specialTitle, size: sizes.special, avatars: special.map(toAvatar) })
+  if (middleShown.length) {
+    tiers.push({
+      title: hasPinned ? sponsorsTitle : undefined,
+      size: sizes.sponsors,
+      avatars: middleShown.map(toAvatar),
+    })
+  }
+  if (backers.length) tiers.push({ title: backersTitle, size: sizes.backers, avatars: backers.map(toAvatar) })
+  if (tiers.length === 0) tiers.push({ size: sizes.sponsors, avatars: [] })
+
+  const { svg } = renderSponsors({
+    title,
+    tiers,
+    width,
+    mode,
+    radius,
+    fontFamily,
+    border,
+    watermark,
+    showNames,
+    ...bgParams,
+    emptyText: `No public sponsors yet — sponsor @${login}`,
+  })
+
+  if (options?.onTrack) {
+    void options.onTrack({
+      name: "sponsors_rendered",
+      data: { login, format, mode, shown: toRender.length, total: list.totalCount },
+    })
+  }
+
+  return imageResponse(svg, cacheHeaders)
+}
+
 async function handleHeader(
   cleanSegments: string[],
   searchParams: URLSearchParams,
@@ -2539,6 +2848,14 @@ async function handleBadgeGETInner(
   // ---------------------------------------------------------------------------
   if (cleanSegments[0] === "header") {
     return handleHeader(cleanSegments, searchParams, format, options)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sponsors grid: /sponsors/{login}.svg?special=...&backers=...
+  // Renders a grid of an account's public active GitHub sponsors' avatars.
+  // ---------------------------------------------------------------------------
+  if (cleanSegments[0] === "sponsors") {
+    return handleSponsors(cleanSegments, searchParams, format, options)
   }
 
   // Fetch badge data from provider

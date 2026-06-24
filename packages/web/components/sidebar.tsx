@@ -181,6 +181,14 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
+    title: "Sponsors",
+    alwaysOpen: true,
+    items: [
+      { title: "Overview", href: "/docs/sponsors" },
+      { title: "Generator", href: "/sponsors" },
+    ],
+  },
+  {
     title: "Registry",
     items: [
       { title: "Overview", href: "/docs/registry" },
