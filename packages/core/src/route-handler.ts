@@ -2257,7 +2257,12 @@ async function handleSponsors(
   options?: BadgeRequestOptions,
 ): Promise<Response> {
   const rest = cleanSegments.slice(1) // after "sponsors"
-  const login = rest[0]
+  // Normalize the login the same way the tier params (parseLoginList) and the
+  // URL generator (buildSponsorsUrl) do: a leading `@` is intuitive in a
+  // hand-written URL (/sponsors/@vercel.svg) but GitHub logins never contain
+  // one, so passing it to the GraphQL `repositoryOwner(login:)` lookup would
+  // miss and fall back to the empty card.
+  const login = (rest[0] ?? "").trim().replace(/^@/, "")
 
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const width = clampNum(searchParams.get("width"), 320, 2000, 800)

@@ -94,6 +94,16 @@ describe("handleBadgeGET /sponsors", () => {
     expect(body.sponsors.map((s) => s.login)).toEqual(["sponsor1", "sponsor2", "sponsor3"])
   })
 
+  it("strips a leading @ from the login (intuitive hand-written URLs)", async () => {
+    // /sponsors/@jal-co.svg should resolve the same account as /sponsors/jal-co.
+    const req = new Request("https://x.dev/sponsors/@jal-co.json")
+    const res = await handleBadgeGET(req, ["sponsors", "@jal-co.json"])
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { login: string; publicCount: number }
+    expect(body.login).toBe("jal-co")
+    expect(body.publicCount).toBe(3)
+  })
+
   it("renders an SVG grid with inlined avatar images", async () => {
     const req = new Request("https://x.dev/sponsors/jal-co.svg")
     const res = await handleBadgeGET(req, ["sponsors", "jal-co.svg"])
