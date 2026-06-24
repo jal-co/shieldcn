@@ -10,7 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { handleBadgeGET } from "../route-handler"
-import { parseFeaturedSponsors } from "../providers/github"
+import { parseFeaturedSponsors, parseSponsorsWall } from "../providers/github"
 
 // A 1x1 transparent PNG (smallest valid raster the inliner will accept).
 const PNG_1x1 = Buffer.from(
@@ -68,7 +68,13 @@ function stubFeaturedFetch() {
   )
 }
 
+// Most tests exercise the GraphQL list path; that path is only attempted when a
+// (potentially-scoped) token is configured, so set one for the suite.
+const SAVED_TOK = process.env.SPONSORS_GITHUB_TOKEN
+const SAVED_GH = process.env.GITHUB_TOKEN
+
 beforeEach(() => {
+  process.env.SPONSORS_GITHUB_TOKEN = "ghp_test"
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -114,6 +120,10 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
+  if (SAVED_TOK === undefined) delete process.env.SPONSORS_GITHUB_TOKEN
+  else process.env.SPONSORS_GITHUB_TOKEN = SAVED_TOK
+  if (SAVED_GH === undefined) delete process.env.GITHUB_TOKEN
+  else process.env.GITHUB_TOKEN = SAVED_GH
 })
 
 describe("handleBadgeGET /sponsors", () => {
@@ -232,6 +242,37 @@ describe("handleBadgeGET /sponsors", () => {
     expect(svg).not.toContain("data:image/png")
   })
 
+  it("falls back to scraping the public wall when no token is configured", async () => {
+    // No scoped token → GraphQL is skipped → list comes from the public page.
+    delete process.env.SPONSORS_GITHUB_TOKEN
+    delete process.env.GITHUB_TOKEN
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.startsWith("https://github.com/sponsors/")) {
+          return new Response(
+            `<h4>Current sponsors 2</h4>` +
+              `<img src="https://avatars.githubusercontent.com/u/1?s=60&v=4" alt="@alice">` +
+              `<img src="https://avatars.githubusercontent.com/u/2?s=60&v=4" alt="@bob">` +
+              `<h4>Past sponsors</h4><img alt="@past1">`,
+            { status: 200, headers: { "content-type": "text/html" } },
+          )
+        }
+        if (url.startsWith("https://avatars.githubusercontent.com/")) {
+          return new Response(PNG_1x1, { status: 200, headers: { "content-type": "image/png" } })
+        }
+        if (url === "https://api.github.com/graphql") throw new Error("GraphQL should not be called without a token")
+        return new Response("not found", { status: 404 })
+      }),
+    )
+    const json = (await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/htmlonly.json"), ["sponsors", "htmlonly.json"])
+    ).json()) as { publicCount: number; sponsors: { login: string }[] }
+    // Only the Current-sponsors wall (alice, bob) — not the past sponsor.
+    expect(json.sponsors.map((s) => s.login)).toEqual(["alice", "bob"])
+    expect(json.publicCount).toBe(2)
+  })
+
   it("aligns the card title via ?titleAlign", async () => {
     stubFeaturedFetch()
     const left = await (
@@ -308,6 +349,28 @@ describe("handleBadgeGET /sponsors", () => {
       await handleBadgeGET(new Request("https://x.dev/sponsors/featuredacct.svg"), ["sponsors", "featuredacct.svg"])
     ).text()
     expect(svg).toContain("Featured Sponsors")
+  })
+})
+
+describe("parseSponsorsWall", () => {
+  it("parses the current-sponsors wall (login + sized avatar), self-excluded", () => {
+    const html =
+      `<img alt="@maintainer">` + // header avatar, before the section — ignored
+      `<h4>Current sponsors 3</h4>` +
+      `<img src="https://avatars.githubusercontent.com/u/1?s=60&v=4" alt="@alice">` +
+      `<img src="https://avatars.githubusercontent.com/u/2?v=4" alt="@maintainer">` + // self — skipped
+      `<img src="https://avatars.githubusercontent.com/u/3?s=60&v=4" alt="@bob">` +
+      `<h4>Past sponsors</h4><img alt="@gone">`
+    const list = parseSponsorsWall(html, "maintainer")
+    expect(list.sponsors.map((s) => s.login)).toEqual(["alice", "bob"])
+    expect(list.totalCount).toBe(2)
+    // Avatar size bumped to 160 (added when missing, replaced when present).
+    expect(list.sponsors[0].avatarUrl).toContain("s=160")
+    expect(list.sponsors[1].avatarUrl).toContain("s=160")
+  })
+
+  it("returns an empty list when there is no current-sponsors section", () => {
+    expect(parseSponsorsWall(`<h4>Past sponsors</h4><img alt="@x">`, "acme").sponsors).toEqual([])
   })
 })
 

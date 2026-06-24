@@ -242,9 +242,20 @@ In addition to the shared `mode` and `font` parameters from the
 
 ## Data source
 
-Sponsor data comes from the [GitHub Sponsors GraphQL API](https://docs.github.com/en/graphql/reference/objects#sponsorconnection),
-fetched through shieldcn's community token pool. Only **public** sponsors are
-listed; private sponsors are counted in the total but never shown. Avatars are
-fetched once and inlined into the image, and the list is cached for 30 minutes
-(serving the last-known-good list during any GitHub outage). Accounts without
-GitHub Sponsors enabled render an empty-state message.
+Only **public** sponsors are ever shown. Sponsor data comes from one of two
+sources:
+
+- **GitHub Sponsors GraphQL API** (when a token is available) — the complete
+  list with display names, hi-res avatars, and an accurate total.
+- **Public sponsors page** (token-free fallback) — when no token is configured,
+  the current-sponsor wall is read from `github.com/sponsors/{login}`. This
+  needs no token but GitHub caps that page at ~50 sponsors and exposes logins
+  only (no display names), so large accounts are truncated.
+
+The **featured tier** is always read from the public page (token-free). Avatars
+are fetched once and inlined into the image, and the list is cached for 30
+minutes (serving the last-known-good list during any GitHub outage). Accounts
+without GitHub Sponsors enabled render an empty-state message.
+
+Self-hosters can set a `read:user` token via `SPONSORS_GITHUB_TOKEN` to get the
+full GraphQL list instead of the ~50-capped public-page fallback.
