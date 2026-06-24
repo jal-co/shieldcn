@@ -225,8 +225,25 @@ function sponsorsStateFromUrl(u: URL): SponsorsState {
     theme: q.get("theme") || "",
     size: ((q.get("size") as SponsorsSize) || "64"),
     names: q.get("names") !== "false",
+    titleAlign: ((v) => (v === "center" || v === "right" ? v : "left"))(q.get("titleAlign")),
+    avatarAlign: ((v) => (v === "left" || v === "right" ? v : "center"))(q.get("align")),
+    featured: q.get("featured") !== "false",
     special: q.get("special") || "",
     backers: q.get("backers") || "",
+    separator: ((): "label" | "line" | "none" => {
+      const v = q.get("separator")
+      return v === "line" ? "line" : v === "none" ? "none" : "label"
+    })(),
+    ...(() => {
+      const raw = q.get("tiers")
+      if (raw === null) return { tierFeatured: true, tierSponsors: true, tierBackers: true }
+      const set = new Set(raw.split(",").map(t => t.trim().toLowerCase()))
+      return {
+        tierFeatured: set.has("featured") || set.has("special"),
+        tierSponsors: set.has("sponsors"),
+        tierBackers: set.has("backers"),
+      }
+    })(),
     limit: q.get("limit") || "",
     mode: (q.get("mode") as "dark" | "light") || "dark",
     font: q.get("font") || "inter",

@@ -49,6 +49,19 @@ export interface SponsorsConfig {
   watermark: boolean
   /** Render a name caption under each avatar. */
   showNames: boolean
+  /** Horizontal alignment of the card title + its rule. Default "left". */
+  titleAlign?: "left" | "center" | "right"
+  /** Horizontal alignment of the avatar rows + tier headings. Default "center". */
+  avatarAlign?: "left" | "center" | "right"
+  /**
+   * How tiers are delimited:
+   *  - "label" (default): a centered text heading above each tier.
+   *  - "line": a hairline rule between tiers (no text headings).
+   *  - "none": just vertical spacing, no headings or lines.
+   */
+  separator?: "label" | "line" | "none"
+  /** Color (hex without #) of the "line" separator. Defaults to the border. */
+  separatorColor?: string | null
   /** Message shown when there are no public sponsors. */
   emptyText?: string
 
@@ -156,10 +169,16 @@ function layoutTier(
   const parts: string[] = []
   let y = top
 
+  // Text headings only render in "label" mode; "line"/"none" delimit tiers
+  // visually in the main loop instead.
+  const align = cfg.avatarAlign ?? "center"
+  const headingX = align === "left" ? padX : align === "right" ? width - padX : width / 2
+  const headingAnchor = align === "left" ? "start" : align === "right" ? "end" : "middle"
+
   const titleSize = 15
-  if (tier.title) {
+  if (tier.title && (cfg.separator ?? "label") === "label") {
     parts.push(
-      `<text x="${r2(width / 2)}" y="${r2(y + titleSize)}" text-anchor="middle" font-size="${titleSize}" font-weight="600" fill="${colors.muted}" font-family="${cfg.fontFamily}" letter-spacing="0.04em">${esc(tier.title)}</text>`,
+      `<text x="${r2(headingX)}" y="${r2(y + titleSize)}" text-anchor="${headingAnchor}" font-size="${titleSize}" font-weight="600" fill="${colors.muted}" font-family="${cfg.fontFamily}" letter-spacing="0.04em">${esc(tier.title)}</text>`,
     )
     y += titleSize + 18
   }
@@ -178,7 +197,12 @@ function layoutTier(
   while (i < tier.avatars.length) {
     const rowItems = tier.avatars.slice(i, i + perRow)
     const rowW = rowItems.length * cellW - gap
-    let x = r2((width - rowW) / 2)
+    let x =
+      align === "left"
+        ? padX
+        : align === "right"
+          ? r2(width - padX - rowW)
+          : r2((width - rowW) / 2)
     const rowTop = y
     for (const a of rowItems) {
       parts.push(renderAvatar(a, x, rowTop, size, colors.ring, colors.isLight))
@@ -245,8 +269,11 @@ export function renderSponsors(cfg: SponsorsConfig): { svg: string; height: numb
   // --- Title + hairline rule ---
   if (cfg.title) {
     const titleSize = 26
+    const ta = cfg.titleAlign ?? "left"
+    const tx = ta === "center" ? width / 2 : ta === "right" ? width - padX : padX
+    const tAnchor = ta === "center" ? "middle" : ta === "right" ? "end" : "start"
     body.push(
-      `<text x="${padX}" y="${r2(y + titleSize)}" font-size="${titleSize}" font-weight="700" fill="${fg}" font-family="${fontStack}" letter-spacing="-0.02em">${esc(cfg.title)}</text>`,
+      `<text x="${r2(tx)}" y="${r2(y + titleSize)}" text-anchor="${tAnchor}" font-size="${titleSize}" font-weight="700" fill="${fg}" font-family="${fontStack}" letter-spacing="-0.02em">${esc(cfg.title)}</text>`,
     )
     y += titleSize + 14
     const ruleColor = cfg.accent ? `#${cfg.accent.replace(/^#/, "")}` : probe.border
@@ -264,11 +291,25 @@ export function renderSponsors(cfg: SponsorsConfig): { svg: string; height: numb
     )
     y += 80
   } else {
+    const separator = cfg.separator ?? "label"
+    const lineColor = cfg.separatorColor ? `#${cfg.separatorColor.replace(/^#/, "")}` : probe.border
+    let firstRendered = true
     for (const tier of cfg.tiers) {
       if (tier.avatars.length === 0) continue
+      if (!firstRendered) {
+        // A "line" separator draws a centered hairline in the inter-tier gap.
+        if (separator === "line") {
+          y += 6
+          body.push(
+            `<rect x="${padX}" y="${r2(y)}" width="${r2(width - padX * 2)}" height="1" fill="${lineColor}" />`,
+          )
+          y += 22
+        }
+      }
       const laid = layoutTier(tier, y, width, padX, cfg, colors)
       body.push(laid.svg)
       y += laid.height + 34
+      firstRendered = false
     }
     y -= 34
   }

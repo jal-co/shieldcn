@@ -42,10 +42,25 @@ export interface SponsorsState {
   size: SponsorsSize
   /** Show a name caption under each avatar. */
   names: boolean
+  /** Alignment of the card title. */
+  titleAlign: "left" | "center" | "right"
+  /** Alignment of the avatar rows. */
+  avatarAlign: "left" | "center" | "right"
+  /**
+   * Auto-populate the top "Featured Sponsors" tier from the account's public
+   * GitHub "Featured sponsors" selection. Ignored when `special` is set.
+   */
+  featured: boolean
   /** Comma-separated logins pinned into the larger "Special Sponsors" row. */
   special: string
   /** Comma-separated logins pinned into the smaller "Backers" row. */
   backers: string
+  /** Tier separator style: text headings, a hairline, or just spacing. */
+  separator: "label" | "line" | "none"
+  /** Per-tier visibility — a tier is hidden when its flag is false. */
+  tierFeatured: boolean
+  tierSponsors: boolean
+  tierBackers: boolean
   /** Max avatars in the default row (string for the input). */
   limit: string
   mode: "dark" | "light"
@@ -65,8 +80,15 @@ export const SPONSORS_DEFAULTS: SponsorsState = {
   theme: "",
   size: "64",
   names: true,
+  titleAlign: "left",
+  avatarAlign: "center",
+  featured: true,
   special: "",
   backers: "",
+  separator: "label",
+  tierFeatured: true,
+  tierSponsors: true,
+  tierBackers: true,
   limit: "",
   mode: "dark",
   font: "inter",
@@ -89,8 +111,20 @@ export function buildSponsorsUrl(s: SponsorsState, baseUrl: string): string {
   if (s.theme) params.set("theme", s.theme)
   if (s.size && s.size !== "64") params.set("size", s.size)
   if (!s.names) params.set("names", "false")
+  if (s.titleAlign && s.titleAlign !== "left") params.set("titleAlign", s.titleAlign)
+  if (s.avatarAlign && s.avatarAlign !== "center") params.set("align", s.avatarAlign)
+  // The featured tier is auto-derived by default; only emit when disabled, and
+  // it's moot once an explicit `special` set overrides it.
+  if (!s.featured && !s.special.trim()) params.set("featured", "false")
   if (s.special.trim()) params.set("special", s.special.trim())
   if (s.backers.trim()) params.set("backers", s.backers.trim())
+  if (s.separator && s.separator !== "label") params.set("separator", s.separator)
+  // Emit `tiers` only when a row is hidden (all-on = default = omitted).
+  const tierKeys: string[] = []
+  if (s.tierFeatured) tierKeys.push("featured")
+  if (s.tierSponsors) tierKeys.push("sponsors")
+  if (s.tierBackers) tierKeys.push("backers")
+  if (tierKeys.length < 3) params.set("tiers", tierKeys.join(","))
   if (s.limit.trim()) params.set("limit", s.limit.trim())
   // Always include mode so the URL changes with the site theme (cache-safe).
   params.set("mode", s.mode)

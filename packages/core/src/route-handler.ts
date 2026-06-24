@@ -116,6 +116,7 @@ import {
   getGitHubUserStars,
   getGitHubSponsors,
   getGitHubSponsorsList,
+  getGitHubFeaturedSponsors,
   type SponsorEntry,
   githubRepoExists,
 } from "./providers/github"
@@ -2303,9 +2304,28 @@ async function handleSponsors(
   // smaller "backers" row; everyone else falls into the default "Sponsors" row.
   const specialLogins = parseLoginList(searchParams.get("special"))
   const backerLogins = parseLoginList(searchParams.get("backers"))
-  const specialTitle = searchParams.get("specialTitle") ?? "Special Sponsors"
+  const specialTitleParam = searchParams.get("specialTitle")
   const sponsorsTitle = searchParams.get("sponsorsTitle") ?? "Sponsors"
   const backersTitle = searchParams.get("backersTitle") ?? "Backers"
+  // Auto-featured tier: unless the maintainer pins `special` manually, the top
+  // tier is populated from GitHub's public "Featured sponsors" selection
+  // (scraped from the sponsors page — the only public source for it). Opt out
+  // with `?featured=false`.
+  const featuredEnabled = !falsy(searchParams.get("featured"))
+  // Alignment of the title and of the avatar rows (inside the image).
+  const alignOf = (v: string | null, fallback: "left" | "center" | "right") =>
+    v === "left" || v === "center" || v === "right" ? v : fallback
+  const titleAlign = alignOf(searchParams.get("titleAlign"), "left")
+  const avatarAlign = alignOf(searchParams.get("align"), "center")
+  // Tier separator style: text headings (default), a hairline, or just spacing.
+  const sepRaw = searchParams.get("separator")
+  const separator = sepRaw === "line" ? "line" : sepRaw === "none" ? "none" : "label"
+  const separatorColor = resolveColor(searchParams.get("separatorColor"))
+  // Optional tier filter: `?tiers=featured,sponsors` shows only those rows
+  // (keys: featured/special, sponsors, backers). Omitted = all tiers.
+  const tiersParam = searchParams.get("tiers")
+  const tiersAllow = tiersParam !== null ? new Set(parseLoginList(tiersParam)) : null
+  const tierAllowed = (...keys: string[]) => !tiersAllow || keys.some((k) => tiersAllow.has(k))
 
   // Image response helper (svg or png), shared by the success + fallback paths.
   const imageResponse = async (svg: string, headers: Record<string, string>): Promise<Response> => {
@@ -2330,6 +2350,10 @@ async function handleSponsors(
       border,
       watermark,
       showNames,
+      titleAlign,
+      avatarAlign,
+      separator,
+      separatorColor,
       ...bgParams,
       emptyText: message,
     })
@@ -2366,12 +2390,22 @@ async function handleSponsors(
 
   const cacheHeaders = servedStale ? ERROR_CACHE_HEADERS : CACHE_HEADERS
 
+  // When no `special` set is pinned, auto-derive the featured tier from the
+  // public "Featured sponsors" section. Best-effort: yields [] on any failure.
+  let autoFeatured: string[] = []
+  if (featuredEnabled && specialLogins.length === 0) {
+    autoFeatured = await getGitHubFeaturedSponsors(login)
+  }
+  const effectiveSpecial = specialLogins.length ? specialLogins : autoFeatured
+  const usingFeatured = specialLogins.length === 0 && autoFeatured.length > 0
+  const specialTitle = specialTitleParam ?? (usingFeatured ? "Featured Sponsors" : "Special Sponsors")
+
   // Partition the public sponsors into tiers.
-  const specialSet = new Set(specialLogins)
+  const specialSet = new Set(effectiveSpecial)
   const backerSet = new Set(backerLogins)
   const byLogin = new Map(list.sponsors.map((s) => [s.login.toLowerCase(), s]))
 
-  const special: SponsorEntry[] = specialLogins.map((l) => byLogin.get(l)).filter((s): s is SponsorEntry => !!s)
+  const special: SponsorEntry[] = effectiveSpecial.map((l) => byLogin.get(l)).filter((s): s is SponsorEntry => !!s)
   const backers: SponsorEntry[] = backerLogins.map((l) => byLogin.get(l)).filter((s): s is SponsorEntry => !!s)
   const middle: SponsorEntry[] = list.sponsors.filter(
     (s) => !specialSet.has(s.login.toLowerCase()) && !backerSet.has(s.login.toLowerCase()),
@@ -2389,6 +2423,7 @@ async function handleSponsors(
         login,
         totalCount: list.totalCount,
         publicCount: list.sponsors.length,
+        featured: effectiveSpecial,
         shown: special.length + middleShown.length + backers.length,
         sponsors: list.sponsors.map((s) => ({ login: s.login, name: s.name, url: s.url, type: s.type })),
       },
@@ -2409,15 +2444,19 @@ async function handleSponsors(
   const sizes = tierSizes(baseSize)
   const tiers: SponsorTier[] = []
   const hasPinned = special.length > 0 || backers.length > 0
-  if (special.length) tiers.push({ title: specialTitle, size: sizes.special, avatars: special.map(toAvatar) })
-  if (middleShown.length) {
+  if (special.length && tierAllowed("featured", "special")) {
+    tiers.push({ title: specialTitle, size: sizes.special, avatars: special.map(toAvatar) })
+  }
+  if (middleShown.length && tierAllowed("sponsors")) {
     tiers.push({
       title: hasPinned ? sponsorsTitle : undefined,
       size: sizes.sponsors,
       avatars: middleShown.map(toAvatar),
     })
   }
-  if (backers.length) tiers.push({ title: backersTitle, size: sizes.backers, avatars: backers.map(toAvatar) })
+  if (backers.length && tierAllowed("backers")) {
+    tiers.push({ title: backersTitle, size: sizes.backers, avatars: backers.map(toAvatar) })
+  }
   if (tiers.length === 0) tiers.push({ size: sizes.sponsors, avatars: [] })
 
   const { svg } = renderSponsors({
@@ -2430,6 +2469,10 @@ async function handleSponsors(
     border,
     watermark,
     showNames,
+    titleAlign,
+    avatarAlign,
+    separator,
+    separatorColor,
     ...bgParams,
     emptyText: `No public sponsors yet — sponsor @${login}`,
   })

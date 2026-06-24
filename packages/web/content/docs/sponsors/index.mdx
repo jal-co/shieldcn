@@ -48,13 +48,31 @@ Or center it with an HTML block:
 
 ## Tiers
 
-GitHub only exposes sponsor **dollar amounts** to the sponsored account's own
-token. shieldcn fetches through a shared pool of community tokens, so it can
-read the **public sponsor list** but not each sponsor's tier. Instead, you
-arrange tiers yourself by pinning logins:
+### Automatic featured tier
+
+By default, the top row is populated from your GitHub Sponsors **"Featured
+sponsors"** selection — the sponsors you hand-pick to highlight on your
+[sponsors profile](https://github.com/sponsors). shieldcn reads that public
+selection and renders it as a larger **"Featured Sponsors"** row automatically,
+with everyone else in the default "Sponsors" row. No configuration needed:
+
+```md
+![Sponsors](https://shieldcn.dev/sponsors/your-login.svg)
+```
+
+Manage which sponsors are featured from your GitHub Sponsors dashboard. Turn the
+automatic tier off with `?featured=false`.
+
+> GitHub only exposes sponsor **dollar amounts** to the sponsored account's own
+> token, so amount-based tiers (e.g. by monthly value) aren't possible from a
+> shared service — the public "Featured sponsors" selection is what's available.
+
+### Manual tiers
+
+To override the automatic tier, pin logins yourself:
 
 - `special` — a comma-separated list of logins shown **larger**, at the top, in
-  a "Special Sponsors" row.
+  a "Special Sponsors" row (overrides the automatic featured tier).
 - `backers` — a comma-separated list of logins shown **smaller**, at the
   bottom, in a "Backers" row.
 - Everyone else falls into the default "Sponsors" row.
@@ -72,6 +90,33 @@ arrange tiers yourself by pinning logins:
 Rename the rows with `specialTitle`, `sponsorsTitle`, and `backersTitle`. A
 `@login` prefix is accepted and ignored, so `special=@vercel` also works.
 
+### Choosing which tiers show
+
+Use `tiers` to render only certain rows — a comma-separated subset of
+`featured`, `sponsors`, `backers`. Omit it to show all of them.
+
+```md
+![Featured only](https://shieldcn.dev/sponsors/your-login.svg?tiers=featured)
+![No backers](https://shieldcn.dev/sponsors/your-login.svg?tiers=featured,sponsors)
+```
+
+### Tier separators
+
+By default each tier has a centered text heading. Set `separator` to change how
+tiers are delimited:
+
+| `separator` | Result |
+| --- | --- |
+| `label` | Centered text heading above each tier. The default. |
+| `line` | A hairline rule between tiers — **no text headings**. |
+| `none` | Just vertical spacing, no headings or lines. |
+
+Color the line with `separatorColor` (hex without `#`).
+
+```md
+![Line separators](https://shieldcn.dev/sponsors/your-login.svg?separator=line)
+```
+
 ## Sizing and layout
 
 The `size` parameter sets the base avatar diameter; the special and backers
@@ -84,6 +129,11 @@ wrap into as many rows as needed.
 | `width` | 320–2000 (px) | 800 |
 | `limit` | 1–80 | 60 |
 | `names` | `true`, `false` | `true` |
+| `titleAlign` | `left`, `center`, `right` | `left` |
+| `align` | `left`, `center`, `right` (avatars) | `center` |
+| `tiers` | subset of `featured,sponsors,backers` | all |
+| `separator` | `label`, `line`, `none` | `label` |
+| `separatorColor` | hex without `#` | border |
 | `radius` | 0–80 (px) | 12 |
 | `border` | `true`, `false` | `true` |
 | `watermark` | `true`, `false` | `false` |
@@ -159,11 +209,17 @@ In addition to the shared `mode` and `font` parameters from the
 
 | Parameter | Values | Default |
 | --- | --- | --- |
-| `special` | comma-separated logins | — |
+| `featured` | `true`, `false` | `true` (auto featured tier) |
+| `special` | comma-separated logins | auto (Featured sponsors) |
 | `backers` | comma-separated logins | — |
-| `specialTitle` | string | `Special Sponsors` |
+| `specialTitle` | string | `Featured Sponsors` / `Special Sponsors` |
 | `sponsorsTitle` | string | `Sponsors` |
 | `backersTitle` | string | `Backers` |
+| `tiers` | subset of `featured,sponsors,backers` | all |
+| `separator` | `label`, `line`, `none` | `label` |
+| `separatorColor` | hex without `#` | border |
+| `titleAlign` | `left`, `center`, `right` | `left` |
+| `align` | `left`, `center`, `right` (avatars) | `center` |
 | `title` | string, or `false` | `Sponsors` |
 | `size` | 32–140 (px) | 64 |
 | `width` | 320–2000 (px) | 800 |

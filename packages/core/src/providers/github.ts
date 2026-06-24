@@ -869,3 +869,73 @@ export async function getGitHubSponsorsList(login: string): Promise<SponsorsList
   if (!resolvedAny) return null
   return { totalCount, sponsors }
 }
+
+// ---------------------------------------------------------------------------
+// Featured sponsors (public profile "Featured sponsors" selection)
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract the "Featured sponsors" logins from a sponsors page's HTML. The
+ * featured block sits between the "Featured sponsors" heading and the next
+ * section ("Current sponsors" / "Past sponsors" / "Featured work"); each
+ * featured account renders an avatar with an `alt="@login"`. Exported for tests.
+ */
+export function parseFeaturedSponsors(html: string, login: string): string[] {
+  const lower = html.toLowerCase()
+  const start = lower.indexOf("featured sponsors")
+  if (start === -1) return []
+  // Bound the section at the next heading so we don't pull in current/past
+  // sponsors or featured repositories.
+  const ends = ["current sponsors", "past sponsors", "featured work"]
+    .map((h) => lower.indexOf(h, start + "featured sponsors".length))
+    .filter((i) => i > start)
+  const end = ends.length ? Math.min(...ends) : Math.min(start + 8000, html.length)
+  const segment = html.slice(start, end)
+
+  const out: string[] = []
+  const seen = new Set<string>()
+  const self = login.toLowerCase()
+  const re = /alt="@([A-Za-z0-9-]+)"/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(segment)) !== null) {
+    const l = m[1].toLowerCase()
+    // Skip the maintainer's own avatar and de-dupe; cap to a sane row.
+    if (l === self || seen.has(l)) continue
+    seen.add(l)
+    out.push(l)
+    if (out.length >= 12) break
+  }
+  return out
+}
+
+/**
+ * Fetch an account's public "Featured sponsors" — the sponsors the maintainer
+ * hand-picks to highlight on their GitHub Sponsors page. GitHub does NOT expose
+ * this via GraphQL (only featured *repositories* are) and sponsorship *amounts*
+ * are owner-only, so the rendered public page is the only source for an
+ * automatic "featured" tier.
+ *
+ * Best-effort + defensive: any failure (non-200, markup change, network, bad
+ * login) yields an empty list so the grid simply renders without a featured
+ * tier rather than erroring. Needs no token — the page is public HTML.
+ */
+export async function getGitHubFeaturedSponsors(login: string): Promise<string[]> {
+  if (!/^[A-Za-z0-9-]+$/.test(login)) return []
+  try {
+    const res = await raceTimeout(
+      fetch(`https://github.com/sponsors/${encodeURIComponent(login)}`, {
+        headers: {
+          // A browser-ish UA — GitHub serves a degraded page to some agents.
+          "User-Agent": "Mozilla/5.0 (compatible; shieldcn.dev/1.0; +https://shieldcn.dev)",
+          Accept: "text/html",
+        },
+        next: { revalidate: 1800 },
+      }),
+    )
+    if (!res || !res.ok) return []
+    const html = await res.text()
+    return parseFeaturedSponsors(html, login)
+  } catch {
+    return []
+  }
+}

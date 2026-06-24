@@ -10,6 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { handleBadgeGET } from "../route-handler"
+import { parseFeaturedSponsors } from "../providers/github"
 
 // A 1x1 transparent PNG (smallest valid raster the inliner will accept).
 const PNG_1x1 = Buffer.from(
@@ -25,6 +26,46 @@ function sponsorNode(i: number) {
     avatarUrl: `https://avatars.githubusercontent.com/u/${i}?s=160`,
     url: `https://github.com/sponsor${i}`,
   }
+}
+
+/**
+ * Stub fetch for an account with 4 sponsors whose public page features
+ * sponsor2 + sponsor4 (so special=[2,4], middle=[1,3]). Used by the
+ * separator / tier-filter tests.
+ */
+function stubFeaturedFetch() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "https://api.github.com/graphql" && init?.method === "POST") {
+        return new Response(
+          JSON.stringify({
+            data: {
+              repositoryOwner: {
+                __typename: "User",
+                sponsors: {
+                  totalCount: 4,
+                  pageInfo: { hasNextPage: false, endCursor: null },
+                  nodes: [sponsorNode(1), sponsorNode(2), sponsorNode(3), sponsorNode(4)],
+                },
+              },
+            },
+          }),
+          { status: 200 },
+        )
+      }
+      if (url.startsWith("https://github.com/sponsors/")) {
+        return new Response(
+          `<h4>Featured sponsors</h4><img alt="@sponsor2"><img alt="@sponsor4"><h4>Current sponsors 4</h4>`,
+          { status: 200, headers: { "content-type": "text/html" } },
+        )
+      }
+      if (url.startsWith("https://avatars.githubusercontent.com/")) {
+        return new Response(PNG_1x1, { status: 200, headers: { "content-type": "image/png" } })
+      }
+      return new Response("not found", { status: 404 })
+    }),
+  )
 }
 
 beforeEach(() => {
@@ -189,5 +230,101 @@ describe("handleBadgeGET /sponsors", () => {
     expect(svg.toLowerCase()).not.toContain("#dc2626")
     expect(svg).toContain("No public sponsors to show")
     expect(svg).not.toContain("data:image/png")
+  })
+
+  it("aligns the card title via ?titleAlign", async () => {
+    stubFeaturedFetch()
+    const left = await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/align1.svg"), ["sponsors", "align1.svg"])
+    ).text()
+    expect(left).toMatch(/<text[^>]*text-anchor="start"[^>]*font-size="26"/)
+    const center = await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/align2.svg?titleAlign=center"), ["sponsors", "align2.svg"])
+    ).text()
+    expect(center).toMatch(/<text[^>]*text-anchor="middle"[^>]*font-size="26"/)
+  })
+
+  it("hides text tier headings with ?separator=line (avatars still render)", async () => {
+    stubFeaturedFetch()
+    const svg = await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/lineacct.svg?separator=line"), ["sponsors", "lineacct.svg"])
+    ).text()
+    expect(svg).not.toContain("Featured Sponsors")
+    expect((svg.match(/<a href=/g) || []).length).toBe(4)
+  })
+
+  it("renders only the requested tiers with ?tiers=", async () => {
+    stubFeaturedFetch()
+    const svg = await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/tiersacct.svg?tiers=featured"), ["sponsors", "tiersacct.svg"])
+    ).text()
+    expect(svg).toContain("Featured Sponsors")
+    // Only the featured tier (sponsor2 + sponsor4) renders — not the main grid.
+    expect((svg.match(/<a href=/g) || []).length).toBe(2)
+  })
+
+  it("auto-populates a Featured Sponsors tier from the public sponsors page", async () => {
+    // Unique login (avoids any cached list) whose public page features two of
+    // its sponsors. No manual ?special= is passed.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === "https://api.github.com/graphql" && init?.method === "POST") {
+          return new Response(
+            JSON.stringify({
+              data: {
+                repositoryOwner: {
+                  __typename: "User",
+                  sponsors: {
+                    totalCount: 4,
+                    pageInfo: { hasNextPage: false, endCursor: null },
+                    nodes: [sponsorNode(1), sponsorNode(2), sponsorNode(3), sponsorNode(4)],
+                  },
+                },
+              },
+            }),
+            { status: 200 },
+          )
+        }
+        if (url.startsWith("https://github.com/sponsors/")) {
+          return new Response(
+            `<h4>Featured sponsors</h4><a href="/sponsor2"><img alt="@sponsor2"></a><a href="/sponsor4"><img alt="@sponsor4"></a><h4>Current sponsors 4</h4><img alt="@sponsor1">`,
+            { status: 200, headers: { "content-type": "text/html" } },
+          )
+        }
+        if (url.startsWith("https://avatars.githubusercontent.com/")) {
+          return new Response(PNG_1x1, { status: 200, headers: { "content-type": "image/png" } })
+        }
+        return new Response("not found", { status: 404 })
+      }),
+    )
+
+    const json = (await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/featuredacct.json"), ["sponsors", "featuredacct.json"])
+    ).json()) as { featured: string[] }
+    expect(json.featured).toEqual(["sponsor2", "sponsor4"])
+
+    const svg = await (
+      await handleBadgeGET(new Request("https://x.dev/sponsors/featuredacct.svg"), ["sponsors", "featuredacct.svg"])
+    ).text()
+    expect(svg).toContain("Featured Sponsors")
+  })
+})
+
+describe("parseFeaturedSponsors", () => {
+  it("extracts featured logins, bounded to the section and self-excluded", () => {
+    const html =
+      `<h3>@acme's goal</h3><img alt="@acme">` +
+      `<h4>Featured sponsors</h4>` +
+      `<a href="/bigco"><img alt="@bigco"></a>` +
+      `<a href="/acme"><img alt="@acme"></a>` + // maintainer's own avatar — skipped
+      `<a href="/patron"><img alt="@Patron"></a>` + // case-normalized
+      `<h4>Current sponsors 5</h4><img alt="@bigco"><img alt="@someoneelse">` +
+      `<h4>Featured work</h4><img alt="@notasponsor">`
+    expect(parseFeaturedSponsors(html, "acme")).toEqual(["bigco", "patron"])
+  })
+
+  it("returns [] when there is no featured-sponsors section", () => {
+    expect(parseFeaturedSponsors(`<h4>Current sponsors</h4><img alt="@x">`, "acme")).toEqual([])
   })
 })

@@ -11,7 +11,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
-import { Copy, Check, Shuffle } from "lucide-react"
+import { Copy, Check, Shuffle, AlignLeft, AlignCenter, AlignRight } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,6 +60,27 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <Label className="text-xs text-muted-foreground">{children}</Label>
+}
+
+type Align = "left" | "center" | "right"
+function AlignField({ label, value, onChange }: { label: string; value: Align; onChange: (v: Align) => void }) {
+  return (
+    <div className="space-y-1.5">
+      <FieldLabel>{label}</FieldLabel>
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => v && onChange(v as Align)}
+        variant="outline"
+        size="sm"
+        className="w-full"
+      >
+        <ToggleGroupItem value="left" aria-label="Align left" className="flex-1"><AlignLeft className="size-3.5" /></ToggleGroupItem>
+        <ToggleGroupItem value="center" aria-label="Align center" className="flex-1"><AlignCenter className="size-3.5" /></ToggleGroupItem>
+        <ToggleGroupItem value="right" aria-label="Align right" className="flex-1"><AlignRight className="size-3.5" /></ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+  )
 }
 
 export function SponsorsBuilder() {
@@ -190,12 +211,26 @@ export function SponsorsBuilder() {
 
         {/* Tiers */}
         <div className="space-y-3">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <ShadcnCheckbox
+              checked={s.featured}
+              onCheckedChange={(v) => set("featured", v === true)}
+              disabled={!!s.special.trim()}
+              className="mt-0.5"
+            />
+            <span className="text-xs leading-snug">
+              Auto featured tier
+              <span className="block text-muted-foreground">
+                Uses your GitHub “Featured sponsors” as the top row. Overridden by Special sponsors below.
+              </span>
+            </span>
+          </label>
           <div className="space-y-1.5">
             <FieldLabel>Special sponsors (comma-separated logins)</FieldLabel>
             <Input
               value={s.special}
               onChange={(e) => set("special", e.target.value)}
-              placeholder="vercel, clerk"
+              placeholder={s.featured ? "auto from Featured sponsors" : "vercel, clerk"}
               className="h-9 text-sm"
             />
           </div>
@@ -319,6 +354,46 @@ export function SponsorsBuilder() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        </div>
+
+        {/* Alignment */}
+        <div className="grid grid-cols-2 gap-3">
+          <AlignField label="Title alignment" value={s.titleAlign} onChange={(v) => set("titleAlign", v)} />
+          <AlignField label="Avatar alignment" value={s.avatarAlign} onChange={(v) => set("avatarAlign", v)} />
+        </div>
+
+        {/* Tier separator + visibility */}
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <FieldLabel>Tier separator</FieldLabel>
+            <Select value={s.separator} onValueChange={(v) => set("separator", v as SponsorsState["separator"])}>
+              <SelectTrigger className="h-9 w-full text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="label">Text labels</SelectItem>
+                <SelectItem value="line">Line only</SelectItem>
+                <SelectItem value="none">None (spacing)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <FieldLabel>Show tiers</FieldLabel>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <ShadcnCheckbox checked={s.tierFeatured} onCheckedChange={(v) => set("tierFeatured", v === true)} />
+                <span className="text-xs">Featured</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <ShadcnCheckbox checked={s.tierSponsors} onCheckedChange={(v) => set("tierSponsors", v === true)} />
+                <span className="text-xs">Sponsors</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <ShadcnCheckbox checked={s.tierBackers} onCheckedChange={(v) => set("tierBackers", v === true)} />
+                <span className="text-xs">Backers</span>
+              </label>
+            </div>
           </div>
         </div>
 

@@ -466,8 +466,9 @@ export function SponsorsInspector({ block, onChange }: { block: SponsorsBlock; o
       </Field>
 
       <Separator />
+      <ToggleField label="Auto featured tier" checked={s.featured} onCheckedChange={v => set({ featured: v })} />
       <Field label="Special sponsors (logins)" htmlFor="sp-special">
-        <Input id="sp-special" value={s.special} onChange={e => set({ special: e.target.value })} placeholder="vercel, clerk" />
+        <Input id="sp-special" value={s.special} onChange={e => set({ special: e.target.value })} placeholder={s.featured ? "auto from Featured sponsors" : "vercel, clerk"} />
       </Field>
       <Field label="Backers (logins)" htmlFor="sp-backers">
         <Input id="sp-backers" value={s.backers} onChange={e => set({ backers: e.target.value })} placeholder="octocat" />
@@ -518,6 +519,43 @@ export function SponsorsInspector({ block, onChange }: { block: SponsorsBlock; o
           </Select>
         </Field>
       </Row>
+
+      <Separator />
+      <Row>
+        <Field label="Title align">
+          <Select value={s.titleAlign} onValueChange={v => set({ titleAlign: v as SponsorsState["titleAlign"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="center">Center</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Avatar align">
+          <Select value={s.avatarAlign} onValueChange={v => set({ avatarAlign: v as SponsorsState["avatarAlign"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="center">Center</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+      <Field label="Tier separator">
+        <Select value={s.separator} onValueChange={v => set({ separator: v as SponsorsState["separator"] })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="label">Text labels</SelectItem>
+            <SelectItem value="line">Line only</SelectItem>
+            <SelectItem value="none">None (spacing)</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+      <ToggleField label="Show Featured tier" checked={s.tierFeatured} onCheckedChange={v => set({ tierFeatured: v })} />
+      <ToggleField label="Show Sponsors tier" checked={s.tierSponsors} onCheckedChange={v => set({ tierSponsors: v })} />
+      <ToggleField label="Show Backers tier" checked={s.tierBackers} onCheckedChange={v => set({ tierBackers: v })} />
 
       <Separator />
       <ToggleField label="Names" checked={s.names} onCheckedChange={v => set({ names: v })} />
