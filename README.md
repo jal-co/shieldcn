@@ -1,4 +1,4 @@
-<p align="left">
+<p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/header/graph.svg?title=shieldcn&amp;subtitle=EVERYTHING+for+your+readme&amp;logo=shieldcn&amp;logoColor=848484&amp;mode=dark&amp;align=left&amp;font=geist-mono&amp;border=false" /><img alt="shieldcn" src="https://shieldcn.dev/header/graph.svg?title=shieldcn&amp;subtitle=EVERYTHING+for+your+readme&amp;logo=shieldcn&amp;logoColor=848484&amp;mode=light&amp;align=left&amp;font=geist-mono&amp;border=false" /></picture>
 </p>
 
@@ -41,7 +41,7 @@ Drop a badge into any README and it renders as a real shadcn Button.
 ## Sponsors
 
 <p align="center">
-  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=dark&amp;border=false" /><img alt="sponsors" src="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=light&amp;border=false" /></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=dark&amp;border=false" /><img alt="sponsors" src="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=true&amp;special=usenotra&amp;separator=line&amp;mode=light&amp;border=false" /></picture>
 </p>
 
 <div align="center">
