@@ -416,15 +416,20 @@ export async function getGitHubContributorsList(
       if (!resolvedAny) return null
       break
     }
-    resolvedAny = true
     let nodes: RawContributorNode[]
     try {
       const json = await r.json()
       nodes = Array.isArray(json) ? (json as RawContributorNode[]) : []
     } catch {
+      // A truncated/malformed body is a transient failure. On the first page
+      // (no good data yet) surface a miss so the route serves last-known-good;
+      // mid-pagination, keep the pages we already parsed.
       if (!resolvedAny) return null
       break
     }
+    // Only mark success once a page has actually parsed — otherwise a parse
+    // failure on page 1 would wrongly return an empty list instead of null.
+    resolvedAny = true
     for (const n of nodes) {
       if (typeof n?.login !== "string" || typeof n?.avatar_url !== "string") continue
       const rawType = typeof n.type === "string" ? n.type : "User"

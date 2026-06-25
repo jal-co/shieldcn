@@ -10,6 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { handleBadgeGET } from "../route-handler"
+import { getGitHubContributorsList } from "../providers/github"
 
 // A 1x1 transparent PNG (smallest valid raster the inliner will accept).
 const PNG_1x1 = Buffer.from(
@@ -157,5 +158,34 @@ describe("handleBadgeGET /contributors", () => {
       ["contributors", "onlyowner.json"],
     )
     expect(res.status).toBe(400)
+  })
+})
+
+describe("getGitHubContributorsList — transient-failure handling", () => {
+  it("returns null (not an empty list) when page 1 body fails to parse", async () => {
+    // The repo resolves, the contributors fetch is HTTP 200, but the body is a
+    // truncated/malformed payload whose .json() throws. This must surface as a
+    // miss (null) so the route serves last-known-good, never an empty card.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (/^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/?]+$/.test(url)) {
+          return new Response(JSON.stringify({ full_name: "acme/widgets" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })
+        }
+        if (url.includes("/contributors?")) {
+          // Valid HTTP response, invalid JSON body → r.json() rejects.
+          return new Response("<<not json>>", {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })
+        }
+        return new Response("not found", { status: 404 })
+      }),
+    )
+    const list = await getGitHubContributorsList("acme", "widgets")
+    expect(list).toBeNull()
   })
 })
