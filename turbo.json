@@ -1,5 +1,25 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "PERSONAL_SPONSOR_TOKEN",
+    "GITHUB_TOKEN",
+    "SPONSORS_GITHUB_TOKEN",
+    "DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "POSTGRES_USER",
+    "POSTGRES_HOST",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_DATABASE",
+    "PGUSER",
+    "PGPASSWORD",
+    "PGHOST",
+    "PGDATABASE",
+    "NEON_PROJECT_ID",
+    "UPSTASH_REDIS_REST_URL",
+    "UPSTASH_REDIS_REST_TOKEN"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
