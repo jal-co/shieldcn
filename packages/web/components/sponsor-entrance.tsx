@@ -17,12 +17,11 @@
  *  120ms   stage advances → reveals begin
  *          each <SponsorReveal step={n}> fades up, staggered 110ms by step
  *
- *   step 0  hero            (120ms)
- *   step 1  tier: bronze    (230ms)
- *   step 2  tier: silver    (340ms)
- *   step 3  tier: gold      (450ms)
- *   step 4  stargazers card (560ms)
- *   step 5  CTA             (670ms)
+ *   step 0  hero                 (120ms)
+ *   step 1  OSS Programs tier    (230ms)
+ *   step 2  stargazers carousel  (340ms)
+ *   step 3  other supporters     (450ms)
+ *   step 4  CTA                  (560ms)
  * ───────────────────────────────────────────────────────── */
 
 "use client"

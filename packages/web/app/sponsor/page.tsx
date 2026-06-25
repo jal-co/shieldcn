@@ -2,10 +2,10 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
-import { Heart, ExternalLink, Star, Plus } from "lucide-react"
+import { Heart, ExternalLink, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SponsorReveal } from "@/components/sponsor-entrance"
+import { StargazerCarousel } from "@/components/stargazer-carousel"
 import { SiteShell } from "@/components/site-shell"
 
 function ShadcnCraftLogo({ className }: { className?: string }) {
@@ -124,86 +124,124 @@ async function getStargazers(): Promise<Stargazer[]> {
   return pages.filter((s) => s.login !== "jal-co")
 }
 
+interface GhSponsor {
+  login: string
+  name: string
+  avatar_url: string
+  url: string
+  monthly: number
+  featured: boolean
+}
+
+/** Custom wordmarks for sponsors who provide brand assets (dark + light). */
+const SPONSOR_WORDMARK: Record<string, { dark: string; light: string }> = {
+  usenotra: { dark: "/sponsors/notra-wordmark-dark.svg", light: "/sponsors/notra-wordmark.svg" },
+}
+
+// Active GitHub Sponsors of jal-co (the authenticated viewer), via GraphQL.
+// Requires a token; without one the section renders empty. Every active sponsor
+// is returned; the top *recurring* tier is flagged `featured` (one-time gifts
+// never count as the "top monthly" sponsor).
+async function getSponsors(): Promise<GhSponsor[]> {
+  const token = process.env.GITHUB_TOKEN
+  if (!token) return []
+  try {
+    const res = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: { Authorization: `bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `{ viewer { sponsorshipsAsMaintainer(first: 100, activeOnly: true) { nodes { tier { monthlyPriceInDollars isOneTime } sponsorEntity { __typename ... on User { login name avatarUrl url } ... on Organization { login name avatarUrl url } } } } } }`,
+      }),
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return []
+    const json = (await res.json()) as {
+      data?: {
+        viewer?: {
+          sponsorshipsAsMaintainer?: {
+            nodes?: Array<{
+              tier?: { monthlyPriceInDollars?: number; isOneTime?: boolean } | null
+              sponsorEntity?: { login?: string; name?: string | null; avatarUrl?: string; url?: string } | null
+            }>
+          }
+        }
+      }
+    }
+    const nodes = json.data?.viewer?.sponsorshipsAsMaintainer?.nodes ?? []
+    const all = nodes
+      .map((n) => {
+        const e = n?.sponsorEntity
+        const t = n?.tier
+        if (!e?.login || !e.avatarUrl) return null
+        return {
+          login: e.login,
+          name: e.name || e.login,
+          avatar_url: e.avatarUrl,
+          url: e.url || `https://github.com/${e.login}`,
+          monthly: t?.monthlyPriceInDollars ?? 0,
+          oneTime: Boolean(t?.isOneTime),
+        }
+      })
+      .filter((s): s is { login: string; name: string; avatar_url: string; url: string; monthly: number; oneTime: boolean } => s !== null)
+    const topMonthly = Math.max(0, ...all.filter((s) => !s.oneTime).map((s) => s.monthly))
+    return all
+      .sort((a, b) => b.monthly - a.monthly)
+      .map(({ oneTime, ...s }) => ({ ...s, featured: !oneTime && topMonthly > 0 && s.monthly === topMonthly }))
+  } catch {
+    return []
+  }
+}
+
 const tiers = [
   {
-    name: "Open Source Program",
-    slots: 4,
+    name: "OSS Programs",
+    prominent: true,
     sponsors: [
-      {
-        name: "Vercel",
-        href: "https://vercel.com/oss",
-        logoComponent: <VercelLogo className="h-6 w-auto" />,
-      },
-      {
-        name: "OpenPanel",
-        href: "https://openpanel.dev/open-source?utm_source=shieldcn.dev",
-        logoComponent: <OpenPanelLogo className="h-8 w-auto" />,
-      },
-      {
-        name: "Sentry",
-        href: "https://sentry.io/?utm_source=shieldcn.dev",
-        logoComponent: <SentryLogo className="h-7 w-auto" />,
-      },
+      { name: "Sentry", href: "https://sentry.io/?utm_source=shieldcn.dev", logoComponent: <SentryLogo className="h-7 w-auto" /> },
+      { name: "Vercel", href: "https://vercel.com/oss", logoComponent: <VercelLogo className="h-6 w-auto" /> },
+      { name: "OpenPanel", href: "https://openpanel.dev/open-source?utm_source=shieldcn.dev", logoComponent: <OpenPanelLogo className="h-8 w-auto" /> },
     ] as Sponsor[],
-    colors: {
-      bg: "linear-gradient(145deg, #22c55e 0%, #4ade80 30%, #16a34a 60%, #86efac 100%)",
-      text: "#052e16",
-      border: "#16a34a",
-      slotBg: "rgba(34, 197, 94, 0.06)",
-      slotBorder: "rgba(22, 163, 74, 0.2)",
-    },
   },
   {
-    name: "Gold",
-    slots: 3,
+    name: "Supporters",
+    prominent: false,
     sponsors: [
-      {
-        name: "shadcncraft",
-        href: "https://shadcncraft.com?utm_source=shieldcn.dev",
-        logoComponent: <ShadcnCraftLogo className="h-8 w-auto" />,
-      },
-      {
-        name: "shadcnblocks",
-        href: "https://www.shadcnblocks.com?utm_source=shieldcn.dev",
-        logoComponent: <ShadcnBlocksLogo className="h-8" />,
-      },
+      { name: "shadcnblocks", href: "https://www.shadcnblocks.com?utm_source=shieldcn.dev", logoComponent: <ShadcnBlocksLogo className="h-7" /> },
+      { name: "shadcncraft", href: "https://shadcncraft.com?utm_source=shieldcn.dev", logoComponent: <ShadcnCraftLogo className="h-7 w-auto" /> },
     ] as Sponsor[],
-    colors: {
-      bg: "linear-gradient(145deg, #d4a84b 0%, #f5d98a 30%, #c9952e 60%, #e8c55a 100%)",
-      text: "#5c3d0e",
-      border: "#c9952e",
-      slotBg: "rgba(212, 168, 75, 0.08)",
-      slotBorder: "rgba(201, 149, 46, 0.25)",
-    },
-  },
-  {
-    name: "Silver",
-    slots: 3,
-    sponsors: [] as Sponsor[],
-    colors: {
-      bg: "linear-gradient(145deg, #a8a8a8 0%, #d4d4d4 30%, #8a8a8a 60%, #c0c0c0 100%)",
-      text: "#2a2a2a",
-      border: "#8a8a8a",
-      slotBg: "rgba(168, 168, 168, 0.06)",
-      slotBorder: "rgba(138, 138, 138, 0.2)",
-    },
-  },
-  {
-    name: "Bronze",
-    slots: 4,
-    sponsors: [] as Sponsor[],
-    colors: {
-      bg: "linear-gradient(145deg, #b5745a 0%, #d4956e 30%, #8c5a3e 60%, #c98a68 100%)",
-      text: "#3d1e0e",
-      border: "#8c5a3e",
-      slotBg: "rgba(181, 116, 90, 0.06)",
-      slotBorder: "rgba(140, 90, 62, 0.2)",
-    },
   },
 ]
 
+/** One restyled tier: a quiet label rule + a row of dark logo cards. OSS
+    programs render their logos in white; other supporters stay muted. */
+function TierBlock({ tier, step }: { tier: (typeof tiers)[number]; step: number }) {
+  return (
+    <SponsorReveal step={step} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-medium text-muted-foreground">{tier.name}</h3>
+        <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+      </div>
+      <div className={tier.prominent ? "grid grid-cols-1 gap-3 sm:grid-cols-3" : "grid grid-cols-1 gap-3 sm:grid-cols-2"}>
+        {tier.sponsors.map((sponsor) => (
+          <a
+            key={sponsor.name}
+            href={sponsor.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group flex items-center justify-center rounded-xl border border-border bg-card/40 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-accent/30 ${tier.prominent ? "p-8" : "p-6"}`}
+          >
+            <div className={tier.prominent ? "text-foreground" : "text-foreground/50 transition-colors group-hover:text-foreground/90"}>
+              {sponsor.logoComponent}
+            </div>
+          </a>
+        ))}
+      </div>
+    </SponsorReveal>
+  )
+}
+
 export default async function SponsorPage() {
-  const stargazers = await getStargazers()
+  const [stargazers, sponsors] = await Promise.all([getStargazers(), getSponsors()])
 
   return (
     <SiteShell>
@@ -220,20 +258,22 @@ export default async function SponsorPage() {
                 I&apos;ll never charge, but if you want to help
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-                shieldcn is an open source badge service built on the shadcn/ui
-                design language. Every badge endpoint is free and that&apos;s not
-                changing.
+                shieldcn renders README badges, charts, headers, and sponsor
+                walls as real shadcn/ui components, served from public endpoints.
+                All of it is free, and that part isn&apos;t changing.
               </p>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-                I&apos;m not going to paywall features or gate badge types behind
-                a sponsorship tier. But if shieldcn made your README look
-                better, or you just like that this exists in the open,
-                sponsoring is a nice way to say so. It helps me justify spending
-                real time on it instead of treating it like a side-of-desk thing.
+                There&apos;s no pro tier, and nothing locked behind a
+                sponsorship. So this isn&apos;t a sales pitch. But shieldcn still
+                costs me real time to build and keep running, and sponsoring is an
+                easy way to tell me that time is worth spending. It&apos;s what
+                lets me treat this like a real project instead of something I poke
+                at on weekends.
               </p>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-                Any amount is genuinely appreciated. And if money&apos;s not your
-                thing, starring the repo or sharing a badge you liked works too.
+                Any amount genuinely helps. And if money isn&apos;t your thing,
+                starring the repo or sending someone a badge you liked works just
+                as well.
               </p>
             </div>
 
@@ -250,131 +290,101 @@ export default async function SponsorPage() {
             </a>
           </SponsorReveal>
 
-          {/* Sponsor tiers */}
-          <section className="flex flex-col">
-            {tiers.map((tier, tierIndex) => {
-              const filled = tier.sponsors.length
-              const empty = tier.slots - filled
+          {/* OSS Programs — white logos on dark cards */}
+          <TierBlock tier={tiers[0]} step={1} />
 
-              return (
-                <SponsorReveal key={tier.name} step={1 + tierIndex} className="flex flex-col gap-3 px-6 py-6 sm:px-10">
-                  <div
-                    className="relative flex items-center justify-center rounded-md px-8 py-2.5"
-                    style={{
-                      background: tier.colors.bg,
-                      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -1px 2px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.12)",
-                    }}
+          {/* Monthly sponsors — the top recurring tier, featured with a wordmark */}
+          {sponsors.some((s) => s.featured) && (
+            <SponsorReveal step={2} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Monthly sponsors</h3>
+                <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+              </div>
+              {sponsors.filter((s) => s.featured).map((s) => {
+                const wm = SPONSOR_WORDMARK[s.login]
+                return (
+                  <a
+                    key={s.login}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={s.name}
+                    className="group relative flex items-center justify-center rounded-xl border border-primary/30 bg-primary/[0.05] p-8 transition-all hover:-translate-y-0.5 hover:border-primary/50"
                   >
-                    {["left-2.5 top-1/2 -translate-y-1/2", "right-2.5 top-1/2 -translate-y-1/2"].map((pos) => (
-                      <span
-                        key={pos}
-                        className={`absolute size-2 rounded-full ${pos}`}
-                        style={{
-                          background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.5), transparent 50%), ${tier.colors.bg}`,
-                          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3), inset 0 -1px 1px rgba(255,255,255,0.2), 0 1px 1px rgba(255,255,255,0.15)",
-                          border: "1px solid rgba(0,0,0,0.15)",
-                        }}
-                      />
-                    ))}
-                    <h3
-                      className="text-xs font-extrabold uppercase tracking-[0.2em]"
-                      style={{ color: tier.colors.text }}
-                    >
-                      {tier.name}
-                    </h3>
-                  </div>
-
-                  <div
-                    className="grid gap-2 max-sm:grid-cols-[repeat(1,1fr)]! max-lg:grid-cols-[repeat(2,1fr)]!"
-                    style={{ gridTemplateColumns: `repeat(${Math.min(tier.slots, 4)}, 1fr)` }}
-                  >
-                    {tier.sponsors.map((sponsor) => (
-                      <a
-                        key={sponsor.name}
-                        href={sponsor.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center justify-center rounded-md border p-6 transition-all hover:scale-[1.02]"
-                        style={{ backgroundColor: tier.colors.slotBg, borderColor: tier.colors.slotBorder }}
-                      >
-                        {sponsor.logoComponent ? (
-                          <div className="text-foreground/70 transition-colors group-hover:text-foreground">
-                            {sponsor.logoComponent}
-                          </div>
-                        ) : sponsor.logo ? (
-                          <Image
-                            src={sponsor.logo}
-                            alt={sponsor.name}
-                            width={120}
-                            height={32}
-                            className="h-8 w-auto opacity-60 transition-opacity group-hover:opacity-100"
-                            unoptimized
-                          />
-                        ) : (
-                          <span className="text-sm font-medium text-foreground">{sponsor.name}</span>
-                        )}
-                      </a>
-                    ))}
-
-                    {Array.from({ length: empty }).map((_, i) => (
-                      <a
-                        key={`empty-${tier.name}-${i}`}
-                        href={GITHUB_SPONSORS_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center rounded-md border border-dashed p-8 transition-all hover:scale-[1.02]"
-                        style={{ borderColor: tier.colors.slotBorder }}
-                      >
-                        <Plus className="size-5" style={{ color: tier.colors.border, opacity: 0.5 }} />
-                      </a>
-                    ))}
-                  </div>
-                </SponsorReveal>
-              )
-            })}
-          </section>
-
-          {/* Stargazers */}
-          {stargazers.length > 0 && (
-            <SponsorReveal step={1 + tiers.length} className="px-6 py-6 sm:px-10">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xs font-bold uppercase tracking-wide">
-                    Stargazers
-                    <span className="text-xs tabular-nums font-normal text-muted-foreground">
-                      {stargazers.length}
+                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      <Heart className="size-2.5" /> Top sponsor
                     </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap justify-center gap-0">
-                    {stargazers.map((user) => (
-                      <a
-                        key={user.login}
-                        href={`https://github.com/${user.login}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={user.login}
-                        className="group relative p-1.5 transition-colors hover:bg-accent/50"
-                      >
-                        <Image
-                          src={user.avatar_url}
-                          alt={user.login}
-                          width={36}
-                          height={36}
-                          className="rounded-full ring-1 ring-border transition-all group-hover:ring-foreground/30 group-hover:scale-110"
-                          unoptimized
-                        />
-                      </a>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    {wm ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={wm.dark} alt={s.name} className="hidden h-9 w-auto dark:block" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={wm.light} alt={s.name} className="h-9 w-auto dark:hidden" />
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Image src={s.avatar_url} alt={s.name} width={40} height={40} unoptimized className="size-10 rounded-full ring-1 ring-border" />
+                        <span className="text-base font-semibold text-foreground">{s.name}</span>
+                      </div>
+                    )}
+                  </a>
+                )
+              })}
+            </SponsorReveal>
+          )}
+
+          {/* Supporters — partner tools + the rest of the GitHub sponsors */}
+          <SponsorReveal step={3} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Supporters</h3>
+              <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {tiers[1].sponsors.map((sponsor) => (
+                <a
+                  key={sponsor.name}
+                  href={sponsor.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-center rounded-xl border border-border bg-card/40 p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-accent/30"
+                >
+                  <div className="text-foreground/50 transition-colors group-hover:text-foreground/90">{sponsor.logoComponent}</div>
+                </a>
+              ))}
+            </div>
+            {sponsors.some((s) => !s.featured) && (
+              <div className="flex flex-wrap gap-2">
+                {sponsors.filter((s) => !s.featured).map((s) => (
+                  <a
+                    key={s.login}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={s.name}
+                    className="group flex items-center gap-2.5 rounded-full border border-border bg-card/40 py-1.5 pl-1.5 pr-4 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-accent/30"
+                  >
+                    <Image src={s.avatar_url} alt={s.name} width={32} height={32} unoptimized className="size-8 rounded-full ring-1 ring-border" />
+                    <span className="text-sm font-medium text-foreground">{s.name}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </SponsorReveal>
+
+          {/* Stargazers — two-row marquee carousel */}
+          {stargazers.length > 0 && (
+            <SponsorReveal step={4} className="flex flex-col gap-3 px-6 py-6 sm:px-10">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Stargazers</h3>
+                <span className="text-xs tabular-nums text-muted-foreground">{stargazers.length}</span>
+                <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+              </div>
+              <StargazerCarousel stargazers={stargazers} />
             </SponsorReveal>
           )}
 
           {/* CTA */}
-          <SponsorReveal step={2 + tiers.length} className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
+          <SponsorReveal step={5} className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
             <div className="flex flex-col items-center gap-2 text-center">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Want to support the project?
