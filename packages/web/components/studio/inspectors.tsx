@@ -209,11 +209,23 @@ function presetMatchesSearch(p: BadgePreset, search: string, serviceFilter: stri
 /** Reverse-match a badge path back to a preset index + param values. */
 function findPresetForPath(path: string): { preset: BadgePreset; idx: number; values: Record<string, string> } | null {
   const clean = path.replace(/\?.*$/, "")
+  // Escape every regex metacharacter in the literal chunks of a template. This
+  // matters for "Group" presets whose templates contain a literal "+" (the group
+  // segment joiner) — left unescaped, "+" becomes a quantifier and corrupts param
+  // extraction, which is what made the package/owner fields keep gaining a "+".
+  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   for (let idx = 0; idx < BADGE_PRESETS.length; idx++) {
     const preset = BADGE_PRESETS[idx]
     if (preset.customResolver === "static") continue
-    let pattern = preset.template.replace(/\./g, "\\.").replace(/\{([^}]+)\}/g, "([^/]+)")
-    pattern = `^${pattern}$`
+    const placeholder = /\{([^}]+)\}/g
+    let pattern = "^"
+    let lastIndex = 0
+    let m: RegExpExecArray | null
+    while ((m = placeholder.exec(preset.template)) !== null) {
+      pattern += escapeRe(preset.template.slice(lastIndex, m.index)) + "([^/]+)"
+      lastIndex = placeholder.lastIndex
+    }
+    pattern += escapeRe(preset.template.slice(lastIndex)) + "$"
     const match = clean.match(new RegExp(pattern))
     if (match) {
       const values: Record<string, string> = {}

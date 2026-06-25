@@ -1,363 +1,51 @@
+<p align="left">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/header/graph.svg?title=shieldcn&amp;subtitle=EVERYTHING+for+your+readme&amp;logo=shieldcn&amp;logoColor=848484&amp;mode=dark&amp;align=left&amp;font=geist-mono&amp;border=false" /><img alt="shieldcn" src="https://shieldcn.dev/header/graph.svg?title=shieldcn&amp;subtitle=EVERYTHING+for+your+readme&amp;logo=shieldcn&amp;logoColor=848484&amp;mode=light&amp;align=left&amp;font=geist-mono&amp;border=false" /></picture>
+</p>
+
+<div align="center">
+
+Before anyone reaches your docs, they land on your README, the front door of every open-source project. **shieldcn** makes that first impression count: badges, charts, headers, and sponsor walls, rendered as real [shadcn/ui](https://ui.shadcn.com) components. A [shields.io](https://shields.io) alternative.
+
+<div align="center">
+
+[Homepage](https://shieldcn.dev) · [Docs](https://shieldcn.dev/docs) · [Studio](https://shieldcn.dev/studio) · [𝕏](https://x.com/jalcowastaken)
+
+</div>
+
+</div>
+
 <p align="center">
-  <a href="https://shieldcn.dev">
-    <img alt="shieldcn" src="https://shieldcn.dev/header/graph.svg?title=shieldcn&subtitle=badges%2C+headers%2C+and+charts+for+your+readme&logo=shieldcn&logoColor=848484&mode=dark&align=left&font=geist-mono&border=false" />
-  </a>
+  <a href="https://github.com/jal-co/shieldcn"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/group/github/jal-co/shieldcn/stars+github/jal-co/shieldcn/license+github/jal-co/shieldcn/contributors+github/jal-co/shieldcn/last-commit.svg?variant=branded&amp;size=xs" /><img alt="shieldcn stats" src="https://shieldcn.dev/group/github/jal-co/shieldcn/stars+github/jal-co/shieldcn/license+github/jal-co/shieldcn/contributors+github/jal-co/shieldcn/last-commit.svg?variant=branded&amp;size=xs&amp;mode=light" /></picture></a>
 </p>
 
 <p align="center">
-  Beautiful README badges.<br />
-  A <a href="https://shields.io">shields.io</a> alternative styled as <a href="https://ui.shadcn.com">shadcn/ui</a> buttons. Never paywalled.
+  <a href="https://vercel.com/oss"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&amp;size=xs&amp;logo=vercel" /><img alt="Vercel OSS Program Member" src="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&amp;size=xs&amp;mode=light&amp;logo=vercel" /></picture></a>
+  <a href="https://openpanel.dev?ref=justinlevine.me"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&amp;size=xs&amp;logo=openpanel" /><img alt="analytics by openpanel" src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&amp;size=xs&amp;mode=light&amp;logo=openpanel" /></picture></a>
 </p>
-
-<p align="center">
-  <a href="https://shieldcn.dev">Homepage</a> · <a href="https://shieldcn.dev/docs">Docs</a> · <a href="https://shieldcn.dev/docs/cli">CLI</a> · <a href="https://shieldcn.dev/docs/api-reference">API Reference</a> · <a href="https://x.com/jalcowastaken">𝕏</a>
-</p>
-
-<p align="center">
-  <img src="https://shieldcn.dev/group/github/stars/jal-co/shieldcn%2Bgithub/license/jal-co/shieldcn%2Bgithub/contributors/jal-co/shieldcn%2Bgithub/last-commit/jal-co/shieldcn.svg?variant=branded" alt="shieldcn stats" />
-</p>
-
-<p align="center">
-  <a href="https://vercel.com/oss"><img src="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&logo=vercel" alt="Vercel OSS Program Member" /></a>
-</p>
-
-<p align="center">
-  <a href="https://shieldcn.dev/docs/self-hosting"><img src="https://shieldcn.dev/badge/host%20with-docker-2496ED.svg?variant=branded&logo=docker" alt="host with docker" /></a>
-  <a href="https://openpanel.dev?ref=justinlevine.me"><img src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&logo=openpanel" alt="analytics by openpanel" /></a>
-  <a href="https://sentry.io/?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/monitored%20by-sentry.svg?variant=branded&logo=sentry" alt="monitored by sentry" /></a>
-  <a href="https://shadcncraft.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcncraft-171717.svg?logo=shadcncraft&logoColor=fff&variant=branded" alt="built with shadcncraft" /></a>
-  <a href="https://www.shadcnblocks.com?utm_source=shieldcn.dev"><img src="https://shieldcn.dev/badge/built%20with-shadcnblocks-000000.svg?logo=shadcnblocks&logoColor=fff&variant=branded" alt="built with shadcnblocks" /></a>
-</p>
-
-## About
-
-shieldcn is an open-source badge service by [Justin Levine](https://justinlevine.me). Every badge is free, every endpoint is public, and that's not changing.
-
-Badges are rendered as actual [shadcn/ui](https://ui.shadcn.com) Button components via [Satori](https://github.com/vercel/satori) — same font (Inter), same border-radius, same padding, same color tokens per variant and size. Not "inspired by" — the real thing, as SVG.
-
-Built with [jal-co/ui](https://ui.justinlevine.me) components.
-
-## CLI
-
-Generate badges from your terminal:
-
-```bash
-# Scan current repo and generate badge markdown
-npx shieldcn-cli
-
-# Scan a GitHub repo
-npx shieldcn-cli vercel/next.js --variant branded
-
-# Inject badges into README
-npx shieldcn-cli --inject
-
-# Migrate shields.io URLs to shieldcn
-npx shieldcn-cli migrate
-```
-
-See the [CLI docs](https://shieldcn.dev/docs/cli) for full usage.
 
 ## Usage
 
+Drop a badge into any README and it renders as a real shadcn Button.
+
 ```md
 ![npm](https://shieldcn.dev/npm/react.svg)
-![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg)
-![CI](https://shieldcn.dev/github/ci/jal-co/ui.svg)
-![license](https://shieldcn.dev/github/license/vercel/next.js.svg)
-![discord](https://shieldcn.dev/discord/1316199667142496307.svg)
+![stars](https://shieldcn.dev/github/vercel/next.js/stars.svg)
 ```
 
-### Badge groups
+## Star History
 
-Combine multiple badges into a single joined image — like a [shadcn ButtonGroup](https://ui.shadcn.com/docs/components/radix/button-group):
-
-<p>
-  <img src="https://shieldcn.dev/group/npm/react%2Bgithub/stars/vercel/next.js%2Bgithub/license/vercel/next.js.svg?variant=branded" alt="badge group" />
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/chart/github/stars/jal-co/shieldcn.svg?theme=zinc&amp;bg=transparent&amp;border=false&amp;logo=false&amp;icon=Star" /><img alt="shieldcn star history" src="https://shieldcn.dev/chart/github/stars/jal-co/shieldcn.svg?mode=light&amp;theme=zinc&amp;bg=transparent&amp;border=false&amp;logo=false&amp;icon=Star" /></picture>
 </p>
 
-```md
-![group](https://shieldcn.dev/group/npm/react+github/stars/vercel/next.js+github/license/vercel/next.js.svg?variant=branded)
-```
+## Sponsors
 
-Join any badge paths with `+` under `/group/`. Query params apply to all segments. See the [Badge Group docs](https://shieldcn.dev/docs/badges/group).
-
-### Animated badges
-
-<p>
-  <img src="https://shieldcn.dev/badge/shieldcn-animated%20badges.gif?variant=branded&size=lg&logo=shieldcn&logoColor=fff&color=8b5cf6&animate=shimmer" alt="animated shieldcn badge" />
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=dark&amp;border=false" /><img alt="sponsors" src="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=light&amp;border=false" /></picture>
 </p>
 
-Add `?animate=pulse`, `glow`, or `shimmer` to bring a badge to life:
+<div align="center">
 
-- **`pulse`** / **`glow`** animate the status dot (great for live, CI, or "online" badges)
-- **`shimmer`** sweeps a highlight across the whole badge
+[MIT](https://github.com/jal-co/shieldcn/blob/main/LICENSE) · Built by [Justin Levine](https://justinlevine.me) · [Contribute](https://github.com/jal-co/shieldcn)
 
-For `.svg` badges the animation is pure CSS — no JavaScript — and automatically goes static for visitors with reduced motion enabled. Because GitHub sanitizes animated SVGs, request the **`.gif`** extension to animate inside a GitHub README:
-
-```md
-<!-- animates everywhere except GitHub READMEs (static frame there) -->
-![status](https://shieldcn.dev/badge/status-online-22c55e.svg?statusDot=true&animate=pulse)
-
-<!-- animated GIF — animates inside GitHub READMEs too -->
-![status](https://shieldcn.dev/badge/status-online-22c55e.gif?statusDot=true&animate=pulse)
-```
-
-See the [API reference](https://shieldcn.dev/docs/api-reference) for the full list of animation options.
-
-### Charts
-
-Shadcn-styled line/area graphs — GitHub star history (like
-[starcharts](https://github.com/caarlos0/starcharts)), issues over time, npm
-downloads, and your own JSON data — all as portable SVGs:
-
-<p>
-  <img src="https://shieldcn.dev/chart/github/stars/vercel/next.js.svg" alt="vercel/next.js star history" />
-</p>
-
-```md
-![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)
-![Issues](https://shieldcn.dev/chart/github/issues/honojs/hono.svg)
-![npm downloads](https://shieldcn.dev/chart/npm/zod.svg)
-![Custom](https://shieldcn.dev/chart/json.svg?values=10,25,40,30,60&title=Metric)
-```
-
-Available as `.svg`, `.png`, and `.json`. Customize with `mode`, `theme`,
-`color`, `fill`, `area`, `bg`, `border`, `font`, `width`, `height`, and
-`title`. See the [Charts docs](https://shieldcn.dev/docs/charts).
-
-### Headers
-
-Repository header banners for the top of your README — your logo, a premade
-shadcn-styled background, a title, and a tagline, all from one image URL:
-
-<p>
-  <img src="https://shieldcn.dev/header/dots.svg?title=Acme+Toolkit&subtitle=A+delightful+component+library&logo=react" alt="Acme Toolkit repository header" />
-</p>
-
-```md
-![Header](https://shieldcn.dev/header/dots.svg?title=Acme+Toolkit&subtitle=A+delightful+component+library&logo=react)
-```
-
-Premade backgrounds: `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`,
-`transparent`. Available as `.svg`, `.png`, and `.json`. Customize with `title`,
-`subtitle`, `logo`, `size`, `align`, `theme`, `gradient`, `bg` (incl.
-`transparent`), and more. Build one with the
-[header generator](https://shieldcn.dev/header) or see the
-[Headers docs](https://shieldcn.dev/docs/headers).
-
-### Sponsors
-
-A grid of your account's active public GitHub Sponsors — every sponsor's
-avatar, name, and link — as one portable image:
-
-```md
-![Sponsors](https://shieldcn.dev/sponsors/shadcn.svg)
-```
-
-Pin logins into larger `special` and smaller `backers` rows; everyone else
-lands in the default `Sponsors` row. Available as `.svg`, `.png`, and `.json`.
-Customize with `special`, `backers`, `title`, `size`, `limit`, `names`, `bg`,
-and more. See the [Sponsors docs](https://shieldcn.dev/docs/sponsors).
-
-## Supported providers
-
-See the [docs](https://shieldcn.dev/docs) for full endpoint details, interactive sandboxes, and copy-paste examples.
-
-### Package registries
-
-| Provider | Badges | Endpoint |
-|----------|--------|----------|
-| **npm** | version, downloads, license, node, types, dependents | `/npm/{package}` |
-| **PyPI** | version, downloads, license, python version | `/pypi/{package}` |
-| **Crates.io** | version, downloads, license | `/crates/{crate}` |
-| **Docker Hub** | pulls, stars, version, image size | `/docker/pulls/{image}` |
-| **Packagist** | version, downloads, license | `/packagist/v/{vendor}/{package}` |
-| **RubyGems** | version, downloads, license | `/rubygems/{gem}` |
-| **NuGet** | version, downloads | `/nuget/{package}` |
-| **Pub.dev** | version, likes, points, popularity | `/pub/{package}` |
-| **Homebrew** | version (formula + cask), installs, downloads | `/homebrew/{formula}` |
-| **Maven Central** | version | `/maven/{groupId}/{artifactId}` |
-| **CocoaPods** | version | `/cocoapods/{pod}` |
-| **JSR** | version, score | `/jsr/{@scope}/{name}` |
-| **Bundlephobia** | min size, minzip size, tree-shaking | `/bundlephobia/minzip/{package}` |
-| **Conda** | version, downloads, platform | `/conda/v/{channel}/{package}` |
-| **jsDelivr** | CDN hits, rank | `/jsdelivr/hits/npm/{package}` |
-| **Chocolatey** | version, downloads | `/chocolatey/v/{package}` |
-| **Snapcraft** | version | `/snapcraft/v/{snap}` |
-
-### Code platforms
-
-| Provider | Badges | Endpoint |
-|----------|--------|----------|
-| **GitHub** | stars, forks, watchers, license, release, CI, checks, issues, PRs, milestones, commits, downloads (all/specific asset, all/latest/tag), dependabot, and more | `/github/{owner}/{repo}/{topic}` |
-| **GitLab** | stars, forks, issues, pipeline, license, release, contributors | `/gitlab/{owner}/{repo}/{topic}` |
-| **Codecov** | coverage percentage (color-coded) | `/codecov/{service}/{owner}/{repo}` |
-| **Coveralls** | coverage percentage (color-coded) | `/coveralls/{service}/{owner}/{repo}` |
-| **SonarCloud** | quality gate, bugs, vulnerabilities, coverage, maintainability, reliability, security | `/sonar/{topic}/{component}` |
-| **VS Code Marketplace** | installs, rating, version | `/vscode/installs/{publisher}/{extension}` |
-| **Open VSX** | version, downloads, rating | `/openvsx/v/{namespace}/{extension}` |
-
-### App stores
-
-| Provider | Badges | Endpoint |
-|----------|--------|----------|
-| **Chrome Web Store** | version, users, rating | `/chrome/v/{extensionId}` |
-| **Mozilla Add-ons** | version, users, rating, downloads | `/amo/v/{slug}` |
-| **Flathub** | version, downloads | `/flathub/v/{appId}` |
-| **F-Droid** | version | `/fdroid/v/{appId}` |
-
-### Social & Community
-
-| Provider | Badges | Endpoint |
-|----------|--------|----------|
-| **Discord** | online count, members | `/discord/{serverId}` |
-| **NBA** | team fan badges with logos and team colors (2026 Champs Knicks by default) | `/nba` or `/nba/{team}` |
-| **Reddit** | karma, subscribers | `/reddit/subscribers/r/{subreddit}` |
-| **Bluesky** | followers, following, posts | `/bluesky/{handle}` |
-| **X / Twitter** | follow CTA, mention CTA | `/x/follow/{username}` |
-| **YouTube** | subscribers, channel views, video views, likes, comments | `/youtube/subscribers/{channelId}` |
-| **Mastodon** | followers, following, posts | `/mastodon/followers/{instance}/{acct}` |
-| **Lemmy** | subscribers, posts, comments | `/lemmy/subscribers/{instance}/{community}` |
-| **Hacker News** | karma | `/hackernews/{userId}` |
-| **Twitch** | live status, followers | `/twitch/status/{login}` |
-| **Discourse** | topics, posts, users, likes | `/discourse/topics/{server}` |
-| **Matrix** | room members | `/matrix/members/{roomAlias}` |
-| **Stack Exchange** | tag questions, user reputation | `/stackexchange/tag/{tag}` |
-
-### Funding & Tools
-
-| Provider | Badges | Endpoint |
-|----------|--------|----------|
-| **Open Collective** | backers, sponsors, contributors, balance, budget | `/opencollective/backers/{slug}` |
-| **Liberapay** | receiving, patrons, goal | `/liberapay/receiving/{username}` |
-| **WakaTime** | coding time | `/wakatime/{username}` |
-| **Weblate** | translation %, language count | `/weblate/translation/{server}/{project}/{component}` |
-| **Modrinth** | downloads, followers, version, game versions | `/modrinth/downloads/{slug}` |
-| **Tokscale** | tokens, cost, rank, active days | `/tokscale/{username}` |
-| **skills.sh** | skill installs, rank, trending, hot | `/skills/installs/{owner}/{repo}/{skill}` |
-| **Country Flags** | “built in {country}” with a flag chip (265 countries/regions) | `/flag/{code}` |
-
-### Custom badges
-
-| Type | Description | Endpoint |
-|------|-------------|----------|
-| **Badge Group** | Multiple badges joined in one image | `/group/{badge1}+{badge2}+{badge3}` |
-| **Static** | Custom label/message/color | `/badge/{label}-{message}-{color}` |
-| **Dynamic JSON** | Fetch any JSON API | `/badge/dynamic/json?url=...&query=...` |
-| **HTTPS Endpoint** | Proxy any JSON endpoint | `/https/{hostname}/{path}` |
-| **Memo** | User-stored badges (PUT API) | `/memo/{key}` |
-
-## Variants & sizes
-
-Every badge supports shadcn Button variants and sizes:
-
-```md
-![default](https://shieldcn.dev/npm/react.svg)
-![secondary](https://shieldcn.dev/npm/react.svg?variant=secondary)
-![outline](https://shieldcn.dev/npm/react.svg?variant=outline)
-![ghost](https://shieldcn.dev/npm/react.svg?variant=ghost)
-![destructive](https://shieldcn.dev/npm/react.svg?variant=destructive)
-![branded](https://shieldcn.dev/npm/react.svg?variant=branded)
-
-![xs](https://shieldcn.dev/npm/react.svg?size=xs)
-![sm](https://shieldcn.dev/npm/react.svg?size=sm)
-![default](https://shieldcn.dev/npm/react.svg?size=default)
-![lg](https://shieldcn.dev/npm/react.svg?size=lg)
-```
-
-## Icons
-
-Three icon libraries (40,000+ icons) plus custom SVG upload:
-
-- **[Simple Icons](https://simpleicons.org)** — `?logo=react`
-- **[React Icons](https://react-icons.github.io/react-icons/)** — `?logo=ri:GoStarFill`
-- **[React Icons](https://react-icons.github.io/react-icons/)** — `?logo=ri:FaReact`
-- **Custom SVG** — `?logo=data:image/svg+xml;base64,...` — upload any SVG icon via the Badge Builder or encode it yourself
-
-## Response formats
-
-- **`.svg`** — SVG image (crisp, scalable, recommended default)
-- **`.png`** — PNG image (raster fallback for clients that reject SVG)
-- **`.json`** — raw badge data
-- **`/shields.json`** — shields.io-compatible endpoint
-
-Use `.svg` for the sharpest result. Use `.png` only where SVG images are not accepted.
-
-## Design principles
-
-- **shadcn buttons, not shields.io rectangles** — badges are rendered as actual shadcn Button components with real Inter font outlines via Satori
-- **Everything configurable** — variant, size, mode, colors, icons, opacity, split, dot — but sensible defaults so you don't have to configure anything
-- **Shields.io compatible** — same URL patterns for static/dynamic badges, same text encoding, shields.io JSON endpoint support
-- **Open source, never paywalled** — every badge type, every variant, every icon source is free
-
-## Agent skill
-
-Install the shieldcn skill to let AI coding agents (Claude Code, Cursor, Codex, and [40+ more](https://github.com/vercel-labs/skills#supported-agents)) add badges to your projects:
-
-```bash
-npx skills add jal-co/shieldcn
-```
-
-Once installed, ask your agent to _"add shieldcn badges to the README"_ — it knows all providers, URL patterns, and query parameters.
-
-Learn more in the [skill docs](https://shieldcn.dev/docs/skill).
-
-## Self-Hosting
-
-Run your own badge engine with Docker:
-
-```bash
-git clone https://github.com/jal-co/shieldcn.git
-cd shieldcn
-docker compose -f packages/engine/docker-compose.yml up -d
-
-# Test it
-curl http://localhost:3000/badge/self--hosted-green.svg
-```
-
-Or pull the pre-built image:
-
-```bash
-docker pull ghcr.io/jal-co/shieldcn/engine:latest
-```
-
-See the [Self-Hosting Guide](https://shieldcn.dev/docs/self-hosting) for full setup details.
-
-## Local Development
-
-```bash
-pnpm install             # install all workspace deps
-pnpm dev:web             # start the web site
-pnpm dev:engine          # start the self-hosted engine
-pnpm build:web           # build the web site
-pnpm build:engine        # build the engine
-```
-
-The repo is a Turborepo monorepo with three packages:
-- `packages/core` — shared badge engine library
-- `packages/web` — marketing site (Vercel)
-- `packages/engine` — self-hosted Docker image
-
-
-## Token pool
-
-shieldcn uses a [token pool](https://shieldcn.dev/token-pool) (inspired by [shields.io](https://shields.io/blog/2024-11-14-how-shields-io-uses-the-github-api)) to distribute GitHub API requests across many tokens. You can help by authorizing the OAuth app — read-only, zero scopes, revocable anytime.
-
-## Credits
-
-- **[shields.io](https://shields.io)** — the original badge service. Inspiration for URL patterns, static badge format, and the token pool system.
-- **[badgen.net](https://badgen.net)** — inspiration for many badge types and endpoint structures, especially the GitHub badge coverage.
-- **[shadcn/ui](https://ui.shadcn.com)** — the design system these badges are built on.
-- **[Satori](https://github.com/vercel/satori)** — Vercel's JSX-to-SVG engine that makes rendering React components as badge images possible.
-- **[jal-co/ui](https://ui.justinlevine.me)** — the component library powering the docs site.
-- **[@k33bs](https://github.com/k33bs)** — creator of [shieldcngen](https://github.com/k33bs/shieldcngen), the badge generator tool powering the [`/gen`](https://shieldcn.dev/gen) page.
-
-## Contributing
-
-PRs welcome. See [AGENTS.md](./AGENTS.md) for architecture overview.
-
-To add shadcn components: `cd packages/web && pnpm dlx shadcn@latest add {component}`
-
-## License
-
-[MIT](./LICENSE)
+</div>

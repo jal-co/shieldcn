@@ -18,14 +18,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
-  Check, RotateCcw, Plus, Trash2, Copy as Duplicate,
-  ChevronUp, ChevronDown, Type, GripVertical, X,
+  Plus, Trash2, Copy as Duplicate,
+  ChevronUp, ChevronDown, Type, GripVertical, X, MoreHorizontal,
 } from "lucide-react"
-import { IconAppearanceDarkMode } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAppearanceDarkMode"
-import { IconMarkdown } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconMarkdown"
-import { IconEyeOpen } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconEyeOpen"
-import { IconClipboard2 } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconClipboard2"
-import { IconFileDownload } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconFileDownload"
+import { motion, AnimatePresence, useReducedMotion, type Transition } from "motion/react"
+import { IconMarkdown } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconMarkdown"
+import { IconEyeOpen } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconEyeOpen"
+import { IconClipboard2 } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconClipboard2"
+import { IconFileDownload } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconFileDownload"
+import { IconArrowUndoUp } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconArrowUndoUp"
+import { IconArrowRedoDown } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconArrowRedoDown"
+import { IconArrowRotateCounterClockwise } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconArrowRotateCounterClockwise"
+import { IconCheckmark1 } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconCheckmark1"
+import { IconLayoutDashboard } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconLayoutDashboard"
+import { IconFileArrowRightIn } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconFileArrowRightIn"
+import { IconFileArrowRightOut } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconFileArrowRightOut"
+import { IconTrashCan } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconTrashCan"
 import { IconText1 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconText1"
 import { IconImages1 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconImages1"
 import { IconTag } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconTag"
@@ -38,10 +46,15 @@ import { useSyncExternalStore } from "react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Toggle } from "@/components/ui/toggle"
-import { Separator } from "@/components/ui/separator"
+
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ButtonGroup } from "@/components/ui/button-group"
+import { Separator } from "@/components/ui/separator"
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { BlockFrame } from "@/components/studio/canvas"
 import {
@@ -121,10 +134,79 @@ function blockSummary(block: Block): string {
 }
 
 // ---------------------------------------------------------------------------
+// Toolbar primitives
+// ---------------------------------------------------------------------------
+
+/* ────────────────────────────────────────────
+ * COPY-CONFIRM MICRO-INTERACTION
+ *
+ *     0ms   click → clipboard write, state flips to "copied"
+ *     0ms   clipboard glyph exits (scale 1 → 0.5, fades out)
+ *   spring  checkmark enters (scale 0.5 → 1, slight overshoot)
+ *  2000ms   reverts to the clipboard glyph
+ * ──────────────────────────────────────────── */
+const ICON_SPRING: Transition = { type: "spring", visualDuration: 0.22, bounce: 0.42 }
+
+/* ────────────────────────────────────────────
+ * DELETE DROPZONE STORYBOARD
+ *
+ *     0ms   user starts dragging an existing block
+ *   spring  a dashed trash panel springs in from the right edge (x 120% → 0)
+ *    hover  dragging over it reddens the panel; the trash icon swells (1 → 1.15)
+ *     drop  the dragged block is removed (undoable), panel springs back out
+ *   cancel  drop elsewhere → panel springs back out (x 0 → 120%)
+ * ──────────────────────────────────────────── */
+const PANEL_SPRING: Transition = { type: "spring", visualDuration: 0.34, bounce: 0.26 }
+const PANEL_HIDDEN = { x: "100%", opacity: 0 } as const
+const PANEL_SHOWN = { x: 0, opacity: 1 } as const
+
+/* ────────────────────────────────────────────
+ * BLOCK POOF STORYBOARD
+ *   add     new block pops in (scale 0.96 → 1, fade)
+ *   delete  block poofs away (scale → 0.6, blur 4px, fade) while the rest of
+ *           the list springs up to close the gap (layout)
+ * ──────────────────────────────────────────── */
+const POOF_TRANSITION: Transition = { type: "spring", visualDuration: 0.26, bounce: 0.15 }
+const POOF_GONE = { opacity: 0, scale: 0.6, filter: "blur(4px)" } as const
+
+/** Slides in from the right while a block is dragged; dropping on it deletes. */
+function DeleteDropzone({ onDelete, reduceMotion }: { onDelete: () => void; reduceMotion: boolean }) {
+  const [over, setOver] = useState(false)
+  // Anchored at the inspector's left edge (md:right-80). z-30 sits BELOW the
+  // inspector (z-40) so the panel is occluded while tucked behind it, then
+  // slides left out from behind the bar. On mobile it slides from the edge.
+  return (
+    <div className="pointer-events-none fixed inset-y-0 right-0 z-30 flex items-center md:right-80">
+      <motion.div
+        initial={reduceMotion ? PANEL_SHOWN : PANEL_HIDDEN}
+        animate={PANEL_SHOWN}
+        exit={reduceMotion ? { opacity: 0 } : PANEL_HIDDEN}
+        transition={PANEL_SPRING}
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (!over) setOver(true) }}
+        onDragLeave={() => setOver(false)}
+        onDrop={e => { e.preventDefault(); e.stopPropagation(); setOver(false); onDelete() }}
+        className={cn(
+          "pointer-events-auto flex h-44 w-32 flex-col items-center justify-center gap-2 rounded-l-2xl border-2 border-r-0 border-dashed text-center shadow-lg backdrop-blur-sm transition-colors",
+          over
+            ? "border-destructive bg-destructive/20 text-destructive"
+            : "border-destructive/40 bg-destructive/10 text-destructive/80",
+        )}
+      >
+        <motion.div animate={{ scale: over ? 1.15 : 1 }} transition={ICON_SPRING}>
+          <IconTrashCan size={28} />
+        </motion.div>
+        <span className="px-2 text-xs font-medium leading-tight">{over ? "Release to delete" : "Drag here to delete"}</span>
+      </motion.div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Studio
 // ---------------------------------------------------------------------------
 
 export function Studio() {
+  const reduceMotion = useReducedMotion()
   const { mode } = useBadgeMode()
   const [blocks, setBlocks] = useState<Block[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -144,8 +226,21 @@ export function Studio() {
   }, [])
   const [themeAware, setThemeAware] = useState(false)
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false)
+  // Reorder drag source (existing block) and palette drag source (new block).
   const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const [dragNewType, setDragNewType] = useState<BlockType | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [dragOverEdge, setDragOverEdge] = useState<"top" | "bottom" | null>(null)
+  // Undo/redo history. Snapshots are recorded from a blocks-change effect with a
+  // skip guard so programmatic undo/redo writes don't re-enter the stack. Rapid
+  // edits within 500ms coalesce into a single entry so typing isn't per-keystroke.
+  const historyRef = useRef<{ past: Block[][]; future: Block[][] }>({ past: [], future: [] })
+  const prevBlocksRef = useRef<Block[]>([])
+  const skipHistoryRef = useRef(false)
+  const lastPushRef = useRef(0)
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
+  const dragging = dragFrom !== null || dragNewType !== null
 
   const baseUrl = useSyncExternalStore(
     () => () => {},
@@ -179,6 +274,29 @@ export function Studio() {
     if (!hydrated) return
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ themeAware })) } catch { /* ignore quota */ }
   }, [themeAware, hydrated])
+
+  // Record history whenever `blocks` changes from a user edit (skip on undo/redo).
+  useEffect(() => {
+    if (!hydrated) return
+    if (skipHistoryRef.current) {
+      skipHistoryRef.current = false
+      prevBlocksRef.current = blocks
+      return
+    }
+    const prev = prevBlocksRef.current
+    if (prev !== blocks && prev.length > 0) {
+      const now = Date.now()
+      if (now - lastPushRef.current > 500) {
+        historyRef.current.past.push(prev)
+        if (historyRef.current.past.length > 200) historyRef.current.past.shift()
+        lastPushRef.current = now
+      }
+      historyRef.current.future = []
+      setCanUndo(historyRef.current.past.length > 0)
+      setCanRedo(false)
+    }
+    prevBlocksRef.current = blocks
+  }, [hydrated, blocks])
 
   const selected = blocks.find(b => b.id === selectedId) ?? null
   const selectedIndex = blocks.findIndex(b => b.id === selectedId)
@@ -254,10 +372,118 @@ export function Studio() {
     })
   }, [])
 
+  // Insert a brand-new block at an absolute index (used by palette drag-to-drop).
+  const addBlockAt = useCallback((type: BlockType, index: number) => {
+    const block = makeBlock(type)
+    setBlocks(prev => {
+      const copy = [...prev]
+      const at = Math.min(Math.max(index, 0), copy.length)
+      copy.splice(at, 0, block)
+      return copy
+    })
+    setSelectedId(block.id)
+    setMobileInspectorOpen(true)
+  }, [])
+
+  // Move an existing block to land *before* `insertIndex` (pre-removal index).
+  const moveBlockToIndex = useCallback((from: number, insertIndex: number) => {
+    setBlocks(prev => {
+      if (from < 0 || from >= prev.length) return prev
+      const copy = [...prev]
+      const [moved] = copy.splice(from, 1)
+      let target = from < insertIndex ? insertIndex - 1 : insertIndex
+      target = Math.min(Math.max(target, 0), copy.length)
+      copy.splice(target, 0, moved)
+      return copy
+    })
+  }, [])
+
+  // --- drag (reorder + palette drop) ---------------------------------------
+
+  const clearDrag = useCallback(() => {
+    setDragFrom(null)
+    setDragNewType(null)
+    setDragOverIndex(null)
+    setDragOverEdge(null)
+  }, [])
+
+  const handleCanvasDrop = useCallback((i: number) => {
+    const edge = dragOverEdge ?? "bottom"
+    const insertIndex = edge === "top" ? i : i + 1
+    if (dragNewType) addBlockAt(dragNewType, insertIndex)
+    else if (dragFrom !== null) moveBlockToIndex(dragFrom, insertIndex)
+    clearDrag()
+  }, [dragOverEdge, dragNewType, dragFrom, addBlockAt, moveBlockToIndex, clearDrag])
+
+  const handleAppendDrop = useCallback(() => {
+    if (dragNewType) addBlockAt(dragNewType, blocks.length)
+    else if (dragFrom !== null) moveBlockToIndex(dragFrom, blocks.length)
+    clearDrag()
+  }, [dragNewType, dragFrom, blocks.length, addBlockAt, moveBlockToIndex, clearDrag])
+
+  // Drop the dragged block onto the delete zone → remove it (undoable via ⌘Z).
+  const deleteDraggedBlock = useCallback(() => {
+    const id = dragFrom !== null ? blocks[dragFrom]?.id : undefined
+    if (id) removeBlock(id)
+    clearDrag()
+  }, [dragFrom, blocks, removeBlock, clearDrag])
+
+  // --- undo / redo ---------------------------------------------------------
+
+  const undo = useCallback(() => {
+    const h = historyRef.current
+    if (h.past.length === 0) return
+    const prev = h.past.pop()!
+    h.future.push(prevBlocksRef.current)
+    skipHistoryRef.current = true
+    setBlocks(prev)
+    setSelectedId(id => (prev.some(b => b.id === id) ? id : prev[0]?.id ?? null))
+    setCanUndo(h.past.length > 0)
+    setCanRedo(true)
+  }, [])
+
+  const redo = useCallback(() => {
+    const h = historyRef.current
+    if (h.future.length === 0) return
+    const next = h.future.pop()!
+    h.past.push(prevBlocksRef.current)
+    skipHistoryRef.current = true
+    setBlocks(next)
+    setSelectedId(id => (next.some(b => b.id === id) ? id : next[0]?.id ?? null))
+    setCanUndo(true)
+    setCanRedo(h.future.length > 0)
+  }, [])
+
+  // Keyboard shortcuts: ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or ⌘/Ctrl+Y redo. Never
+  // hijack the browser's native undo while the user is typing in a field/editor.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      const key = e.key.toLowerCase()
+      if (key !== "z" && key !== "y") return
+      const t = e.target as HTMLElement | null
+      if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.closest('[contenteditable="true"]'))) return
+      if (key === "y" || (key === "z" && e.shiftKey)) { e.preventDefault(); redo() }
+      else { e.preventDefault(); undo() }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [undo, redo])
+
+  // Clicking the empty canvas background (not a block) clears the selection.
+  const deselect = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) setSelectedId(null)
+  }, [])
+
   const reset = useCallback(() => {
     const fresh = makeStarterDocument()
+    historyRef.current = { past: [], future: [] }
+    lastPushRef.current = 0
+    skipHistoryRef.current = true
     setBlocks(fresh)
     setSelectedId(fresh[0]?.id ?? null)
+    setCanUndo(false)
+    setCanRedo(false)
   }, [])
 
   // --- export --------------------------------------------------------------
@@ -295,6 +521,24 @@ export function Studio() {
     URL.revokeObjectURL(url)
   }, [shownMarkdown])
 
+  // Import a README.md file → parse to blocks. Flows through setBlocks, so the
+  // import lands in the undo history and ⌘Z reverts it (no confirm needed).
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const onImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = "" // reset so the same file can be re-imported
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : ""
+      const next = markdownToDocument(text, baseUrl)
+      if (next.length === 0) return
+      setBlocks(next)
+      setSelectedId(next[0]?.id ?? null)
+    }
+    reader.readAsText(file)
+  }, [baseUrl])
+
   if (!hydrated) {
     return <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading studio…</div>
   }
@@ -322,15 +566,25 @@ export function Studio() {
   return (
     <TooltipProvider delayDuration={200}>
     <div className="flex h-full flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold tracking-tight">README Studio</span>
-          <Badge variant="secondary" className="h-5 rounded-full px-2 text-[10px] font-medium uppercase tracking-wide">Beta</Badge>
-          <span className="hidden truncate text-xs text-muted-foreground sm:inline">· {blocks.length} blocks</span>
+      {/* Toolbar — three intentional zones: identity (left), mode switch
+          (absolutely centered on md+), and grouped actions (right). */}
+      <div className="relative flex items-center justify-between gap-2 border-b border-border bg-background px-3 py-2 sm:px-4">
+        {/* Zone 1 — identity + document state */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
+            <IconLayoutDashboard size={16} />
+          </div>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-sm font-semibold tracking-tight">README Studio</span>
+            <Badge variant="secondary" className="h-5 rounded-full px-2 text-[10px] font-medium uppercase tracking-wide">Beta</Badge>
+            <span className="hidden text-xs text-muted-foreground xl:inline">{blocks.length} blocks</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="hidden md:flex">
+
+        {/* Zone 2 — mode switch, optically centered, overlay so the side zones
+            don't pull it off-center. Pointer-events gated to the control. */}
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center md:flex">
+          <div className="pointer-events-auto">
             <Tabs value={view} onValueChange={v => {
               const next = v as "design" | "code"
               if (next === "code") setCodeDraft(markdown)
@@ -343,37 +597,106 @@ export function Studio() {
               </TabsList>
             </Tabs>
           </div>
-          <Separator orientation="vertical" className="mx-1 hidden h-5 md:block" />
-          <Tip label={themeAware ? "Adaptive light/dark is ON — badges, headers & charts export as <picture> and follow the reader's GitHub theme" : "Make the whole README adaptive — export badges, headers & charts as <picture> that follow the reader's light/dark theme"}>
-            <span className="inline-flex">
-              <Toggle
-                size="sm"
-                variant="outline"
-                pressed={themeAware}
-                onPressedChange={setThemeAware}
-                aria-label="Adaptive light and dark mode for the whole README"
-                className="h-8 gap-1.5 data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90"
+        </div>
+
+        {/* Zone 3 — three legible tiers: Edit · Export · More */}
+        <div className="flex items-center gap-2">
+          {/* EDIT — undo/redo are universal, so icon-only is legible */}
+          <ButtonGroup aria-label="Edit history">
+            <Tip label="Undo (⌘Z)">
+              <Button variant="outline" size="icon" className="size-8 text-muted-foreground hover:text-foreground disabled:opacity-40" disabled={!canUndo} onClick={undo} aria-label="Undo">
+                <IconArrowUndoUp size={15} />
+              </Button>
+            </Tip>
+            <Tip label="Redo (⇧⌘Z)">
+              <Button variant="outline" size="icon" className="size-8 text-muted-foreground hover:text-foreground disabled:opacity-40" disabled={!canRedo} onClick={redo} aria-label="Redo">
+                <IconArrowRedoDown size={15} />
+              </Button>
+            </Tip>
+          </ButtonGroup>
+
+          <Separator orientation="vertical" className="mx-0.5 hidden h-5 sm:block" />
+
+          {/* IMPORT — bring a README.md file in (the one 'in' action) */}
+          <Tip label="Open a README.md file into the studio">
+            <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => fileInputRef.current?.click()}>
+              <IconFileArrowRightIn size={15} /> <span className="hidden lg:inline">Import</span>
+            </Button>
+          </Tip>
+
+          {/* EXPORT — primary; menu offers clipboard + file. The button face
+              flashes a spring "Copied" after a clipboard copy (the menu closes,
+              so the confirmation lives on the trigger). */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="h-8 gap-1.5 shadow-sm" aria-label="Export README">
+                <span className="relative grid size-3.5 place-items-center">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {copied ? (
+                      <motion.span key="done" initial={reduceMotion ? false : { scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={reduceMotion ? { opacity: 0 } : { scale: 0.5, opacity: 0 }} transition={ICON_SPRING} className="absolute inset-0 grid place-items-center">
+                        <IconCheckmark1 size={15} />
+                      </motion.span>
+                    ) : (
+                      <motion.span key="exp" initial={reduceMotion ? false : { scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={reduceMotion ? { opacity: 0 } : { scale: 0.5, opacity: 0 }} transition={ICON_SPRING} className="absolute inset-0 grid place-items-center">
+                        <IconFileArrowRightOut size={15} />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </span>
+                <span>{copied ? "Copied" : "Export"}</span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onSelect={copyMarkdown}>
+                <IconClipboard2 size={15} /> Copy to clipboard
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={downloadMarkdown}>
+                <IconFileDownload size={15} /> Download .md
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Separator orientation="vertical" className="mx-0.5 hidden h-5 sm:block" />
+
+          {/* MORE — low-frequency settings & destructive action, labeled in a menu */}
+          <DropdownMenu>
+            <Tip label="More options">
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" aria-label="More options">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </Tip>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Export options</DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                checked={themeAware}
+                onCheckedChange={setThemeAware}
+                onSelect={e => e.preventDefault()}
               >
-                <IconAppearanceDarkMode size={14} /> <span className="hidden lg:inline">Adaptive</span>
-              </Toggle>
-            </span>
-          </Tip>
-          <Tip label="Copy README Markdown">
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={copyMarkdown}>
-              {copied ? <Check className="size-3.5" /> : <IconClipboard2 size={14} />}
-              <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
-            </Button>
-          </Tip>
-          <Tip label="Download README.md">
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={downloadMarkdown}>
-              <IconFileDownload size={14} /> <span className="hidden sm:inline">Download</span>
-            </Button>
-          </Tip>
-          <Tip label="Reset to the starter document">
-            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground" onClick={reset}>
-              <RotateCcw className="size-3.5" /> <span className="hidden lg:inline">Reset</span>
-            </Button>
-          </Tip>
+                <span className="flex flex-col">
+                  <span>Adaptive light &amp; dark</span>
+                  <span className="text-xs text-muted-foreground">Export badges, headers &amp; charts as &lt;picture&gt; that follows the reader&apos;s theme</span>
+                </span>
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onSelect={reset}>
+                <IconArrowRotateCounterClockwise size={15} /> Reset to the starter document
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Hidden file picker driving Import */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".md,.markdown,text/markdown,text/plain"
+            className="hidden"
+            onChange={onImportFile}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
         </div>
       </div>
 
@@ -387,7 +710,17 @@ export function Studio() {
               {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
                 const Icon = BLOCK_ICONS[type]
                 return (
-                  <Button key={type} variant="outline" size="sm" className="h-auto flex-col gap-1 py-2.5 text-xs" onClick={() => addBlock(type)}>
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    className="h-auto flex-col gap-1 py-2.5 text-xs"
+                    onClick={() => addBlock(type)}
+                    draggable
+                    onDragStart={e => { setDragNewType(type); e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", type) }}
+                    onDragEnd={clearDrag}
+                    title="Click to add, or drag into the canvas"
+                  >
                     <Icon className="size-4" />
                     {BLOCK_LABELS[type]}
                   </Button>
@@ -435,13 +768,25 @@ export function Studio() {
         </aside>
 
         {/* Center — canvas / markdown */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-muted/40">
+        {/* Clicking the bare editor surface (the gutters around the README card)
+            deselects. The guard inside `deselect` (target === currentTarget)
+            keeps bubbled clicks from blocks, buttons, and the card from firing. */}
+        <main className="min-w-0 flex-1 overflow-y-auto bg-muted/40" onClick={deselect}>
           {/* Mobile add bar */}
           <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border bg-background px-3 py-2 lg:hidden">
             {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
               const Icon = BLOCK_ICONS[type]
               return (
-                <Button key={type} variant="outline" size="sm" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => addBlock(type)}>
+                <Button
+                  key={type}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 shrink-0 gap-1.5 text-xs"
+                  onClick={() => addBlock(type)}
+                  draggable
+                  onDragStart={e => { setDragNewType(type); e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", type) }}
+                  onDragEnd={clearDrag}
+                >
                   <Plus className="size-3" /> <Icon className="size-3.5" /> {BLOCK_LABELS[type]}
                 </Button>
               )
@@ -461,10 +806,19 @@ export function Studio() {
               />
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl p-4 sm:p-6">
-              <div className="rounded-xl border border-border bg-background p-4 shadow-sm sm:p-6">
+            <div className="mx-auto max-w-3xl p-4 sm:p-6" onClick={deselect}>
+              <div
+                className="rounded-xl border border-border bg-background p-4 shadow-sm sm:p-6"
+                onClick={deselect}
+                onDragOver={e => { if (dragging) e.preventDefault() }}
+                onDrop={e => { e.preventDefault(); handleAppendDrop() }}
+              >
                 {blocks.length === 0 ? (
-                  <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+                  <div
+                    className="flex flex-col items-center gap-4 px-6 py-16 text-center"
+                    onDragOver={e => { if (dragging) e.preventDefault() }}
+                    onDrop={e => { e.preventDefault(); if (dragNewType) addBlockAt(dragNewType, 0); clearDrag() }}
+                  >
                     <div className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
                       <Type className="size-5" />
                     </div>
@@ -476,7 +830,16 @@ export function Studio() {
                       {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
                         const Icon = BLOCK_ICONS[type]
                         return (
-                          <Button key={type} variant="outline" size="sm" className="gap-1.5" onClick={() => addBlock(type)}>
+                          <Button
+                            key={type}
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => addBlock(type)}
+                            draggable
+                            onDragStart={e => { setDragNewType(type); e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", type) }}
+                            onDragEnd={clearDrag}
+                          >
                             <Icon className="size-3.5" /> {BLOCK_LABELS[type]}
                           </Button>
                         )
@@ -484,28 +847,39 @@ export function Studio() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    {blocks.map((block, i) => (
-                      <BlockFrame
-                        key={block.id}
-                        block={block}
-                        index={i}
-                        siteMode={mode}
-                        themeAware={themeAware}
-                        selected={block.id === selectedId}
-                        isDragging={dragFrom === i}
-                        dropEdge={dragOverIndex === i && dragFrom !== null && dragFrom !== i ? (dragFrom > i ? "top" : "bottom") : null}
-                        onSelect={() => selectBlock(block.id)}
-                        onDelete={() => removeBlock(block.id)}
-                        onDuplicate={() => duplicateBlock(block.id)}
-                        onInsertBelow={type => insertBlockAfter(block.id, type)}
-                        onChange={updateBlock}
-                        onDragStart={() => setDragFrom(i)}
-                        onDragEnter={() => { if (dragOverIndex !== i) setDragOverIndex(i) }}
-                        onDrop={() => { if (dragFrom !== null) moveBlock(dragFrom, i); setDragFrom(null); setDragOverIndex(null) }}
-                        onDragEnd={() => { setDragFrom(null); setDragOverIndex(null) }}
-                      />
-                    ))}
+                  <div className="space-y-1" onClick={deselect}>
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {blocks.map((block, i) => (
+                        <motion.div
+                          key={block.id}
+                          layout
+                          initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
+                          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                          exit={reduceMotion ? { opacity: 0 } : POOF_GONE}
+                          transition={POOF_TRANSITION}
+                        >
+                          <BlockFrame
+                            block={block}
+                            index={i}
+                            siteMode={mode}
+                            themeAware={themeAware}
+                            selected={block.id === selectedId}
+                            isDragging={dragFrom === i}
+                            dropEdge={dragOverIndex === i && dragging && dragFrom !== i ? dragOverEdge : null}
+                            dropVariant={dragNewType ? "add" : "move"}
+                            onSelect={() => selectBlock(block.id)}
+                            onDelete={() => removeBlock(block.id)}
+                            onDuplicate={() => duplicateBlock(block.id)}
+                            onInsertBelow={type => insertBlockAfter(block.id, type)}
+                            onChange={updateBlock}
+                            onDragStart={() => setDragFrom(i)}
+                            onDragEnter={edge => { setDragOverIndex(i); setDragOverEdge(edge) }}
+                            onDrop={() => handleCanvasDrop(i)}
+                            onDragEnd={clearDrag}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -514,7 +888,7 @@ export function Studio() {
         </main>
 
         {/* Right — inspector */}
-        <aside className="hidden w-80 shrink-0 flex-col border-l border-border bg-background md:flex">
+        <aside className="relative z-40 hidden w-80 shrink-0 flex-col border-l border-border bg-background md:flex">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {selected ? `${BLOCK_LABELS[selected.type]} settings` : "Inspector"}
@@ -532,6 +906,14 @@ export function Studio() {
           </div>
         </aside>
       </div>
+
+      {/* Delete dropzone — slides in from the right while reordering an existing
+          block; drop on it to remove the block. Hidden when adding a new block. */}
+      <AnimatePresence>
+        {dragFrom !== null ? (
+          <DeleteDropzone onDelete={deleteDraggedBlock} reduceMotion={!!reduceMotion} />
+        ) : null}
+      </AnimatePresence>
 
       {/* Mobile inspector — bottom sheet (below md, where the side panel is hidden) */}
       {mobileInspectorOpen && selected ? (

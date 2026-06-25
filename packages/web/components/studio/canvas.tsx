@@ -34,10 +34,13 @@ import { IconTrending5 } from "@central-icons-react/round-filled-radius-3-stroke
 import { IconLayoutGrid2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconLayoutGrid2"
 import { IconAddImage } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconAddImage"
 import { IconPeople } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconPeople"
-import { IconAlignmentLeft } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentLeft"
-import { IconAlignmentCenter } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentCenter"
-import { IconAlignmentRight } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentRight"
+import { IconAlignmentLeft } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentLeft"
+import { IconAlignmentCenter } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentCenter"
+import { IconAlignmentRight } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentRight"
+import { IconSquareDotedBehindSquare } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconSquareDotedBehindSquare"
+import { IconTrashCan } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconTrashCan"
 import { withBadgeMode } from "@/lib/use-badge-mode"
+import { Tray, Chamber, TrayButton } from "@/components/studio/toolbar-ui"
 import { cn } from "@/lib/utils"
 import {
   ContextMenu,
@@ -185,6 +188,7 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
           ref={imgRef}
           src={block.src}
           alt={block.alt}
+          draggable={false}
           style={width ? { width } : undefined}
           className="block max-w-full rounded-md"
         />
@@ -232,9 +236,9 @@ function BlockContent({
       const mode = themeAware ? siteMode : block.state.mode
       const url = buildHeaderUrl({ ...block.state, mode }, "")
       return (
-        <div className="flex justify-center">
+        <div className={cn("flex", block.state.align === "left" ? "justify-start" : "justify-center")}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={block.alt} className="max-w-full rounded-md" />
+          <img src={url} alt={block.alt} draggable={false} className="max-w-full rounded-md" />
         </div>
       )
     }
@@ -250,7 +254,7 @@ function BlockContent({
             const url = withBadgeMode(buildBadgeUrl({ ...b.state, mode }, ""), mode)
             return (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={b.id} src={url} alt={b.alt} className="max-w-full" />
+              <img key={b.id} src={url} alt={b.alt} draggable={false} className="max-w-full" />
             )
           })}
         </div>
@@ -280,7 +284,7 @@ function BlockContent({
       return (
         <div className={cn("flex", ALIGN_CLASS[block.align])}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={block.alt} className="max-w-full rounded-md" />
+          <img src={url} alt={block.alt} draggable={false} className="max-w-full rounded-md" />
         </div>
       )
     }
@@ -293,7 +297,7 @@ function BlockContent({
       return (
         <div className={cn("flex", ALIGN_CLASS[block.align])}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={block.alt} className="max-w-full rounded-md" />
+          <img src={url} alt={block.alt} draggable={false} className="max-w-full rounded-md" />
         </div>
       )
     }
@@ -305,7 +309,7 @@ function BlockContent({
       return (
         <div className={cn("flex", ALIGN_CLASS[block.align])}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={block.alt} className="max-w-full rounded-md" />
+          <img src={url} alt={block.alt} draggable={false} className="max-w-full rounded-md" />
         </div>
       )
     }
@@ -321,31 +325,6 @@ function BlockContent({
 // (alignment + duplicate + delete). Heavier config stays in the right drawer.
 // ---------------------------------------------------------------------------
 
-function ToolbarBtn({ label, active, danger, onClick, children }: {
-  label: string
-  active?: boolean
-  danger?: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "flex size-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-        active && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-        danger && "hover:bg-destructive/10 hover:text-destructive",
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
 function BlockToolbar({ block, onChange, onDuplicate, onDelete }: {
   block: Block
   onChange: (b: Block) => void
@@ -359,18 +338,21 @@ function BlockToolbar({ block, onChange, onDuplicate, onDelete }: {
   return (
     <div
       onClick={e => e.stopPropagation()}
-      className="absolute right-1 top-0 z-30 flex -translate-y-[calc(100%+6px)] items-center gap-0.5 rounded-lg border border-border bg-popover p-1 shadow-md"
+      className="absolute right-1 top-0 z-30 -translate-y-[calc(100%+8px)]"
     >
-      {canAlign ? (
-        <>
-          <ToolbarBtn label="Align left" active={current === "left"} onClick={() => setAlign("left")}><IconAlignmentLeft size={14} /></ToolbarBtn>
-          <ToolbarBtn label="Align center" active={current === "center"} onClick={() => setAlign("center")}><IconAlignmentCenter size={14} /></ToolbarBtn>
-          <ToolbarBtn label="Align right" active={current === "right"} onClick={() => setAlign("right")}><IconAlignmentRight size={14} /></ToolbarBtn>
-          <span className="mx-0.5 h-5 w-px bg-border" />
-        </>
-      ) : null}
-      <ToolbarBtn label="Duplicate block" onClick={onDuplicate}><Copy className="size-3.5" /></ToolbarBtn>
-      <ToolbarBtn label="Delete block" danger onClick={onDelete}><Trash2 className="size-3.5" /></ToolbarBtn>
+      <Tray floating>
+        {canAlign ? (
+          <Chamber>
+            <TrayButton label="Align left" active={current === "left"} onClick={() => setAlign("left")}><IconAlignmentLeft size={15} /></TrayButton>
+            <TrayButton label="Align center" active={current === "center"} onClick={() => setAlign("center")}><IconAlignmentCenter size={15} /></TrayButton>
+            <TrayButton label="Align right" active={current === "right"} onClick={() => setAlign("right")}><IconAlignmentRight size={15} /></TrayButton>
+          </Chamber>
+        ) : null}
+        <Chamber>
+          <TrayButton label="Duplicate block" onClick={onDuplicate}><IconSquareDotedBehindSquare size={15} /></TrayButton>
+          <TrayButton label="Delete block" danger onClick={onDelete}><IconTrashCan size={15} /></TrayButton>
+        </Chamber>
+      </Tray>
     </div>
   )
 }
@@ -384,19 +366,21 @@ interface BlockFrameProps {
   isDragging: boolean
   /** Which edge to draw the insertion line on (null = not a drop target). */
   dropEdge: "top" | "bottom" | null
+  /** `move` reorders an existing block (blue); `add` inserts a new block (green + plus). */
+  dropVariant: "move" | "add"
   onSelect: () => void
   onDelete: () => void
   onDuplicate: () => void
   onInsertBelow: (type: BlockType) => void
   onChange: (b: Block) => void
   onDragStart: () => void
-  onDragEnter: () => void
+  onDragEnter: (edge: "top" | "bottom") => void
   onDrop: () => void
   onDragEnd: () => void
 }
 
 export const BlockFrame = memo(function BlockFrame({
-  block, index, selected, siteMode, themeAware, isDragging, dropEdge,
+  block, index, selected, siteMode, themeAware, isDragging, dropEdge, dropVariant,
   onSelect, onDelete, onDuplicate, onInsertBelow, onChange, onDragStart, onDragEnter, onDrop, onDragEnd,
 }: BlockFrameProps) {
   return (
@@ -414,10 +398,30 @@ export const BlockFrame = memo(function BlockFrame({
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect() }
         else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); onDelete() }
       }}
-      onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; onDragEnter() }}
-      onDrop={e => { e.preventDefault(); onDrop() }}
+      draggable
+      onDragStart={e => {
+        // The whole block body is a drag handle — but never hijack a drag that
+        // starts on interactive content (the inline editor, inputs, links, the
+        // image resize handle, or the floating toolbar). preventDefault here
+        // also lets the contenteditable keep its own text selection.
+        const t = e.target as HTMLElement
+        if (t.closest('[contenteditable="true"], input, textarea, button, a, [role="slider"]')) {
+          e.preventDefault()
+          return
+        }
+        e.dataTransfer.effectAllowed = "move"
+        e.dataTransfer.setData("text/plain", String(index))
+        onDragStart()
+      }}
+      onDragEnd={onDragEnd}
+      onDragOver={e => {
+        e.preventDefault()
+        const rect = e.currentTarget.getBoundingClientRect()
+        onDragEnter(e.clientY < rect.top + rect.height / 2 ? "top" : "bottom")
+      }}
+      onDrop={e => { e.preventDefault(); e.stopPropagation(); onDrop() }}
       className={cn(
-        "group relative cursor-pointer rounded-lg border-2 border-transparent px-4 py-3 transition-colors",
+        "group relative cursor-grab rounded-lg border-2 border-transparent px-4 py-3 transition-colors active:cursor-grabbing",
         "hover:border-border/70 hover:bg-muted/30",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         selected && "border-primary bg-primary/[0.03] hover:border-primary",
@@ -426,24 +430,31 @@ export const BlockFrame = memo(function BlockFrame({
     >
       {/* Floating quick-action toolbar (alignment + duplicate + delete). */}
       {selected ? <BlockToolbar block={block} onChange={onChange} onDuplicate={onDuplicate} onDelete={onDelete} /> : null}
-      {/* Insertion line — shows exactly where the dragged block will land. */}
+      {/* Insertion line — shows where the dragged block lands. Blue = reorder an
+          existing block; green + plus = drop in a NEW block from the palette. */}
       {dropEdge ? (
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-1 z-20 flex items-center",
+            "pointer-events-none absolute inset-x-1 z-20 flex items-center gap-1",
             dropEdge === "top" ? "-top-1" : "-bottom-1",
           )}
           aria-hidden
         >
-          <span className="size-2 shrink-0 rounded-full bg-primary ring-2 ring-background" />
-          <span className="h-0.5 flex-1 rounded-full bg-primary" />
-          <span className="size-2 shrink-0 rounded-full bg-primary ring-2 ring-background" />
+          {dropVariant === "add" ? (
+            <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm ring-2 ring-background">
+              <Plus className="size-3" />
+            </span>
+          ) : (
+            <span className="size-2 shrink-0 rounded-full bg-blue-500 ring-2 ring-background" />
+          )}
+          <span className={cn("h-0.5 flex-1 rounded-full", dropVariant === "add" ? "bg-emerald-500" : "bg-blue-500")} />
+          <span className={cn("size-2 shrink-0 rounded-full ring-2 ring-background", dropVariant === "add" ? "bg-emerald-500" : "bg-blue-500")} />
         </div>
       ) : null}
       {/* Drag handle (left gutter) — only this initiates a reorder drag. */}
       <div
         draggable
-        onDragStart={e => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(index)); onDragStart() }}
+        onDragStart={e => { e.stopPropagation(); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(index)); onDragStart() }}
         onDragEnd={onDragEnd}
         onClick={e => e.stopPropagation()}
         title="Drag to reorder"

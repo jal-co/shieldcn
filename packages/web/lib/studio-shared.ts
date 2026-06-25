@@ -498,15 +498,18 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
     }
 
     case "header": {
+      // The banner's text alignment also drives the page-level wrapper so the
+      // exported <p align> follows the chosen alignment instead of always
+      // centering. (Header state only supports "left" | "center".)
+      const wrapAlign = block.state.align === "left" ? "left" : "center"
       if (adaptive) {
         const dark = buildHeaderUrl({ ...block.state, mode: "dark" }, baseUrl)
         const light = buildHeaderUrl({ ...block.state, mode: "light" }, baseUrl)
-        return `<p align="center">\n  ${picture(dark, light, block.alt)}\n</p>`
+        return `<p align="${wrapAlign}">\n  ${picture(dark, light, block.alt)}\n</p>`
       }
       const url = buildHeaderUrl(block.state, baseUrl)
       const img = `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`
-      // Headers are full-width banners — center them.
-      return `<p align="center">\n  ${img}\n</p>`
+      return `<p align="${wrapAlign}">\n  ${img}\n</p>`
     }
 
     case "badges": {

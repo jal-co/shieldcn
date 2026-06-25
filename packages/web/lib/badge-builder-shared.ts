@@ -92,7 +92,8 @@ export function resolveDefaultLinkUrl(preset: BadgePreset, values: Record<string
   let url = preset.defaultLinkUrl
   for (const param of preset.params) {
     const val = values[param.key] || param.default
-    url = url.replace(`{${param.key}}`, val)
+    // split/join replaces *every* occurrence (templates can repeat a param).
+    url = url.split(`{${param.key}}`).join(val)
   }
   return url
 }
@@ -116,7 +117,8 @@ export function resolveTemplate(preset: BadgePreset, values: Record<string, stri
   let path = preset.template
   for (const param of preset.params) {
     const val = values[param.key] || param.default
-    path = path.replace(`{${param.key}}`, val)
+    // split/join replaces *every* occurrence (group templates repeat params).
+    path = path.split(`{${param.key}}`).join(val)
   }
   return path
 }
