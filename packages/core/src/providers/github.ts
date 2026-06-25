@@ -365,6 +365,86 @@ export async function getGitHubContributors(owner: string, repo: string): Promis
   return { label: "contributors", value: formatCount(count), link: link(owner, repo, "/graphs/contributors") }
 }
 
+export interface ContributorEntry {
+  login: string
+  /** GitHub-hosted avatar URL. */
+  avatarUrl: string
+  url: string
+  /** Number of contributions (commits) attributed to this account. */
+  contributions: number
+  /** "User" | "Bot" | "Anonymous". Bots are filtered out by default. */
+  type: "User" | "Bot" | "Anonymous"
+}
+
+/** Resolved contributor list for a repository, ordered by contributions desc. */
+export interface ContributorsList {
+  contributors: ContributorEntry[]
+}
+
+interface RawContributorNode {
+  login?: unknown
+  avatar_url?: unknown
+  html_url?: unknown
+  contributions?: unknown
+  type?: unknown
+}
+
+/**
+ * Fetch a repository's top contributors via the REST API, ordered by
+ * contributions (descending — GitHub's default order). Paginates up to
+ * {@link CONTRIBUTORS_PAGE_CAP} pages of 100 so very large repos stay bounded.
+ * Returns null on any failure so the route serves last-known-good instead of an
+ * error image. Bots are tagged via `type` and filtered downstream.
+ */
+const CONTRIBUTORS_PAGE_CAP = 3
+
+export async function getGitHubContributorsList(
+  owner: string,
+  repo: string,
+  max = 100,
+): Promise<ContributorsList | null> {
+  const resolved = await resolveRepo(owner, repo)
+  if (!resolved) return null
+  const contributors: ContributorEntry[] = []
+  let resolvedAny = false
+
+  for (let page = 1; page <= CONTRIBUTORS_PAGE_CAP; page++) {
+    const url = `https://api.github.com/repos/${encodeURIComponent(resolved.owner)}/${encodeURIComponent(resolved.repo)}/contributors?per_page=100&page=${page}`
+    const r = await githubFetch(url, 3600)
+    if (!r) {
+      // Transient failure mid-pagination: keep what we have, else miss.
+      if (!resolvedAny) return null
+      break
+    }
+    resolvedAny = true
+    let nodes: RawContributorNode[]
+    try {
+      const json = await r.json()
+      nodes = Array.isArray(json) ? (json as RawContributorNode[]) : []
+    } catch {
+      if (!resolvedAny) return null
+      break
+    }
+    for (const n of nodes) {
+      if (typeof n?.login !== "string" || typeof n?.avatar_url !== "string") continue
+      const rawType = typeof n.type === "string" ? n.type : "User"
+      const isBot = rawType === "Bot" || /\[bot\]$/i.test(n.login)
+      contributors.push({
+        login: n.login,
+        avatarUrl: n.avatar_url,
+        url: typeof n.html_url === "string" ? n.html_url : `https://github.com/${n.login}`,
+        contributions: typeof n.contributions === "number" ? n.contributions : 0,
+        type: isBot ? "Bot" : rawType === "Anonymous" ? "Anonymous" : "User",
+      })
+    }
+    if (nodes.length < 100) break
+    if (contributors.length >= max) break
+  }
+
+  if (!resolvedAny) return null
+  return { contributors }
+}
+
 // ---------------------------------------------------------------------------
 // CI / Checks
 // ---------------------------------------------------------------------------

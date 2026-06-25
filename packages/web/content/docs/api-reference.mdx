@@ -167,6 +167,21 @@ logins with `special` and `backers` (comma-separated). Support `specialTitle`,
 `bg`, `accent`, `radius`, `border`, `watermark`, plus `mode` and `font`. See
 [Sponsors docs](/docs/sponsors).
 
+### Contributors
+
+| Endpoint | Description |
+|----------|-------------|
+| `/contributors/{owner}/{repo}.svg` | Repository contributors grid |
+| `/contributors/{owner}/{repo}.png` | PNG grid |
+| `/contributors/{owner}/{repo}.json` | Resolved contributor list |
+
+A contrib.rocks-style grid of a repository's top contributors, ordered by
+contributions. Bots are excluded by default (`bots=true` to include). Supports
+`title`, `limit`, `min`, `names`, `size`, `width`, `align`, `titleAlign`, the
+full header background system (`preset`, `theme`, `bg`, `gradient`, `pattern`,
+`glow`, `image`, `overlay`, `tint`, `accent`), `radius`, `border`, `watermark`,
+plus `mode` and `font`. See [Contributors docs](/docs/contributors).
+
 ## Query parameters
 
 <ApiRefTable

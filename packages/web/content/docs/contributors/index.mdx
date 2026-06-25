@@ -1,0 +1,193 @@
+---
+title: Contributors
+description: A grid of your repository's contributors — every contributor's avatar, rendered as one portable image for your README. Like contrib.rocks, but shadcn-styled.
+---
+
+The contributors image renders a grid of a repository's **top contributors** —
+their avatars, linked to their GitHub profiles — as a single portable SVG (or
+PNG) served from shieldcn. It's a [contrib.rocks](https://contrib.rocks)-style
+image, but built from shadcn-styled chrome and the same background system as
+[headers](headers) and [sponsors](sponsors). Everything is encoded in the image
+URL, so it works anywhere a Markdown image does and never needs a build step or
+a CI job.
+
+<ContributorsPreview
+  src="/contributors/vercel/next.js.svg"
+  alt="next.js contributors"
+/>
+
+## Builder
+
+The fastest way to make a contributors image is the interactive generator.
+Enter an owner and repo, pick a background, theme, and size, then copy the
+Markdown.
+
+[Open the contributors generator](/contributors)
+
+## URL format
+
+```
+/contributors/{owner}/{repo}.svg     SVG grid
+/contributors/{owner}/{repo}.png     PNG grid
+/contributors/{owner}/{repo}.json    resolved contributor list (JSON)
+```
+
+`{owner}/{repo}` is any public GitHub repository. Drop it into your README with
+a linked Markdown image:
+
+```md
+[![Contributors](https://shieldcn.dev/contributors/vercel/next.js.svg)](https://github.com/vercel/next.js/graphs/contributors)
+```
+
+Or center it with an HTML block:
+
+```html
+<p align="center">
+  <a href="https://github.com/vercel/next.js/graphs/contributors">
+    <img src="https://shieldcn.dev/contributors/vercel/next.js.svg" alt="Contributors" />
+  </a>
+</p>
+```
+
+## Ordering and filtering
+
+Contributors are ordered by **number of contributions** (commits), descending —
+the same order as GitHub's contributors graph. Bots (accounts ending in
+`[bot]`, or of GitHub type `Bot`) are **excluded by default**; include them with
+`?bots=true`.
+
+- `limit` — cap how many avatars are shown (1–100, default 60).
+- `min` — only include contributors with at least this many contributions.
+- `bots` — set `true` to include bot accounts.
+
+```md
+[![Contributors](https://shieldcn.dev/contributors/vercel/next.js.svg?limit=30&min=5)](https://github.com/vercel/next.js/graphs/contributors)
+```
+
+<ContributorsPreview
+  src="/contributors/vercel/next.js.svg?limit=24&names=true"
+  alt="next.js contributors with names"
+  description="limit=24, names=true"
+/>
+
+## Sizing and layout
+
+The `size` parameter sets the avatar diameter; use `width` to set the canvas
+width — avatars wrap into as many rows as needed. Names are **off by default**
+for a dense avatar grid; turn them on with `names=true`.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `size` | 24–140 (px) | 64 |
+| `width` | 320–2000 (px) | 800 |
+| `limit` | 1–100 | 60 |
+| `min` | ≥ 0 | 0 |
+| `names` | `true`, `false` | `false` |
+| `bots` | `true`, `false` | `false` |
+| `titleAlign` | `left`, `center`, `right` | `left` |
+| `align` | `left`, `center`, `right` (avatars) | `center` |
+| `radius` | 0–80 (px) | 12 |
+| `border` | `true`, `false` | `true` |
+| `watermark` | `true`, `false` | `false` |
+
+```md
+![Contributors](https://shieldcn.dev/contributors/vercel/next.js.svg?size=48&limit=40)
+```
+
+## Title and colors
+
+The grid has a "Contributors" heading by default. Override it with `title=...`,
+or hide it with `title=false`. Color controls:
+
+- `bg` — a solid background color (hex without `#`), or `transparent` to blend
+  into the page.
+- `accent` — the color of the hairline rule under the title (hex without `#`).
+
+```md
+![Contributors](https://shieldcn.dev/contributors/vercel/next.js.svg?title=Built+by&bg=transparent)
+```
+
+## Backgrounds
+
+The card uses the **same premade background system as [headers](headers)** —
+so it's just as customizable. Set a preset with `?preset=`:
+
+| Preset | Description |
+| --- | --- |
+| `surface` | Clean flat zinc surface. The default. |
+| `gradient` | Subtle neutral vertical gradient. |
+| `dots` | Dot grid over the surface. |
+| `grid` | Line grid over the surface. |
+| `graph` | Fine and coarse graph paper. |
+| `glow` | Soft themed spotlight from the top. |
+| `transparent` | No surface fill — blends into the page. |
+
+<ContributorsPreview
+  src="/contributors/vercel/next.js.svg?preset=glow&theme=blue"
+  alt="contributors with the glow preset and blue theme"
+  description="glow preset, blue theme"
+/>
+
+For full control, override the background directly:
+
+- `theme` — tints the glow/accent: `zinc`, `slate`, `blue`, `green`, `rose`,
+  `orange`, `violet`, `purple`, `cyan`, `emerald`.
+- `gradient` — comma-separated hex stops with an optional trailing angle, e.g.
+  `gradient=7c2d12,9f1239,86198f,135`.
+- `pattern` — `dots`, `grid`, `graph`, or `none`.
+- `glow` — the spotlight color (hex without `#`).
+- `bg` — a solid color (hex without `#`), or `transparent`.
+- `image` — a background photo (Unsplash or any image URL), inlined behind an
+  auto scrim; tune it with `overlay` (0–1) and `tint`.
+
+```md
+![Contributors](https://shieldcn.dev/contributors/vercel/next.js.svg?gradient=7c2d12,9f1239,86198f,135)
+```
+
+## Light and dark mode
+
+The grid reads correctly in both modes. Pass `mode=light` or `mode=dark`, or
+pair two images in a `<picture>` element so it follows the reader's GitHub
+theme. See [Light & Dark Mode](customization/light-dark-mode).
+
+## Parameters
+
+In addition to the shared `mode` and `font` parameters from the
+[API reference](api-reference):
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `title` | string, or `false` | `Contributors` |
+| `limit` | 1–100 | 60 |
+| `min` | ≥ 0 | 0 |
+| `names` | `true`, `false` | `false` |
+| `bots` | `true`, `false` | `false` |
+| `titleAlign` | `left`, `center`, `right` | `left` |
+| `align` | `left`, `center`, `right` (avatars) | `center` |
+| `size` | 24–140 (px) | 64 |
+| `width` | 320–2000 (px) | 800 |
+| `preset` | `surface`, `gradient`, `dots`, `grid`, `graph`, `glow`, `transparent` | `surface` |
+| `theme` | `zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald` | — |
+| `bg` | hex without `#`, or `transparent` | card surface |
+| `gradient` | comma-separated hex stops, optional trailing angle | — |
+| `pattern` | `dots`, `grid`, `graph`, `none` | preset |
+| `glow` | hex without `#` | per preset |
+| `image` | Unsplash / image URL, or `data:` URI | — |
+| `overlay` | 0–1 | 0.45 |
+| `tint` | hex without `#` | `000000` |
+| `accent` | hex without `#` | — |
+| `radius` | 0–80 (px) | 12 |
+| `border` | `true`, `false` | `true` |
+| `watermark` | `true`, `false` | `false` |
+| `mode` | `dark`, `light` | `dark` |
+
+## Data source
+
+Contributor data comes from the GitHub REST
+[contributors API](https://docs.github.com/en/rest/repos/repos#list-repository-contributors)
+(`/repos/{owner}/{repo}/contributors`), ordered by contributions descending.
+Avatars are fetched once and inlined into the image, and the list is cached for
+an hour (serving the last-known-good list during any GitHub outage). The image
+renders the top contributors up to `limit`; very large repositories are capped
+at 100. A repository that doesn't exist or has no contributors renders an
+empty-state message.

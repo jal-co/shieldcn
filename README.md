@@ -44,6 +44,12 @@ Drop a badge into any README and it renders as a real shadcn Button.
   <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=false&amp;special=usenotra&amp;separator=line&amp;mode=dark&amp;border=false" /><img alt="sponsors" src="https://shieldcn.dev/sponsors/jal-co.svg?title=false&amp;preset=transparent&amp;size=80&amp;names=true&amp;special=usenotra&amp;separator=line&amp;mode=light&amp;border=false" /></picture>
 </p>
 
+## Contributors
+
+<p align="center">
+  <a href="https://github.com/jal-co/shieldcn/graphs/contributors"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/contributors/jal-co/shieldcn.svg?title=false&amp;preset=transparent&amp;border=false&amp;mode=dark" /><img alt="contributors" src="https://shieldcn.dev/contributors/jal-co/shieldcn.svg?title=false&amp;preset=transparent&amp;border=false&amp;mode=light" /></picture></a>
+</p>
+
 <div align="center">
 
 [MIT](https://github.com/jal-co/shieldcn/blob/main/LICENSE) · Built by [Justin Levine](https://justinlevine.me) · [Contribute](https://github.com/jal-co/shieldcn)

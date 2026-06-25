@@ -34,6 +34,7 @@ import { IconTrending5 } from "@central-icons-react/round-filled-radius-3-stroke
 import { IconLayoutGrid2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconLayoutGrid2"
 import { IconAddImage } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconAddImage"
 import { IconPeople } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconPeople"
+import { IconPeople2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconPeople2"
 import { IconAlignmentLeft } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentLeft"
 import { IconAlignmentCenter } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentCenter"
 import { IconAlignmentRight } from "@central-icons-react/round-outlined-radius-3-stroke-1.5/IconAlignmentRight"
@@ -55,6 +56,7 @@ import {
 import { buildBadgeUrl } from "@/lib/badge-builder-shared"
 import { buildHeaderUrl } from "@/lib/header-builder-shared"
 import { buildSponsorsUrl } from "@/lib/sponsors-builder-shared"
+import { buildContributorsUrl } from "@/lib/contributors-builder-shared"
 import {
   buildChartUrl,
   buildGroupUrl,
@@ -67,7 +69,7 @@ import {
   type MarkdownBlock,
 } from "@/lib/studio-shared"
 
-const BLOCK_TYPES: BlockType[] = ["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"]
+const BLOCK_TYPES: BlockType[] = ["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors", "contributors"]
 
 const BLOCK_ICONS: Record<BlockType, React.ComponentType<{ className?: string }>> = {
   markdown: IconText1,
@@ -78,6 +80,7 @@ const BLOCK_ICONS: Record<BlockType, React.ComponentType<{ className?: string }>
   table: IconLayoutGrid2,
   image: IconAddImage,
   sponsors: IconPeople,
+  contributors: IconPeople2,
 }
 
 // Tiptap is heavy — keep it out of the initial Studio bundle until a text
@@ -306,6 +309,19 @@ function BlockContent({
       const mode = themeAware ? siteMode : block.state.mode
       if (!block.state.login.trim()) return <p className="text-sm text-muted-foreground italic">Enter a GitHub login in the inspector.</p>
       const url = buildSponsorsUrl({ ...block.state, mode }, "")
+      return (
+        <div className={cn("flex", ALIGN_CLASS[block.align])}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt={block.alt} draggable={false} className="max-w-full rounded-md" />
+        </div>
+      )
+    }
+
+    case "contributors": {
+      const mode = themeAware ? siteMode : block.state.mode
+      if (!block.state.owner.trim() || !block.state.repo.trim())
+        return <p className="text-sm text-muted-foreground italic">Enter a GitHub owner and repo in the inspector.</p>
+      const url = buildContributorsUrl({ ...block.state, mode }, "")
       return (
         <div className={cn("flex", ALIGN_CLASS[block.align])}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

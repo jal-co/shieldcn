@@ -117,6 +117,7 @@ import {
   getGitHubSponsors,
   getGitHubSponsorsList,
   getGitHubFeaturedSponsors,
+  getGitHubContributorsList,
   type SponsorEntry,
   githubRepoExists,
 } from "./providers/github"
@@ -2223,7 +2224,7 @@ async function inlineAvatar(rawUrl: string): Promise<string | undefined> {
 }
 
 /** Inline a batch of avatars with bounded concurrency. */
-async function inlineAvatars(entries: SponsorEntry[]): Promise<Map<string, string>> {
+async function inlineAvatars(entries: { login: string; avatarUrl: string }[]): Promise<Map<string, string>> {
   const out = new Map<string, string>()
   const CONCURRENCY = 8
   for (let i = 0; i < entries.length; i += CONCURRENCY) {
@@ -2249,6 +2250,183 @@ function parseLoginList(raw: string | null): string[] {
     }
   }
   return out
+}
+
+// ---------------------------------------------------------------------------
+// Contributors image (/contributors/{owner}/{repo}.svg) — a contrib.rocks-style
+// grid of a repository's top contributors' avatars. Reuses the sponsors grid
+// renderer (a single tier) and the same background/customization system.
+// ---------------------------------------------------------------------------
+
+/** Hard cap on how many contributor avatars a single image will inline. */
+const CONTRIBUTORS_RENDER_CAP = 100
+const CONTRIBUTORS_FRESH_TTL = 60 * 60 // 1 hour fresh copy
+const CONTRIBUTORS_STALE_TTL = 60 * 60 * 24 * 7 // 7 day last-known-good fallback
+
+async function handleContributors(
+  cleanSegments: string[],
+  searchParams: URLSearchParams,
+  format: Format,
+  options?: BadgeRequestOptions,
+): Promise<Response> {
+  const rest = cleanSegments.slice(1) // after "contributors"
+  const owner = (rest[0] ?? "").trim().replace(/^@/, "")
+  const repo = (rest[1] ?? "").trim()
+
+  const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
+  const width = clampNum(searchParams.get("width"), 320, 2000, 800)
+  const radius = clampNum(searchParams.get("radius"), 0, 80, 12)
+  const baseSize = clampNum(searchParams.get("size"), 24, 140, 64)
+  const limit = clampNum(searchParams.get("limit"), 1, CONTRIBUTORS_RENDER_CAP, 60)
+  const minContrib = clampNum(searchParams.get("min"), 0, 1_000_000, 0)
+  const fontFamily = resolveFontFamily(searchParams.get("font"))
+  const falsy = (v: string | null) => v === "false" || v === "0" || v === "none"
+  const border = !falsy(searchParams.get("border"))
+  const watermark = searchParams.get("watermark") === "true" || searchParams.get("watermark") === "1"
+  // Names default OFF for contributors (contrib.rocks shows a dense avatar grid).
+  const showNames = searchParams.get("names") === "true" || searchParams.get("names") === "1"
+  // Include bot accounts ([bot] / type:Bot) only when explicitly opted in.
+  const includeBots = searchParams.get("bots") === "true" || searchParams.get("bots") === "1"
+
+  // Title: defaults to "Contributors"; `title=false`/empty hides it.
+  const titleRaw = searchParams.get("title")
+  const title = titleRaw === null ? "Contributors" : falsy(titleRaw) ? undefined : titleRaw
+
+  const bgRaw = searchParams.get("bg") ?? searchParams.get("background")
+  const transparent = bgRaw === "transparent" || bgRaw === "none"
+  const imageDataUri = await resolveHeaderImage(searchParams.get("image") ?? searchParams.get("bgImage"))
+  const bgParams = {
+    preset: searchParams.get("preset"),
+    theme: searchParams.get("theme"),
+    bg: transparent ? null : resolveColor(bgRaw),
+    transparent,
+    gradient: searchParams.get("gradient"),
+    pattern: searchParams.get("pattern"),
+    glow: resolveColor(searchParams.get("glow")),
+    accent: resolveColor(searchParams.get("accent")),
+    imageDataUri,
+    overlay: searchParams.has("overlay") ? clampNum(searchParams.get("overlay"), 0, 1, 0.45) : undefined,
+    tint: resolveColor(searchParams.get("tint")),
+  }
+
+  const alignOf = (v: string | null, fallback: "left" | "center" | "right") =>
+    v === "left" || v === "center" || v === "right" ? v : fallback
+  const titleAlign = alignOf(searchParams.get("titleAlign"), "left")
+  const avatarAlign = alignOf(searchParams.get("align"), "center")
+
+  const imageResponse = async (svg: string, headers: Record<string, string>): Promise<Response> => {
+    if (format === "png") {
+      const png = await rasterizeToPng(svg)
+      return new Response(Buffer.from(png), { headers: { "Content-Type": "image/png", ...headers } })
+    }
+    return new Response(svg, { headers: { "Content-Type": "image/svg+xml", ...headers } })
+  }
+
+  const fallbackCard = (message: string): Promise<Response> => {
+    const { svg } = renderSponsors({
+      title,
+      tiers: [{ size: baseSize, avatars: [] }],
+      width,
+      mode,
+      radius,
+      fontFamily,
+      border,
+      watermark,
+      showNames,
+      titleAlign,
+      avatarAlign,
+      ...bgParams,
+      ariaLabel: title ? `${title} — GitHub contributors` : "GitHub contributors",
+      emptyText: message,
+    })
+    return imageResponse(svg, ERROR_CACHE_HEADERS)
+  }
+
+  if (!owner || !repo) {
+    if (format === "json") {
+      return Response.json({ error: "missing owner/repo" }, { status: 400, headers: ERROR_CACHE_HEADERS })
+    }
+    return fallbackCard("Provide a GitHub owner and repo")
+  }
+
+  let servedStale = false
+  const list = await cachedFetchStale(
+    "github",
+    `contributors-list/${owner.toLowerCase()}/${repo.toLowerCase()}`,
+    () => getGitHubContributorsList(owner, repo, CONTRIBUTORS_RENDER_CAP),
+    CONTRIBUTORS_FRESH_TTL,
+    CONTRIBUTORS_STALE_TTL,
+    { onStale: () => { servedStale = true } },
+  )
+
+  if (!list) {
+    if (format === "json") {
+      return Response.json({ error: "not found" }, { status: 404, headers: ERROR_CACHE_HEADERS })
+    }
+    return fallbackCard(`No contributors to show for ${owner}/${repo}`)
+  }
+
+  const cacheHeaders = servedStale ? ERROR_CACHE_HEADERS : CACHE_HEADERS
+
+  // Filter (bots / min contributions), then cap to the render budget.
+  const filtered = list.contributors.filter((c) => {
+    if (!includeBots && c.type === "Bot") return false
+    if (c.contributions < minContrib) return false
+    return true
+  })
+  const shown = filtered.slice(0, limit)
+
+  if (format === "json") {
+    return Response.json(
+      {
+        type: "contributors",
+        owner,
+        repo,
+        totalShown: shown.length,
+        contributors: shown.map((c) => ({
+          login: c.login,
+          url: c.url,
+          contributions: c.contributions,
+          type: c.type,
+        })),
+      },
+      { headers: cacheHeaders },
+    )
+  }
+
+  const avatarMap = await inlineAvatars(shown)
+  const avatars: SponsorAvatar[] = shown.map((c) => ({
+    login: c.login,
+    name: null,
+    url: c.url,
+    imageDataUri: avatarMap.get(c.login),
+  }))
+
+  const { svg } = renderSponsors({
+    title,
+    tiers: [{ size: baseSize, avatars }],
+    width,
+    mode,
+    radius,
+    fontFamily,
+    border,
+    watermark,
+    showNames,
+    titleAlign,
+    avatarAlign,
+    ...bgParams,
+    ariaLabel: title ? `${title} — GitHub contributors` : "GitHub contributors",
+    emptyText: `No contributors to show for ${owner}/${repo}`,
+  })
+
+  if (options?.onTrack) {
+    void options.onTrack({
+      name: "contributors_rendered",
+      data: { owner, repo, format, mode, shown: shown.length },
+    })
+  }
+
+  return imageResponse(svg, cacheHeaders)
 }
 
 async function handleSponsors(
@@ -2904,6 +3082,14 @@ async function handleBadgeGETInner(
   // ---------------------------------------------------------------------------
   if (cleanSegments[0] === "sponsors") {
     return handleSponsors(cleanSegments, searchParams, format, options)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Contributors grid: /contributors/{owner}/{repo}.svg
+  // Renders a contrib.rocks-style grid of a repository's top contributors.
+  // ---------------------------------------------------------------------------
+  if (cleanSegments[0] === "contributors") {
+    return handleContributors(cleanSegments, searchParams, format, options)
   }
 
   // Fetch badge data from provider

@@ -25,6 +25,11 @@ import {
   buildSponsorsUrl,
   type SponsorsState,
 } from "@/lib/sponsors-builder-shared"
+import {
+  CONTRIBUTORS_DEFAULTS,
+  buildContributorsUrl,
+  type ContributorsState,
+} from "@/lib/contributors-builder-shared"
 
 // ---------------------------------------------------------------------------
 // Chart state (the chart sandbox keeps state inline; the Studio needs it as a
@@ -135,7 +140,7 @@ export function buildChartUrl(s: ChartState, baseUrl: string): string | null {
 // Block model
 // ---------------------------------------------------------------------------
 
-export type BlockType = "markdown" | "header" | "badges" | "group" | "chart" | "table" | "image" | "sponsors"
+export type BlockType = "markdown" | "header" | "badges" | "group" | "chart" | "table" | "image" | "sponsors" | "contributors"
 
 /** Default placeholder image source. */
 export const PLACEHOLDER_IMAGE = "https://placeholdpicsum.dev/photo/600/400"
@@ -235,6 +240,15 @@ export interface SponsorsBlock extends BaseBlock {
   state: SponsorsState
 }
 
+export interface ContributorsBlock extends BaseBlock {
+  type: "contributors"
+  alt: string
+  align: Alignment
+  /** Emit a GitHub <picture> that swaps dark/light with the reader's theme. */
+  themeAware?: boolean
+  state: ContributorsState
+}
+
 export interface ImageBlock extends BaseBlock {
   type: "image"
   /** Image URL or absolute/relative path. */
@@ -259,7 +273,7 @@ export interface TableBlock extends BaseBlock {
   align?: Alignment
 }
 
-export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | GroupBlock | ChartBlock | TableBlock | ImageBlock | SponsorsBlock
+export type Block = MarkdownBlock | HeaderBlock | BadgesBlock | GroupBlock | ChartBlock | TableBlock | ImageBlock | SponsorsBlock | ContributorsBlock
 
 export const BLOCK_LABELS: Record<BlockType, string> = {
   markdown: "Text",
@@ -270,6 +284,7 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   table: "Table",
   image: "Image",
   sponsors: "Sponsors",
+  contributors: "Contributors",
 }
 
 // ---------------------------------------------------------------------------
@@ -392,6 +407,16 @@ export function makeSponsorsBlock(): SponsorsBlock {
   }
 }
 
+export function makeContributorsBlock(): ContributorsBlock {
+  return {
+    id: newId("contributors"),
+    type: "contributors",
+    alt: "contributors",
+    align: "center",
+    state: { ...CONTRIBUTORS_DEFAULTS },
+  }
+}
+
 export function makeTableBlock(): TableBlock {
   return {
     id: newId("table"),
@@ -444,6 +469,7 @@ export function makeBlock(type: BlockType): Block {
     case "table": return makeTableBlock()
     case "image": return makeImageBlock()
     case "sponsors": return makeSponsorsBlock()
+    case "contributors": return makeContributorsBlock()
   }
 }
 
@@ -578,6 +604,20 @@ export function blockToMarkdown(block: Block, baseUrl: string, themeAware = fals
       const url = buildSponsorsUrl(block.state, baseUrl)
       if (block.align === "left") return `![${block.alt}](${url})`
       return alignWrap(block.align, `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`)
+    }
+
+    case "contributors": {
+      const link = `https://github.com/${block.state.owner || "vercel"}/${block.state.repo || "next.js"}/graphs/contributors`
+      if (adaptive) {
+        const dark = buildContributorsUrl({ ...block.state, mode: "dark" }, baseUrl)
+        const light = buildContributorsUrl({ ...block.state, mode: "light" }, baseUrl)
+        const pic = picture(dark, light, block.alt, link)
+        return block.align === "left" ? pic : `<p align="${block.align}">\n  ${pic}\n</p>`
+      }
+      const url = buildContributorsUrl(block.state, baseUrl)
+      const img = `<img alt="${escapeAttr(block.alt)}" src="${escapeAttr(url)}" />`
+      const linked = `<a href="${escapeAttr(link)}">${img}</a>`
+      return block.align === "left" ? linked : `<p align="${block.align}">\n  ${linked}\n</p>`
     }
 
     case "table": {

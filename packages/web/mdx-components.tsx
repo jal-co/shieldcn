@@ -25,6 +25,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     // Headers and sponsors reuse the generic full-width image preview.
     HeaderPreview: ChartPreview,
     SponsorsPreview: ChartPreview,
+    ContributorsPreview: ChartPreview,
 
     // jalco-ui registry components
     CodeBlock,

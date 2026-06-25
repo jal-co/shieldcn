@@ -32,6 +32,7 @@ import {
 import { BUILDER_DEFAULTS, type BuilderState } from "@/lib/badge-builder-shared"
 import { HEADER_DEFAULTS, type HeaderPreset, type HeaderSize, type HeaderState } from "@/lib/header-builder-shared"
 import { SPONSORS_DEFAULTS, type SponsorsPreset, type SponsorsSize, type SponsorsState } from "@/lib/sponsors-builder-shared"
+import { CONTRIBUTORS_DEFAULTS, type ContributorsPreset, type ContributorsSize, type ContributorsState } from "@/lib/contributors-builder-shared"
 
 // Minimal mdast shape — only the fields this parser reads.
 interface MdNode {
@@ -44,7 +45,7 @@ interface MdNode {
   position?: { start: { offset: number }; end: { offset: number } }
 }
 
-type ImgKind = "header" | "group" | "chart" | "badge" | "image" | "sponsors"
+type ImgKind = "header" | "group" | "chart" | "badge" | "image" | "sponsors" | "contributors"
 
 interface ImgRef {
   src: string
@@ -84,6 +85,7 @@ function classifyUrl(src: string, baseUrl: string): ImgKind {
   if (first === "group") return "group"
   if (first === "chart") return "chart"
   if (first === "sponsors") return "sponsors"
+  if (first === "contributors") return "contributors"
   if (first === "badge") return "badge"
   const base = originOf(baseUrl)
   const relative = !/^https?:\/\//i.test(src)
@@ -254,6 +256,36 @@ function sponsorsStateFromUrl(u: URL): SponsorsState {
   }
 }
 
+/** Reverse a `/contributors/{owner}/{repo}.svg?...` URL into a ContributorsState. */
+function contributorsStateFromUrl(u: URL): ContributorsState {
+  const q = u.searchParams
+  const segs = u.pathname.split("/").filter(Boolean) // ["contributors", "{owner}", "{repo}.svg"]
+  const owner = decodeURIComponent(segs[1] || "")
+  const repo = decodeURIComponent((segs[2] || "").replace(/\.(svg|png)$/i, ""))
+  const titleParam = q.get("title")
+  return {
+    ...CONTRIBUTORS_DEFAULTS,
+    owner: owner || CONTRIBUTORS_DEFAULTS.owner,
+    repo: repo || CONTRIBUTORS_DEFAULTS.repo,
+    title: titleParam === null ? "Contributors" : titleParam === "false" ? "" : titleParam,
+    preset: ((q.get("preset") || "surface") as ContributorsPreset),
+    theme: q.get("theme") || "",
+    size: ((q.get("size") as ContributorsSize) || "64"),
+    names: q.get("names") === "true",
+    bots: q.get("bots") === "true",
+    titleAlign: ((v) => (v === "center" || v === "right" ? v : "left"))(q.get("titleAlign")),
+    avatarAlign: ((v) => (v === "left" || v === "right" ? v : "center"))(q.get("align")),
+    limit: q.get("limit") || "",
+    min: q.get("min") || "",
+    mode: (q.get("mode") as "dark" | "light") || "dark",
+    font: q.get("font") || "inter",
+    border: q.get("border") !== "false",
+    watermark: q.get("watermark") === "true",
+    image: q.get("image") || "",
+    overlay: q.get("overlay") || "",
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Image refs → blocks (groups adjacent badges into one Badges block)
 // ---------------------------------------------------------------------------
@@ -287,6 +319,8 @@ function blocksFromImageRefs(refs: ImgRef[], align: Alignment, baseUrl: string):
       out.push({ id: newId("chart"), type: "chart", alt: ref.alt, align, themeAware: ref.themeAware || undefined, state: chartStateFromUrl(u) })
     } else if (kind === "sponsors" && u) {
       out.push({ id: newId("sponsors"), type: "sponsors", alt: ref.alt, align, themeAware: ref.themeAware || undefined, state: sponsorsStateFromUrl(u) })
+    } else if (kind === "contributors" && u) {
+      out.push({ id: newId("contributors"), type: "contributors", alt: ref.alt, align, themeAware: ref.themeAware || undefined, state: contributorsStateFromUrl(u) })
     } else {
       out.push({ id: newId("img"), type: "image", src: ref.src, alt: ref.alt, align, width: ref.width, link: ref.link })
     }

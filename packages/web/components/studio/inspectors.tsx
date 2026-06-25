@@ -67,6 +67,15 @@ import {
   type SponsorsState,
 } from "@/lib/sponsors-builder-shared"
 import {
+  CONTRIBUTORS_PRESETS,
+  CONTRIBUTORS_PRESET_LABELS,
+  CONTRIBUTORS_SIZES,
+  CONTRIBUTORS_SIZE_LABELS,
+  CONTRIBUTORS_FONTS,
+  CONTRIBUTORS_THEMES,
+  type ContributorsState,
+} from "@/lib/contributors-builder-shared"
+import {
   CHART_THEMES,
   CHART_FONTS,
   makeBadgeItem,
@@ -82,6 +91,7 @@ import {
   type ImageBlock,
   type MarkdownBlock,
   type SponsorsBlock,
+  type ContributorsBlock,
   type TableBlock,
 } from "@/lib/studio-shared"
 
@@ -577,6 +587,115 @@ export function SponsorsInspector({ block, onChange }: { block: SponsorsBlock; o
       <Separator />
       <Field label="Alt text" htmlFor="sp-alt">
         <Input id="sp-alt" value={block.alt} onChange={e => onChange({ ...block, alt: e.target.value })} placeholder="sponsors" />
+      </Field>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Contributors inspector
+// ---------------------------------------------------------------------------
+
+export function ContributorsInspector({ block, onChange }: { block: ContributorsBlock; onChange: (b: ContributorsBlock) => void }) {
+  const s = block.state
+  const set = useCallback((patch: Partial<ContributorsState>) => onChange({ ...block, state: { ...block.state, ...patch } }), [block, onChange])
+
+  return (
+    <div className="space-y-4">
+      <Row>
+        <Field label="Owner" htmlFor="ct-owner">
+          <Input id="ct-owner" value={s.owner} onChange={e => set({ owner: e.target.value })} placeholder="vercel" />
+        </Field>
+        <Field label="Repository" htmlFor="ct-repo">
+          <Input id="ct-repo" value={s.repo} onChange={e => set({ repo: e.target.value })} placeholder="next.js" />
+        </Field>
+      </Row>
+      <Field label="Title (empty to hide)" htmlFor="ct-title">
+        <Input id="ct-title" value={s.title} onChange={e => set({ title: e.target.value })} placeholder="Contributors" />
+      </Field>
+
+      <Separator />
+      <Field label="Background">
+        <Select value={s.preset} onValueChange={v => set({ preset: v as ContributorsState["preset"] })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {CONTRIBUTORS_PRESETS.map(p => (
+              <SelectItem key={p} value={p}>{CONTRIBUTORS_PRESET_LABELS[p]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Row>
+        <Field label="Avatar size">
+          <Select value={s.size} onValueChange={v => set({ size: v as ContributorsState["size"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CONTRIBUTORS_SIZES.map(sz => <SelectItem key={sz} value={sz}>{CONTRIBUTORS_SIZE_LABELS[sz]}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Theme">
+          <Select value={s.theme || "_none"} onValueChange={v => set({ theme: v === "_none" ? "" : v })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">Default</SelectItem>
+              {CONTRIBUTORS_THEMES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Row>
+        <Field label="Limit" htmlFor="ct-limit">
+          <Input id="ct-limit" value={s.limit} onChange={e => set({ limit: e.target.value })} placeholder="60" inputMode="numeric" />
+        </Field>
+        <Field label="Min contributions" htmlFor="ct-min">
+          <Input id="ct-min" value={s.min} onChange={e => set({ min: e.target.value })} placeholder="0" inputMode="numeric" />
+        </Field>
+      </Row>
+      <Field label="Font">
+        <Select value={s.font} onValueChange={v => set({ font: v })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {CONTRIBUTORS_FONTS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Separator />
+      <Row>
+        <Field label="Title align">
+          <Select value={s.titleAlign} onValueChange={v => set({ titleAlign: v as ContributorsState["titleAlign"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="center">Center</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Avatar align">
+          <Select value={s.avatarAlign} onValueChange={v => set({ avatarAlign: v as ContributorsState["avatarAlign"] })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="center">Center</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </Row>
+
+      <Separator />
+      <ToggleField label="Names" checked={s.names} onCheckedChange={v => set({ names: v })} />
+      <ToggleField label="Include bots" checked={s.bots} onCheckedChange={v => set({ bots: v })} />
+      <ToggleField label="Border" checked={s.border} onCheckedChange={v => set({ border: v })} />
+      <ToggleField label="Watermark" checked={s.watermark} onCheckedChange={v => set({ watermark: v })} />
+
+      <Separator />
+      <Field label="Alt text" htmlFor="ct-alt">
+        <Input id="ct-alt" value={block.alt} onChange={e => onChange({ ...block, alt: e.target.value })} placeholder="contributors" />
       </Field>
     </div>
   )

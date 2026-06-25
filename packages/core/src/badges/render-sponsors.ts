@@ -64,6 +64,8 @@ export interface SponsorsConfig {
   separatorColor?: string | null
   /** Message shown when there are no public sponsors. */
   emptyText?: string
+  /** Override the SVG `aria-label` (defaults to a sponsors-oriented label). */
+  ariaLabel?: string
 
   // --- Background (same premade system as headers) ---
   /** Named preset: surface | gradient | dots | grid | graph | glow | transparent. */
@@ -336,7 +338,9 @@ export function renderSponsors(cfg: SponsorsConfig): { svg: string; height: numb
       `</g>`
   }
 
-  const ariaLabel = esc(cfg.title ? `${cfg.title} — GitHub sponsors` : "GitHub sponsors")
+  const ariaLabel = esc(
+    cfg.ariaLabel ?? (cfg.title ? `${cfg.title} — GitHub sponsors` : "GitHub sponsors"),
+  )
   const cardClipId = "scCardClip"
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${ariaLabel}">

@@ -105,6 +105,7 @@ const NAV = {
         { href: "/gen", label: "All badges" },
         { href: "/header", label: "Headers" },
         { href: "/sponsors", label: "Sponsors" },
+        { href: "/contributors", label: "Contributors" },
       ],
     },
     { href: "/migrate", label: "Migrate" },

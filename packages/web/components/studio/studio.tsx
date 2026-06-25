@@ -42,6 +42,7 @@ import { IconTrending5 } from "@central-icons-react/round-filled-radius-3-stroke
 import { IconLayoutGrid2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconLayoutGrid2"
 import { IconAddImage } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconAddImage"
 import { IconPeople } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconPeople"
+import { IconPeople2 } from "@central-icons-react/round-filled-radius-3-stroke-1.5/IconPeople2"
 import { useSyncExternalStore } from "react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { Button } from "@/components/ui/button"
@@ -66,6 +67,7 @@ import {
   TableInspector,
   ImageInspector,
   SponsorsInspector,
+  ContributorsInspector,
   Tip,
 } from "@/components/studio/inspectors"
 import {
@@ -84,6 +86,7 @@ import {
   type TableBlock,
   type ImageBlock,
   type SponsorsBlock,
+  type ContributorsBlock,
 } from "@/lib/studio-shared"
 import { markdownToDocument } from "@/lib/studio-import"
 
@@ -99,6 +102,7 @@ const BLOCK_ICONS: Record<BlockType, React.ComponentType<{ className?: string }>
   table: IconLayoutGrid2,
   image: IconAddImage,
   sponsors: IconPeople,
+  contributors: IconPeople2,
 }
 
 // ---------------------------------------------------------------------------
@@ -130,6 +134,7 @@ function blockSummary(block: Block): string {
     case "table": return `${block.rows.length}×${block.headers.length} table`
     case "image": return block.alt || "image"
     case "sponsors": return block.state.login ? `@${block.state.login} sponsors` : "sponsors"
+    case "contributors": return block.state.owner && block.state.repo ? `${block.state.owner}/${block.state.repo} contributors` : "contributors"
   }
 }
 
@@ -559,6 +564,8 @@ export function Studio() {
     <ImageInspector block={selected as ImageBlock} onChange={updateBlock} />
   ) : selected.type === "sponsors" ? (
     <SponsorsInspector block={selected as SponsorsBlock} onChange={updateBlock} />
+  ) : selected.type === "contributors" ? (
+    <ContributorsInspector block={selected as ContributorsBlock} onChange={updateBlock} />
   ) : (
     <ChartInspector block={selected as ChartBlock} onChange={updateBlock} />
   )
@@ -707,7 +714,7 @@ export function Studio() {
           <div className="border-b border-border p-3">
             <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Add block</p>
             <div className="grid grid-cols-2 gap-1.5">
-              {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
+              {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors", "contributors"] as BlockType[]).map(type => {
                 const Icon = BLOCK_ICONS[type]
                 return (
                   <Button
@@ -774,7 +781,7 @@ export function Studio() {
         <main className="min-w-0 flex-1 overflow-y-auto bg-muted/40" onClick={deselect}>
           {/* Mobile add bar */}
           <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border bg-background px-3 py-2 lg:hidden">
-            {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
+            {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors", "contributors"] as BlockType[]).map(type => {
               const Icon = BLOCK_ICONS[type]
               return (
                 <Button
@@ -827,7 +834,7 @@ export function Studio() {
                       <p className="mx-auto max-w-xs text-sm text-muted-foreground">Add a block to begin. Mix text, headers, badges, charts, tables, and images, then export clean Markdown.</p>
                     </div>
                     <div className="flex flex-wrap justify-center gap-1.5">
-                      {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors"] as BlockType[]).map(type => {
+                      {(["markdown", "header", "badges", "group", "chart", "table", "image", "sponsors", "contributors"] as BlockType[]).map(type => {
                         const Icon = BLOCK_ICONS[type]
                         return (
                           <Button
