@@ -138,12 +138,19 @@ const SPONSOR_WORDMARK: Record<string, { dark: string; light: string }> = {
   usenotra: { dark: "/sponsors/notra-wordmark-dark.svg", light: "/sponsors/notra-wordmark.svg" },
 }
 
-// Active GitHub Sponsors of jal-co (the authenticated viewer), via GraphQL.
+// Active GitHub Sponsors of the maintainer (the authenticated viewer), via
+// GraphQL. The query resolves against `viewer`, so the token MUST belong to the
+// sponsored account. Use a dedicated PERSONAL_SPONSOR_TOKEN (a maintainer
+// read:user token) so this stays independent of:
+//   - GITHUB_TOKEN, which on a shared deployment may be a pooled / different
+//     account's token whose `viewer` has no sponsors, and
+//   - SPONSORS_GITHUB_TOKEN, which the badge engine uses for the /sponsors
+//     image list — kept separate so neither can break the other.
 // Requires a token; without one the section renders empty. Every active sponsor
 // is returned; the top *recurring* tier is flagged `featured` (one-time gifts
 // never count as the "top monthly" sponsor).
 async function getSponsors(): Promise<GhSponsor[]> {
-  const token = process.env.GITHUB_TOKEN
+  const token = process.env.PERSONAL_SPONSOR_TOKEN || process.env.GITHUB_TOKEN
   if (!token) return []
   try {
     const res = await fetch("https://api.github.com/graphql", {
