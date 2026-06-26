@@ -1,0 +1,86 @@
+---
+title: Views
+description: GitHub view counters — profile views, repo views, and all-repos views.
+badge: "/views/repo/shieldcn/shieldcn.svg?variant=branded"
+---
+
+
+Live view counters for GitHub profiles and repositories. The count increments on
+every render and is served uncached, so it keeps moving the way a real counter
+should.
+
+<BadgePreviewGroup>
+  <BadgePreviewCard src="/views/repo/shieldcn/shieldcn.svg?variant=branded" alt="repo views" description="Repo views (branded)" />
+  <BadgePreviewCard src="/views/user/shieldcn.svg?variant=secondary" alt="profile views" description="Profile views (secondary)" />
+  <BadgePreviewCard src="/views/user/shieldcn/repos.svg?variant=outline" alt="all repos views" description="All-repos views (outline)" />
+  <BadgePreviewCard src="/views/repo/shieldcn/shieldcn.svg?variant=ghost" alt="repo views" description="Repo views (ghost)" />
+</BadgePreviewGroup>
+
+## Available badges
+
+| Badge | Endpoint | Description |
+|-------|----------|-------------|
+| Repo Views | `/views/repo/{owner}/{repo}` | View counter for a single repository |
+| Profile Views | `/views/user/{username}` | View counter for a profile README |
+| All-Repos Views | `/views/user/{username}/repos` | A separate counter for an "all repos" badge |
+
+Each endpoint is an independent counter — the all-repos badge is its own counter,
+not a sum of every repository.
+
+## Quick examples
+
+<CodeLine language="markdown" code='![repo views](https://shieldcn.dev/views/repo/shieldcn/shieldcn.svg)' />
+
+<CodeLine language="markdown" code='![profile views](https://shieldcn.dev/views/user/shieldcn.svg?variant=branded)' />
+
+<CodeLine language="markdown" code='![all repos](https://shieldcn.dev/views/user/shieldcn/repos.svg?variant=secondary)' />
+
+## How counting works
+
+Every time the badge image is fetched, the counter increments by one and the
+response is served with `Cache-Control: no-store`. This tells GitHub's image
+proxy (camo) to re-fetch the badge instead of pinning a frozen copy at the CDN,
+so the number keeps climbing. As with any image-based view counter, the count
+reflects badge renders — including proxy refetches — not unique human visitors.
+
+## Migrating from another counter
+
+Carry an existing total over with the `base` query parameter. The `base` value is
+**added to the live count at render time** and is never stored — only shieldcn's
+own real count lives in the database.
+
+<CodeLine language="bash" code="/views/repo/{owner}/{repo}.svg?base=3200" hideCopy />
+
+If your previous tracker recorded 3,200 views, append `?base=3200` and the badge
+shows your live count plus 3,200. Keep `base` in the URL permanently to preserve
+the adjusted total.
+
+This mirrors the migration approach used by
+[GitViews](https://github.com/remvze/gitviews#migrating-from-another-counter).
+
+## Try it
+
+<BadgeSandbox
+  endpoint="/views/repo/:owner/:repo.svg"
+  pathParams={[
+    { name: "owner", label: "GitHub username or org", placeholder: "shieldcn", required: true },
+    { name: "repo", label: "repository name", placeholder: "shieldcn", required: true },
+  ]}
+  extraParams={[
+    { name: "base", label: "migration base", placeholder: "3200" },
+  ]}
+  defaults={{ owner: "shieldcn", repo: "shieldcn" }}
+/>
+
+## Examples
+
+<BadgePreview src="/views/repo/shieldcn/shieldcn.svg" alt="repo views" description="Repo views — default variant" />
+
+<BadgePreview src="/views/user/shieldcn.svg?variant=branded" alt="profile views" description="Profile views — branded variant" />
+
+<BadgePreview src="/views/repo/shieldcn/shieldcn.svg?base=3200" alt="repo views migrated" description="Migrated counter — live count plus a base of 3,200" />
+
+## Data source
+
+Counts are stored in shieldcn's own database and incremented on each render.
+Responses are never cached (`Cache-Control: no-store`). No API key required.

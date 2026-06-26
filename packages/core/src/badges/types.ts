@@ -153,4 +153,11 @@ export interface BadgeData {
    * staying frozen for up to the full success-cache window.
    */
   stale?: boolean
+  /**
+   * Marks a response that must never be cached (CDN or browser). Used by the
+   * stateful view-counter provider: the value increments on every read, so the
+   * route serves it with no-store headers to force GitHub's camo proxy to
+   * re-fetch and keep the count moving instead of pinning it at the CDN.
+   */
+  noStore?: boolean
 }

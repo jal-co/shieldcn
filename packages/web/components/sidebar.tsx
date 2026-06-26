@@ -87,6 +87,7 @@ const docsNav: NavGroup[] = [
     section: PROVIDERS_SECTION,
     items: [
       { title: "GitHub", href: "/docs/badges/github" },
+      { title: "Views", href: "/docs/badges/views" },
       { title: "GitLab", href: "/docs/badges/gitlab" },
     ],
   },

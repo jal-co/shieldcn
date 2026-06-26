@@ -94,6 +94,8 @@ export const categories: Category[] = [
       dynamicBadge("GitHub Sponsors", "funding", "/github/sponsors/jal-co.svg", "Active sponsor count, branded with the GitHub Sponsors heart and pink by default.", "/docs/badges/github"),
       dynamicBadge("GitHub CI", "build health", "/github/ci/vercel/next.js.svg?variant=outline", "Recommended default presentation for workflow status.", "/docs/badges/github"),
       dynamicBadge("GitHub Downloads", "downloads", "/github/downloads/atom/atom.svg?variant=secondary", "Total release asset downloads across all releases.", "/docs/badges/github"),
+      dynamicBadge("Repo Views", "view counter", "/views/repo/shieldcn/shieldcn.svg?variant=branded", "Live repository view counter — increments on every render, served uncached.", "/docs/badges/views"),
+      dynamicBadge("Profile Views", "view counter", "/views/user/shieldcn.svg?variant=outline", "Live profile README view counter; carry over an existing total with ?base=N.", "/docs/badges/views"),
     ],
   },
   {

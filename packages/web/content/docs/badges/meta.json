@@ -3,6 +3,7 @@
   "pages": [
     "npm",
     "github",
+    "views",
     "gitlab",
     "discord",
     "nba",

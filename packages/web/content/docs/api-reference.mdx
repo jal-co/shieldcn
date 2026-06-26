@@ -37,6 +37,19 @@ description: Complete URL specification, query parameters, and response formats.
 | `/github/downloads-asset/{owner}/{repo}/{asset}/latest.svg` | Downloads — specific asset, latest release |
 | `/github/downloads-asset/{owner}/{repo}/{asset}/{tag}.svg` | Downloads — specific asset, specific tag |
 
+### Views
+
+Stateful view counters — the count increments on every render and the response is
+served uncached (`Cache-Control: no-store`). Use `?base=N` to add an existing
+total when migrating from another counter (the base is added at render, never
+stored, and must stay in the URL).
+
+| Endpoint | Description |
+|----------|-------------|
+| `/views/repo/{owner}/{repo}.svg` | Repository view counter |
+| `/views/user/{username}.svg` | Profile view counter |
+| `/views/user/{username}/repos.svg` | All-repos view counter |
+
 ### Discord
 
 | Endpoint | Description |

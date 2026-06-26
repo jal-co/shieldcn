@@ -126,6 +126,7 @@ import { getNbaTeamBadge } from "./providers/nba"
 import { parseStaticBadgeContent, getDynamicJsonBadge, getFlagBadge } from "./providers/badge"
 import { getRedditKarma, getRedditSubscribers } from "./providers/reddit"
 import { getMemoBadge, upsertMemoBadge } from "./providers/memo"
+import { getViewCount } from "./providers/views"
 import { getPyPIVersion, getPyPIDownloads, getPyPILicense, getPyPIPythonVersion } from "./providers/pypi"
 import { getCratesVersion, getCratesDownloads, getCratesLicense } from "./providers/crates"
 import { getDockerPulls, getDockerStars, getDockerVersion, getDockerSize } from "./providers/docker"
@@ -234,6 +235,20 @@ const CACHE_HEADERS = {
 const ERROR_CACHE_HEADERS = {
   "Cache-Control":
     "public, max-age=60, s-maxage=60, stale-while-revalidate=120",
+}
+
+/**
+ * Cache headers for stateful view-counter badges.
+ *
+ * A view counter increments on every read, so its response must never be cached
+ * by the CDN or the browser — otherwise GitHub's camo proxy serves a frozen
+ * image and the count stops moving. `no-store` defeats both layers; `Pragma`
+ * and `Expires` cover older proxies that ignore Cache-Control.
+ */
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
 }
 
 /** GitHub last-known-good cache tuning (see cachedFetchStale). */
@@ -622,6 +637,24 @@ async function fetchBadgeData(
     case "memo": {
       if (segments.length < 2) return null
       return getMemoBadge(segments[1])
+    }
+
+    // GitHub view counters (stateful — increments on every read).
+    // /views/repo/{owner}/{repo}      → repo views
+    // /views/user/{username}          → profile views
+    // /views/user/{username}/repos    → all-repos views
+    // Migration: ?base=N is added to the live count at render (never stored).
+    case "views": {
+      const rest = segments.slice(1)
+      const base = searchParams.get("base")
+      if (rest[0] === "repo" && rest[1] && rest[2]) {
+        return getViewCount("repo", `${rest[1]}/${rest[2]}`, base)
+      }
+      if (rest[0] === "user" && rest[1]) {
+        if (rest[2] === "repos") return getViewCount("repos", rest[1], base)
+        return getViewCount("user", rest[1], base)
+      }
+      return null
     }
 
     // /badge/dynamic/json?url=&query=  → dynamic JSON badge
@@ -1560,6 +1593,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
   if (provider === "matrix") return { simpleIcon: "matrix" }
   if (provider === "weblate") return { simpleIcon: "weblate" }
   if (provider === "shipperclub") return { simpleIcon: "shipperclub" }
+  if (provider === "views") return { reactIcon: "GoEye" }
 
   if (provider === "github") {
     // Find the topic from either /github/{topic}/owner/repo or /github/owner/repo/{topic}
@@ -3135,7 +3169,11 @@ async function handleBadgeGETInner(
   // let it self-heal quickly instead of being pinned at the CDN. `stale` in
   // particular ensures a frozen badge picks up fresh data within ~a minute of
   // the upstream recovering, not up to an hour later.
-  const dataCacheHeaders = data.error || data.stale ? ERROR_CACHE_HEADERS : CACHE_HEADERS
+  const dataCacheHeaders = data.noStore
+    ? NO_STORE_HEADERS
+    : data.error || data.stale
+      ? ERROR_CACHE_HEADERS
+      : CACHE_HEADERS
 
   // JSON response
   if (format === "json") {

@@ -30,6 +30,7 @@ Drop a badge into any README and it renders as a real shadcn Button.
 ```md
 ![npm](https://shieldcn.dev/npm/react.svg)
 ![stars](https://shieldcn.dev/github/vercel/next.js/stars.svg)
+![views](https://shieldcn.dev/views/repo/shieldcn/shieldcn.svg)
 ```
 
 ## Star History
