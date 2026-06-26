@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
 import { Heart, ExternalLink, Star } from "lucide-react"
@@ -75,6 +75,17 @@ function VercelLogo({ className }: { className?: string }) {
   )
 }
 
+function NeonLogo({ className }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className ?? ""}`}>
+      <svg viewBox="0 0 64 64" fill="currentColor" aria-hidden="true" className="h-7 w-auto">
+        <path d="M63 0.0177909V63.5526L38.4178 42.2501V63.5526H0V0L63 0.0177909ZM7.72251 55.8389H30.6953V25.3238L55.2779 47.0476V7.72922L7.72251 7.71559V55.8389Z" />
+      </svg>
+      <span className="text-2xl font-semibold tracking-tight">Neon</span>
+    </div>
+  )
+}
+
 interface Sponsor {
   name: string
   href: string
@@ -133,9 +144,95 @@ interface GhSponsor {
   featured: boolean
 }
 
-/** Custom wordmarks for sponsors who provide brand assets (dark + light). */
-const SPONSOR_WORDMARK: Record<string, { dark: string; light: string }> = {
-  usenotra: { dark: "/sponsors/notra-wordmark-dark.svg", light: "/sponsors/notra-wordmark.svg" },
+// Hand-picked highlighted sponsors, rendered as named tier plaques. These are
+// hardcoded (not pulled from the GitHub Sponsors API) so their placement and
+// branding stay stable regardless of monthly amount.
+interface HighlightSponsor {
+  name: string
+  href: string
+  tier: "Silver" | "Bronze"
+  logo: ReactNode
+}
+
+const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
+  {
+    name: "TradingGoose",
+    href: "https://www.tradinggoose.ai",
+    tier: "Silver",
+    logo: (
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/sponsors/trading-goose.png" alt="TradingGoose" className="size-11 w-auto drop-shadow-sm" />
+        <span
+          className="text-xl font-bold tracking-tight"
+          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
+        >
+          TradingGoose
+        </span>
+      </div>
+    ),
+  },
+  {
+    name: "Notra",
+    href: "https://usenotra.com",
+    tier: "Bronze",
+    logo: (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sponsors/notra-wordmark.svg"
+          alt="Notra"
+          className="h-11 w-auto"
+          style={{ filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.4))" }}
+        />
+      </>
+    ),
+  },
+]
+
+// GitHub logins covered by HIGHLIGHT_SPONSORS, so they aren't duplicated in the
+// dynamic supporters list below.
+const HIGHLIGHT_LOGINS = new Set(["usenotra"])
+
+// Literal metal-plaque finishes: a brushed metallic gradient, a beveled rim,
+// and an engraved tier label. Rendered the same in light and dark site themes
+// so the metal always reads as metal.
+const PLAQUE_STYLE: Record<
+  HighlightSponsor["tier"],
+  { plate: CSSProperties; rivet: CSSProperties; label: CSSProperties; brush: string }
+> = {
+  Silver: {
+    plate: {
+      background:
+        "linear-gradient(145deg, #f6f7f9 0%, #c6cad0 18%, #edeff2 38%, #a9adb5 56%, #dadde1 76%, #b4b8bf 100%)",
+      boxShadow:
+        "inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 7px rgba(0,0,0,0.32), 0 12px 28px -10px rgba(0,0,0,0.55)",
+    },
+    rivet: {
+      background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #c2c5cb 45%, #6f747c 100%)",
+      boxShadow: "inset 0 -1px 1px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.5)",
+    },
+    label: { color: "#3a3d42", textShadow: "0 1px 0 rgba(255,255,255,0.5)" },
+    brush: "rgba(255,255,255,0.07)",
+  },
+  Bronze: {
+    plate: {
+      background:
+        "linear-gradient(145deg, #e6c49a 0%, #b9763a 18%, #dc9d5d 38%, #8a4f24 56%, #cb874b 76%, #9d5f2d 100%)",
+      boxShadow:
+        "inset 0 2px 3px rgba(255,236,210,0.55), inset 0 -3px 7px rgba(60,30,0,0.4), 0 12px 28px -10px rgba(0,0,0,0.55)",
+    },
+    rivet: {
+      background: "radial-gradient(circle at 35% 30%, #ffe6c4 0%, #c88a4f 45%, #6f3f17 100%)",
+      boxShadow: "inset 0 -1px 1px rgba(40,20,0,0.45), 0 1px 1px rgba(255,230,196,0.5)",
+    },
+    label: { color: "#5a3517", textShadow: "0 1px 0 rgba(255,225,190,0.45)" },
+    brush: "rgba(255,255,255,0.06)",
+  },
+}
+
+function Rivet({ style, className }: { style: CSSProperties; className: string }) {
+  return <span aria-hidden className={`absolute size-2 rounded-full ${className}`} style={style} />
 }
 
 // Active GitHub Sponsors of the maintainer (the authenticated viewer), via
@@ -207,6 +304,7 @@ const tiers = [
       { name: "Sentry", href: "https://sentry.io/?utm_source=shieldcn.dev", logoComponent: <SentryLogo className="h-7 w-auto" /> },
       { name: "Vercel", href: "https://vercel.com/oss", logoComponent: <VercelLogo className="h-6 w-auto" /> },
       { name: "OpenPanel", href: "https://openpanel.dev/open-source?utm_source=shieldcn.dev", logoComponent: <OpenPanelLogo className="h-8 w-auto" /> },
+      { name: "Neon", href: "https://neon.com/?utm_source=shieldcn.dev", logoComponent: <NeonLogo /> },
     ] as Sponsor[],
   },
   {
@@ -228,7 +326,7 @@ function TierBlock({ tier, step }: { tier: (typeof tiers)[number]; step: number 
         <h3 className="text-sm font-medium text-muted-foreground">{tier.name}</h3>
         <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
       </div>
-      <div className={tier.prominent ? "grid grid-cols-1 gap-3 sm:grid-cols-3" : "grid grid-cols-1 gap-3 sm:grid-cols-2"}>
+      <div className={tier.prominent ? "grid grid-cols-1 gap-3 sm:grid-cols-2" : "grid grid-cols-1 gap-3 sm:grid-cols-2"}>
         {tier.sponsors.map((sponsor) => (
           <a
             key={sponsor.name}
@@ -300,45 +398,55 @@ export default async function SponsorPage() {
           {/* OSS Programs — white logos on dark cards */}
           <TierBlock tier={tiers[0]} step={1} />
 
-          {/* Monthly sponsors — the top recurring tier, featured with a wordmark */}
-          {sponsors.some((s) => s.featured) && (
-            <SponsorReveal step={2} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
-              <div className="flex items-center gap-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Monthly sponsors</h3>
-                <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
-              </div>
-              {sponsors.filter((s) => s.featured).map((s) => {
-                const wm = SPONSOR_WORDMARK[s.login]
-                return (
-                  <a
-                    key={s.login}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={s.name}
-                    className="group relative flex items-center justify-center rounded-xl border border-primary/30 bg-primary/[0.05] p-8 transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          {/* Highlighted sponsors — hand-picked tier plaques (Silver, Bronze) */}
+          <SponsorReveal step={2} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Sponsors</h3>
+              <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+            </div>
+            {HIGHLIGHT_SPONSORS.map((s) => {
+              const p = PLAQUE_STYLE[s.tier]
+              return (
+                <a
+                  key={s.name}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={s.name}
+                  className="group relative flex items-center justify-center overflow-hidden rounded-lg p-9 ring-1 ring-black/15 transition-transform duration-200 hover:-translate-y-0.5"
+                  style={p.plate}
+                >
+                  {/* brushed-metal grain */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      backgroundImage: `repeating-linear-gradient(90deg, ${p.brush} 0 1px, transparent 1px 3px)`,
+                      mixBlendMode: "overlay",
+                    }}
+                  />
+                  {/* moving sheen on hover */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                  />
+                  {/* corner rivets */}
+                  <Rivet style={p.rivet} className="left-2.5 top-2.5" />
+                  <Rivet style={p.rivet} className="right-2.5 top-2.5" />
+                  <Rivet style={p.rivet} className="bottom-2.5 left-2.5" />
+                  <Rivet style={p.rivet} className="bottom-2.5 right-2.5" />
+                  {/* engraved tier label */}
+                  <span
+                    className="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-[0.08em]"
+                    style={p.label}
                   >
-                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
-                      <Heart className="size-2.5" /> Top sponsor
-                    </span>
-                    {wm ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={wm.dark} alt={s.name} className="hidden h-9 w-auto dark:block" />
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={wm.light} alt={s.name} className="h-9 w-auto dark:hidden" />
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <Image src={s.avatar_url} alt={s.name} width={40} height={40} unoptimized className="size-10 rounded-full ring-1 ring-border" />
-                        <span className="text-base font-semibold text-foreground">{s.name}</span>
-                      </div>
-                    )}
-                  </a>
-                )
-              })}
-            </SponsorReveal>
-          )}
+                    {s.tier} sponsor
+                  </span>
+                  <span className="relative">{s.logo}</span>
+                </a>
+              )
+            })}
+          </SponsorReveal>
 
           {/* Supporters — partner tools + the rest of the GitHub sponsors */}
           <SponsorReveal step={3} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
@@ -359,9 +467,9 @@ export default async function SponsorPage() {
                 </a>
               ))}
             </div>
-            {sponsors.some((s) => !s.featured) && (
+            {sponsors.some((s) => !s.featured && !HIGHLIGHT_LOGINS.has(s.login)) && (
               <div className="flex flex-wrap gap-2">
-                {sponsors.filter((s) => !s.featured).map((s) => (
+                {sponsors.filter((s) => !s.featured && !HIGHLIGHT_LOGINS.has(s.login)).map((s) => (
                   <a
                     key={s.login}
                     href={s.url}

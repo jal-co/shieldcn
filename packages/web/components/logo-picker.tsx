@@ -31,6 +31,7 @@ const POPULAR_ICONS: { value: string; label: string; group: string; source: stri
   { value: "", label: "Auto (provider default)", group: "Default", source: "" },
   { value: "false", label: "None (hide logo)", group: "Default", source: "" },
   { value: "shieldcn", label: "shieldcn", group: "Default", source: "shieldcn" },
+  { value: "neon", label: "Neon", group: "Brands", source: "shieldcn" },
   // Brands (SimpleIcons)
   { value: "react", label: "React", group: "Brands", source: "Simple Icons" },
   { value: "typescript", label: "TypeScript", group: "Brands", source: "Simple Icons" },

@@ -21,6 +21,7 @@ Before anyone reaches your docs, they land on your README, the front door of eve
 <p align="center">
   <a href="https://vercel.com/oss"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&amp;size=xs&amp;logo=vercel" /><img alt="Vercel OSS Program Member" src="https://shieldcn.dev/badge/Vercel_OSS_Program_Member.svg?variant=branded&amp;size=xs&amp;mode=light&amp;logo=vercel" /></picture></a>
   <a href="https://openpanel.dev?ref=justinlevine.me"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&amp;size=xs&amp;logo=openpanel" /><img alt="analytics by openpanel" src="https://shieldcn.dev/badge/analytics%20by-openpanel.svg?variant=branded&amp;size=xs&amp;mode=light&amp;logo=openpanel" /></picture></a>
+  <a href="https://neon.com/?utm_source=shieldcn.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/powered%20by-Neon-37C38F.svg?variant=branded&amp;size=xs&amp;logo=neon&amp;logoColor=fff" /><img alt="Powered by Neon" src="https://shieldcn.dev/badge/powered%20by-Neon-37C38F.svg?variant=branded&amp;size=xs&amp;mode=light&amp;logo=neon&amp;logoColor=fff" /></picture></a>
 </p>
 
 ## Usage

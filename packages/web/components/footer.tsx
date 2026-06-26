@@ -143,24 +143,14 @@ export function SiteFooter() {
               </a>
             </p>
             <p className="text-sm text-muted-foreground">
-              Built with components from{" "}
+              Powered by{" "}
               <a
-                href="https://shadcncraft.com?utm_source=shieldcn.dev"
+                href="https://neon.com/?utm_source=shieldcn.dev"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-foreground"
               >
-                shadcncraft
-              </a>
-              {" "}and
-              <br />
-              <a
-                href="https://www.shadcnblocks.com?utm_source=shieldcn.dev"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-foreground"
-              >
-                shadcnblocks
+                Neon
               </a>
               .
             </p>
