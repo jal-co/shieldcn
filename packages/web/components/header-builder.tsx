@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select"
 import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
 import { LogoPicker } from "@/components/logo-picker"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { ColorSwatch } from "@/components/color-input"
 import { cn } from "@/lib/utils"
 import {
@@ -217,10 +218,14 @@ export function HeaderBuilder() {
           <FieldLabel>Logo</FieldLabel>
           <div className="flex gap-2">
             <div className="flex-1">
-              <LogoPicker value={s.logo} onChange={(v) => set("logo", v)} />
+              <LogoPicker
+                value={/^(data:|https?:\/\/)/.test(s.logo) ? "" : s.logo}
+                onChange={(v) => set("logo", v)}
+              />
             </div>
             <ColorSwatch label="Logo color" value={s.logoColor} onChange={(v) => set("logoColor", v)} />
           </div>
+          <SvgIconUpload allowRaster value={s.logo} onChange={(v) => set("logo", v)} className="w-full" />
         </div>
 
         {/* Background image */}

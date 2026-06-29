@@ -16,6 +16,7 @@ import { IconAlignmentLeft } from "@central-icons-react/round-filled-radius-1-st
 import { IconAlignmentCenter } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentCenter"
 import { IconAlignmentRight } from "@central-icons-react/round-filled-radius-1-stroke-1.5/IconAlignmentRight"
 import { LogoPicker } from "@/components/logo-picker"
+import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { ColorInput } from "@/components/color-input"
 import { SearchablePicker, type SearchablePickerFilter, type SearchablePickerSection } from "@/components/searchable-picker"
 import { Button } from "@/components/ui/button"
@@ -394,7 +395,10 @@ export function HeaderInspector({ block, onChange }: { block: HeaderBlock; onCha
       </Field>
 
       <Field label="Logo">
-        <LogoPicker value={s.logo} onChange={v => set({ logo: v })} />
+        <LogoPicker value={/^(data:|https?:\/\/)/.test(s.logo) ? "" : s.logo} onChange={v => set({ logo: v })} />
+        <div className="mt-2">
+          <SvgIconUpload allowRaster value={s.logo} onChange={v => set({ logo: v })} className="w-full" />
+        </div>
       </Field>
       {s.logo ? (
         <Field label="Logo color">

@@ -13,7 +13,7 @@
 
 import { useCallback, useRef, useState } from "react"
 import { optimize } from "svgo/browser"
-import { FileUp, Trash2, Image } from "lucide-react"
+import { FileUp, Trash2, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -26,13 +26,25 @@ import { cn } from "@/lib/utils"
 /** Max SVG file size (32KB should be plenty for icons) */
 const MAX_SIZE = 32 * 1024
 
+/** Max raster (PNG/JPG/WebP/GIF) file size — keeps the encoded URL manageable. */
+const MAX_RASTER = 200 * 1024
+
+const RASTER_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
+const RASTER_EXT = /\.(png|jpe?g|webp|gif)$/i
+
 interface SvgIconUploadProps {
-  /** Current logo value (could be a slug, data URI, or empty) */
+  /** Current logo value (could be a slug, data URI, URL, or empty) */
   value: string
   /** Called with the new logo value */
   onChange: (value: string) => void
   /** Optional class name */
   className?: string
+  /**
+   * Also accept raster images (PNG/JPG/WebP/GIF) and image URLs, not just SVG.
+   * Used for headers, where the renderer can embed a raster `<image>` logo.
+   * Defaults to false so badge icons stay SVG-only.
+   */
+  allowRaster?: boolean
 }
 
 /**
@@ -124,49 +136,72 @@ function isValidSvg(content: string): boolean {
   return trimmed.startsWith("<svg") || trimmed.startsWith("<?xml")
 }
 
-export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps) {
+export function SvgIconUpload({ value, onChange, className, allowRaster = false }: SvgIconUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewName, setPreviewName] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
 
-  const isDataUri = value.startsWith("data:image/svg+xml")
+  const isRemoteUrl = /^https?:\/\//.test(value)
+  const isCustom = value.startsWith("data:") || isRemoteUrl
 
-  // Show encoded size for context
-  const encodedSize = isDataUri ? value.length : 0
+  // Show encoded size for context (data URIs only — a remote URL is tiny).
+  const encodedSize = value.startsWith("data:") ? value.length : 0
 
   const handleFile = useCallback(
     (file: File) => {
       setError(null)
+      const isSvg = file.type.includes("svg") || file.name.toLowerCase().endsWith(".svg")
+      const isRaster = RASTER_TYPES.includes(file.type) || RASTER_EXT.test(file.name)
 
-      if (!file.type.includes("svg") && !file.name.endsWith(".svg")) {
-        setError("Only SVG files are supported")
+      if (!isSvg && !(allowRaster && isRaster)) {
+        setError(allowRaster ? "Use an SVG, PNG, JPG, or WebP file" : "Only SVG files are supported")
         return
       }
 
-      if (file.size > MAX_SIZE) {
-        setError(`File too large (${Math.round(file.size / 1024)}KB). Max 32KB.`)
-        return
-      }
-
-      const reader = new FileReader()
-      reader.onload = () => {
-        const content = reader.result as string
-        if (!isValidSvg(content)) {
-          setError("Invalid SVG content")
+      if (isSvg) {
+        if (file.size > MAX_SIZE) {
+          setError(`File too large (${Math.round(file.size / 1024)}KB). Max 32KB.`)
           return
         }
+        const reader = new FileReader()
+        reader.onload = () => {
+          const content = reader.result as string
+          if (!isValidSvg(content)) {
+            setError("Invalid SVG content")
+            return
+          }
+          const dataUri = svgToDataUri(content)
+          setPreviewName(extractSvgName(content))
+          onChange(dataUri)
+          setOpen(false)
+        }
+        reader.onerror = () => setError("Failed to read file")
+        reader.readAsText(file)
+        return
+      }
 
-        const dataUri = svgToDataUri(content)
-        setPreviewName(extractSvgName(content))
-        onChange(dataUri)
+      // Raster image → base64 data URL embedded directly in the header URL.
+      if (file.size > MAX_RASTER) {
+        setError(`File too large (${Math.round(file.size / 1024)}KB). Max ${Math.round(MAX_RASTER / 1024)}KB — paste a URL for bigger logos.`)
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        if (!result.startsWith("data:image/")) {
+          setError("Could not read image")
+          return
+        }
+        setPreviewName(file.name.replace(RASTER_EXT, "").slice(0, 24) || "custom logo")
+        onChange(result)
         setOpen(false)
       }
       reader.onerror = () => setError("Failed to read file")
-      reader.readAsText(file)
+      reader.readAsDataURL(file)
     },
-    [onChange],
+    [onChange, allowRaster],
   )
 
   const handlePaste = useCallback(
@@ -191,9 +226,23 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
         return
       }
 
-      setError("Not a valid SVG or data URI")
+      // Raster data URI or remote image URL (headers only).
+      if (allowRaster && trimmed.startsWith("data:image/")) {
+        onChange(trimmed)
+        setPreviewName("pasted logo")
+        setOpen(false)
+        return
+      }
+      if (allowRaster && /^https?:\/\//.test(trimmed)) {
+        onChange(trimmed)
+        setPreviewName("linked logo")
+        setOpen(false)
+        return
+      }
+
+      setError(allowRaster ? "Paste SVG, an image data URI, or an image URL" : "Not a valid SVG or data URI")
     },
-    [onChange],
+    [onChange, allowRaster],
   )
 
   const handleClear = useCallback(() => {
@@ -210,28 +259,29 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
           size="sm"
           className={cn(
             "h-9 gap-1.5 text-xs",
-            isDataUri && "border-border text-foreground",
+            isCustom && "border-border text-foreground",
             className,
           )}
         >
-          {isDataUri ? (
+          {isCustom ? (
             <>
-              <Image className="size-3.5" />
-              {previewName || "custom icon"}
+              <ImageIcon className="size-3.5" />
+              {isRemoteUrl ? "linked logo" : previewName || "custom logo"}
             </>
           ) : (
             <>
               <FileUp className="size-3.5" />
-              Upload SVG
+              {allowRaster ? "Upload logo" : "Upload SVG"}
             </>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 space-y-3" align="start">
-        <p className="text-sm font-medium">Custom SVG icon</p>
+        <p className="text-sm font-medium">{allowRaster ? "Custom logo" : "Custom SVG icon"}</p>
         <p className="text-xs text-muted-foreground">
-          Upload an SVG file or paste SVG markup. The icon is encoded directly
-          in the badge URL — nothing is stored on the server.
+          {allowRaster
+            ? "Upload an SVG, PNG, JPG, or WebP — or paste image markup, a data URI, or an image URL. It’s encoded directly in the URL; nothing is stored on the server."
+            : "Upload an SVG file or paste SVG markup. The icon is encoded directly in the badge URL — nothing is stored on the server."}
         </p>
 
         {/* Drop zone */}
@@ -254,7 +304,7 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
         >
           <FileUp className="size-6 text-muted-foreground" />
           <p className="text-xs text-muted-foreground">
-            Drop SVG here or{" "}
+            {allowRaster ? "Drop an image here or" : "Drop SVG here or"}{" "}
             <button
               type="button"
               className="text-primary underline underline-offset-2"
@@ -266,7 +316,7 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
           <input
             ref={inputRef}
             type="file"
-            accept=".svg,image/svg+xml"
+            accept={allowRaster ? ".svg,image/svg+xml,image/png,image/jpeg,image/webp,image/gif" : ".svg,image/svg+xml"}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0]
@@ -279,10 +329,10 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
         {/* Paste input */}
         <div className="space-y-1.5">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Or paste SVG / data URI
+            {allowRaster ? "Or paste SVG, data URI, or image URL" : "Or paste SVG / data URI"}
           </p>
           <Input
-            placeholder='<svg viewBox="0 0 24 24">...</svg>'
+            placeholder={allowRaster ? "https://…/logo.png" : '<svg viewBox="0 0 24 24">...</svg>'}
             className="h-7 text-xs font-mono"
             onPaste={(e) => {
               const text = e.clipboardData.getData("text")
@@ -304,15 +354,17 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
           <p className="text-xs text-red-400">{error}</p>
         )}
 
-        {isDataUri && (
+        {isCustom && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Encoded in URL</span>
-              <span className="font-mono">
-                {encodedSize < 1024
-                  ? `${encodedSize} chars`
-                  : `${(encodedSize / 1024).toFixed(1)}KB`}
-              </span>
+              <span>{isRemoteUrl ? "Linked from URL" : "Encoded in URL"}</span>
+              {!isRemoteUrl && (
+                <span className="font-mono">
+                  {encodedSize < 1024
+                    ? `${encodedSize} chars`
+                    : `${(encodedSize / 1024).toFixed(1)}KB`}
+                </span>
+              )}
             </div>
             <Button
               variant="destructive"
@@ -321,7 +373,7 @@ export function SvgIconUpload({ value, onChange, className }: SvgIconUploadProps
               onClick={handleClear}
             >
               <Trash2 className="size-3.5" />
-              Remove custom icon
+              Remove custom {allowRaster ? "logo" : "icon"}
             </Button>
           </div>
         )}

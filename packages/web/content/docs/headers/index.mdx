@@ -103,7 +103,10 @@ it renders crisply without being downscaled.
 The `logo` parameter accepts the same sources as badges: a SimpleIcons slug
 (`react`), a React Icons name (`ri:FaReact`), a Lucide name (`lu:Rocket`), a
 `data:` URI, or a remote `https://` image URL. Remote images and data URIs let
-you use your own logo.
+you use your own logo. In the [header builder](/header) and the
+[studio](/studio), the **Upload logo** control accepts an SVG, PNG, JPG, or
+WebP file (or a pasted data URI / image URL) and encodes it straight into the
+URL — nothing is stored on the server.
 
 ```md
 ![Header](https://shieldcn.dev/header/surface.svg?title=My+App&logo=https://example.com/logo.png)
