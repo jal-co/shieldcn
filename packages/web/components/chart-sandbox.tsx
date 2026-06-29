@@ -23,7 +23,7 @@ import { LogoPicker } from "@/components/logo-picker"
 // Types
 // ---------------------------------------------------------------------------
 
-type ChartKind = "stars" | "issues" | "npm" | "json"
+type ChartKind = "stars" | "issues" | "commits" | "npm" | "json"
 
 interface ChartSandboxProps {
   /** Initial chart kind. */
@@ -47,6 +47,8 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
   // Data inputs (interpretation depends on kind).
   const [owner, setOwner] = useState(defaults.owner ?? "vercel")
   const [repo, setRepo] = useState(defaults.repo ?? "next.js")
+  const [user, setUser] = useState(defaults.user ?? "torvalds")
+  const [aligned, setAligned] = useState(false)
   const [pkg, setPkg] = useState(defaults.package ?? "zod")
   const [values, setValues] = useState(defaults.values ?? "10,25,40,30,60,55,80")
   const [dataLabel, setDataLabel] = useState(defaults.label ?? "")
@@ -94,6 +96,7 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
     switch (kind) {
       case "stars": return "/chart/github/stars/:owner/:repo.svg"
       case "issues": return "/chart/github/issues/:owner/:repo.svg"
+      case "commits": return "/chart/github/commits/:user.svg"
       case "npm": return "/chart/npm/:package.svg"
       case "json": return "/chart/json.svg?values=…"
     }
@@ -105,6 +108,10 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
     if (kind === "stars" || kind === "issues") {
       if (!owner || !repo) return null
       path = `/chart/github/${kind}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}${ext}`
+    } else if (kind === "commits") {
+      const users = user.split(",").map(u => u.trim()).filter(Boolean)
+      if (users.length === 0) return null
+      path = `/chart/github/commits/${users.map(encodeURIComponent).join(",")}${ext}`
     } else if (kind === "npm") {
       if (!pkg) return null
       // Scoped packages keep their slash.
@@ -121,6 +128,7 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
       qp.set("values", cleaned)
       if (dataLabel) qp.set("label", dataLabel)
     }
+    if (kind === "commits" && aligned) qp.set("align", "true")
     if (kind === "npm" && days && days !== "365") qp.set("days", days)
     if (mode !== "dark") qp.set("mode", mode)
     if (theme && theme !== "_none") qp.set("theme", theme)
@@ -143,7 +151,7 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
 
     const qs = qp.toString()
     return `${baseUrl}${path}${qs ? `?${qs}` : ""}`
-  }, [kind, imageFormat, owner, repo, pkg, values, dataLabel, days, mode, theme, font, color, fill, area, transparent, border, logo, width, height, title, icon, yScale, yMin, yMax, yTicks, xTicks, baseUrl])
+  }, [kind, imageFormat, owner, repo, user, aligned, pkg, values, dataLabel, days, mode, theme, font, color, fill, area, transparent, border, logo, width, height, title, icon, yScale, yMin, yMax, yTicks, xTicks, baseUrl])
 
   const formattedOutput = useMemo(() => {
     if (!builtUrl) return ""
@@ -181,6 +189,7 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
               <SelectContent>
                 <SelectItem value="stars">GitHub stars</SelectItem>
                 <SelectItem value="issues">GitHub issues</SelectItem>
+                <SelectItem value="commits">GitHub commits</SelectItem>
                 <SelectItem value="npm">npm downloads</SelectItem>
                 <SelectItem value="json">Inline JSON</SelectItem>
               </SelectContent>
@@ -194,6 +203,20 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
               </SField>
               <SField label="repo">
                 <Input id={`${id}-repo`} value={repo} onChange={e => setRepo(e.target.value)} placeholder="next.js" />
+              </SField>
+            </>
+          )}
+
+          {kind === "commits" && (
+            <>
+              <SField label="user">
+                <Input id={`${id}-user`} value={user} onChange={e => setUser(e.target.value)} placeholder="torvalds or torvalds,gaearon" />
+              </SField>
+              <SField label="aligned">
+                <label className="flex items-center gap-1.5 text-xs cursor-pointer pt-2.5">
+                  <Checkbox aria-label="Align users at account birth" checked={aligned} onCheckedChange={v => setAligned(v === true)} />
+                  <span className="font-mono text-muted-foreground">line up at month zero</span>
+                </label>
               </SField>
             </>
           )}

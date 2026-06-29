@@ -36,12 +36,16 @@ import {
 // serializable object, so we model it here and mirror the sandbox URL builder).
 // ---------------------------------------------------------------------------
 
-export type ChartKind = "stars" | "issues" | "npm" | "json"
+export type ChartKind = "stars" | "issues" | "commits" | "npm" | "json"
 
 export interface ChartState {
   kind: ChartKind
   owner: string
   repo: string
+  /** GitHub user(s) for commit history — comma-separated to compare. */
+  user: string
+  /** Commit-history aligned mode: line users up at their account birth. */
+  aligned: boolean
   package: string
   values: string
   dataLabel: string
@@ -66,6 +70,8 @@ export const CHART_DEFAULTS: ChartState = {
   kind: "stars",
   owner: "vercel",
   repo: "next.js",
+  user: "torvalds",
+  aligned: false,
   package: "zod",
   values: "10,25,40,30,60,55,80",
   dataLabel: "",
@@ -102,6 +108,10 @@ export function buildChartUrl(s: ChartState, baseUrl: string): string | null {
   if (s.kind === "stars" || s.kind === "issues") {
     if (!s.owner || !s.repo) return null
     path = `/chart/github/${s.kind}/${encodeURIComponent(s.owner)}/${encodeURIComponent(s.repo)}${ext}`
+  } else if (s.kind === "commits") {
+    const users = s.user.split(",").map(u => u.trim()).filter(Boolean)
+    if (users.length === 0) return null
+    path = `/chart/github/commits/${users.map(encodeURIComponent).join(",")}${ext}`
   } else if (s.kind === "npm") {
     if (!s.package) return null
     const encoded = s.package.split("/").map(encodeURIComponent).join("/")
@@ -117,6 +127,7 @@ export function buildChartUrl(s: ChartState, baseUrl: string): string | null {
     qp.set("values", cleaned)
     if (s.dataLabel) qp.set("label", s.dataLabel)
   }
+  if (s.kind === "commits" && s.aligned) qp.set("align", "true")
   if (s.kind === "npm" && s.days && s.days !== "365") qp.set("days", s.days)
   if (s.mode !== "dark") qp.set("mode", s.mode)
   if (s.theme && s.theme !== "_none") qp.set("theme", s.theme)

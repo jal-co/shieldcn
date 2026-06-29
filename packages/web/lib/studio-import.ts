@@ -164,6 +164,11 @@ function chartStateFromUrl(u: URL): ChartState {
     s.kind = rest[1]
     s.owner = decodeURIComponent(rest[2] || "")
     s.repo = decodeURIComponent((rest[3] || "").replace(/\.(svg|png)$/i, ""))
+  } else if ((rest[0] === "github" && rest[1] === "commits") || rest[0] === "commits") {
+    s.kind = "commits"
+    const raw = (rest[0] === "commits" ? rest[1] : rest[2]) || ""
+    s.user = decodeURIComponent(raw.replace(/\.(svg|png)$/i, ""))
+    s.aligned = ["1", "true", "yes"].includes((q.get("align") || "").toLowerCase())
   } else if (rest[0] === "npm") {
     s.kind = "npm"
     s.package = decodeURIComponent(rest.slice(1).join("/").replace(/\.(svg|png)$/i, ""))

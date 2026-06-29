@@ -94,7 +94,7 @@ async function githubJson(url: string, revalidate?: number): Promise<Record<stri
  * which arrive as HTTP 200 with an `errors` array) so callers fall back to the
  * last-known-good cache instead of rendering a red badge.
  */
-async function githubGraphQL(
+export async function githubGraphQL(
   query: string,
   variables: Record<string, unknown>,
   revalidate: number = 3600,

@@ -12,6 +12,7 @@ import { renderHeader, type HeaderLogoInput } from "./badges/render-header"
 import { renderSponsors, type SponsorAvatar, type SponsorTier } from "./badges/render-sponsors"
 import { resolveHeaderBackground } from "./badges/header-backgrounds"
 import { getStarHistory, getIssueHistory } from "./providers/starhistory"
+import { getCommitHistory, type CommitHistory } from "./providers/commit-history"
 import { getNpmDownloadSeries } from "./providers/npm"
 import { formatCount } from "./format"
 import { JSONPath } from "jsonpath-plus"
@@ -1870,7 +1871,6 @@ async function handleChart(
   const width = clampNum(searchParams.get("width"), 200, 2000, 800)
   const height = clampNum(searchParams.get("height"), 120, 1200, 400)
   const areaParam = searchParams.get("area")
-  const area = areaParam !== "false" && areaParam !== "0"
   const accent = resolveAccent(searchParams.get("theme"), searchParams.get("color"))
   const fillParam = resolveColor(searchParams.get("fill"))
   const fill = fillParam ? `#${fillParam}` : undefined
@@ -1957,9 +1957,20 @@ async function handleChart(
   }
   const titleIconColor = iconColorParam ? `#${iconColorParam}` : undefined
 
-  const series: ChartSeries[] = [
-    { label: resolved.seriesLabel, points: resolved.points, color: accent, fill },
-  ]
+  // Area fill defaults on for a single line, off when comparing multiple
+  // series (overlapping fills get muddy) — an explicit ?area= always wins.
+  const isCompare = !!(resolved.multiSeries && resolved.multiSeries.length > 1)
+  const area = areaParam !== null ? areaParam !== "false" && areaParam !== "0" : !isCompare
+
+  const series: ChartSeries[] =
+    resolved.multiSeries && resolved.multiSeries.length
+      ? resolved.multiSeries.map((s, i) => ({
+          label: s.label,
+          points: s.points,
+          color: i === 0 ? accent : COMPARE_PALETTE[(i - 1) % COMPARE_PALETTE.length],
+          fill: i === 0 ? fill : undefined,
+        }))
+      : [{ label: resolved.seriesLabel, points: resolved.points, color: accent, fill }]
   const svg = renderChart({
     title: searchParams.get("title") || resolved.title,
     subtitle: resolved.subtitle,
@@ -2867,6 +2878,38 @@ interface ChartOk {
   link?: string
   points: ChartPoint[]
   json: unknown
+  /**
+   * Optional multi-series payload (e.g. comparing several users' commit
+   * histories on one chart). When present, `handleChart` renders one line per
+   * entry with palette colors; `points` carries the first series for callers
+   * (like the .json output) that only read a single series.
+   */
+  multiSeries?: Array<{ label: string; points: ChartPoint[] }>
+}
+
+/**
+ * Distinct accent colors for multi-series charts (the first series still uses
+ * the resolved `theme`/`color` accent; the rest cycle through this palette).
+ */
+const COMPARE_PALETTE = [
+  "#f59e0b", // amber-500
+  "#10b981", // emerald-500
+  "#ec4899", // pink-500
+  "#8b5cf6", // violet-500
+  "#06b6d4", // cyan-500
+  "#ef4444", // red-500
+  "#84cc16", // lime-500
+  "#f97316", // orange-500
+]
+
+/**
+ * Re-index a series onto a "month zero" axis: strip dates so the chart uses an
+ * evenly spaced index axis, and label each point by its month offset. Used by
+ * the commit-history `align` mode so users who joined at different times line
+ * up at their own account birth (a homage to commit-history's Aligned view).
+ */
+function alignByIndex(points: ChartPoint[]): ChartPoint[] {
+  return points.map((p, i) => ({ value: p.value, label: String(i) }))
 }
 type ChartResolved = ChartOk | { ok: false; status: number; msg: string }
 
@@ -2895,6 +2938,62 @@ async function resolveChartData(
   searchParams: URLSearchParams,
 ): Promise<ChartResolved> {
   const provider = rest[0]
+
+  // --- GitHub lifetime commit history (homage to peetzweg/commit-history) ---
+  if (provider === "commits" || (provider === "github" && rest[1] === "commits")) {
+    const raw = provider === "commits" ? rest[1] : rest[2]
+    if (!raw) {
+      return { ok: false, status: 400, msg: "usage: /chart/github/commits/{user}.svg" }
+    }
+    // Comma-separated logins → compare several users on one chart.
+    const logins = decodeURIComponent(raw)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6)
+    if (logins.length === 0) {
+      return { ok: false, status: 400, msg: "usage: /chart/github/commits/{user}.svg" }
+    }
+    const align = ["1", "true", "yes"].includes((searchParams.get("align") || "").toLowerCase())
+
+    const histories = await Promise.all(logins.map((l) => getCommitHistory(l)))
+    const ok = histories.filter((h): h is CommitHistory => h !== null)
+    if (ok.length === 0) {
+      return { ok: false, status: 404, msg: `could not load commit history for ${logins.join(", ")}` }
+    }
+
+    const toPoints = (h: CommitHistory): ChartPoint[] =>
+      align ? alignByIndex(h.points) : h.points.map((p) => ({ value: p.value, date: p.date }))
+
+    // Single user → single series with a title, subtitle, and repo link.
+    if (ok.length === 1) {
+      const h = ok[0]
+      return {
+        ok: true,
+        provider: "github",
+        kind: "commits",
+        title: h.login,
+        subtitle: `${formatCountSafe(h.total)} commits${align ? " · aligned" : ""}`,
+        seriesLabel: h.login,
+        link: `https://github.com/${h.login}`,
+        points: toPoints(h),
+        json: h,
+      }
+    }
+
+    // Multiple users → one line each (the legend shows the names).
+    const multiSeries = ok.map((h) => ({ label: h.login, points: toPoints(h) }))
+    return {
+      ok: true,
+      provider: "github",
+      kind: "commits",
+      title: align ? "Commits since account creation" : "Commit history",
+      seriesLabel: ok[0].login,
+      points: multiSeries[0].points,
+      multiSeries,
+      json: { aligned: align, users: ok },
+    }
+  }
 
   // --- GitHub stars / issues over time ---
   if (provider === "github" || provider === "stars" || provider === "issues") {
@@ -3095,8 +3194,9 @@ async function handleBadgeGETInner(
   }
 
   // ---------------------------------------------------------------------------
-  // Charts: /chart/github/stars/{owner}/{repo}.svg
-  // Renders a shadcn-styled star-history line/area chart.
+  // Charts: /chart/github/{stars|issues}/{owner}/{repo}.svg,
+  // /chart/github/commits/{user}.svg, /chart/npm/{package}.svg, /chart/json.svg
+  // Renders a shadcn-styled line/area chart.
   // ---------------------------------------------------------------------------
   if (cleanSegments[0] === "chart") {
     return handleChart(cleanSegments, searchParams, format, options)

@@ -1127,6 +1127,7 @@ export function ChartInspector({ block, onChange }: { block: ChartBlock; onChang
           <SelectContent>
             <SelectItem value="stars">GitHub stars</SelectItem>
             <SelectItem value="issues">GitHub issues</SelectItem>
+            <SelectItem value="commits">GitHub commits</SelectItem>
             <SelectItem value="npm">npm downloads</SelectItem>
             <SelectItem value="json">Inline JSON</SelectItem>
           </SelectContent>
@@ -1138,6 +1139,13 @@ export function ChartInspector({ block, onChange }: { block: ChartBlock; onChang
           <Field label="Owner"><Input value={s.owner} onChange={e => set({ owner: e.target.value })} placeholder="vercel" /></Field>
           <Field label="Repo"><Input value={s.repo} onChange={e => set({ repo: e.target.value })} placeholder="next.js" /></Field>
         </Row>
+      ) : null}
+
+      {s.kind === "commits" ? (
+        <>
+          <Field label="User(s)"><Input value={s.user} onChange={e => set({ user: e.target.value })} placeholder="torvalds or torvalds,gaearon" /></Field>
+          <ToggleField label="Aligned (line up at account birth)" checked={s.aligned} onCheckedChange={v => set({ aligned: v })} />
+        </>
       ) : null}
 
       {s.kind === "npm" ? (

@@ -1,12 +1,14 @@
 ---
 title: Charts
-description: Shadcn-styled graphs for GitHub stars, GitHub issues, npm downloads, and your own JSON data — rendered as portable SVGs.
+description: Shadcn-styled graphs for GitHub stars, GitHub issues, lifetime commit history, npm downloads, and your own JSON data — rendered as portable SVGs.
 ---
 
 Shadcn-styled line/area charts you can drop in a README, docs site, or anywhere
-an image works — plain SVG, no JavaScript, no iframe. Four kinds: GitHub star
+an image works — plain SVG, no JavaScript, no iframe. Five kinds: GitHub star
 history (like [starcharts](https://github.com/caarlos0/starcharts)), GitHub
-issues over time, npm downloads, and arbitrary JSON.
+issues over time, lifetime commit history (a homage to
+[commit-history](https://github.com/peetzweg/commit-history)), npm downloads,
+and arbitrary JSON.
 
 <ChartPreview
   src="/chart/github/stars/vercel/next.js.svg"
@@ -24,6 +26,8 @@ Pick a chart kind, tweak the styling, and copy the URL or markdown.
 ```
 /chart/github/stars/{owner}/{repo}.svg     → GitHub star history
 /chart/github/issues/{owner}/{repo}.svg    → GitHub issues over time
+/chart/github/commits/{user}.svg            → lifetime commit history
+/chart/github/commits/{user1},{user2}.svg   → compare users
 /chart/npm/{package}.svg                    → npm weekly downloads
 /chart/json.svg?values=1,2,3                → inline JSON data
 /chart/json.svg?url=...&query=...           → remote JSON data
@@ -70,6 +74,49 @@ excluded).
   src="/chart/github/issues/honojs/hono.svg?theme=rose"
   alt="honojs/hono issues over time"
   description="Issues opened over time"
+/>
+
+## GitHub commits over time
+
+A whole coding career as one rising curve — every public commit since the
+account was born, accumulated month by month (the same data as the green
+contribution graph, not the noisy issues/PRs calendar). This is a loving homage
+to [**commit-history**](https://github.com/peetzweg/commit-history) by
+[Peet von Zweigbergk](https://github.com/peetzweg) — "a
+[star-history](https://www.star-history.com), but for commits".
+
+```
+/chart/github/commits/{user}.svg
+```
+
+<ChartPreview
+  src="/chart/github/commits/torvalds.svg?theme=green"
+  alt="torvalds lifetime commit history"
+  description="Lifetime public commits, accumulated month by month"
+/>
+
+### Compare users
+
+Pass comma-separated logins to race several trajectories on one chart.
+
+```
+/chart/github/commits/{user1},{user2},{user3}.svg
+```
+
+<ChartPreview
+  src="/chart/github/commits/gaearon,sindresorhus.svg"
+  alt="gaearon vs sindresorhus commit history"
+  description="Comma-separated logins compare users on one chart"
+/>
+
+Add `?align=true` for **aligned** mode — every user lines up at "month zero"
+(their own account birth) regardless of when they actually joined, so you're
+comparing trajectories rather than calendar dates.
+
+<ChartPreview
+  src="/chart/github/commits/gaearon,sindresorhus.svg?align=true&theme=violet"
+  alt="aligned commit history comparison"
+  description="Aligned mode — everyone starts at their own month zero"
 />
 
 ## npm downloads
@@ -136,6 +183,7 @@ selects the value array; optional `dateQuery` selects a parallel date array.
 | `width` | 200–2000 | `800` | Chart width in px |
 | `height` | 120–1200 | `400` | Chart height in px |
 | `title` | string | per kind | Override the chart title |
+| `align` | `true`, `false` | `false` | Commit charts: line users up at their account birth (month zero) |
 | `days` | 30–540 | `365` | npm download window |
 | `values` | comma numbers | — | Inline JSON data points |
 | `dates` | comma dates | — | Inline JSON x-axis dates |
@@ -162,12 +210,24 @@ Requests are distributed across the donated [token pool](/token-pool) and
 cached with a 6-hour fresh window plus a 30-day last-known-good fallback, so a
 transient rate limit never collapses the chart.
 
+## How commit history works
+
+The commit curve is a homage to [commit-history](https://github.com/peetzweg/commit-history),
+and works the same way it does. GitHub's GraphQL
+`user.contributionsCollection.totalCommitContributions` returns the public
+commit count for a window of at most a year, so a lifetime is sliced into
+**monthly windows** — batched a year at a time into aliased queries — then the
+counts are accumulated into the rising curve. Only public commits are counted.
+Like the star data, requests go through the donated [token pool](/token-pool)
+with a 6-hour fresh window and a 30-day last-known-good fallback.
+
 ## Data sources
 
 | Chart | Source | Cache |
 |-------|--------|-------|
 | Stars | [GitHub Stargazers API](https://docs.github.com/en/rest/activity/starring) | 6h fresh · 30d last-known-good |
 | Issues | [GitHub Search API](https://docs.github.com/en/rest/search) (`type:issue`) | 6h fresh · 30d last-known-good |
+| Commits | [GitHub GraphQL API](https://docs.github.com/en/graphql) (`contributionsCollection`) | 6h fresh · 30d last-known-good |
 | npm | [npm downloads API](https://github.com/npm/registry/blob/main/docs/download-counts.md) | 1h |
 | JSON | inline, or your `url` | 5m (remote) |
 

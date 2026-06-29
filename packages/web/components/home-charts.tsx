@@ -12,7 +12,7 @@ function useHydrated() {
 
 const CHARTS: { src: string; alt: string }[] = [
   { src: "/chart/github/stars/vercel/next.js.svg?theme=blue", alt: "GitHub star history" },
-  { src: "/chart/npm/zod.svg?theme=emerald", alt: "npm weekly downloads" },
+  { src: "/chart/github/commits/torvalds.svg?theme=green", alt: "GitHub lifetime commit history" },
 ]
 
 export function HomeCharts() {
@@ -25,8 +25,8 @@ export function HomeCharts() {
         <div className="max-w-lg">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Charts, too</h2>
           <p className="mt-3 text-pretty text-muted-foreground">
-            Shadcn-styled star history, issues over time, npm downloads, and your own JSON
-            data — portable SVGs, no JavaScript.
+            Shadcn-styled star history, lifetime commit history, issues over time, npm
+            downloads, and your own JSON data — portable SVGs, no JavaScript.
           </p>
         </div>
         <Link
