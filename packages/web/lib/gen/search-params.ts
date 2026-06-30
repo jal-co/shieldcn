@@ -54,7 +54,7 @@ export const genSearchParams = {
   mode: parseAsStringEnum(MODES).withDefault("dark"),
   theme: parseAsStringEnum(THEMES).withDefault("none"),
   font: parseAsStringEnum(FONTS).withDefault("inter"),
-  themeAware: parseAsBoolean.withDefault(false),
+  themeAware: parseAsBoolean.withDefault(true),
 }
 
 export const genSearchParamsCache = createSearchParamsCache(genSearchParams)

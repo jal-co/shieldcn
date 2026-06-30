@@ -9,12 +9,11 @@ import {
 } from "react"
 import { useQueryStates } from "nuqs"
 import { useOpenPanel } from "@openpanel/nextjs"
-import { Copy, Download, FileUp, RefreshCw, Trash2, X } from "lucide-react"
+import { Copy, Download, RefreshCw, Trash2, X } from "lucide-react"
 import {
   badgeHtml,
   badgeMarkdown,
   badgeUrl,
-  DEFAULT_GLOBAL,
   type Badge,
   type BadgeGroup,
   type Font,
@@ -28,12 +27,11 @@ import {
 import { profileSearchParams } from "@/lib/gen/profile-search-params"
 import { inspectProfile, type ProfileInspectResult, type GitHubUserProfile } from "@/lib/gen/detect-profile"
 import type { Config } from "@/lib/gen/config"
-import { mergeRefresh, serialize, deserialize } from "@/lib/gen/config"
+import { mergeRefresh, serialize } from "@/lib/gen/config"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Popover,
@@ -125,6 +123,8 @@ export default function ProfileGeneratorClient() {
   useEffect(() => {
     if (qs.user && !didAutoGenerate.current && !config) {
       didAutoGenerate.current = true
+      // Pre-existing react-compiler debt (use-before-declare); tracked separately.
+      // eslint-disable-next-line react-hooks/immutability
       void handleGenerate(qs.user)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,6 +139,7 @@ export default function ProfileGeneratorClient() {
       mode: qs.mode,
       theme: qs.theme,
       font: qs.font,
+      themeAware: qs.themeAware,
     }
     const configGlobal = config.global
     if (
@@ -146,12 +147,15 @@ export default function ProfileGeneratorClient() {
       urlGlobal.size !== configGlobal.size ||
       urlGlobal.mode !== configGlobal.mode ||
       urlGlobal.theme !== configGlobal.theme ||
-      urlGlobal.font !== configGlobal.font
+      urlGlobal.font !== configGlobal.font ||
+      urlGlobal.themeAware !== configGlobal.themeAware
     ) {
+      // Pre-existing react-compiler debt (set-state-in-effect); tracked separately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig((c) => (c ? { ...c, global: urlGlobal } : c))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qs.variant, qs.size, qs.mode, qs.theme, qs.font])
+  }, [qs.variant, qs.size, qs.mode, qs.theme, qs.font, qs.themeAware])
 
   const updateGlobal = useCallback(
     (patch: Partial<GlobalSettings>) => {
@@ -237,6 +241,8 @@ export default function ProfileGeneratorClient() {
   }, [])
 
   const handleGenerate = useCallback(
+    // Pre-existing react-compiler debt (preserve-manual-memoization); tracked separately.
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (userOverride?: string) => {
       const user = userOverride ?? inputUser.trim()
       if (!user) return
@@ -255,6 +261,7 @@ export default function ProfileGeneratorClient() {
           mode: qs.mode,
           theme: qs.theme,
           font: qs.font,
+          themeAware: qs.themeAware,
         },
         badges: result.badges,
         generatedAt: new Date().toISOString(),
@@ -272,7 +279,7 @@ export default function ProfileGeneratorClient() {
         body: JSON.stringify({ count: enabledCount }),
       }).catch(() => {})
     },
-    [inputUser, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, track],
+    [inputUser, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, qs.themeAware, track],
   )
 
   const configRef = useRef<Config | null>(null)
@@ -389,6 +396,7 @@ export default function ProfileGeneratorClient() {
           {/* Profile header */}
           {profile && (
             <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={profile.avatar_url}
                 alt={profile.login}
@@ -484,6 +492,21 @@ export default function ProfileGeneratorClient() {
                 onChange={(v) => updateGlobal({ font: v as Font })}
               />
             </div>
+            <label className="flex items-start gap-3 rounded-md border border-dashed border-border p-3">
+              <Switch
+                checked={config.global.themeAware ?? false}
+                onCheckedChange={(v) => updateGlobal({ themeAware: v })}
+                className="mt-0.5"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium">Theme-aware (light/dark)</span>
+                <span className="text-xs text-muted-foreground">
+                  Output <code className="rounded bg-muted px-1 py-0.5">&lt;picture&gt;</code>{" "}
+                  markup so badges adapt to the reader&apos;s GitHub theme. Applies to
+                  theme-derived variants (outline, ghost, secondary, branded, default).
+                </span>
+              </span>
+            </label>
           </div>
 
           {/* Badge groups */}
@@ -792,6 +815,7 @@ function BadgeItem({
             !badge.enabled && "opacity-30 grayscale-[60%]",
           )}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt={badge.label}

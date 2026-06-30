@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Copy, Check, ExternalLink, Plus, Trash2, GripVertical } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { formatBadgeOutput } from "@/lib/badge-output"
 import {
   Dialog,
   DialogContent,
@@ -142,11 +143,21 @@ export function BadgeGroupModal({
 
   const formattedOutput = useMemo(() => {
     switch (outputFormat) {
-      case "markdown": return `![${title}](${fullUrl})`
+      case "markdown":
+        return formatBadgeOutput(fullUrl, "markdown", {
+          alt: title,
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
       case "url": return fullUrl
-      case "html": return `<img alt="${title}" src="${fullUrl}">`
-      case "rst": return `.. image:: ${fullUrl}\n   :alt: ${title}`
-      case "asciidoc": return `image:${fullUrl}[${title}]`
+      case "html":
+        return formatBadgeOutput(fullUrl, "html", {
+          alt: title,
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
+      case "rst": return formatBadgeOutput(fullUrl, "rst", { alt: title })
+      case "asciidoc": return formatBadgeOutput(fullUrl, "asciidoc", { alt: title })
     }
   }, [outputFormat, fullUrl, title])
 

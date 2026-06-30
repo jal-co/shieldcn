@@ -19,6 +19,7 @@ import {
   buildBadgeUrl,
   type BuilderState,
 } from "@/lib/badge-builder-shared"
+import { formatBadgeOutput } from "@/lib/badge-output"
 
 // ---------------------------------------------------------------------------
 // Copy format helpers
@@ -27,22 +28,25 @@ import {
 type CopyFormat = "markdown" | "html" | "url" | "rst"
 
 function formatOutput(url: string, format: CopyFormat, linkUrl?: string): string {
-  const link = linkUrl?.trim() || ""
   switch (format) {
     case "markdown":
-      return link
-        ? `[![badge](${url})](${link})`
-        : `![badge](${url})`
+      return formatBadgeOutput(url, "markdown", {
+        alt: "badge",
+        linkUrl,
+        preferPicture: true,
+        ignoreModeForPicture: true,
+      })
     case "html":
-      return link
-        ? `<a href="${link}"><img alt="badge" src="${url}"></a>`
-        : `<img alt="badge" src="${url}">`
+      return formatBadgeOutput(url, "html", {
+        alt: "badge",
+        linkUrl,
+        preferPicture: true,
+        ignoreModeForPicture: true,
+      })
     case "url":
       return url
     case "rst":
-      return link
-        ? `.. image:: ${url}\n   :alt: badge\n   :target: ${link}`
-        : `.. image:: ${url}\n   :alt: badge`
+      return formatBadgeOutput(url, "rst", { alt: "badge", linkUrl })
   }
 }
 
@@ -65,6 +69,8 @@ export function BadgeBuilder() {
   const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
   const { resolvedTheme } = useTheme()
 
+  // Pre-existing react-compiler debt (set-state-in-effect); tracked separately.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setBaseUrl(window.location.origin) }, [])
 
   // Sync mode with site theme
@@ -72,6 +78,8 @@ export function BadgeBuilder() {
     if (!resolvedTheme) return
     const siteMode = resolvedTheme === "light" ? "light" : "dark"
     if (s.mode !== siteMode) {
+      // Pre-existing react-compiler debt (set-state-in-effect); tracked separately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setS((prev) => ({ ...prev, mode: siteMode }))
     }
   }, [resolvedTheme]) // eslint-disable-line react-hooks/exhaustive-deps

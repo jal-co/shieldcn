@@ -84,7 +84,7 @@ export const DEFAULT_GLOBAL: GlobalSettings = {
   mode: 'dark',
   theme: 'none',
   font: 'inter',
-  themeAware: false,
+  themeAware: true,
 };
 
 export type BadgeGroup =

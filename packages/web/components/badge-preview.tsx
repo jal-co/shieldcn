@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from "react"
 import { Copy, Check } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { formatBadgeOutput } from "@/lib/badge-output"
 
 /**
  * True only after client hydration. Lets a badge <img> wait for the resolved
@@ -36,7 +37,10 @@ export function BadgePreview({ src, alt, description, code }: BadgePreviewProps)
 
   const adaptedSrc = adaptUrl(src)
   const fullUrl = `https://shieldcn.dev${src}`
-  const displayCode = code ?? `![${alt || "badge"}](${fullUrl})`
+  const displayCode = code ?? formatBadgeOutput(fullUrl, "markdown", {
+    alt: alt || "badge",
+    preferPicture: true,
+  })
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayCode)
@@ -102,7 +106,10 @@ export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
 
   const adaptedSrc = adaptUrl(src)
   const fullUrl = `https://shieldcn.dev${src}`
-  const displayCode = `![${alt || "badge"}](${fullUrl})`
+  const displayCode = formatBadgeOutput(fullUrl, "markdown", {
+    alt: alt || "badge",
+    preferPicture: true,
+  })
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayCode)

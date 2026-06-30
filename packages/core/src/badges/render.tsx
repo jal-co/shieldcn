@@ -88,6 +88,23 @@ function luminance(hex: string): number {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255
 }
 
+/** WCAG 2.1 relative luminance of a hex color (0 = black, 1 = white). */
+function wcagLuminance(hex: string): number {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.substring(0, 2), 16) / 255
+  const g = parseInt(h.substring(2, 4), 16) / 255
+  const b = parseInt(h.substring(4, 6), 16) / 255
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return 0
+  const sr = r <= 0.03928 ? r / 12.92 : ((r + 0.055) / 1.055) ** 2.4
+  const sg = g <= 0.03928 ? g / 12.92 : ((g + 0.055) / 1.055) ** 2.4
+  const sb = b <= 0.03928 ? b / 12.92 : ((b + 0.055) / 1.055) ** 2.4
+  return 0.2126 * sr + 0.7152 * sg + 0.0722 * sb
+}
+
+function contrastAgainstWhite(hex: string): number {
+  return 1.05 / (wcagLuminance(hex) + 0.05)
+}
+
 /** Check if a hex background color is light enough to need dark text. */
 function isLightBg(hex: string): boolean {
   return luminance(hex) > 0.5
@@ -125,14 +142,15 @@ function darken(hex: string, amount: number): string {
 
 /**
  * Ensure a color has sufficient contrast against a white background.
- * If the color is too light (luminance > 0.45), darken it until it's readable.
+ * If the color is too light, darken it until it reaches WCAG AA text contrast.
  */
 function ensureLightModeContrast(hex: string): string {
-  const lum = luminance(hex)
-  if (lum <= 0.45) return hex
-  // Darken proportionally — the lighter the color, the more darkening needed
-  const amount = Math.min((lum - 0.3) * 0.7, 0.55)
-  return darken(hex, amount)
+  if (contrastAgainstWhite(hex) >= 4.5) return hex
+  for (let amount = 0.05; amount <= 0.75; amount += 0.05) {
+    const candidate = darken(hex, amount)
+    if (contrastAgainstWhite(candidate) >= 4.5) return candidate
+  }
+  return darken(hex, 0.75)
 }
 
 /** Hex → rgba with baked-in opacity */

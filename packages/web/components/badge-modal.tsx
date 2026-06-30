@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
+import { formatBadgeOutput } from "@/lib/badge-output"
 import { allowedVariantsForPath } from "@shieldcn/core/badges/registry"
 
 interface BadgeModalProps {
@@ -162,15 +163,23 @@ export function BadgeModal({
   const formattedOutput = useMemo(() => {
     switch (outputFormat) {
       case "markdown":
-        return `![${title}](${fullUrl})`
+        return formatBadgeOutput(fullUrl, "markdown", {
+          alt: title,
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
       case "url":
         return fullUrl
       case "html":
-        return `<img alt="${title}" src="${fullUrl}">`
+        return formatBadgeOutput(fullUrl, "html", {
+          alt: title,
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
       case "rst":
-        return `.. image:: ${fullUrl}\n   :alt: ${title}`
+        return formatBadgeOutput(fullUrl, "rst", { alt: title })
       case "asciidoc":
-        return `image:${fullUrl}[${title}]`
+        return formatBadgeOutput(fullUrl, "asciidoc", { alt: title })
     }
   }, [outputFormat, fullUrl, title])
 

@@ -663,7 +663,7 @@ function ResultsPanel({
             <span className="text-xs text-muted-foreground">
               Output <code className="rounded bg-muted px-1 py-0.5">&lt;picture&gt;</code>{" "}
               markup so badges adapt to the reader&apos;s GitHub theme. Applies to
-              theme-derived variants (outline, secondary, branded, default).
+              theme-derived variants (outline, ghost, secondary, branded, default).
             </span>
           </span>
         </label>

@@ -21,6 +21,7 @@ import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { allowedVariantsForPath, VARIANT_LABELS } from "@shieldcn/core/badges/registry"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { formatBadgeOutput } from "@/lib/badge-output"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -174,10 +175,20 @@ export function BadgeSandbox({
   const formattedOutput = useMemo(() => {
     if (!builtUrl) return ""
     switch (format) {
-      case "markdown": return `![badge](${builtUrl})`
-      case "rst": return `.. image:: ${builtUrl}\n   :alt: badge`
-      case "asciidoc": return `image:${builtUrl}[badge]`
-      case "html": return `<img alt="badge" src="${builtUrl}">`
+      case "markdown":
+        return formatBadgeOutput(builtUrl, "markdown", {
+          alt: "badge",
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
+      case "rst": return formatBadgeOutput(builtUrl, "rst", { alt: "badge" })
+      case "asciidoc": return formatBadgeOutput(builtUrl, "asciidoc", { alt: "badge" })
+      case "html":
+        return formatBadgeOutput(builtUrl, "html", {
+          alt: "badge",
+          preferPicture: true,
+          ignoreModeForPicture: true,
+        })
       default: return builtUrl
     }
   }, [builtUrl, format])
