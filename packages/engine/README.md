@@ -93,7 +93,8 @@ Create a token at [github.com/settings/tokens](https://github.com/settings/token
 | `DATABASE_URL` | ✅ | — | PostgreSQL connection string |
 | `GITHUB_TOKEN` | — | — | GitHub personal access token (5k req/hr) |
 | `GITHUB_OAUTH_CLIENT_ID` | — | — | GitHub OAuth App ID for token pool |
-| `GITHUB_OAUTH_CLIENT_SECRET` | — | — | GitHub OAuth App secret |
+| `GITHUB_OAUTH_CLIENT_SECRET` | — | — | GitHub OAuth App secret. Also used to derive the token pool's encryption key if `TOKEN_ENCRYPTION_KEY` isn't set (see below). |
+| `TOKEN_ENCRYPTION_KEY` | — | — | Encryption key for donated GitHub tokens stored in the pool. Recommended for any real deployment — set this explicitly rather than relying on `GITHUB_OAUTH_CLIENT_SECRET` doubling as the key, since rotating that secret would then also silently break decryption of already-stored tokens. **Required in production**: if neither this nor `GITHUB_OAUTH_CLIENT_SECRET` is set and `NODE_ENV=production`, adding a token to the pool fails loudly rather than encrypting it with a guessable fallback. |
 | `YOUTUBE_API_KEY` | — | — | YouTube Data API v3 key |
 | `UPSTASH_REDIS_REST_URL` | — | — | Upstash Redis URL for persistent cache |
 | `UPSTASH_REDIS_REST_TOKEN` | — | — | Upstash Redis token |

@@ -81,14 +81,39 @@ function randomCachedToken(): string | undefined {
 // Crypto helpers
 // ---------------------------------------------------------------------------
 
-/** Encryption key derived from GITHUB_OAUTH_CLIENT_SECRET or a fallback. */
+/**
+ * Encryption key for pooled tokens, in priority order:
+ *   1. TOKEN_ENCRYPTION_KEY — explicit, recommended for any real deployment.
+ *   2. GITHUB_OAUTH_CLIENT_SECRET — kept for backward compatibility with
+ *      existing deployments that never set (1).
+ *   3. In production, neither set: fail loudly rather than silently
+ *      encrypting donated tokens with a fallback value another deployment (or
+ *      an attacker who knows the source) could reproduce.
+ *   4. Outside production (dev/test), fall back to GITHUB_TOKEN or a fixed
+ *      dev key so local development works without extra setup.
+ */
 function getEncryptionKey(): Buffer {
-  const secret = process.env.GITHUB_OAUTH_CLIENT_SECRET || process.env.GITHUB_TOKEN || "shieldcn-dev-key"
-  return createHash("sha256").update(secret).digest()
+  const configured = process.env.TOKEN_ENCRYPTION_KEY || process.env.GITHUB_OAUTH_CLIENT_SECRET
+  if (configured) return createHash("sha256").update(configured).digest()
+
+  if (process.env.NODE_ENV === "production") {
+    const message =
+      "Token pool encryption key is not configured. Set TOKEN_ENCRYPTION_KEY " +
+      "(or GITHUB_OAUTH_CLIENT_SECRET) before storing or reading pooled GitHub " +
+      "tokens — see packages/engine/README.md."
+    console.error(message)
+    throw new Error(message)
+  }
+
+  return createHash("sha256").update(process.env.GITHUB_TOKEN || "shieldcn-dev-key").digest()
 }
 
-/** Encrypt a token for storage. Returns "iv:encrypted" hex string. */
-function encryptToken(token: string): string {
+/**
+ * Encrypt a token for storage. Returns "iv:encrypted" hex string.
+ * Exported (alongside {@link decryptToken}) only so the encryption-key
+ * selection/failure behavior in {@link getEncryptionKey} can be unit tested.
+ */
+export function encryptToken(token: string): string {
   const key = getEncryptionKey()
   const iv = randomBytes(16)
   const cipher = createCipheriv("aes-256-cbc", key, iv)
@@ -98,7 +123,7 @@ function encryptToken(token: string): string {
 }
 
 /** Decrypt a stored token. */
-function decryptToken(stored: string): string {
+export function decryptToken(stored: string): string {
   const key = getEncryptionKey()
   const [ivHex, encrypted] = stored.split(":")
   const iv = Buffer.from(ivHex, "hex")

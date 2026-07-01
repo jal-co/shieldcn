@@ -43,10 +43,10 @@
 - [x] **B1. Central SSRF guard for user-supplied URL fetches** (M) — done via PR-1.1, `packages/core/src/safe-fetch.ts`
   `getDynamicJsonBadge` (`packages/core/src/providers/badge.ts:168`), the `/https` proxy (`route-handler.ts:1490`), chart `?url=` (`route-handler.ts:3070`), header `?logo=`/`?image=` (`route-handler.ts:2085, 2166` — these even allow plain `http://`), and instance-host providers (`discourse.ts:19`, `mastodon.ts:17`, `lemmy.ts:17`, `matrix.ts:27`, `weblate.ts:26`, `sonar.ts:24`) all fetch attacker-controlled hosts with no private-IP/localhost/metadata-endpoint/redirect checks. Add one shared `safeFetch` (deny RFC1918, link-local, loopback, cloud metadata IPs; cap redirects; enforce https where possible) and apply at every call site.
 
-- [ ] **B2. Remove the silent weak-key fallback for token-pool encryption** (M)
+- [x] **B2. Remove the silent weak-key fallback for token-pool encryption** (M) — done via PR-1.2
   `packages/core/src/token-pool.ts:85-88` derives the AES key from `GITHUB_OAUTH_CLIENT_SECRET || GITHUB_TOKEN || "shieldcn-dev-key"`. A deployment can silently encrypt donated tokens with a public constant, and key rotation bricks all stored tokens undetectably. Support an explicit `TOKEN_ENCRYPTION_KEY` env var and fail loudly in production when no real key is set. Document in engine README (see B16).
 
-- [ ] **B3. Fix `ssl: { rejectUnauthorized: false }` in db pool** (S)
+- [x] **B3. Fix `ssl: { rejectUnauthorized: false }` in db pool** (S) — done via PR-1.2 (`ssl: true`)
   `packages/core/src/db.ts:38` disables TLS cert verification for any connection string containing "neon"/"railway"/"supabase" — a MITM vector. Use proper CA verification (`sslmode=require` with system CAs works for all three hosts).
 
 - [x] **B4. Cap response sizes on user-controlled fetches** (S) — done via PR-1.1 (`safeFetch`'s `maxBytes`, applied to header logo/image too)

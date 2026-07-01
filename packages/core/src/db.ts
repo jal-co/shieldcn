@@ -28,14 +28,19 @@ export function getPool(): Pool {
       connectionTimeoutMillis: 10_000,
       keepAlive: true,
       // Enable SSL for known cloud providers or explicit sslmode=require.
-      // Docker/local Postgres connections default to no SSL.
+      // Docker/local Postgres connections default to no SSL. Certificate
+      // verification is left ON (the pg default) — Neon/Railway/Supabase all
+      // present publicly CA-signed certs, so there's no reason to accept a
+      // MITM'd connection here. A self-hosted deployment terminating TLS with
+      // a private CA should add it via the standard NODE_EXTRA_CA_CERTS env
+      // var rather than disabling verification.
       ssl: connString && (
         connString.includes("sslmode=require")
         || connString.includes("neon")
         || connString.includes("railway")
         || connString.includes("supabase")
       )
-        ? { rejectUnauthorized: false }
+        ? true
         : undefined,
     })
     // node-postgres emits 'error' on idle clients that the server drops (exactly

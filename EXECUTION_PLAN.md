@@ -141,6 +141,25 @@ they close the widest-reaching holes.
   TLS; missing key in `NODE_ENV=production` aborts startup with a clear message.
 - **Risk:** existing deployments relying on the fallback key will need to set the
   env and re-donate tokens — call this out in the PR description as a breaking op.
+- **Actual outcome:** `getEncryptionKey()` in `token-pool.ts` now checks
+  `TOKEN_ENCRYPTION_KEY` first, then `GITHUB_OAUTH_CLIENT_SECRET` (unchanged
+  precedent for existing deployments), then in `NODE_ENV=production` logs a
+  `console.error` with an actionable message and throws — callers (`addToken`
+  via the OAuth callback route, already wrapped in try/catch) surface it as a
+  clean `db_store_failed` 500 rather than crashing. Outside production it
+  falls back to `GITHUB_TOKEN` or a fixed dev key, unchanged, so local dev
+  needs no setup. `encryptToken`/`decryptToken` were exported (previously
+  module-private) specifically so this could be unit tested without mocking
+  the DB layer — `token-pool.test.ts`, 6 tests covering round-trip, key
+  precedence, and the production fail path. `db.ts` now uses `ssl: true`
+  instead of `{ rejectUnauthorized: false }` for Neon/Railway/Supabase/
+  `sslmode=require` connections, restoring real certificate verification; a
+  comment points self-hosters with a private CA at `NODE_EXTRA_CA_CERTS`
+  instead of disabling verification. Updated the engine README's env table for
+  both `TOKEN_ENCRYPTION_KEY` and (from PR-1.1) `SHIELDCN_ALLOW_PRIVATE_FETCH`;
+  did not do the full P15 sweep (Sentry DSN doc, OAuth endpoint docs, default
+  postgres password note) — left that for its own pass since it's unrelated to
+  the crypto/TLS change.
 
 ### PR-1.3 — Shared rate limiter  · items: **B7 + F1** · effort M
 - **Do:** one limiter module (Redis/Upstash-backed on web where it's already
