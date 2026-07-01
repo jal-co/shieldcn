@@ -28,7 +28,7 @@ export async function getNpmVersion(pkg: string, tag?: string): Promise<BadgeDat
   return {
     label: "npm",
     value: `v${data.version}`,
-    link: `https://www.npmjs.com/package/${pkg}`,
+    link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -55,7 +55,7 @@ export async function getNpmDownloads(pkg: string, period: string = "last-week")
   return {
     label: "downloads",
     value: `${formatCount(downloads)}${suffix}`,
-    link: `https://www.npmjs.com/package/${pkg}`,
+    link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -67,7 +67,7 @@ export async function getNpmTotalDownloads(pkg: string): Promise<BadgeData | nul
   return {
     label: "downloads",
     value: formatCount(downloads),
-    link: `https://www.npmjs.com/package/${pkg}`,
+    link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -158,7 +158,7 @@ export async function getNpmLicense(pkg: string): Promise<BadgeData | null> {
   return {
     label: "license",
     value: license || "unknown",
-    link: `https://www.npmjs.com/package/${pkg}`,
+    link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -176,7 +176,7 @@ export async function getNpmNodeVersion(pkg: string): Promise<BadgeData | null> 
   return {
     label: "node",
     value: node || "any",
-    link: `https://www.npmjs.com/package/${pkg}`,
+    link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -190,16 +190,16 @@ export async function getNpmTypes(pkg: string): Promise<BadgeData | null> {
 
   // Check for TypeScript types
   if (data.types || data.typings) {
-    return { label: "types", value: "TypeScript", color: "blue", link: `https://www.npmjs.com/package/${pkg}` }
+    return { label: "types", value: "TypeScript", color: "blue", link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}` }
   }
 
   // Check if @types/ package exists
   const typesData = await npmFetch(`https://registry.npmjs.org/@types/${encodeURIComponent(pkg)}/latest`, `types:@types/${pkg}`)
   if (typesData) {
-    return { label: "types", value: "DefinitelyTyped", color: "blue", link: `https://www.npmjs.com/package/@types/${pkg}` }
+    return { label: "types", value: "DefinitelyTyped", color: "blue", link: `https://www.npmjs.com/package/@types/${encodeURIComponent(pkg)}` }
   }
 
-  return { label: "types", value: "untyped", link: `https://www.npmjs.com/package/${pkg}` }
+  return { label: "types", value: "untyped", link: `https://www.npmjs.com/package/${encodeURIComponent(pkg)}` }
 }
 
 // ---------------------------------------------------------------------------
@@ -216,6 +216,6 @@ export async function getNpmDependents(pkg: string): Promise<BadgeData | null> {
   return {
     label: "dependents",
     value: formatCount(data.total as number),
-    link: `https://www.npmjs.com/browse/depended/${pkg}`,
+    link: `https://www.npmjs.com/browse/depended/${encodeURIComponent(pkg)}`,
   }
 }

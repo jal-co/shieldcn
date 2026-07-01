@@ -31,7 +31,7 @@ async function chromeItemFetch(extensionId: string): Promise<Record<string, unkn
   return providerFetch({
     provider: "chrome",
     cacheKey: `item:${extensionId}`,
-    url: `https://update.googleapis.com/service/update2/json?protocol=3.1&acceptformat=crx3&prodversion=130.0&x=id%3D${extensionId}%26installsource%3Dondemand%26uc`,
+    url: `https://update.googleapis.com/service/update2/json?protocol=3.1&acceptformat=crx3&prodversion=130.0&x=id%3D${encodeURIComponent(extensionId)}%26installsource%3Dondemand%26uc`,
     ttl: 3600,
   })
 }
@@ -57,7 +57,7 @@ export async function getChromeVersion(extensionId: string): Promise<BadgeData |
   return {
     label: "chrome web store",
     value: `v${version}`,
-    link: `https://chromewebstore.google.com/detail/${extensionId}`,
+    link: `https://chromewebstore.google.com/detail/${encodeURIComponent(extensionId)}`,
   }
 }
 
@@ -75,7 +75,7 @@ export async function getChromeUsers(extensionId: string): Promise<BadgeData | n
   return {
     label: "users",
     value: formatCount(users),
-    link: `https://chromewebstore.google.com/detail/${extensionId}`,
+    link: `https://chromewebstore.google.com/detail/${encodeURIComponent(extensionId)}`,
   }
 }
 
@@ -99,6 +99,6 @@ export async function getChromeRating(extensionId: string): Promise<BadgeData | 
   return {
     label: "rating",
     value,
-    link: `https://chromewebstore.google.com/detail/${extensionId}`,
+    link: `https://chromewebstore.google.com/detail/${encodeURIComponent(extensionId)}`,
   }
 }

@@ -83,7 +83,7 @@ function formatCost(n: number): string {
 }
 
 function profileLink(username: string): string {
-  return `https://tokscale.ai/u/${username}`
+  return `https://tokscale.ai/u/${encodeURIComponent(username)}`
 }
 
 // ---------------------------------------------------------------------------

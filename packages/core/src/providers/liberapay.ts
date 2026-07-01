@@ -38,7 +38,7 @@ export async function getLiberapayReceiving(username: string): Promise<BadgeData
   return {
     label: "receiving",
     value: amount && currency ? `${amount} ${currency}/week` : "hidden",
-    link: `https://liberapay.com/${username}`,
+    link: `https://liberapay.com/${encodeURIComponent(username)}`,
   }
 }
 
@@ -56,7 +56,7 @@ export async function getLiberapayPatrons(username: string): Promise<BadgeData |
   return {
     label: "patrons",
     value: formatCount(npatrons),
-    link: `https://liberapay.com/${username}`,
+    link: `https://liberapay.com/${encodeURIComponent(username)}`,
   }
 }
 
@@ -69,7 +69,7 @@ export async function getLiberapayGoal(username: string): Promise<BadgeData | nu
   if (!data) return null
 
   const goal = data.goal as Record<string, string> | undefined
-  if (!goal) return { label: "goal", value: "not set", link: `https://liberapay.com/${username}` }
+  if (!goal) return { label: "goal", value: "not set", link: `https://liberapay.com/${encodeURIComponent(username)}` }
 
   const amount = goal.amount
   const currency = goal.currency
@@ -84,6 +84,6 @@ export async function getLiberapayGoal(username: string): Promise<BadgeData | nu
   return {
     label: "goal",
     value: amount && currency ? `${pct}% of ${amount} ${currency}/week` : "not set",
-    link: `https://liberapay.com/${username}`,
+    link: `https://liberapay.com/${encodeURIComponent(username)}`,
   }
 }

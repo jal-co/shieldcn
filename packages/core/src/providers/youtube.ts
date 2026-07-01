@@ -14,6 +14,7 @@ import { providerFetch } from "../provider-fetch"
 
 const API_KEY = process.env.YOUTUBE_API_KEY
 
+/** Returns null immediately (no request sent) when YOUTUBE_API_KEY isn't configured. */
 async function ytFetch(url: string, key: string): Promise<Record<string, unknown> | null> {
   if (!API_KEY) return null
   return providerFetch({ provider: "youtube", cacheKey: key, url, ttl: 3600 })
@@ -25,7 +26,8 @@ async function ytFetch(url: string, key: string): Promise<Record<string, unknown
 
 export async function getYouTubeSubscribers(channelId: string): Promise<BadgeData | null> {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${API_KEY}`, `subs:${channelId}`
+    `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${encodeURIComponent(channelId)}&key=${API_KEY}`,
+    `subs:${channelId}`,
   )
   if (!data) return null
   const items = data.items as Array<Record<string, unknown>> | undefined
@@ -36,7 +38,7 @@ export async function getYouTubeSubscribers(channelId: string): Promise<BadgeDat
   return {
     label: "subscribers",
     value: formatCount(count),
-    link: `https://youtube.com/channel/${channelId}`,
+    link: `https://youtube.com/channel/${encodeURIComponent(channelId)}`,
   }
 }
 
@@ -46,7 +48,8 @@ export async function getYouTubeSubscribers(channelId: string): Promise<BadgeDat
 
 export async function getYouTubeChannelViews(channelId: string): Promise<BadgeData | null> {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${API_KEY}`, `channel-views:${channelId}`
+    `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${encodeURIComponent(channelId)}&key=${API_KEY}`,
+    `channel-views:${channelId}`,
   )
   if (!data) return null
   const items = data.items as Array<Record<string, unknown>> | undefined
@@ -57,7 +60,7 @@ export async function getYouTubeChannelViews(channelId: string): Promise<BadgeDa
   return {
     label: "views",
     value: formatCount(count),
-    link: `https://youtube.com/channel/${channelId}`,
+    link: `https://youtube.com/channel/${encodeURIComponent(channelId)}`,
   }
 }
 
@@ -67,7 +70,8 @@ export async function getYouTubeChannelViews(channelId: string): Promise<BadgeDa
 
 export async function getYouTubeVideoViews(videoId: string): Promise<BadgeData | null> {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`, `views:${videoId}`
+    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${encodeURIComponent(videoId)}&key=${API_KEY}`,
+    `views:${videoId}`,
   )
   if (!data) return null
   const items = data.items as Array<Record<string, unknown>> | undefined
@@ -78,7 +82,7 @@ export async function getYouTubeVideoViews(videoId: string): Promise<BadgeData |
   return {
     label: "views",
     value: formatCount(count),
-    link: `https://youtube.com/watch?v=${videoId}`,
+    link: `https://youtube.com/watch?v=${encodeURIComponent(videoId)}`,
   }
 }
 
@@ -88,7 +92,8 @@ export async function getYouTubeVideoViews(videoId: string): Promise<BadgeData |
 
 export async function getYouTubeLikes(videoId: string): Promise<BadgeData | null> {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`, `likes:${videoId}`
+    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${encodeURIComponent(videoId)}&key=${API_KEY}`,
+    `likes:${videoId}`,
   )
   if (!data) return null
   const items = data.items as Array<Record<string, unknown>> | undefined
@@ -99,7 +104,7 @@ export async function getYouTubeLikes(videoId: string): Promise<BadgeData | null
   return {
     label: "likes",
     value: formatCount(count),
-    link: `https://youtube.com/watch?v=${videoId}`,
+    link: `https://youtube.com/watch?v=${encodeURIComponent(videoId)}`,
   }
 }
 
@@ -109,7 +114,8 @@ export async function getYouTubeLikes(videoId: string): Promise<BadgeData | null
 
 export async function getYouTubeComments(videoId: string): Promise<BadgeData | null> {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`, `comments:${videoId}`
+    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${encodeURIComponent(videoId)}&key=${API_KEY}`,
+    `comments:${videoId}`,
   )
   if (!data) return null
   const items = data.items as Array<Record<string, unknown>> | undefined
@@ -120,6 +126,6 @@ export async function getYouTubeComments(videoId: string): Promise<BadgeData | n
   return {
     label: "comments",
     value: formatCount(count),
-    link: `https://youtube.com/watch?v=${videoId}`,
+    link: `https://youtube.com/watch?v=${encodeURIComponent(videoId)}`,
   }
 }

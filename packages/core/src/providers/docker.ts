@@ -20,9 +20,12 @@ function repoUrl(image: string): string {
 
 /**
  * Normalize image name: if no slash, prefix "library/" for official images.
+ * Each path segment is percent-encoded individually so the "/" separator
+ * between namespace and repo name is preserved.
  */
 function normalizeImage(image: string): string {
-  return image.includes("/") ? image : `library/${image}`
+  const withNamespace = image.includes("/") ? image : `library/${image}`
+  return withNamespace.split("/").map(encodeURIComponent).join("/")
 }
 
 // ---------------------------------------------------------------------------

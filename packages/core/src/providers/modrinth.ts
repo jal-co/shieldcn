@@ -36,7 +36,7 @@ export async function getModrinthDownloads(slug: string): Promise<BadgeData | nu
   return {
     label: "downloads",
     value: formatCount(downloads),
-    link: `https://modrinth.com/mod/${slug}`,
+    link: `https://modrinth.com/mod/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -54,7 +54,7 @@ export async function getModrinthFollowers(slug: string): Promise<BadgeData | nu
   return {
     label: "followers",
     value: formatCount(followers),
-    link: `https://modrinth.com/mod/${slug}`,
+    link: `https://modrinth.com/mod/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -77,7 +77,7 @@ export async function getModrinthVersion(slug: string): Promise<BadgeData | null
   return {
     label: "modrinth",
     value: version ? `v${version}` : "unknown",
-    link: `https://modrinth.com/mod/${slug}/versions`,
+    link: `https://modrinth.com/mod/${encodeURIComponent(slug)}/versions`,
   }
 }
 
@@ -100,6 +100,6 @@ export async function getModrinthGameVersions(slug: string): Promise<BadgeData |
   return {
     label: "game versions",
     value,
-    link: `https://modrinth.com/mod/${slug}/versions`,
+    link: `https://modrinth.com/mod/${encodeURIComponent(slug)}/versions`,
   }
 }

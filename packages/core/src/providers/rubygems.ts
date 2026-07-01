@@ -30,7 +30,7 @@ export async function getRubyGemsVersion(gem: string): Promise<BadgeData | null>
   return {
     label: "gem",
     value: `v${data.version}`,
-    link: `https://rubygems.org/gems/${gem}`,
+    link: `https://rubygems.org/gems/${encodeURIComponent(gem)}`,
   }
 }
 
@@ -56,7 +56,7 @@ export async function getRubyGemsDownloads(gem: string, period: string = "total"
   return {
     label: "downloads",
     value: `${formatCount(count)}${suffix}`,
-    link: `https://rubygems.org/gems/${gem}`,
+    link: `https://rubygems.org/gems/${encodeURIComponent(gem)}`,
   }
 }
 
@@ -74,7 +74,7 @@ export async function getRubyGemsLicense(gem: string): Promise<BadgeData | null>
   return {
     label: "license",
     value: license,
-    link: `https://rubygems.org/gems/${gem}`,
+    link: `https://rubygems.org/gems/${encodeURIComponent(gem)}`,
   }
 }
 
@@ -89,6 +89,6 @@ export async function getRubyGemsPlatform(gem: string): Promise<BadgeData | null
   return {
     label: "platform",
     value: (data.platform as string) || "ruby",
-    link: `https://rubygems.org/gems/${gem}`,
+    link: `https://rubygems.org/gems/${encodeURIComponent(gem)}`,
   }
 }

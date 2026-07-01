@@ -39,7 +39,7 @@ export async function getBundleMin(pkg: string): Promise<BadgeData | null> {
   return {
     label: "minified",
     value: formatBytes(data.size as number),
-    link: `https://bundlephobia.com/package/${pkg}`,
+    link: `https://bundlephobia.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -54,7 +54,7 @@ export async function getBundleMinGzip(pkg: string): Promise<BadgeData | null> {
   return {
     label: "minzipped",
     value: formatBytes(data.gzip as number),
-    link: `https://bundlephobia.com/package/${pkg}`,
+    link: `https://bundlephobia.com/package/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -72,6 +72,6 @@ export async function getBundleTreeShaking(pkg: string): Promise<BadgeData | nul
     label: "tree shaking",
     value: treeshake ? "supported" : "not supported",
     color: treeshake ? "green" : "red",
-    link: `https://bundlephobia.com/package/${pkg}`,
+    link: `https://bundlephobia.com/package/${encodeURIComponent(pkg)}`,
   }
 }

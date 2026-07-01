@@ -23,7 +23,7 @@ export async function getWeblateTranslation(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "weblate",
     cacheKey: `stats:${server}:${project}:${component}`,
-    url: `https://${server}/api/components/${project}/${component}/statistics/`,
+    url: `https://${server}/api/components/${encodeURIComponent(project)}/${encodeURIComponent(component)}/statistics/`,
     ttl: 3600,
     userControlledHost: true,
   })
@@ -42,7 +42,7 @@ export async function getWeblateTranslation(
     label: "translated",
     value: `${pct}%`,
     color,
-    link: `https://${server}/projects/${project}/${component}/`,
+    link: `https://${server}/projects/${encodeURIComponent(project)}/${encodeURIComponent(component)}/`,
   }
 }
 
@@ -58,7 +58,7 @@ export async function getWeblateLanguages(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "weblate",
     cacheKey: `langs:${server}:${project}:${component}`,
-    url: `https://${server}/api/components/${project}/${component}/statistics/`,
+    url: `https://${server}/api/components/${encodeURIComponent(project)}/${encodeURIComponent(component)}/statistics/`,
     ttl: 3600,
     userControlledHost: true,
   })
@@ -73,6 +73,6 @@ export async function getWeblateLanguages(
   return {
     label: "languages",
     value: `${count}`,
-    link: `https://${server}/projects/${project}/${component}/`,
+    link: `https://${server}/projects/${encodeURIComponent(project)}/${encodeURIComponent(component)}/`,
   }
 }

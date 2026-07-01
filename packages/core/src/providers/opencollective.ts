@@ -14,7 +14,7 @@ async function ocFetch(slug: string): Promise<Record<string, unknown> | null> {
   return providerFetch({
     provider: "opencollective",
     cacheKey: `collective:${slug}`,
-    url: `https://opencollective.com/${slug}.json`,
+    url: `https://opencollective.com/${encodeURIComponent(slug)}.json`,
     ttl: 3600,
   })
 }
@@ -31,7 +31,7 @@ export async function getOCBackers(slug: string): Promise<BadgeData | null> {
   return {
     label: "backers",
     value: formatCount(count),
-    link: `https://opencollective.com/${slug}`,
+    link: `https://opencollective.com/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -47,7 +47,7 @@ export async function getOCSponsors(slug: string): Promise<BadgeData | null> {
   return {
     label: "sponsors",
     value: formatCount(count),
-    link: `https://opencollective.com/${slug}`,
+    link: `https://opencollective.com/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -63,7 +63,7 @@ export async function getOCContributors(slug: string): Promise<BadgeData | null>
   return {
     label: "contributors",
     value: formatCount(count),
-    link: `https://opencollective.com/${slug}`,
+    link: `https://opencollective.com/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -89,7 +89,7 @@ export async function getOCBalance(slug: string): Promise<BadgeData | null> {
   return {
     label: "balance",
     value: formatted,
-    link: `https://opencollective.com/${slug}`,
+    link: `https://opencollective.com/${encodeURIComponent(slug)}`,
   }
 }
 
@@ -114,6 +114,6 @@ export async function getOCBudget(slug: string): Promise<BadgeData | null> {
   return {
     label: "yearly budget",
     value: formatted,
-    link: `https://opencollective.com/${slug}`,
+    link: `https://opencollective.com/${encodeURIComponent(slug)}`,
   }
 }

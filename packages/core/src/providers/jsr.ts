@@ -21,7 +21,7 @@ function normalizeScope(scope: string): string {
 }
 
 function jsrLink(scope: string, name: string): string {
-  return `https://jsr.io/@${normalizeScope(scope)}/${name}`
+  return `https://jsr.io/@${encodeURIComponent(normalizeScope(scope))}/${encodeURIComponent(name)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ function jsrLink(scope: string, name: string): string {
 
 export async function getJSRVersion(scope: string, name: string): Promise<BadgeData | null> {
   const s = normalizeScope(scope)
-  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`, `v:${s}:${name}`)
+  const data = await jsrFetch(`https://jsr.io/api/scopes/${encodeURIComponent(s)}/packages/${encodeURIComponent(name)}`, `v:${s}:${name}`)
   if (!data || typeof data.latestVersion !== "string") return null
 
   return {
@@ -46,7 +46,7 @@ export async function getJSRVersion(scope: string, name: string): Promise<BadgeD
 
 export async function getJSRScore(scope: string, name: string): Promise<BadgeData | null> {
   const s = normalizeScope(scope)
-  const data = await jsrFetch(`https://jsr.io/api/scopes/${s}/packages/${encodeURIComponent(name)}`, `score:${s}:${name}`)
+  const data = await jsrFetch(`https://jsr.io/api/scopes/${encodeURIComponent(s)}/packages/${encodeURIComponent(name)}`, `score:${s}:${name}`)
   if (!data) return null
 
   const score = data.score as number | undefined

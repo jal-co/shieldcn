@@ -20,7 +20,7 @@ async function redditFetch(url: string, key: string): Promise<Record<string, unk
 }
 
 export async function getRedditKarma(user: string, type: string): Promise<BadgeData | null> {
-  const data = await redditFetch(`https://www.reddit.com/user/${user}/about.json`, `karma:${user}:${type}`)
+  const data = await redditFetch(`https://www.reddit.com/user/${encodeURIComponent(user)}/about.json`, `karma:${user}:${type}`)
   if (!data) return null
   const d = data.data as Record<string, unknown> | undefined
   if (!d) return null
@@ -46,12 +46,12 @@ export async function getRedditKarma(user: string, type: string): Promise<BadgeD
   return {
     label,
     value: formatCount(value),
-    link: `https://www.reddit.com/user/${user}`,
+    link: `https://www.reddit.com/user/${encodeURIComponent(user)}`,
   }
 }
 
 export async function getRedditSubscribers(subreddit: string): Promise<BadgeData | null> {
-  const data = await redditFetch(`https://www.reddit.com/r/${subreddit}/about.json`, `subs:${subreddit}`)
+  const data = await redditFetch(`https://www.reddit.com/r/${encodeURIComponent(subreddit)}/about.json`, `subs:${subreddit}`)
   if (!data) return null
   const d = data.data as Record<string, unknown> | undefined
   if (!d || typeof d.subscribers !== "number") return null
@@ -59,6 +59,6 @@ export async function getRedditSubscribers(subreddit: string): Promise<BadgeData
   return {
     label: `r/${subreddit}`,
     value: `${formatCount(d.subscribers as number)} subscribers`,
-    link: `https://www.reddit.com/r/${subreddit}`,
+    link: `https://www.reddit.com/r/${encodeURIComponent(subreddit)}`,
   }
 }

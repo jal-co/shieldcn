@@ -71,7 +71,7 @@ export async function getVSCodeInstalls(publisher: string, extension: string): P
   return {
     label: "installs",
     value: formatCount(installs),
-    link: `https://marketplace.visualstudio.com/items?itemName=${publisher}.${extension}`,
+    link: `https://marketplace.visualstudio.com/items?itemName=${encodeURIComponent(publisher)}.${encodeURIComponent(extension)}`,
   }
 }
 
@@ -89,7 +89,7 @@ export async function getVSCodeRating(publisher: string, extension: string): Pro
   return {
     label: "rating",
     value: `${rating.toFixed(1)}/5 (${formatCount(count)})`,
-    link: `https://marketplace.visualstudio.com/items?itemName=${publisher}.${extension}`,
+    link: `https://marketplace.visualstudio.com/items?itemName=${encodeURIComponent(publisher)}.${encodeURIComponent(extension)}`,
   }
 }
 
@@ -106,6 +106,6 @@ export async function getVSCodeVersion(publisher: string, extension: string): Pr
   return {
     label: "vs code marketplace",
     value: version ? `v${version}` : "unknown",
-    link: `https://marketplace.visualstudio.com/items?itemName=${publisher}.${extension}`,
+    link: `https://marketplace.visualstudio.com/items?itemName=${encodeURIComponent(publisher)}.${encodeURIComponent(extension)}`,
   }
 }

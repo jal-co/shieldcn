@@ -105,7 +105,7 @@
 - [x] **B18. Share backoff/budget state via Redis on serverless** (M) — backoff done via PR-2.4 (Redis-mirrored, tested with real cross-instance simulation); `consumeBudget`'s token bucket intentionally left for a future PR (needs an atomic Lua script for correctness, see plan notes)
   Backoff windows and token-bucket budgets are per-instance in-memory Maps (`cache.ts:61, 137`), so N concurrent lambdas allow N× the configured upstream rate and a 429 on one instance doesn't protect the others. When the Redis tier is configured, mirror `recordBackoff`/`isBackedOff` there. Also prune the unbounded `staleAlerted` set (`cache.ts:372`).
 
-- [ ] **B19. Encode path params consistently in providers; guard missing API keys** (S)
+- [x] **B19. Encode path params consistently in providers; guard missing API keys** (S) — done via PR-2.5 (~45 provider files encoded, several extra gaps found beyond the original list; regression test in `src/providers/url-encoding.test.ts`)
   `starhistory.ts:107` interpolates `owner`/`repo` un-encoded (github.ts encodes); ~19 provider files use no `encodeURIComponent` at all (discord, docker, opencollective, packagist, reddit, skills, weblate, youtube, ...), letting crafted segments alter the upstream path/query. Also `youtube.ts:28ff` interpolates `key=${API_KEY}` without checking the env var — return null early with a clear "config missing" verdict.
 
 - [ ] **B20. Expand core test coverage to the risk-bearing modules** (L)

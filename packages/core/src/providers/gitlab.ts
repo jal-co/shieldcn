@@ -40,7 +40,7 @@ export async function getGitLabStars(owner: string, repo: string): Promise<Badge
   return {
     label: "stars",
     value: formatCount(stars),
-    link: `https://gitlab.com/${owner}/${repo}/-/starrers`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/starrers`,
   }
 }
 
@@ -57,7 +57,7 @@ export async function getGitLabForks(owner: string, repo: string): Promise<Badge
   return {
     label: "forks",
     value: formatCount(forks),
-    link: `https://gitlab.com/${owner}/${repo}/-/forks`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/forks`,
   }
 }
 
@@ -67,7 +67,7 @@ export async function getGitLabForks(owner: string, repo: string): Promise<Badge
 
 export async function getGitLabIssues(owner: string, repo: string, state: string = "opened"): Promise<BadgeData | null> {
   const data = await gitlabFetch(
-    `/projects/${encodeProject(owner, repo)}/issues_statistics?state=${state}`,
+    `/projects/${encodeProject(owner, repo)}/issues_statistics?state=${encodeURIComponent(state)}`,
     `issues:${owner}/${repo}:${state}`,
   )
   if (!data) return null
@@ -81,7 +81,7 @@ export async function getGitLabIssues(owner: string, repo: string, state: string
   return {
     label,
     value: formatCount(count ?? 0),
-    link: `https://gitlab.com/${owner}/${repo}/-/issues`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/issues`,
   }
 }
 
@@ -94,7 +94,7 @@ export async function getGitLabMergeRequests(owner: string, repo: string, state:
   const data = await providerFetch<unknown[]>({
     provider: "gitlab",
     cacheKey: `mrs:${owner}/${repo}:${state}`,
-    url: `https://gitlab.com/api/v4/projects/${encodeProject(owner, repo)}/merge_requests?state=${state}&per_page=1`,
+    url: `https://gitlab.com/api/v4/projects/${encodeProject(owner, repo)}/merge_requests?state=${encodeURIComponent(state)}&per_page=1`,
     ttl: 3600,
   })
   // The API returns an array; we need the x-total header but can't get it with providerFetch
@@ -111,7 +111,7 @@ export async function getGitLabMergeRequests(owner: string, repo: string, state:
   return {
     label,
     value: Array.isArray(data) ? formatCount(data.length) : "0",
-    link: `https://gitlab.com/${owner}/${repo}/-/merge_requests?state=${state}`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/merge_requests?state=${encodeURIComponent(state)}`,
   }
 }
 
@@ -161,7 +161,7 @@ export async function getGitLabPipeline(owner: string, repo: string, branch?: st
     label: ref ? `pipeline (${ref})` : "pipeline",
     value: statusMap[status] ?? status,
     color: colorMap[status] ?? undefined,
-    link: `https://gitlab.com/${owner}/${repo}/-/pipelines`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/pipelines`,
   }
 }
 
@@ -179,7 +179,7 @@ export async function getGitLabLicense(owner: string, repo: string): Promise<Bad
   return {
     label: "license",
     value: licenseObj?.nickname || licenseObj?.name || "unknown",
-    link: `https://gitlab.com/${owner}/${repo}`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
   }
 }
 
@@ -210,7 +210,7 @@ export async function getGitLabLastCommit(owner: string, repo: string, branch?: 
   return {
     label: "last activity",
     value,
-    link: `https://gitlab.com/${owner}/${repo}/-/commits`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/commits`,
   }
 }
 
@@ -240,7 +240,7 @@ export async function getGitLabContributors(owner: string, repo: string): Promis
   return {
     label: "contributors",
     value: formatCount(data.length),
-    link: `https://gitlab.com/${owner}/${repo}/-/graphs/main`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/graphs/main`,
   }
 }
 
@@ -263,6 +263,6 @@ export async function getGitLabRelease(owner: string, repo: string): Promise<Bad
   return {
     label: "release",
     value: tag ?? "unknown",
-    link: `https://gitlab.com/${owner}/${repo}/-/releases`,
+    link: `https://gitlab.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/-/releases`,
   }
 }

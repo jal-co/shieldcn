@@ -36,7 +36,7 @@ export async function getAMOVersion(slug: string): Promise<BadgeData | null> {
   return {
     label: "mozilla add-on",
     value: `v${version}`,
-    link: `https://addons.mozilla.org/firefox/addon/${slug}/`,
+    link: `https://addons.mozilla.org/firefox/addon/${encodeURIComponent(slug)}/`,
   }
 }
 
@@ -54,7 +54,7 @@ export async function getAMOUsers(slug: string): Promise<BadgeData | null> {
   return {
     label: "users",
     value: formatCount(users),
-    link: `https://addons.mozilla.org/firefox/addon/${slug}/`,
+    link: `https://addons.mozilla.org/firefox/addon/${encodeURIComponent(slug)}/`,
   }
 }
 
@@ -79,7 +79,7 @@ export async function getAMORating(slug: string): Promise<BadgeData | null> {
   return {
     label: "rating",
     value,
-    link: `https://addons.mozilla.org/firefox/addon/${slug}/`,
+    link: `https://addons.mozilla.org/firefox/addon/${encodeURIComponent(slug)}/`,
   }
 }
 
@@ -97,6 +97,6 @@ export async function getAMODownloads(slug: string): Promise<BadgeData | null> {
   return {
     label: "downloads",
     value: `${formatCount(weeklyDownloads)}/week`,
-    link: `https://addons.mozilla.org/firefox/addon/${slug}/`,
+    link: `https://addons.mozilla.org/firefox/addon/${encodeURIComponent(slug)}/`,
   }
 }

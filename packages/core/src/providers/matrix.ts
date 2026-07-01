@@ -73,7 +73,7 @@ async function fetchRoomMembers(
       return {
         label: "matrix",
         value: `${formatCount(count)} members`,
-        link: `https://matrix.to/#/#${roomAlias}:${server}`,
+        link: `https://matrix.to/#/#${encodeURIComponent(roomAlias)}:${server}`,
       }
     }
   }
@@ -82,6 +82,6 @@ async function fetchRoomMembers(
   return {
     label: "matrix",
     value: "join",
-    link: `https://matrix.to/#/#${roomAlias}:${server}`,
+    link: `https://matrix.to/#/#${encodeURIComponent(roomAlias)}:${server}`,
   }
 }

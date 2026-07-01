@@ -14,7 +14,7 @@ function normalizeUsername(username: string): string {
 }
 
 function profileLink(username: string): string {
-  return `https://x.com/${normalizeUsername(username)}`
+  return `https://x.com/${encodeURIComponent(normalizeUsername(username))}`
 }
 
 // ---------------------------------------------------------------------------

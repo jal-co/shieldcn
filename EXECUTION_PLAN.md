@@ -393,6 +393,33 @@ hot-path wins.
   is absent. **Verify:** crafted repo segment can't alter upstream path; missing
   key yields a clean badge, not a broken fetch.
 
+**Actual outcome:** Scope was larger than planned — the fix touched ~45
+provider files (not ~20), because a full grep sweep after the first pass
+turned up interpolation gaps the original audit missed: `nuget.ts`,
+`opencollective.ts`, `packagist.ts`, `pypi.ts`, `reddit.ts` (two sites),
+`stackexchange.ts` (two sites), `gitlab.ts` (a `state` query param), and
+`youtube.ts`'s `link` fields (only the fetch URLs had been encoded, not the
+outbound badge links). `youtube.ts`'s existing `if (!API_KEY) return null`
+guard in `ytFetch` was already a clean early return, so no behavior change
+was needed there beyond the encoding sweep. Added
+`src/providers/url-encoding.test.ts` as a regression lock — rather than one
+test per file, it spot-checks a representative sample across the fix's
+categories (package registries, GitHub's centralized `link()` helper,
+community/profile providers, and an instance-hosted provider where only the
+path segments — not the caller-supplied hostname — must be encoded) against
+a single hostile input containing `/`, `?`, `&`, and `#`. Two lessons from
+writing it: (1) providers routed through `safeFetch` (`userControlledHost:
+true`, e.g. Weblate) need `node:dns/promises` mocked to a public address in
+the test, or the SSRF guard rejects the fake test hostname before the
+stubbed `fetch` ever runs; (2) Docker Hub image names legitimately use `/`
+as a namespace/repo separator, so a naive "assert the raw slash-containing
+input never appears in the URL" test is testing the wrong thing — the
+correct assertion is that hostile characters (`?`/`&`/`#`) *within* a single
+segment get encoded away while the structural `/` between segments survives.
+Verified: full `pnpm test` (247 passed/10 skipped, including the DB-backed
+suites against a real local Postgres), `pnpm typecheck` clean across all
+packages, and `pnpm --filter @shieldcn/engine build` succeeds.
+
 ### PR-2.6 — Renderer clamps + safe casts  · items: **P8 + P7 + P6** · effort M
 - Mirror route-level dimension clamps inside `renderBadge`/`renderBadgeGroup`
   (`render.tsx:258`) and wrap `satori()` to degrade to `renderErrorBadge`. Add

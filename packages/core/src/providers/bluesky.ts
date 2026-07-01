@@ -31,7 +31,7 @@ export async function getBlueskyFollowers(handle: string): Promise<BadgeData | n
   return {
     label: "bluesky",
     value: `${formatCount(count)} followers`,
-    link: `https://bsky.app/profile/${handle}`,
+    link: `https://bsky.app/profile/${encodeURIComponent(handle)}`,
   }
 }
 
@@ -47,7 +47,7 @@ export async function getBlueskyFollowing(handle: string): Promise<BadgeData | n
   return {
     label: "bluesky",
     value: `${formatCount(count)} following`,
-    link: `https://bsky.app/profile/${handle}`,
+    link: `https://bsky.app/profile/${encodeURIComponent(handle)}`,
   }
 }
 
@@ -63,6 +63,6 @@ export async function getBlueskyPosts(handle: string): Promise<BadgeData | null>
   return {
     label: "bluesky",
     value: `${formatCount(count)} posts`,
-    link: `https://bsky.app/profile/${handle}`,
+    link: `https://bsky.app/profile/${encodeURIComponent(handle)}`,
   }
 }

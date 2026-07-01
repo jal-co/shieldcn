@@ -36,7 +36,7 @@ export async function getJsDelivrHits(
   return {
     label: "jsDelivr",
     value: `${formatCount(total)}${suffix}`,
-    link: `https://www.jsdelivr.com/package/npm/${pkg}`,
+    link: `https://www.jsdelivr.com/package/npm/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -52,7 +52,7 @@ export async function getJsDelivrGHHits(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "jsdelivr",
     cacheKey: `hits:gh:${owner}/${repo}:${period}`,
-    url: `https://data.jsdelivr.com/v1/packages/gh/${owner}/${repo}/stats/date/${period}`,
+    url: `https://data.jsdelivr.com/v1/packages/gh/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/stats/date/${period}`,
     ttl: 3600,
   })
   if (!data) return null
@@ -65,7 +65,7 @@ export async function getJsDelivrGHHits(
   return {
     label: "jsDelivr",
     value: `${formatCount(total)}${suffix}`,
-    link: `https://www.jsdelivr.com/package/gh/${owner}/${repo}`,
+    link: `https://www.jsdelivr.com/package/gh/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
   }
 }
 
@@ -88,6 +88,6 @@ export async function getJsDelivrRank(pkg: string): Promise<BadgeData | null> {
   return {
     label: "jsDelivr rank",
     value: rank !== undefined ? `#${rank}` : "unranked",
-    link: `https://www.jsdelivr.com/package/npm/${pkg}`,
+    link: `https://www.jsdelivr.com/package/npm/${encodeURIComponent(pkg)}`,
   }
 }

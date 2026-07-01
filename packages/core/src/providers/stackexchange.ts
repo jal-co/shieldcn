@@ -23,7 +23,7 @@ export async function getStackExchangeTagQuestions(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "stackexchange",
     cacheKey: `tag:${site}:${tag}`,
-    url: `https://api.stackexchange.com/2.3/tags/${encodeURIComponent(tag)}/info?site=${site}`,
+    url: `https://api.stackexchange.com/2.3/tags/${encodeURIComponent(tag)}/info?site=${encodeURIComponent(site)}`,
     ttl: 3600,
   })
   if (!data) return null
@@ -39,7 +39,7 @@ export async function getStackExchangeTagQuestions(
   return {
     label: `${siteName} [${tag}]`,
     value: `${formatCount(count)} questions`,
-    link: `https://${site === "stackoverflow" ? "stackoverflow.com" : `${site}.stackexchange.com`}/questions/tagged/${tag}`,
+    link: `https://${site === "stackoverflow" ? "stackoverflow.com" : `${site}.stackexchange.com`}/questions/tagged/${encodeURIComponent(tag)}`,
   }
 }
 
@@ -54,7 +54,7 @@ export async function getStackExchangeReputation(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "stackexchange",
     cacheKey: `user:${site}:${userId}`,
-    url: `https://api.stackexchange.com/2.3/users/${userId}?site=${site}`,
+    url: `https://api.stackexchange.com/2.3/users/${encodeURIComponent(userId)}?site=${encodeURIComponent(site)}`,
     ttl: 3600,
   })
   if (!data) return null
@@ -70,6 +70,6 @@ export async function getStackExchangeReputation(
   return {
     label: displayName ?? "reputation",
     value: formatCount(reputation),
-    link: `https://${site === "stackoverflow" ? "stackoverflow.com" : `${site}.stackexchange.com`}/users/${userId}`,
+    link: `https://${site === "stackoverflow" ? "stackoverflow.com" : `${site}.stackexchange.com`}/users/${encodeURIComponent(userId)}`,
   }
 }

@@ -32,7 +32,7 @@ export async function getCondaVersion(channel: string, pkg: string): Promise<Bad
   return {
     label: "conda",
     value: `v${version}`,
-    link: `https://anaconda.org/${channel}/${pkg}`,
+    link: `https://anaconda.org/${encodeURIComponent(channel)}/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -55,7 +55,7 @@ export async function getCondaDownloads(channel: string, pkg: string): Promise<B
   return {
     label: "downloads",
     value: formatCount(total),
-    link: `https://anaconda.org/${channel}/${pkg}`,
+    link: `https://anaconda.org/${encodeURIComponent(channel)}/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -73,6 +73,6 @@ export async function getCondaPlatform(channel: string, pkg: string): Promise<Ba
   return {
     label: "platform",
     value: platforms.join(" | "),
-    link: `https://anaconda.org/${channel}/${pkg}`,
+    link: `https://anaconda.org/${encodeURIComponent(channel)}/${encodeURIComponent(pkg)}`,
   }
 }

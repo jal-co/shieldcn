@@ -23,7 +23,7 @@ export async function getCodecovCoverage(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "codecov",
     cacheKey: `cov:${service}:${owner}:${repo}:${branch ?? "default"}`,
-    url: `https://codecov.io/api/v2/${service}/${owner}/repos/${repo}${branchParam}`,
+    url: `https://codecov.io/api/v2/${encodeURIComponent(service)}/${encodeURIComponent(owner)}/repos/${encodeURIComponent(repo)}${branchParam}`,
     ttl: 3600,
   })
   if (!data) return null
@@ -43,6 +43,6 @@ export async function getCodecovCoverage(
     label: "coverage",
     value: `${pct}%`,
     color,
-    link: `https://codecov.io/${service}/${owner}/${repo}`,
+    link: `https://codecov.io/${encodeURIComponent(service)}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
   }
 }

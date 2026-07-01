@@ -32,7 +32,7 @@ export async function getMastodonFollowers(instance: string, acct: string): Prom
   return {
     label: "mastodon",
     value: `${formatCount(count)} followers`,
-    link: data.url as string || `https://${instance}/@${acct}`,
+    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }
 
@@ -48,7 +48,7 @@ export async function getMastodonFollowing(instance: string, acct: string): Prom
   return {
     label: "mastodon",
     value: `${formatCount(count)} following`,
-    link: data.url as string || `https://${instance}/@${acct}`,
+    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }
 
@@ -64,6 +64,6 @@ export async function getMastodonPosts(instance: string, acct: string): Promise<
   return {
     label: "mastodon",
     value: `${formatCount(count)} posts`,
-    link: data.url as string || `https://${instance}/@${acct}`,
+    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }

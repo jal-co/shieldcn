@@ -28,7 +28,7 @@ export async function getPubVersion(pkg: string): Promise<BadgeData | null> {
   return {
     label: "pub",
     value: version ? `v${version}` : "unknown",
-    link: `https://pub.dev/packages/${pkg}`,
+    link: `https://pub.dev/packages/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -46,7 +46,7 @@ export async function getPubLikes(pkg: string): Promise<BadgeData | null> {
   return {
     label: "likes",
     value: formatCount(likes),
-    link: `https://pub.dev/packages/${pkg}`,
+    link: `https://pub.dev/packages/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -65,7 +65,7 @@ export async function getPubPoints(pkg: string): Promise<BadgeData | null> {
   return {
     label: "pub points",
     value: `${points}/${max}`,
-    link: `https://pub.dev/packages/${pkg}/score`,
+    link: `https://pub.dev/packages/${encodeURIComponent(pkg)}/score`,
   }
 }
 
@@ -83,6 +83,6 @@ export async function getPubPopularity(pkg: string): Promise<BadgeData | null> {
   return {
     label: "popularity",
     value: `${Math.round(popularity * 100)}%`,
-    link: `https://pub.dev/packages/${pkg}`,
+    link: `https://pub.dev/packages/${encodeURIComponent(pkg)}`,
   }
 }

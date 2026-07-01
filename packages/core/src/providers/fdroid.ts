@@ -33,6 +33,6 @@ export async function getFDroidVersion(appId: string): Promise<BadgeData | null>
   return {
     label: "f-droid",
     value: version ? `v${version}` : "unknown",
-    link: `https://f-droid.org/packages/${appId}/`,
+    link: `https://f-droid.org/packages/${encodeURIComponent(appId)}/`,
   }
 }

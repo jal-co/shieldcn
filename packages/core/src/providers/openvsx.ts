@@ -34,7 +34,7 @@ export async function getOpenVSXVersion(namespace: string, extension: string): P
   return {
     label: "open vsx",
     value: version ? `v${version}` : "unknown",
-    link: `https://open-vsx.org/extension/${namespace}/${extension}`,
+    link: `https://open-vsx.org/extension/${encodeURIComponent(namespace)}/${encodeURIComponent(extension)}`,
   }
 }
 
@@ -52,7 +52,7 @@ export async function getOpenVSXDownloads(namespace: string, extension: string):
   return {
     label: "downloads",
     value: formatCount(downloads),
-    link: `https://open-vsx.org/extension/${namespace}/${extension}`,
+    link: `https://open-vsx.org/extension/${encodeURIComponent(namespace)}/${encodeURIComponent(extension)}`,
   }
 }
 
@@ -76,6 +76,6 @@ export async function getOpenVSXRating(namespace: string, extension: string): Pr
   return {
     label: "rating",
     value,
-    link: `https://open-vsx.org/extension/${namespace}/${extension}/reviews`,
+    link: `https://open-vsx.org/extension/${encodeURIComponent(namespace)}/${encodeURIComponent(extension)}/reviews`,
   }
 }

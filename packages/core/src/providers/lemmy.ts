@@ -35,7 +35,7 @@ export async function getLemmySubscribers(instance: string, community: string): 
   return {
     label: `!${community}`,
     value: `${formatCount(counts.subscribers ?? 0)} subscribers`,
-    link: `https://${instance}/c/${community}`,
+    link: `https://${instance}/c/${encodeURIComponent(community)}`,
   }
 }
 
@@ -54,7 +54,7 @@ export async function getLemmyPosts(instance: string, community: string): Promis
   return {
     label: `!${community}`,
     value: `${formatCount(counts.posts ?? 0)} posts`,
-    link: `https://${instance}/c/${community}`,
+    link: `https://${instance}/c/${encodeURIComponent(community)}`,
   }
 }
 
@@ -73,6 +73,6 @@ export async function getLemmyComments(instance: string, community: string): Pro
   return {
     label: `!${community}`,
     value: `${formatCount(counts.comments ?? 0)} comments`,
-    link: `https://${instance}/c/${community}`,
+    link: `https://${instance}/c/${encodeURIComponent(community)}`,
   }
 }

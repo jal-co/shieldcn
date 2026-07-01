@@ -18,6 +18,6 @@ export async function getIndieDevsUser(username: string): Promise<BadgeData | nu
   return {
     label: "indiedevs",
     value: username,
-    link: `https://www.indiedevs.me/${username}`,
+    link: `https://www.indiedevs.me/${encodeURIComponent(username)}`,
   }
 }

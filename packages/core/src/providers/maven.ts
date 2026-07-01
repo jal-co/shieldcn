@@ -30,6 +30,6 @@ export async function getMavenVersion(groupId: string, artifactId: string): Prom
   return {
     label: "maven central",
     value: version ? `v${version}` : "unknown",
-    link: `https://search.maven.org/artifact/${groupId}/${artifactId}`,
+    link: `https://search.maven.org/artifact/${encodeURIComponent(groupId)}/${encodeURIComponent(artifactId)}`,
   }
 }

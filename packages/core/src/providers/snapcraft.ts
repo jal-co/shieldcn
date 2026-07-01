@@ -42,6 +42,6 @@ export async function getSnapcraftVersion(snap: string): Promise<BadgeData | nul
   return {
     label: "snap",
     value: version ? `v${version}` : "unknown",
-    link: `https://snapcraft.io/${snap}`,
+    link: `https://snapcraft.io/${encodeURIComponent(snap)}`,
   }
 }

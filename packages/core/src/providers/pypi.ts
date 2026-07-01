@@ -27,7 +27,7 @@ export async function getPyPIVersion(pkg: string): Promise<BadgeData | null> {
   return {
     label: "pypi",
     value: `v${info.version}`,
-    link: `https://pypi.org/project/${pkg}/`,
+    link: `https://pypi.org/project/${encodeURIComponent(pkg)}/`,
   }
 }
 
@@ -40,7 +40,7 @@ export async function getPyPIDownloads(pkg: string, period: string = "month"): P
     const data = await providerFetch({
       provider: "pypi",
       cacheKey: `dl:${pkg}:${period}`,
-      url: `https://pypistats.org/api/packages/${pkg.toLowerCase()}/recent`,
+      url: `https://pypistats.org/api/packages/${encodeURIComponent(pkg.toLowerCase())}/recent`,
       ttl: 3600,
       headers: { "User-Agent": "shieldcn/1.0 (badge service; https://shieldcn.dev)" },
     })
@@ -69,7 +69,7 @@ export async function getPyPIDownloads(pkg: string, period: string = "month"): P
     return {
       label: "downloads",
       value: `${formatCount(downloads)}${suffix}`,
-      link: `https://pypi.org/project/${pkg}/`,
+      link: `https://pypi.org/project/${encodeURIComponent(pkg)}/`,
     }
   } catch {
     return null
@@ -93,7 +93,7 @@ export async function getPyPILicense(pkg: string): Promise<BadgeData | null> {
   return {
     label: "license",
     value: license,
-    link: `https://pypi.org/project/${pkg}/`,
+    link: `https://pypi.org/project/${encodeURIComponent(pkg)}/`,
   }
 }
 
@@ -111,6 +111,6 @@ export async function getPyPIPythonVersion(pkg: string): Promise<BadgeData | nul
   return {
     label: "python",
     value: requires || "any",
-    link: `https://pypi.org/project/${pkg}/`,
+    link: `https://pypi.org/project/${encodeURIComponent(pkg)}/`,
   }
 }

@@ -14,7 +14,7 @@ async function nugetFetch(pkg: string): Promise<Record<string, unknown> | null> 
   return providerFetch({
     provider: "nuget",
     cacheKey: `reg:${pkg}`,
-    url: `https://api.nuget.org/v3/registration5-gz-semver2/${pkg.toLowerCase()}/index.json`,
+    url: `https://api.nuget.org/v3/registration5-gz-semver2/${encodeURIComponent(pkg.toLowerCase())}/index.json`,
     ttl: 3600,
   })
 }
@@ -56,7 +56,7 @@ export async function getNuGetVersion(pkg: string): Promise<BadgeData | null> {
   return {
     label: "nuget",
     value: version ? `v${version}` : "unknown",
-    link: `https://www.nuget.org/packages/${pkg}`,
+    link: `https://www.nuget.org/packages/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -80,6 +80,6 @@ export async function getNuGetDownloads(pkg: string): Promise<BadgeData | null> 
   return {
     label: "downloads",
     value: formatCount(count),
-    link: `https://www.nuget.org/packages/${pkg}`,
+    link: `https://www.nuget.org/packages/${encodeURIComponent(pkg)}`,
   }
 }

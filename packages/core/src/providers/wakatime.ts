@@ -32,6 +32,6 @@ export async function getWakaTimeCodingTime(username: string): Promise<BadgeData
   return {
     label: "wakatime",
     value: text,
-    link: `https://wakatime.com/@${username}`,
+    link: `https://wakatime.com/@${encodeURIComponent(username)}`,
   }
 }

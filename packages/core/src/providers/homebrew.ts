@@ -29,7 +29,7 @@ export async function getHomebrewVersion(formula: string): Promise<BadgeData | n
   return {
     label: "homebrew",
     value: version ? `v${version}` : "unknown",
-    link: `https://formulae.brew.sh/formula/${formula}`,
+    link: `https://formulae.brew.sh/formula/${encodeURIComponent(formula)}`,
   }
 }
 
@@ -45,7 +45,7 @@ export async function getHomebrewCaskVersion(cask: string): Promise<BadgeData | 
   return {
     label: "homebrew cask",
     value: version ? `v${version}` : "unknown",
-    link: `https://formulae.brew.sh/cask/${cask}`,
+    link: `https://formulae.brew.sh/cask/${encodeURIComponent(cask)}`,
   }
 }
 
@@ -72,7 +72,7 @@ export async function getHomebrewInstalls(formula: string, days: string = "30"):
       return {
         label: "installs",
         value: `${formatCount(count)} (${days}d)`,
-        link: `https://formulae.brew.sh/formula/${formula}`,
+        link: `https://formulae.brew.sh/formula/${encodeURIComponent(formula)}`,
       }
     }
   }
@@ -81,7 +81,7 @@ export async function getHomebrewInstalls(formula: string, days: string = "30"):
   return {
     label: "homebrew",
     value: formula,
-    link: `https://formulae.brew.sh/formula/${formula}`,
+    link: `https://formulae.brew.sh/formula/${encodeURIComponent(formula)}`,
   }
 }
 
@@ -125,7 +125,7 @@ export async function getHomebrewFormulaDownloads(formula: string, interval: str
   return {
     label: "downloads",
     value: `${formatCount(count)}${suffix}`,
-    link: `https://formulae.brew.sh/formula/${formula}`,
+    link: `https://formulae.brew.sh/formula/${encodeURIComponent(formula)}`,
   }
 }
 
@@ -157,6 +157,6 @@ export async function getHomebrewCaskDownloads(cask: string, interval: string = 
   return {
     label: "downloads",
     value: `${formatCount(count)}${suffix}`,
-    link: `https://formulae.brew.sh/cask/${cask}`,
+    link: `https://formulae.brew.sh/cask/${encodeURIComponent(cask)}`,
   }
 }

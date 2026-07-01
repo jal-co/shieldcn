@@ -31,7 +31,7 @@ export async function getFlathubVersion(appId: string): Promise<BadgeData | null
   return {
     label: "flathub",
     value: version ? `v${version}` : "unknown",
-    link: `https://flathub.org/apps/${appId}`,
+    link: `https://flathub.org/apps/${encodeURIComponent(appId)}`,
   }
 }
 
@@ -54,6 +54,6 @@ export async function getFlathubDownloads(appId: string): Promise<BadgeData | nu
   return {
     label: "installs",
     value: formatCount(installs),
-    link: `https://flathub.org/apps/${appId}`,
+    link: `https://flathub.org/apps/${encodeURIComponent(appId)}`,
   }
 }

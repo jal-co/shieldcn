@@ -14,7 +14,7 @@ async function packagistFetch(vendor: string, pkg: string): Promise<Record<strin
   return providerFetch({
     provider: "packagist",
     cacheKey: `pkg:${vendor}:${pkg}`,
-    url: `https://packagist.org/packages/${vendor}/${pkg}.json`,
+    url: `https://packagist.org/packages/${encodeURIComponent(vendor)}/${encodeURIComponent(pkg)}.json`,
     ttl: 3600,
   })
 }
@@ -42,7 +42,7 @@ export async function getPackagistVersion(vendor: string, pkg: string): Promise<
   return {
     label: "packagist",
     value: stable || "dev",
-    link: `https://packagist.org/packages/${vendor}/${pkg}`,
+    link: `https://packagist.org/packages/${encodeURIComponent(vendor)}/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -79,7 +79,7 @@ export async function getPackagistDownloads(vendor: string, pkg: string, period:
   return {
     label: "downloads",
     value: `${formatCount(count)}${suffix}`,
-    link: `https://packagist.org/packages/${vendor}/${pkg}`,
+    link: `https://packagist.org/packages/${encodeURIComponent(vendor)}/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -102,6 +102,6 @@ export async function getPackagistLicense(vendor: string, pkg: string): Promise<
   return {
     label: "license",
     value: license,
-    link: `https://packagist.org/packages/${vendor}/${pkg}`,
+    link: `https://packagist.org/packages/${encodeURIComponent(vendor)}/${encodeURIComponent(pkg)}`,
   }
 }

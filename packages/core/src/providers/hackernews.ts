@@ -26,6 +26,6 @@ export async function getHNKarma(userId: string): Promise<BadgeData | null> {
   return {
     label: "HN karma",
     value: formatCount(data.karma as number),
-    link: `https://news.ycombinator.com/user?id=${userId}`,
+    link: `https://news.ycombinator.com/user?id=${encodeURIComponent(userId)}`,
   }
 }

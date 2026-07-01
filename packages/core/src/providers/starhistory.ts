@@ -104,7 +104,7 @@ async function fetchStarPage(
   repo: string,
   page: number,
 ): Promise<string[] | null> {
-  const url = `https://api.github.com/repos/${owner}/${repo}/stargazers?per_page=100&page=${page}`
+  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/stargazers?per_page=100&page=${page}`
   const res = await ghFetch(url, "application/vnd.github.v3.star+json", 60 * 60 * 6)
   if (!res) return null
   try {
@@ -135,7 +135,7 @@ async function buildStarHistory(
 ): Promise<StarHistory | null> {
   // 1. Repo metadata → total stars.
   const repoRes = await ghFetch(
-    `https://api.github.com/repos/${owner}/${repo}`,
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
     "application/vnd.github.v3+json",
     60 * 60,
   )

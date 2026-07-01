@@ -166,7 +166,7 @@ export async function githubGraphQL(
 }
 
 function link(owner: string, repo: string, path = ""): string {
-  return `https://github.com/${owner}/${repo}${path}`
+  return `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}${path}`
 }
 
 function relDate(iso: string): string | null {
@@ -187,7 +187,7 @@ function relDate(iso: string): string | null {
 // ---------------------------------------------------------------------------
 
 async function repoData(owner: string, repo: string) {
-  return githubJson(`https://api.github.com/repos/${owner}/${repo}`)
+  return githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`)
 }
 
 /**
@@ -313,25 +313,25 @@ async function countPages(url: string): Promise<number | null> {
 }
 
 export async function getGitHubBranches(owner: string, repo: string): Promise<BadgeData | null> {
-  const count = await countPages(`https://api.github.com/repos/${owner}/${repo}/branches`)
+  const count = await countPages(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches`)
   if (count === null) return null
   return { label: "branches", value: formatCount(count), link: link(owner, repo, "/branches") }
 }
 
 export async function getGitHubReleases(owner: string, repo: string): Promise<BadgeData | null> {
-  const count = await countPages(`https://api.github.com/repos/${owner}/${repo}/releases`)
+  const count = await countPages(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases`)
   if (count === null) return null
   return { label: "releases", value: formatCount(count), link: link(owner, repo, "/releases") }
 }
 
 export async function getGitHubTags(owner: string, repo: string): Promise<BadgeData | null> {
-  const count = await countPages(`https://api.github.com/repos/${owner}/${repo}/tags`)
+  const count = await countPages(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/tags`)
   if (count === null) return null
   return { label: "tags", value: formatCount(count), link: link(owner, repo, "/tags") }
 }
 
 export async function getGitHubLatestTag(owner: string, repo: string): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/tags?per_page=1`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/tags?per_page=1`)
   if (!d || !Array.isArray(d) || d.length === 0) return null
   if (typeof d[0]?.name !== "string") return null
   return { label: "tag", value: d[0].name, link: link(owner, repo, "/tags") }
@@ -344,13 +344,13 @@ export async function getGitHubLatestTag(owner: string, repo: string): Promise<B
 export async function getGitHubRelease(owner: string, repo: string, channel?: string): Promise<BadgeData | null> {
   if (channel === "stable") {
     // Find latest non-prerelease
-    const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=20`)
+    const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=20`)
     if (!d || !Array.isArray(d)) return null
     const stable = d.find((r: Record<string, unknown>) => !r.prerelease && !r.draft)
     if (!stable || typeof stable.tag_name !== "string") return null
     return { label: "release", value: stable.tag_name, color: "blue", link: typeof stable.html_url === "string" ? stable.html_url : link(owner, repo, "/releases") }
   }
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/latest`)
   if (!d || typeof d.tag_name !== "string") return null
   return { label: "release", value: d.tag_name, color: "blue", link: d.html_url as string }
 }
@@ -360,7 +360,7 @@ export async function getGitHubRelease(owner: string, repo: string, channel?: st
 // ---------------------------------------------------------------------------
 
 export async function getGitHubContributors(owner: string, repo: string): Promise<BadgeData | null> {
-  const count = await countPages(`https://api.github.com/repos/${owner}/${repo}/contributors`)
+  const count = await countPages(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contributors`)
   if (count === null) return null
   return { label: "contributors", value: formatCount(count), link: link(owner, repo, "/graphs/contributors") }
 }
@@ -437,7 +437,7 @@ export async function getGitHubContributorsList(
       contributors.push({
         login: n.login,
         avatarUrl: n.avatar_url,
-        url: typeof n.html_url === "string" ? n.html_url : `https://github.com/${n.login}`,
+        url: typeof n.html_url === "string" ? n.html_url : `https://github.com/${encodeURIComponent(n.login)}`,
         contributions: typeof n.contributions === "number" ? n.contributions : 0,
         type: isBot ? "Bot" : rawType === "Anonymous" ? "Anonymous" : "User",
       })
@@ -472,7 +472,7 @@ export async function getGitHubCI(
   if (branch) params.set("branch", branch)
   const wp = workflow ? `/workflows/${encodeURIComponent(workflow)}` : ""
   const d = await githubJson(
-    `https://api.github.com/repos/${owner}/${repo}/actions${wp}/runs?${params}`,
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/actions${wp}/runs?${params}`,
     600
   )
   if (!d) return null
@@ -489,7 +489,7 @@ export async function getGitHubChecks(
   const branch = ref || "HEAD"
   // Combined status
   const d = await githubJson(
-    `https://api.github.com/repos/${owner}/${repo}/commits/${branch}/check-runs?per_page=100`,
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(branch)}/check-runs?per_page=100`,
     600
   )
   if (!d) return null
@@ -590,13 +590,13 @@ export async function getGitHubPRs(owner: string, repo: string, filter: string):
 export async function getGitHubMilestone(
   owner: string, repo: string, milestoneNumber: string
 ): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/milestones/${encodeURIComponent(milestoneNumber)}`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/milestones/${encodeURIComponent(milestoneNumber)}`)
   if (!d || typeof d.title !== "string" || typeof d.open_issues !== "number" || typeof d.closed_issues !== "number") return null
   const open = d.open_issues
   const closed = d.closed_issues
   const total = open + closed
   const pct = total > 0 ? Math.round((closed / total) * 100) : 0
-  return { label: d.title, value: `${pct}%`, link: link(owner, repo, `/milestone/${milestoneNumber}`) }
+  return { label: d.title, value: `${pct}%`, link: link(owner, repo, `/milestone/${encodeURIComponent(milestoneNumber)}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -605,21 +605,21 @@ export async function getGitHubMilestone(
 
 export async function getGitHubCommits(owner: string, repo: string, ref?: string): Promise<BadgeData | null> {
   const branch = ref ? `?sha=${encodeURIComponent(ref)}` : ""
-  const count = await countPages(`https://api.github.com/repos/${owner}/${repo}/commits${branch}`)
+  const count = await countPages(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits${branch}`)
   if (count === null) return null
-  return { label: "commits", value: formatCount(count), link: link(owner, repo, `/commits${ref ? `/${ref}` : ""}`) }
+  return { label: "commits", value: formatCount(count), link: link(owner, repo, `/commits${ref ? `/${encodeURIComponent(ref)}` : ""}`) }
 }
 
 export async function getGitHubLastCommit(owner: string, repo: string, ref?: string): Promise<BadgeData | null> {
   const params = new URLSearchParams({ per_page: "1" })
   if (ref) params.set("sha", ref)
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/commits?${params}`, 600)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?${params}`, 600)
   if (!d || !Array.isArray(d) || d.length === 0) return null
   const date = d[0].commit?.author?.date || d[0].commit?.committer?.date
   if (typeof date !== "string") return null
   const rel = relDate(date)
   if (rel === null) return null
-  return { label: "last commit", value: rel, link: link(owner, repo, `/commits${ref ? `/${ref}` : ""}`) }
+  return { label: "last commit", value: rel, link: link(owner, repo, `/commits${ref ? `/${encodeURIComponent(ref)}` : ""}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -628,8 +628,8 @@ export async function getGitHubLastCommit(owner: string, repo: string, ref?: str
 
 export async function getGitHubAssetsDl(owner: string, repo: string, tag?: string): Promise<BadgeData | null> {
   const url = tag
-    ? `https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`
-    : `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+    ? `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/tags/${encodeURIComponent(tag)}`
+    : `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/latest`
   const d = await githubJson(url)
   if (!d) return null
   const assets = d.assets
@@ -648,7 +648,7 @@ export async function getGitHubDownloadsAllAssetsAllReleases(owner: string, repo
   let page = 1
   const perPage = 100
   while (true) {
-    const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=${perPage}&page=${page}`
     const d = await githubJson(url)
     // A failed page (rate limit, backoff, network) must fail the whole badge:
     // a partial sum — or a flat 0 — would otherwise be persisted as
@@ -675,7 +675,7 @@ export async function getGitHubDownloadsAllAssetsAllReleases(owner: string, repo
 // ---------------------------------------------------------------------------
 
 export async function getGitHubDownloadsAllAssetsLatest(owner: string, repo: string): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/latest`)
   if (!d) return null
   const assets = d.assets
   if (!Array.isArray(assets)) return null
@@ -689,12 +689,12 @@ export async function getGitHubDownloadsAllAssetsLatest(owner: string, repo: str
 // ---------------------------------------------------------------------------
 
 export async function getGitHubDownloadsAllAssetsTag(owner: string, repo: string, tag: string): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/tags/${encodeURIComponent(tag)}`)
   if (!d) return null
   const assets = d.assets
   if (!Array.isArray(assets)) return null
   const total = assets.reduce((sum: number, a) => sum + ((a.download_count as number) || 0), 0)
-  return { label: `downloads@${tag}`, value: formatCount(total), link: link(owner, repo, `/releases/tag/${tag}`) }
+  return { label: `downloads@${tag}`, value: formatCount(total), link: link(owner, repo, `/releases/tag/${encodeURIComponent(tag)}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -706,7 +706,7 @@ export async function getGitHubDownloadsAssetAllReleases(owner: string, repo: st
   let page = 1
   const perPage = 100
   while (true) {
-    const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=${perPage}&page=${page}`
     const d = await githubJson(url)
     // A failed page must fail the whole badge — see
     // getGitHubDownloadsAllAssetsAllReleases for why.
@@ -734,7 +734,7 @@ export async function getGitHubDownloadsAssetAllReleases(owner: string, repo: st
 // ---------------------------------------------------------------------------
 
 export async function getGitHubDownloadsAssetLatest(owner: string, repo: string, assetName: string): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/latest`)
   if (!d) return null
   const assets = d.assets
   if (!Array.isArray(assets)) return null
@@ -750,14 +750,14 @@ export async function getGitHubDownloadsAssetLatest(owner: string, repo: string,
 // ---------------------------------------------------------------------------
 
 export async function getGitHubDownloadsAssetTag(owner: string, repo: string, tag: string, assetName: string): Promise<BadgeData | null> {
-  const d = await githubJson(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`)
+  const d = await githubJson(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/tags/${encodeURIComponent(tag)}`)
   if (!d) return null
   const assets = d.assets
   if (!Array.isArray(assets)) return null
   const asset = assets.find(a => (a.name as string) === assetName)
-  if (!asset) return { label: `downloads@${tag} [${assetName}]`, value: "0", link: link(owner, repo, `/releases/tag/${tag}`) }
+  if (!asset) return { label: `downloads@${tag} [${assetName}]`, value: "0", link: link(owner, repo, `/releases/tag/${encodeURIComponent(tag)}`) }
   const count = (asset.download_count as number) || 0
-  return { label: `downloads@${tag} [${assetName}]`, value: formatCount(count), link: link(owner, repo, `/releases/tag/${tag}`) }
+  return { label: `downloads@${tag} [${assetName}]`, value: formatCount(count), link: link(owner, repo, `/releases/tag/${encodeURIComponent(tag)}`) }
 }
 
 // ---------------------------------------------------------------------------
@@ -769,10 +769,10 @@ export async function getGitHubDependabot(owner: string, repo: string): Promise<
   // "not configured"; anything indeterminate (rate limit, backoff, network)
   // must return null so the route serves last-known-good instead of flipping
   // a configured repo to "not found" during an outage.
-  const yml = await githubHeadExists(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yml`)
+  const yml = await githubHeadExists(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/.github/dependabot.yml`)
   if (yml === true) return { label: "dependabot", value: "enabled", color: "success" }
 
-  const yaml = await githubHeadExists(`https://api.github.com/repos/${owner}/${repo}/contents/.github/dependabot.yaml`)
+  const yaml = await githubHeadExists(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/.github/dependabot.yaml`)
   if (yaml === true) return { label: "dependabot", value: "enabled", color: "success" }
 
   if (yml === false && yaml === false) {
@@ -786,19 +786,19 @@ export async function getGitHubDependabot(owner: string, repo: string): Promise<
 // ---------------------------------------------------------------------------
 
 export async function getGitHubFollowers(username: string): Promise<BadgeData | null> {
-  const data = await githubJson(`https://api.github.com/users/${username}`)
+  const data = await githubJson(`https://api.github.com/users/${encodeURIComponent(username)}`)
   if (!data || typeof data.followers !== "number") return null
   return {
     label: "followers",
     value: formatCount(data.followers as number),
-    link: `https://github.com/${username}?tab=followers`,
+    link: `https://github.com/${encodeURIComponent(username)}?tab=followers`,
   }
 }
 
 export async function getGitHubUserStars(username: string): Promise<BadgeData | null> {
   // Sum stargazers across all user-owned repos
   const repos = await githubFetch(
-    `https://api.github.com/users/${username}/repos?per_page=100&sort=stars&type=owner`,
+    `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=stars&type=owner`,
   )
   if (!repos) return null
   let list: Array<{ stargazers_count: number; fork: boolean }>
@@ -815,7 +815,7 @@ export async function getGitHubUserStars(username: string): Promise<BadgeData | 
   return {
     label: "stars",
     value: formatCount(total),
-    link: `https://github.com/${username}?tab=repositories`,
+    link: `https://github.com/${encodeURIComponent(username)}?tab=repositories`,
   }
 }
 
@@ -843,7 +843,7 @@ export async function getGitHubSponsors(login: string): Promise<BadgeData | null
   return {
     label: "Sponsors",
     value: formatCount(count),
-    link: `https://github.com/sponsors/${login}`,
+    link: `https://github.com/sponsors/${encodeURIComponent(login)}`,
   }
 }
 
@@ -957,7 +957,7 @@ async function fetchSponsorsViaGraphQL(login: string, sponsorToken: string | und
         login: n.login,
         name: typeof n.name === "string" && n.name.trim() ? n.name : null,
         avatarUrl: n.avatarUrl,
-        url: typeof n.url === "string" ? n.url : `https://github.com/${n.login}`,
+        url: typeof n.url === "string" ? n.url : `https://github.com/${encodeURIComponent(n.login)}`,
         type: n.__typename === "Organization" ? "Organization" : "User",
       })
     }
@@ -1004,12 +1004,12 @@ export function parseSponsorsWall(html: string, login: string): SponsorsList {
     if (key === self || seen.has(key)) continue
     seen.add(key)
     const srcMatch = tag.match(/src="([^"]+)"/)
-    const rawSrc = srcMatch ? srcMatch[1].replace(/&amp;/g, "&") : `https://github.com/${l}.png`
+    const rawSrc = srcMatch ? srcMatch[1].replace(/&amp;/g, "&") : `https://github.com/${encodeURIComponent(l)}.png`
     sponsors.push({
       login: l,
       name: null, // public HTML exposes the login only, not the display name
       avatarUrl: bumpAvatarSize(rawSrc, 160),
-      url: `https://github.com/${l}`,
+      url: `https://github.com/${encodeURIComponent(l)}`,
       type: "User",
     })
   }
