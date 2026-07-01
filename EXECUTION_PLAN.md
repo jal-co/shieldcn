@@ -704,6 +704,46 @@ alongside the existing inline "Failed" button state).
   `useSyncExternalStore` pattern the others use. **Verify:** all builders produce
   byte-identical output to before; no hydration warning.
 
+**Actual outcome:** All three extractions landed as planned.
+`lib/use-copy-to-clipboard.ts` centralizes the copied/copyError timing +
+toast-on-failure that PR-3.4 had just added to 8 places — applied to all 6
+consumers named in the plan (4 builders + `badge-modal.tsx` +
+`badge-group-modal.tsx`). `components/copy-output-section.tsx` extracts the
+~30-line format-ToggleGroup + code + copy-button JSX that was
+byte-identical across the 4 builders. `lib/builder-output.ts` is narrower
+than "one formatter for everything" — badge-builder.tsx's own
+`formatOutput` (RST support, routes through `formatBadgeOutput`'s
+picture-tag options) and badge-modal.tsx's own (5 formats incl. asciidoc,
+different toggle UI) are genuinely different enough from each other and
+from the header/sponsors/contributors trio that forcing one shape would
+have been the wrong abstraction; the extraction covers exactly the byte-
+identical/strict-generalization case that existed (header + sponsors were
+character-for-character identical; contributors was the same function with
+an added optional link-wrap, which `formatImageOutput`'s optional `link`
+param now expresses directly) — `badge-modal.tsx`/`badge-group-modal.tsx`
+keep their own distinct UI, just built on the shared hook now.
+`badge-builder.tsx`'s `baseUrl` moved from `useState("https://shieldcn.dev")`
++ `useEffect(() => setBaseUrl(window.location.origin), [])` to the same
+`useSyncExternalStore` snapshot pattern the other three builders already
+used — eliminates the extra post-mount render + brief wrong-origin flash
+(e.g. showing `shieldcn.dev` URLs for a beat in local dev before snapping
+to `localhost`).
+
+Caught one real bug while extracting `header-builder.tsx`'s JSX into
+`CopyOutputSection`: the old JSX had two nested `<div>` wrappers around the
+format-switcher block, and my first edit only matched (and replaced) the
+inner one, leaving an orphaned closing `</div>` that `tsc` caught
+immediately as a parse error — fixed before it ever reached a build.
+
+Verified: `pnpm typecheck` clean, `pnpm --filter @shieldcn/web build`
+succeeds, `pnpm test` (262/10), and a live Playwright pass against the
+production build confirmed all 4 builders still produce correctly-shaped
+output (`badge-builder`'s picture-tag markdown, `header-builder`'s
+`![title](url)`, `sponsors-builder`'s same shape, `contributors-builder`'s
+link-wrapped markdown) using the real client origin (not the SSR
+fallback), plus confirmed the badge modal's copy button still surfaces the
+PR-3.4 toast on a simulated clipboard failure.
+
 ### PR-3.6 — Motion bundle deferral  · items: **F9** · effort M
 - `next/dynamic` (or `LazyMotion`/`m`) for tour + hero choreography; drop eager
   top-level `motion/react` from `sidebar.tsx:6`. **Verify:** shared client bundle

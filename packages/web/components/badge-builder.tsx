@@ -8,13 +8,11 @@
 
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
-import { Copy, Check } from "lucide-react"
-import { toast } from "sonner"
+import { useState, useEffect, useMemo, useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/button"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { BadgeBuilderCore } from "@/components/badge-builder-core"
+import { CopyOutputSection } from "@/components/copy-output-section"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import {
   BUILDER_DEFAULTS,
   buildBadgeUrl,
@@ -64,15 +62,19 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
 
 export function BadgeBuilder() {
   const [s, setS] = useState<BuilderState>(BUILDER_DEFAULTS)
-  const [copied, setCopied] = useState(false)
-  const [copyError, setCopyError] = useState(false)
   const [copyFormat, setCopyFormat] = useState<CopyFormat>("markdown")
-  const [baseUrl, setBaseUrl] = useState("https://shieldcn.dev")
+  const { copied, copyError, copy } = useCopyToClipboard()
   const { resolvedTheme } = useTheme()
 
-  // Pre-existing react-compiler debt (set-state-in-effect); tracked separately.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setBaseUrl(window.location.origin) }, [])
+  // Snapshot the real origin synchronously on the client's first render
+  // (matches SSR's fallback exactly, so there's no post-hydration flash of
+  // the wrong origin the way a `useState` + `useEffect(setBaseUrl, [])`
+  // pair would produce).
+  const baseUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "https://shieldcn.dev",
+  )
 
   // Sync mode with site theme
   useEffect(() => {
@@ -88,57 +90,19 @@ export function BadgeBuilder() {
   const url = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
   const output = useMemo(() => formatOutput(url, copyFormat, s.linkUrl), [url, copyFormat, s.linkUrl])
 
-  const handleCopy = useCallback(() => {
-    if (!output) return
-    navigator.clipboard.writeText(output).then(
-      () => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      },
-      () => {
-        setCopyError(true)
-        setTimeout(() => setCopyError(false), 2000)
-        toast.error("Couldn't copy to clipboard")
-      },
-    )
-  }, [output])
-
   return (
     <BadgeBuilderCore state={s} onChange={setS} badgeUrl={url}>
       {/* ── Copy output ── */}
       {url && (
-        <div className="space-y-3">
-          {/* Format tabs */}
-          <ToggleGroup
-            type="single"
-            value={copyFormat}
-            onValueChange={v => v && setCopyFormat(v as CopyFormat)}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            {COPY_FORMATS.map(f => (
-              <ToggleGroupItem key={f.value} value={f.value} className="flex-1 text-xs">
-                {f.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-
-          {/* Output + copy */}
-          <div className="flex items-start gap-2">
-            <code className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-[11px] font-mono break-all text-muted-foreground leading-relaxed min-h-[2.5rem]">
-              {output}
-            </code>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0 h-9">
-              {copied
-                ? <><Check className="size-3.5 text-success" /> Copied</>
-                : copyError
-                  ? <><Copy className="size-3.5 text-destructive" /> Failed</>
-                  : <><Copy className="size-3.5" /> Copy</>
-              }
-            </Button>
-          </div>
-        </div>
+        <CopyOutputSection
+          formats={COPY_FORMATS}
+          format={copyFormat}
+          onFormatChange={setCopyFormat}
+          output={output}
+          copied={copied}
+          copyError={copyError}
+          onCopy={() => copy(output)}
+        />
       )}
     </BadgeBuilderCore>
   )

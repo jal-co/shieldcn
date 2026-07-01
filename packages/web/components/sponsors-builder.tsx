@@ -10,9 +10,8 @@
 
 "use client"
 
-import { toast } from "sonner"
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
-import { Copy, Check, Shuffle, AlignLeft, AlignCenter, AlignRight } from "lucide-react"
+import { Shuffle, AlignLeft, AlignCenter, AlignRight } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +25,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox"
+import { CopyOutputSection } from "@/components/copy-output-section"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
+import { formatImageOutput, IMAGE_COPY_FORMATS, type ImageCopyFormat } from "@/lib/builder-output"
 import { cn } from "@/lib/utils"
 import {
   SPONSORS_DEFAULTS,
@@ -39,25 +41,6 @@ import {
   randomUnsplashHeader,
   type SponsorsState,
 } from "@/lib/sponsors-builder-shared"
-
-type CopyFormat = "markdown" | "html" | "url"
-
-function formatOutput(url: string, format: CopyFormat, alt: string): string {
-  switch (format) {
-    case "markdown":
-      return `![${alt}](${url})`
-    case "html":
-      return `<img alt="${alt}" src="${url}">`
-    case "url":
-      return url
-  }
-}
-
-const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
-  { value: "markdown", label: "Markdown" },
-  { value: "html", label: "HTML" },
-  { value: "url", label: "URL" },
-]
 
 function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
   return <Label htmlFor={htmlFor} className="text-xs text-muted-foreground">{children}</Label>
@@ -86,9 +69,8 @@ function AlignField({ label, value, onChange }: { label: string; value: Align; o
 
 export function SponsorsBuilder() {
   const [s, setS] = useState<SponsorsState>(SPONSORS_DEFAULTS)
-  const [copied, setCopied] = useState(false)
-  const [copyError, setCopyError] = useState(false)
-  const [copyFormat, setCopyFormat] = useState<CopyFormat>("markdown")
+  const [copyFormat, setCopyFormat] = useState<ImageCopyFormat>("markdown")
+  const { copied, copyError, copy } = useCopyToClipboard()
   const { resolvedTheme } = useTheme()
 
   // Read the origin on the client without a setState-in-effect (hydration-safe).
@@ -106,22 +88,7 @@ export function SponsorsBuilder() {
 
   const url = useMemo(() => buildSponsorsUrl({ ...s, mode }, baseUrl), [s, mode, baseUrl])
   const altText = `${s.login || "shadcn"} sponsors`
-  const output = useMemo(() => formatOutput(url, copyFormat, altText), [url, copyFormat, altText])
-
-  const handleCopy = useCallback(() => {
-    if (!output) return
-    navigator.clipboard.writeText(output).then(
-      () => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      },
-      () => {
-        setCopyError(true)
-        setTimeout(() => setCopyError(false), 2000)
-        toast.error("Couldn't copy to clipboard")
-      },
-    )
-  }, [output])
+  const output = useMemo(() => formatImageOutput(url, copyFormat, altText), [url, copyFormat, altText])
 
   return (
     <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -149,42 +116,16 @@ export function SponsorsBuilder() {
         </div>
 
         {/* Copy output */}
-        <div className="space-y-3">
-          <ToggleGroup
-            type="single"
-            value={copyFormat}
-            onValueChange={(v) => v && setCopyFormat(v as CopyFormat)}
-            variant="outline"
-            size="sm"
-            className="w-full max-w-md"
-          >
-            {COPY_FORMATS.map((f) => (
-              <ToggleGroupItem key={f.value} value={f.value} className="flex-1 text-xs">
-                {f.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <div className="flex items-start gap-2">
-            <code className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-[11px] font-mono break-all text-muted-foreground leading-relaxed min-h-[2.5rem]">
-              {output}
-            </code>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0 h-9">
-              {copied ? (
-                <>
-                  <Check className="size-3.5 text-success" /> Copied
-                </>
-              ) : copyError ? (
-                <>
-                  <Copy className="size-3.5 text-destructive" /> Failed
-                </>
-              ) : (
-                <>
-                  <Copy className="size-3.5" /> Copy
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+        <CopyOutputSection
+          formats={IMAGE_COPY_FORMATS}
+          format={copyFormat}
+          onFormatChange={setCopyFormat}
+          output={output}
+          copied={copied}
+          copyError={copyError}
+          onCopy={() => copy(output)}
+          toggleClassName="max-w-md"
+        />
       </div>
 
       {/* ─── Controls sidebar (left on desktop) ─── */}

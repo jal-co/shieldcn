@@ -3,8 +3,8 @@
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Copy, Check, ExternalLink, Plus, Trash2, GripVertical } from "lucide-react"
-import { toast } from "sonner"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import { formatBadgeOutput } from "@/lib/badge-output"
 import {
   Dialog,
@@ -104,7 +104,7 @@ export function BadgeGroupModal({
   const { mode: siteMode } = useBadgeMode()
   const [mode, setMode] = useState(parsed.mode || siteMode)
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("markdown")
-  const [copied, setCopied] = useState(false)
+  const { copied, copy } = useCopyToClipboard()
   const [newSegment, setNewSegment] = useState("")
 
   // Hydration-safe flags (server snapshot differs from client) — no
@@ -162,15 +162,7 @@ export function BadgeGroupModal({
     }
   }, [outputFormat, fullUrl, title])
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(formattedOutput).then(
-      () => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      },
-      () => toast.error("Couldn't copy to clipboard"),
-    )
-  }, [formattedOutput])
+  const handleCopy = useCallback(() => copy(formattedOutput), [copy, formattedOutput])
 
   const addSegment = useCallback(() => {
     const trimmed = newSegment.trim().replace(/^\//, "").replace(/\.(svg|png|json)$/, "")

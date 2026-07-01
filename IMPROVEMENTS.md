@@ -140,7 +140,7 @@
 - [x] **F7. Surface silent failures to users (add a toast primitive)** (S) — done via PR-3.4 (gen-count/gen-users deliberately report to Sentry instead of a toast, see notes)
   Clipboard writes swallow errors via `.catch(() => {})` in all builders (`badge-builder.tsx:98`) and `generator-client.tsx:275, 284`; `api/gen-count`/`gen-users` POSTs fail with no feedback. No toast primitive exists in `components/ui/` — add one (shadcn sonner) and wire it in.
 
-- [ ] **F8. Extract shared copy-output module for the four builders** (M)
+- [x] **F8. Extract shared copy-output module for the four builders** (M) — done via PR-3.5
   `formatOutput()`, `COPY_FORMATS`, and the `handleCopy` pattern are copy-pasted with drifted signatures across `badge-builder.tsx:30/90`, `header-builder.tsx:47/92`, `sponsors-builder.tsx:44/110`, `contributors-builder.tsx:44/110`; `badge-modal.tsx:37-40` and `badge-group-modal.tsx:38-41` duplicate SIZES/THEMES/MODES constants and copy UI. Extract `lib/builder-output.ts`, a `CopyOutputSection` component, and a `useCopyToClipboard` hook. While there, fix the hydration-unsafe baseUrl in `badge-builder.tsx:74` (setState-in-effect) by standardizing on the `useSyncExternalStore` pattern the other three builders use (`header-builder.tsx:76-80`).
 
 - [ ] **F9. Defer non-critical motion imports on the landing path** (M)
