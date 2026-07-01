@@ -459,21 +459,35 @@ export function Studio() {
     setCanRedo(h.future.length > 0)
   }, [])
 
-  // Keyboard shortcuts: ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or ⌘/Ctrl+Y redo. Never
-  // hijack the browser's native undo while the user is typing in a field/editor.
+  // Keyboard shortcuts: ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or ⌘/Ctrl+Y redo,
+  // Alt/⌥+↑/↓ reorders the selected block one slot (keyboard equivalent of
+  // dragging a block or clicking the Layers panel's move up/down buttons).
+  // Never hijack the browser's native undo/caret movement while the user is
+  // typing in a field/editor.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      const inEditableField = !!(t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.closest('[contenteditable="true"]')))
+
+      if (e.altKey && !e.metaKey && !e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown") && !inEditableField) {
+        if (!selectedId) return
+        const idx = blocks.findIndex(b => b.id === selectedId)
+        if (idx === -1) return
+        e.preventDefault()
+        moveBlock(idx, e.key === "ArrowUp" ? idx - 1 : idx + 1)
+        return
+      }
+
       if (!(e.metaKey || e.ctrlKey)) return
       const key = e.key.toLowerCase()
       if (key !== "z" && key !== "y") return
-      const t = e.target as HTMLElement | null
-      if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.closest('[contenteditable="true"]'))) return
+      if (inEditableField) return
       if (key === "y" || (key === "z" && e.shiftKey)) { e.preventDefault(); redo() }
       else { e.preventDefault(); undo() }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [undo, redo])
+  }, [undo, redo, moveBlock, selectedId, blocks])
 
   // Clicking the empty canvas background (not a block) clears the selection.
   const deselect = useCallback((e: React.MouseEvent) => {

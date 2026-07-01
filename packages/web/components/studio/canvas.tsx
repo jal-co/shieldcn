@@ -161,13 +161,18 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
 
   if (!block.src) return <p className="text-sm text-muted-foreground italic">Add an image URL or path in the inspector.</p>
 
+  const MIN_WIDTH = 40
+  const MAX_WIDTH = 2000
+  const STEP = 8
+  const BIG_STEP = 40
+
   const startResize = (e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
     const startX = e.clientX
     const startW = imgRef.current?.offsetWidth ?? (Number(block.width) || 0)
     const onMove = (ev: PointerEvent) => {
-      setLiveWidth(Math.max(40, Math.round(startW + (ev.clientX - startX))))
+      setLiveWidth(Math.max(MIN_WIDTH, Math.round(startW + (ev.clientX - startX))))
     }
     const onUp = () => {
       window.removeEventListener("pointermove", onMove)
@@ -179,6 +184,23 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
     }
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)
+  }
+
+  const parsedBlockWidth = block.width ? Number(block.width) : NaN
+  const currentWidth = liveWidth
+    ?? (Number.isFinite(parsedBlockWidth) ? parsedBlockWidth : imgRef.current?.offsetWidth)
+    ?? MIN_WIDTH
+
+  // Arrow keys resize by STEP (BIG_STEP with Shift) — keyboard equivalent of
+  // the pointer drag, since the handle otherwise has no non-pointer affordance.
+  const onResizeKeyDown = (e: React.KeyboardEvent) => {
+    let delta = 0
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") delta = e.shiftKey ? BIG_STEP : STEP
+    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") delta = -(e.shiftKey ? BIG_STEP : STEP)
+    else return
+    e.preventDefault()
+    const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, currentWidth + delta))
+    onChange({ ...block, width: String(next) })
   }
 
   const width = liveWidth !== null ? `${liveWidth}px` : block.width ? `${block.width}px` : undefined
@@ -198,14 +220,18 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
         <div
           onPointerDown={startResize}
           onClick={e => e.stopPropagation()}
+          onKeyDown={onResizeKeyDown}
           role="slider"
           aria-label="Resize image width"
-          aria-valuenow={liveWidth ?? (Number(block.width) || 0)}
-          tabIndex={-1}
+          aria-valuenow={currentWidth}
+          aria-valuemin={MIN_WIDTH}
+          aria-valuemax={MAX_WIDTH}
+          tabIndex={0}
           className={cn(
             "absolute -bottom-1.5 -right-1.5 z-10 size-4 cursor-nwse-resize rounded-sm border-2 border-primary bg-background shadow-sm transition-opacity",
             "hidden md:block",
-            selected || liveWidth !== null ? "opacity-100" : "opacity-0 group-hover/img:opacity-100",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+            selected || liveWidth !== null ? "opacity-100" : "opacity-0 group-hover/img:opacity-100 focus-visible:opacity-100",
           )}
         />
         {liveWidth !== null ? (

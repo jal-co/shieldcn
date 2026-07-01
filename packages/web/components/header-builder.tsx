@@ -61,8 +61,8 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
   { value: "url", label: "URL" },
 ]
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <Label className="text-xs text-muted-foreground">{children}</Label>
+function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
+  return <Label htmlFor={htmlFor} className="text-xs text-muted-foreground">{children}</Label>
 }
 
 export function HeaderBuilder() {
@@ -194,8 +194,9 @@ export function HeaderBuilder() {
         {/* Title + subtitle */}
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <FieldLabel>Title</FieldLabel>
+            <FieldLabel htmlFor="header-title">Title</FieldLabel>
             <Input
+              id="header-title"
               value={s.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="Your Project"
@@ -203,8 +204,9 @@ export function HeaderBuilder() {
             />
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Subtitle</FieldLabel>
+            <FieldLabel htmlFor="header-subtitle">Subtitle</FieldLabel>
             <Input
+              id="header-subtitle"
               value={s.subtitle}
               onChange={(e) => set("subtitle", e.target.value)}
               placeholder="A short tagline"
@@ -221,6 +223,7 @@ export function HeaderBuilder() {
               <LogoPicker
                 value={/^(data:|https?:\/\/)/.test(s.logo) ? "" : s.logo}
                 onChange={(v) => set("logo", v)}
+                ariaLabel="Header logo icon"
               />
             </div>
             <ColorSwatch label="Logo color" value={s.logoColor} onChange={(v) => set("logoColor", v)} />
@@ -230,9 +233,10 @@ export function HeaderBuilder() {
 
         {/* Background image */}
         <div className="space-y-2">
-          <FieldLabel>Background image</FieldLabel>
+          <FieldLabel htmlFor="header-bg-image">Background image</FieldLabel>
           <div className="flex gap-2">
             <Input
+              id="header-bg-image"
               value={s.image}
               onChange={(e) => set("image", e.target.value)}
               placeholder="Unsplash or image URL"
@@ -252,8 +256,8 @@ export function HeaderBuilder() {
           </div>
           {s.image ? (
             <div className="space-y-1.5">
-              <FieldLabel>Overlay (0–1)</FieldLabel>
-              <Input value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
+              <FieldLabel htmlFor="header-overlay">Overlay (0–1)</FieldLabel>
+              <Input id="header-overlay" value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
             </div>
           ) : null}
         </div>
@@ -263,7 +267,7 @@ export function HeaderBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Size</FieldLabel>
             <Select value={s.size} onValueChange={(v) => set("size", v as HeaderState["size"])}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Header size" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -278,7 +282,7 @@ export function HeaderBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Theme</FieldLabel>
             <Select value={s.theme || "_none"} onValueChange={(v) => set("theme", v === "_none" ? "" : v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Header theme" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -294,7 +298,7 @@ export function HeaderBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Align</FieldLabel>
             <Select value={s.align} onValueChange={(v) => set("align", v as HeaderState["align"])}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Header text alignment" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -306,7 +310,7 @@ export function HeaderBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Font</FieldLabel>
             <Select value={s.font} onValueChange={(v) => set("font", v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Header font" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

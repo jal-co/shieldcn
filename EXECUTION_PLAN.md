@@ -615,6 +615,50 @@ confirmed fully-settled, non-blurred, non-offset content in both states.
   `aria-label`s to icon-only/variant-preview buttons. **Verify:** full studio flow
   keyboard-only; axe/Lighthouse a11y pass on builder pages.
 
+**Actual outcome:**
+- **F4 (Studio keyboard operability):** Added Alt+↑/↓ to `studio.tsx`'s
+  existing global keydown handler — reorders the selected block via the
+  already-existing `moveBlock()`, skipped while focus is in an editable
+  field (same guard the undo/redo shortcut already used). Note: block
+  reordering was already keyboard-reachable via the Layers panel's
+  move-up/move-down buttons (`studio.tsx:765-766`, already had
+  `aria-label`s) — this adds a faster in-place shortcut, not a first path.
+  The image-resize handle (`canvas.tsx`) was genuinely keyboard-inaccessible
+  (`tabIndex={-1}`, no `aria-valuemin`/`aria-valuemax`, no key handler) —
+  fixed with `tabIndex={0}`, both aria-value bounds, and arrow-key resizing
+  (Shift for a bigger step), verified live via Playwright: focusing the
+  slider and pressing ArrowRight increases `aria-valuenow` with correct
+  min-clamping.
+- **F5 (label linkage):** Investigated every `<Label>`/`<FieldLabel>` usage
+  across the 10 files with unlinked labels (~50 instances) rather than
+  applying `htmlFor` blindly. Most were already accessible another way —
+  Select/Input/Checkbox controls in `badge-sandbox.tsx`/`chart-sandbox.tsx`
+  already carry their own `aria-label`, and toggle-group alignment fields
+  already label each button individually — so forcing `htmlFor` there would
+  have been redundant, and some wrap multiple children (checkboxes, a
+  picker + upload button) where a single `htmlFor` target doesn't apply
+  cleanly. Fixed the two real gap classes found: (1) `header-builder.tsx`,
+  `sponsors-builder.tsx`, and `contributors-builder.tsx` had ~15
+  Input/Select field pairs with genuinely **no** accessible name at all (no
+  `aria-label`, no `id`/`htmlFor`, no nesting) — added `id`+`htmlFor` pairs
+  for text inputs and `aria-label` for Select triggers across all three
+  files, verified live (clicking the "Title" label focuses `#header-title`;
+  the "Header size" combobox is now queryable by accessible name). (2) The
+  `LogoPicker`/`SearchablePicker` trigger button's only accessible name was
+  its *current value* text (e.g. "Auto") with zero context about what it
+  picks — added an `ariaLabel` prop threaded through both, set distinctly
+  at each of the 4 call sites (e.g. "Badge logo icon", "Chart icon").
+  Variant-preview buttons (`badge-builder-core.tsx`) and the "Advanced
+  customization" disclosure button were checked and are already correctly
+  labeled (image `alt` text and visible button text respectively) — the
+  original audit's citation didn't hold up under inspection.
+
+Verified: `pnpm typecheck` clean, `pnpm test` (262/10), `pnpm --filter
+@shieldcn/web build` succeeds, and the Studio Alt+↓ reorder was confirmed
+live via Playwright (clicking a Layers-panel block then pressing Alt+↓
+swaps it with the next block — asserted against the panel's rendered
+order, not just that no error was thrown).
+
 ### PR-3.4 — Toast + surface failures  · items: **F7** · effort S
 - Add a toast primitive (shadcn sonner) to `components/ui/`; replace
   `.catch(() => {})` clipboard swallows and silent `gen-count`/`gen-users` POST

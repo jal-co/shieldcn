@@ -292,7 +292,7 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <SField label="icon"><LogoPicker value={icon} onChange={setIcon} /></SField>
+          <SField label="icon"><LogoPicker value={icon} onChange={setIcon} ariaLabel="Chart icon" /></SField>
           <SField label="title"><Input id={`${id}-title`} value={title} onChange={e => setTitle(e.target.value)} placeholder="auto" /></SField>
           <SField label="flags">
             <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1.5">

@@ -58,8 +58,8 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
   { value: "url", label: "URL" },
 ]
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <Label className="text-xs text-muted-foreground">{children}</Label>
+function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
+  return <Label htmlFor={htmlFor} className="text-xs text-muted-foreground">{children}</Label>
 }
 
 type Align = "left" | "center" | "right"
@@ -191,8 +191,9 @@ export function ContributorsBuilder() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <FieldLabel>Owner</FieldLabel>
+              <FieldLabel htmlFor="contributors-owner">Owner</FieldLabel>
               <Input
+                id="contributors-owner"
                 value={s.owner}
                 onChange={(e) => set("owner", e.target.value)}
                 placeholder="vercel"
@@ -200,8 +201,9 @@ export function ContributorsBuilder() {
               />
             </div>
             <div className="space-y-1.5">
-              <FieldLabel>Repository</FieldLabel>
+              <FieldLabel htmlFor="contributors-repo">Repository</FieldLabel>
               <Input
+                id="contributors-repo"
                 value={s.repo}
                 onChange={(e) => set("repo", e.target.value)}
                 placeholder="next.js"
@@ -210,8 +212,9 @@ export function ContributorsBuilder() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Title (empty to hide)</FieldLabel>
+            <FieldLabel htmlFor="contributors-title">Title (empty to hide)</FieldLabel>
             <Input
+              id="contributors-title"
               value={s.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="Contributors"
@@ -244,9 +247,10 @@ export function ContributorsBuilder() {
 
         {/* Background image */}
         <div className="space-y-2">
-          <FieldLabel>Background image</FieldLabel>
+          <FieldLabel htmlFor="contributors-bg-image">Background image</FieldLabel>
           <div className="flex gap-2">
             <Input
+              id="contributors-bg-image"
               value={s.image}
               onChange={(e) => set("image", e.target.value)}
               placeholder="Unsplash or image URL"
@@ -266,8 +270,8 @@ export function ContributorsBuilder() {
           </div>
           {s.image ? (
             <div className="space-y-1.5">
-              <FieldLabel>Overlay (0–1)</FieldLabel>
-              <Input value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
+              <FieldLabel htmlFor="contributors-overlay">Overlay (0–1)</FieldLabel>
+              <Input id="contributors-overlay" value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
             </div>
           ) : null}
         </div>
@@ -277,7 +281,7 @@ export function ContributorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Avatar size</FieldLabel>
             <Select value={s.size} onValueChange={(v) => set("size", v as ContributorsState["size"])}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Avatar size" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -292,7 +296,7 @@ export function ContributorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Theme</FieldLabel>
             <Select value={s.theme || "_none"} onValueChange={(v) => set("theme", v === "_none" ? "" : v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Contributors theme" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -306,8 +310,9 @@ export function ContributorsBuilder() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Limit</FieldLabel>
+            <FieldLabel htmlFor="contributors-limit">Limit</FieldLabel>
             <Input
+              id="contributors-limit"
               value={s.limit}
               onChange={(e) => set("limit", e.target.value)}
               placeholder="60"
@@ -316,8 +321,9 @@ export function ContributorsBuilder() {
             />
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Min contributions</FieldLabel>
+            <FieldLabel htmlFor="contributors-min">Min contributions</FieldLabel>
             <Input
+              id="contributors-min"
               value={s.min}
               onChange={(e) => set("min", e.target.value)}
               placeholder="0"
@@ -328,7 +334,7 @@ export function ContributorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Font</FieldLabel>
             <Select value={s.font} onValueChange={(v) => set("font", v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Contributors font" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

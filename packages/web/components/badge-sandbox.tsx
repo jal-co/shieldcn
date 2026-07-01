@@ -329,7 +329,7 @@ export function BadgeSandbox({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SField label="logo">
             <div className="space-y-1.5">
-              <LogoPicker value={logo.startsWith("data:") ? "" : logo} onChange={setLogo} />
+              <LogoPicker value={logo.startsWith("data:") ? "" : logo} onChange={setLogo} ariaLabel="Badge logo icon" />
               <SvgIconUpload value={logo} onChange={setLogo} className="w-full" />
             </div>
           </SField>

@@ -128,10 +128,10 @@
 - [ ] **F11. `useReducedMotion()` consumers hydration-mismatch for real reduced-motion users** (M)
   Discovered while verifying F3 with `prefers-reduced-motion` emulated in a real browser: Motion's `useReducedMotion()` reads `matchMedia` synchronously on its very first render (confirmed in `framer-motion`'s source), so a user who already has OS reduce-motion enabled *before* the page loads gets `reduce: true` on the client's first render — but SSR has no way to know that and always renders the non-reduced baseline, producing a hydration mismatch (React error #418) on every page load for that entire user segment. Affects the 3 pre-existing consumers (`app/template.tsx`, `sidebar.tsx`, `studio.tsx`) plus the 9 added in PR-3.2. React recovers gracefully (discards the mismatched SSR subtree, re-renders client-side — confirmed the final rendered page is visually correct), so it's not broken UX, just a wasted render pass + console noise. Proper fix: a `useHydrated()`-gated wrapper so every consumer's first client render always matches SSR (accept a one-frame "flash of un-reduced motion" for that user segment on load), applied consistently across all 12 call sites.
 
-- [ ] **F4. Keyboard-accessible block reordering + resize in Studio** (S)
+- [x] **F4. Keyboard-accessible block reordering + resize in Studio** (S) — done via PR-3.3
   `components/studio/canvas.tsx:406-421` handles Enter/Space/Delete but reordering is pointer-drag only (:470-477) — `moveBlock(from, to)` already exists at `studio.tsx:370`; wire Alt/Cmd+ArrowUp/Down on the focused BlockFrame. Also the image-resize `role="slider"` at `canvas.tsx:199-204` has `tabIndex={-1}` and no arrow-key handling or `aria-valuenow/min/max`.
 
-- [ ] **F5. Fix label association and icon-button names in builders** (S)
+- [x] **F5. Fix label association and icon-button names in builders** (S) — done via PR-3.3 (header/sponsors/contributors builders + LogoPicker trigger; variant-preview and disclosure buttons were already correctly labeled)
   Several `<Label>`s lack `htmlFor`/`id` linkage (`header-builder.tsx:197-212` and sponsors/contributors equivalents); the variant-preview image buttons (`badge-builder-core.tsx:508-526`) and reset/advanced disclosure buttons (:546-550) need explicit `aria-label`s.
 
 - [ ] **F6. Add a web test suite** (L)

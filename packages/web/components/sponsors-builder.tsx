@@ -58,8 +58,8 @@ const COPY_FORMATS: { value: CopyFormat; label: string }[] = [
   { value: "url", label: "URL" },
 ]
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <Label className="text-xs text-muted-foreground">{children}</Label>
+function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
+  return <Label htmlFor={htmlFor} className="text-xs text-muted-foreground">{children}</Label>
 }
 
 type Align = "left" | "center" | "right"
@@ -190,8 +190,9 @@ export function SponsorsBuilder() {
         {/* Login + title */}
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <FieldLabel>GitHub login (user or org)</FieldLabel>
+            <FieldLabel htmlFor="sponsors-login">GitHub login (user or org)</FieldLabel>
             <Input
+              id="sponsors-login"
               value={s.login}
               onChange={(e) => set("login", e.target.value)}
               placeholder="shadcn"
@@ -199,8 +200,9 @@ export function SponsorsBuilder() {
             />
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Title (empty to hide)</FieldLabel>
+            <FieldLabel htmlFor="sponsors-title">Title (empty to hide)</FieldLabel>
             <Input
+              id="sponsors-title"
               value={s.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="Sponsors"
@@ -226,8 +228,9 @@ export function SponsorsBuilder() {
             </span>
           </label>
           <div className="space-y-1.5">
-            <FieldLabel>Special sponsors (comma-separated logins)</FieldLabel>
+            <FieldLabel htmlFor="sponsors-special">Special sponsors (comma-separated logins)</FieldLabel>
             <Input
+              id="sponsors-special"
               value={s.special}
               onChange={(e) => set("special", e.target.value)}
               placeholder={s.featured ? "auto from Featured sponsors" : "vercel, clerk"}
@@ -235,8 +238,9 @@ export function SponsorsBuilder() {
             />
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Backers (comma-separated logins)</FieldLabel>
+            <FieldLabel htmlFor="sponsors-backers">Backers (comma-separated logins)</FieldLabel>
             <Input
+              id="sponsors-backers"
               value={s.backers}
               onChange={(e) => set("backers", e.target.value)}
               placeholder="octocat"
@@ -269,9 +273,10 @@ export function SponsorsBuilder() {
 
         {/* Background image */}
         <div className="space-y-2">
-          <FieldLabel>Background image</FieldLabel>
+          <FieldLabel htmlFor="sponsors-bg-image">Background image</FieldLabel>
           <div className="flex gap-2">
             <Input
+              id="sponsors-bg-image"
               value={s.image}
               onChange={(e) => set("image", e.target.value)}
               placeholder="Unsplash or image URL"
@@ -291,8 +296,8 @@ export function SponsorsBuilder() {
           </div>
           {s.image ? (
             <div className="space-y-1.5">
-              <FieldLabel>Overlay (0–1)</FieldLabel>
-              <Input value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
+              <FieldLabel htmlFor="sponsors-overlay">Overlay (0–1)</FieldLabel>
+              <Input id="sponsors-overlay" value={s.overlay} onChange={(e) => set("overlay", e.target.value)} placeholder="0.45" className="h-9" />
             </div>
           ) : null}
         </div>
@@ -302,7 +307,7 @@ export function SponsorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Avatar size</FieldLabel>
             <Select value={s.size} onValueChange={(v) => set("size", v as SponsorsState["size"])}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Avatar size" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -317,7 +322,7 @@ export function SponsorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Theme</FieldLabel>
             <Select value={s.theme || "_none"} onValueChange={(v) => set("theme", v === "_none" ? "" : v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Sponsors theme" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -331,8 +336,9 @@ export function SponsorsBuilder() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <FieldLabel>Limit</FieldLabel>
+            <FieldLabel htmlFor="sponsors-limit">Limit</FieldLabel>
             <Input
+              id="sponsors-limit"
               value={s.limit}
               onChange={(e) => set("limit", e.target.value)}
               placeholder="60"
@@ -343,7 +349,7 @@ export function SponsorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Font</FieldLabel>
             <Select value={s.font} onValueChange={(v) => set("font", v)}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Sponsors font" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -368,7 +374,7 @@ export function SponsorsBuilder() {
           <div className="space-y-1.5">
             <FieldLabel>Tier separator</FieldLabel>
             <Select value={s.separator} onValueChange={(v) => set("separator", v as SponsorsState["separator"])}>
-              <SelectTrigger className="h-9 w-full text-sm">
+              <SelectTrigger aria-label="Tier separator" className="h-9 w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

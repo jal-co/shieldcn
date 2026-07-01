@@ -563,7 +563,7 @@ export function BadgeBuilderCore({
             <SectionLabel>Icon</SectionLabel>
             <div className="flex gap-2">
               <div className="flex-1">
-                <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} />
+                <LogoPicker value={s.logo.startsWith("data:") ? "" : s.logo} onChange={v => set("logo", v)} ariaLabel="Badge logo icon" />
               </div>
               <SvgIconUpload value={s.logo} onChange={v => set("logo", v)} className="shrink-0" />
             </div>

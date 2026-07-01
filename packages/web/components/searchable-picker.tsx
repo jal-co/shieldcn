@@ -50,6 +50,13 @@ export interface SearchablePickerSection {
 interface SearchablePickerProps {
   value: string
   triggerLabel: string
+  /**
+   * Accessible name for the trigger button. The trigger's visible text is
+   * just the current value (e.g. "Auto"), which doesn't say what the picker
+   * is *for* — screen readers need this to announce more than "Auto,
+   * combobox". Falls back to `triggerLabel` if omitted.
+   */
+  ariaLabel?: string
   placeholder: string
   emptyLabel: string
   search: string
@@ -80,6 +87,7 @@ interface SearchablePickerProps {
 export function SearchablePicker({
   value,
   triggerLabel,
+  ariaLabel,
   placeholder,
   emptyLabel,
   search,
@@ -130,6 +138,7 @@ export function SearchablePicker({
           size="sm"
           role="combobox"
           aria-expanded={resolvedOpen}
+          aria-label={ariaLabel ?? triggerLabel}
           className={cn("h-9 w-full justify-between font-normal", triggerClassName, className)}
         >
           <span className={cn("truncate text-xs", triggerLabelClassName)}>

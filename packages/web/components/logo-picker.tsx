@@ -118,9 +118,11 @@ function loadIconIndex(): Promise<IconEntry[]> {
 interface LogoPickerProps {
   value: string
   onChange: (value: string) => void
+  /** Accessible name for the trigger button. @default "Logo icon" */
+  ariaLabel?: string
 }
 
-export function LogoPicker({ value, onChange }: LogoPickerProps) {
+export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPickerProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
   const [sourceFilter, setSourceFilter] = React.useState("all")
@@ -317,6 +319,7 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
     <SearchablePicker
       value={value}
       triggerLabel={displayLabel}
+      ariaLabel={ariaLabel}
       triggerLabelClassName="font-mono"
       placeholder="Search 30,000+ icons..."
       emptyLabel="No icons found."
