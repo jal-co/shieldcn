@@ -15,6 +15,8 @@ import type { BadgeData } from "../badges/types"
 import { JSONPath } from "jsonpath-plus"
 import { resolveColor } from "../badges/themes"
 import { raceTimeout } from "../provider-fetch"
+import { cachedFetchStale } from "../cache"
+import { safeFetch, UnsafeUrlError, ResponseTooLargeError } from "../safe-fetch"
 import flagNames from "../badges/flags.json"
 
 // Country flags come from `country-flag-icons` (catamphetamine), 3x2 aspect.
@@ -164,63 +166,82 @@ export async function getDynamicJsonBadge(
 
   if (!jsonUrl || !query) return null
 
-  try {
-    const response = await raceTimeout(fetch(jsonUrl, {
-      next: { revalidate: 300 },
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "shieldcn/1.0",
-      },
-    }))
-    if (!response) {
+  const label = searchParams.get("label")
+  const prefix = searchParams.get("prefix") || ""
+  const suffix = searchParams.get("suffix") || ""
+
+  const fetcher = async (): Promise<BadgeData> => {
+    try {
+      const response = await raceTimeout(safeFetch(jsonUrl, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "shieldcn/1.0",
+        },
+      }))
+      if (!response) {
+        return {
+          label: label || "error",
+          value: "timeout",
+          color: "red",
+          // Failure verdicts are still informative badges, but they must carry
+          // short error cache headers so they self-heal instead of being pinned
+          // at the CDN for an hour like a success.
+          error: true,
+        }
+      }
+
+      if (!response.ok) {
+        return {
+          label: label || "error",
+          value: `${response.status}`,
+          color: "red",
+          error: true,
+        }
+      }
+
+      const data = await response.json()
+      const results = JSONPath({ path: query, json: data })
+
+      if (!results || results.length === 0) {
+        return {
+          label: label || "custom",
+          value: "not found",
+          color: "red",
+          error: true,
+        }
+      }
+
+      const first = results[0]
+      let value = typeof first === "object" && first !== null ? JSON.stringify(first) : String(first)
+      value = `${prefix}${value}${suffix}`
+
       return {
-        label: searchParams.get("label") || "error",
-        value: "timeout",
+        label: label || "custom",
+        value,
+      }
+    } catch (err) {
+      return {
+        label: label || "error",
+        value: err instanceof UnsafeUrlError ? "blocked url"
+          : err instanceof ResponseTooLargeError ? "too large"
+          : "fetch failed",
         color: "red",
-        // Failure verdicts are still informative badges, but they must carry
-        // short error cache headers so they self-heal instead of being pinned
-        // at the CDN for an hour like a success.
         error: true,
       }
-    }
-
-    if (!response.ok) {
-      return {
-        label: searchParams.get("label") || "error",
-        value: `${response.status}`,
-        color: "red",
-        error: true,
-      }
-    }
-
-    const data = await response.json()
-    const results = JSONPath({ path: query, json: data })
-
-    if (!results || results.length === 0) {
-      return {
-        label: searchParams.get("label") || "custom",
-        value: "not found",
-        color: "red",
-        error: true,
-      }
-    }
-
-    const first = results[0]
-    let value = typeof first === "object" && first !== null ? JSON.stringify(first) : String(first)
-    const prefix = searchParams.get("prefix") || ""
-    const suffix = searchParams.get("suffix") || ""
-    value = `${prefix}${value}${suffix}`
-
-    return {
-      label: searchParams.get("label") || "custom",
-      value,
-    }
-  } catch {
-    return {
-      label: searchParams.get("label") || "error",
-      value: "fetch failed",
-      color: "red",
-      error: true,
     }
   }
+
+  // Cached + backoff/budget-tracked like every other provider (dynamic badges
+  // previously hit the upstream on every CDN miss with no protection). Error
+  // verdicts self-heal quickly (short errorTtl); successes get a last-known-good
+  // copy so a transient upstream blip doesn't collapse a working badge to
+  // "fetch failed".
+  return cachedFetchStale<BadgeData>(
+    "dynamic",
+    searchParams.toString(),
+    fetcher,
+    300,
+    60 * 60 * 24,
+    { isError: (data) => data.error === true, errorTtl: 60 },
+  )
 }

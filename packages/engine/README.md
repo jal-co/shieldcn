@@ -98,6 +98,7 @@ Create a token at [github.com/settings/tokens](https://github.com/settings/token
 | `UPSTASH_REDIS_REST_URL` | — | — | Upstash Redis URL for persistent cache |
 | `UPSTASH_REDIS_REST_TOKEN` | — | — | Upstash Redis token |
 | `NEXT_PUBLIC_URL` | — | `http://localhost:3000` | Base URL for OAuth callbacks |
+| `SHIELDCN_ALLOW_PRIVATE_FETCH` | — | `false` | Set to `true` only if you intentionally want badges (dynamic JSON, `/https`, header logo/image, chart `?url=`, and instance-host providers like Mastodon/Lemmy) to be able to reach private/loopback/link-local/metadata addresses on your network. Unset keeps the SSRF guard fully enforced — enabling this turns the badge route into a proxy into your private network, so only set it if you understand that tradeoff. |
 
 ## Endpoints
 

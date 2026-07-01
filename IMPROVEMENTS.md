@@ -40,7 +40,7 @@
 
 ### Backend (core / engine)
 
-- [ ] **B1. Central SSRF guard for user-supplied URL fetches** (M)
+- [x] **B1. Central SSRF guard for user-supplied URL fetches** (M) — done via PR-1.1, `packages/core/src/safe-fetch.ts`
   `getDynamicJsonBadge` (`packages/core/src/providers/badge.ts:168`), the `/https` proxy (`route-handler.ts:1490`), chart `?url=` (`route-handler.ts:3070`), header `?logo=`/`?image=` (`route-handler.ts:2085, 2166` — these even allow plain `http://`), and instance-host providers (`discourse.ts:19`, `mastodon.ts:17`, `lemmy.ts:17`, `matrix.ts:27`, `weblate.ts:26`, `sonar.ts:24`) all fetch attacker-controlled hosts with no private-IP/localhost/metadata-endpoint/redirect checks. Add one shared `safeFetch` (deny RFC1918, link-local, loopback, cloud metadata IPs; cap redirects; enforce https where possible) and apply at every call site.
 
 - [ ] **B2. Remove the silent weak-key fallback for token-pool encryption** (M)
@@ -49,7 +49,7 @@
 - [ ] **B3. Fix `ssl: { rejectUnauthorized: false }` in db pool** (S)
   `packages/core/src/db.ts:38` disables TLS cert verification for any connection string containing "neon"/"railway"/"supabase" — a MITM vector. Use proper CA verification (`sslmode=require` with system CAs works for all three hosts).
 
-- [ ] **B4. Cap response sizes on user-controlled fetches** (S)
+- [x] **B4. Cap response sizes on user-controlled fetches** (S) — done via PR-1.1 (`safeFetch`'s `maxBytes`, applied to header logo/image too)
   `response.json()` is unbounded in the dynamic JSON badge (`badge.ts:196`), `/https` proxy (`route-handler.ts:1506`), and chart JSON (`route-handler.ts:3077`); `JSON.stringify(first)` (`badge.ts:209`) can serialize a huge object. Header images already cap at 4 MB — apply the same byte-cap pattern to these paths.
 
 - [ ] **B5. Wrap `handleBadgePUT` in try/catch and validate input** (S)
@@ -90,7 +90,7 @@
 - [ ] **B13. Build the engine Docker image on PRs touching engine/core** (S)
   `docker-publish.yml` only fires on `engine@*` tags, so a broken `packages/engine/Dockerfile` (fragile glob COPY of `@resvg+resvg-wasm@*` at ~line 36) is only discovered at release time. Add a `push: false` build job with path filters.
 
-- [ ] **B14. Route dynamic/https badges through the cache/backoff layer** (S)
+- [x] **B14. Route dynamic/https badges through the cache/backoff layer** (S) — done via PR-1.1 (dynamic badge uses `cachedFetchStale`, `/https` uses `cachedFetch`)
   The dynamic JSON badge and `/https` proxy call raw `fetch` per request (`badge.ts:168`, `route-handler.ts:1493`) with no `cachedFetch`, backoff, or budget — unlike every registry provider. A hot README hammers the third-party endpoint on every CDN miss. Wrap in `cachedFetch("dynamic", url+query, ...)`.
 
 - [ ] **B15. Deduplicate the 5 resvg-wasm init blocks and pin the wasm URL** (S)

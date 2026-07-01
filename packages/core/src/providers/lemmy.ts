@@ -16,6 +16,7 @@ async function lemmyFetch(instance: string, community: string): Promise<Record<s
     cacheKey: `community:${instance}:${community}`,
     url: `https://${instance}/api/v3/community?name=${encodeURIComponent(community)}`,
     ttl: 3600,
+    userControlledHost: true,
   })
 }
 

@@ -16,6 +16,7 @@ async function mastodonFetch(instance: string, acct: string): Promise<Record<str
     cacheKey: `profile:${instance}:${acct}`,
     url: `https://${instance}/api/v1/accounts/lookup?acct=${encodeURIComponent(acct)}`,
     ttl: 3600,
+    userControlledHost: true,
   })
 }
 

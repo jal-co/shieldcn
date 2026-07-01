@@ -109,6 +109,26 @@ they close the widest-reaching holes.
   legitimate public JSON endpoint still renders.
 - **Risk:** could break a self-hoster fetching an internal endpoint on purpose —
   gate the private-IP denial behind an `ALLOW_PRIVATE_FETCH` env for engine.
+- **Actual outcome:** shipped as `packages/core/src/safe-fetch.ts` — a new
+  `safeFetch()`/`assertPublicUrl()` pair with 21 unit tests (`safe-fetch.test.ts`).
+  Wired in three ways: (1) `providerFetch`/`providerFetchText` gained an opt-in
+  `userControlledHost` flag so the 6 instance-host providers route through it
+  while the other ~43 trusted-host providers are byte-for-byte unchanged; (2)
+  the dynamic JSON badge (`providers/badge.ts`) now also runs through
+  `cachedFetchStale` (freshTtl 300s / staleTtl 1 day / errorTtl 60s) instead of
+  a raw uncached `fetch`, closing B14 for that path; (3) the `/https` proxy now
+  runs through `cachedFetch` for the same reason; chart `?url=` and header
+  `?logo=`/`?image=` got `safeFetch` + (for header) an explicit `maxBytes` cap
+  but were left on their existing `next: revalidate` caching since B14 only
+  named the dynamic/https paths. Added the `SHIELDCN_ALLOW_PRIVATE_FETCH` env
+  escape hatch called out in Risk above, documented in
+  `packages/engine/README.md`. Left `inlineAvatar` and the flag/NBA logo
+  fetches in `route-handler.ts` on raw `fetch` — their URLs come from trusted
+  upstream API responses (GitHub avatars, hardcoded flag/NBA CDNs), not directly
+  from the requester, so they're out of this PR's scope. Also discovered
+  `packages/core` had a `tsconfig.json` but no wired `typecheck` script (so
+  nothing had been type-checking it in CI) — added one, now included in
+  Phase 0's `pnpm typecheck`.
 
 ### PR-1.2 — Crypto & DB TLS hardening  · items: **B2 + B3** + docs **P15** · effort M
 - **Do:** add explicit `TOKEN_ENCRYPTION_KEY`; fail loudly in production when no

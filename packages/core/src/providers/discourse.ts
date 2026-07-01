@@ -18,6 +18,7 @@ async function discourseFetch(server: string): Promise<Record<string, unknown> |
     cacheKey: `stats:${server}`,
     url: `https://${server}/site/statistics.json`,
     ttl: 3600,
+    userControlledHost: true,
   })
 }
 

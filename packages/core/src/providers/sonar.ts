@@ -23,6 +23,7 @@ async function sonarFetch(
     cacheKey: `${server}:${component}:${metricKeys}`,
     url: `https://${server}/api/measures/component?component=${encodeURIComponent(component)}&metricKeys=${metricKeys}`,
     ttl: 3600,
+    userControlledHost: true,
   })
 }
 
@@ -62,6 +63,7 @@ export async function getSonarQualityGate(component: string, server?: string): P
     cacheKey: `qg:${server ?? "sonarcloud.io"}:${component}`,
     url: `https://${server ?? "sonarcloud.io"}/api/qualitygates/project_status?projectKey=${encodeURIComponent(component)}`,
     ttl: 3600,
+    userControlledHost: true,
   })
   if (!data) return null
 

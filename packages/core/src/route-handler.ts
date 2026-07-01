@@ -173,8 +173,9 @@ import { getLiberapayReceiving, getLiberapayPatrons, getLiberapayGoal } from "./
 import { getMatrixMembers } from "./providers/matrix"
 import { getWeblateTranslation, getWeblateLanguages } from "./providers/weblate"
 import { getShipperClubMember } from "./providers/shipperclub"
-import { cachedFetchStale, isBackedOff } from "./cache"
+import { cachedFetchStale, cachedFetch, isBackedOff } from "./cache"
 import { raceTimeout } from "./provider-fetch"
+import { safeFetch, UnsafeUrlError, ResponseTooLargeError } from "./safe-fetch"
 
 /** Response format. */
 type Format = "svg" | "png" | "gif" | "json" | "shields"
@@ -1489,40 +1490,51 @@ async function fetchBadgeData(
       if (rest.length === 0) return null
       const endpointUrl = `https://${rest.join("/")}`
 
-      try {
-        const response = await raceTimeout(fetch(endpointUrl, {
-          headers: { Accept: "application/json", "User-Agent": "shieldcn/1.0" },
-          next: { revalidate: 300 },
-        }))
-        // Failure verdicts carry `error: true` so they get short error cache
-        // headers and self-heal instead of being pinned at the CDN like a
-        // success.
-        if (!response) {
-          return { label: "endpoint", value: "timeout", color: "red", error: true }
-        }
-        if (!response.ok) {
-          return { label: "endpoint", value: `${response.status}`, color: "red", error: true }
-        }
-        const data = await response.json()
+      // Cached + backoff/budget-tracked like every other provider (this proxy
+      // previously hit the arbitrary upstream on every CDN miss with no
+      // protection).
+      return cachedFetch<BadgeData>("https-proxy", `${endpointUrl}?${searchParams.toString()}`, async () => {
+        try {
+          const response = await raceTimeout(safeFetch(endpointUrl, {
+            headers: { Accept: "application/json", "User-Agent": "shieldcn/1.0" },
+          }))
+          // Failure verdicts carry `error: true` so they get short error cache
+          // headers and self-heal instead of being pinned at the CDN like a
+          // success.
+          if (!response) {
+            return { label: "endpoint", value: "timeout", color: "red", error: true }
+          }
+          if (!response.ok) {
+            return { label: "endpoint", value: `${response.status}`, color: "red", error: true }
+          }
+          const data = await response.json()
 
-        // Support both badgen format (subject/status) and our format
-        // (label/value). The endpoint is arbitrary user-supplied JSON — coerce
-        // to strings so an object can never paint "[object Object]" or crash
-        // the renderer, and accept legitimate falsy values like 0.
-        const asText = (v: unknown): string | undefined => {
-          if (v === null || v === undefined) return undefined
-          if (typeof v === "string") return v || undefined
-          if (typeof v === "number" || typeof v === "boolean") return String(v)
-          return undefined
-        }
-        const label = asText(data.label) ?? asText(data.subject) ?? "badge"
-        const value = asText(data.value) ?? asText(data.status) ?? asText(data.message) ?? "unknown"
-        const color = typeof data.color === "string" ? data.color : undefined
+          // Support both badgen format (subject/status) and our format
+          // (label/value). The endpoint is arbitrary user-supplied JSON — coerce
+          // to strings so an object can never paint "[object Object]" or crash
+          // the renderer, and accept legitimate falsy values like 0.
+          const asText = (v: unknown): string | undefined => {
+            if (v === null || v === undefined) return undefined
+            if (typeof v === "string") return v || undefined
+            if (typeof v === "number" || typeof v === "boolean") return String(v)
+            return undefined
+          }
+          const label = asText(data.label) ?? asText(data.subject) ?? "badge"
+          const value = asText(data.value) ?? asText(data.status) ?? asText(data.message) ?? "unknown"
+          const color = typeof data.color === "string" ? data.color : undefined
 
-        return { label, value, color } as BadgeData
-      } catch {
-        return { label: "endpoint", value: "error", color: "red", error: true }
-      }
+          return { label, value, color } as BadgeData
+        } catch (err) {
+          return {
+            label: "endpoint",
+            value: err instanceof UnsafeUrlError ? "blocked url"
+              : err instanceof ResponseTooLargeError ? "too large"
+              : "error",
+            color: "red",
+            error: true,
+          }
+        }
+      }, 300)
     }
 
     default:
@@ -2083,9 +2095,9 @@ async function resolveHeaderLogo(
   if (/^https?:\/\//.test(logoParam)) {
     try {
       const res = await raceTimeout(
-        fetch(logoParam, {
-          next: { revalidate: 86400 },
+        safeFetch(logoParam, {
           headers: { Accept: "image/svg+xml,image/png,image/*", "User-Agent": "shieldcn/1.0" },
+          maxBytes: MAX_HEADER_IMAGE_BYTES,
         }),
       )
       if (res?.ok) {
@@ -2097,10 +2109,11 @@ async function resolveHeaderLogo(
           return { imageDataUri: `data:image/svg+xml;base64,${Buffer.from(text).toString("base64")}` }
         }
         const bytes = Buffer.from(await res.arrayBuffer())
+        if (bytes.byteLength > MAX_HEADER_IMAGE_BYTES) return undefined
         return { imageDataUri: `data:${ct};base64,${bytes.toString("base64")}` }
       }
     } catch {
-      // No logo art — render without a logo.
+      // No logo art — render without a logo (blocked URL, too large, timeout, etc).
     }
     return undefined
   }
@@ -2164,9 +2177,9 @@ async function resolveHeaderImage(imageParam: string | null): Promise<string | u
 
   try {
     const res = await raceTimeout(
-      fetch(fetchUrl, {
-        next: { revalidate: 86400 },
+      safeFetch(fetchUrl, {
         headers: { Accept: "image/*", "User-Agent": "shieldcn/1.0" },
+        maxBytes: MAX_HEADER_IMAGE_BYTES,
       }),
     )
     if (!res?.ok) return undefined
@@ -3067,8 +3080,7 @@ async function resolveChartData(
         return { ok: false, status: 400, msg: "json url charts need a ?query=" }
       }
       try {
-        const res = await raceTimeout(fetch(url, {
-          next: { revalidate: 300 },
+        const res = await raceTimeout(safeFetch(url, {
           headers: { Accept: "application/json", "User-Agent": "shieldcn/1.0" },
         }))
         if (!res || !res.ok) {

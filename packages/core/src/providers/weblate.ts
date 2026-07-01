@@ -25,6 +25,7 @@ export async function getWeblateTranslation(
     cacheKey: `stats:${server}:${project}:${component}`,
     url: `https://${server}/api/components/${project}/${component}/statistics/`,
     ttl: 3600,
+    userControlledHost: true,
   })
   if (!data) return null
 
@@ -59,6 +60,7 @@ export async function getWeblateLanguages(
     cacheKey: `langs:${server}:${project}:${component}`,
     url: `https://${server}/api/components/${project}/${component}/statistics/`,
     ttl: 3600,
+    userControlledHost: true,
   })
   if (!data) return null
 
