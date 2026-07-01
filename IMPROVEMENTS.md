@@ -146,7 +146,7 @@
 - [x] **F9. Defer non-critical motion imports on the landing path** (M) — done via PR-3.6 (tour + sidebar; hero/header deliberately left eager, see notes — they're first-paint content, not deferrable)
   `motion/react` is imported eagerly at module top in `sidebar.tsx:6` (site chrome on every page), `hero-entrance.tsx`, `sponsor-button.tsx`, `tour.tsx`, `theme-switcher.tsx`. Use `next/dynamic` for the tour and hero choreography, or motion's `LazyMotion`/`m`, to cut the shared client bundle.
 
-- [ ] **F10. Studio: project export/import + safe Reset** (M)
+- [x] **F10. Studio: project export/import + safe Reset** (M) — done via PR-3.7
   Persistence is a single localStorage slot (`studio.tsx:114, 275`); Reset clears document and history (:485) with no confirmation or backup, and there's no way to save/share drafts. Add "Download/Load project (.json)" next to the Markdown export (:519-524) and make Reset confirmed or undo-able.
 
 ---

@@ -683,3 +683,57 @@ export function makeStarterDocument(): Block[] {
   const chart = makeChartBlock()
   return [header, badges, intro, chart]
 }
+
+// ---------------------------------------------------------------------------
+// Project export/import (JSON)
+//
+// documentToMarkdown() is one-way — it renders the *output* README, dropping
+// anything that doesn't survive a round-trip through Markdown (a block's
+// unpublished draft state, exact ordering metadata, themeAware). This is a
+// full snapshot of the Studio session itself, for "save my work and resume
+// later" rather than "get the README text."
+// ---------------------------------------------------------------------------
+
+export interface StudioProject {
+  version: 1
+  blocks: Block[]
+  themeAware: boolean
+}
+
+const KNOWN_BLOCK_TYPES: readonly BlockType[] = [
+  "markdown", "header", "badges", "group", "chart", "table", "image", "sponsors", "contributors",
+]
+
+export function serializeProject(blocks: Block[], themeAware: boolean): string {
+  const project: StudioProject = { version: 1, blocks, themeAware }
+  return JSON.stringify(project, null, 2)
+}
+
+/**
+ * Parse a previously-exported project file. Returns `null` for anything
+ * that isn't a well-formed project (bad JSON, wrong version, empty/missing
+ * block list, or a block missing the minimal shape) — never throws, so
+ * callers can surface a clean "couldn't load that file" instead of a crash.
+ */
+export function deserializeProject(json: string): StudioProject | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch {
+    return null
+  }
+  if (!parsed || typeof parsed !== "object") return null
+  const obj = parsed as Record<string, unknown>
+  if (obj.version !== 1) return null
+  if (!Array.isArray(obj.blocks) || obj.blocks.length === 0) return null
+
+  const blocks = obj.blocks as unknown[]
+  const valid = blocks.every((b) => {
+    if (!b || typeof b !== "object") return false
+    const rec = b as Record<string, unknown>
+    return typeof rec.id === "string" && KNOWN_BLOCK_TYPES.includes(rec.type as BlockType)
+  })
+  if (!valid) return null
+
+  return { version: 1, blocks: blocks as Block[], themeAware: obj.themeAware === true }
+}

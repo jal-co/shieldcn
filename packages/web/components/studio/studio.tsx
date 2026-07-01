@@ -57,6 +57,10 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { BlockFrame } from "@/components/studio/canvas"
 import {
@@ -77,6 +81,8 @@ import {
   makeBlock,
   makeStarterDocument,
   newId,
+  serializeProject,
+  deserializeProject,
   type Block,
   type BlockType,
   type BadgesBlock,
@@ -232,6 +238,7 @@ export function Studio() {
   }, [])
   const [themeAware, setThemeAware] = useState(false)
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   // Reorder drag source (existing block) and palette drag source (new block).
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [dragNewType, setDragNewType] = useState<BlockType | null>(null)
@@ -495,15 +502,15 @@ export function Studio() {
     if (e.target === e.currentTarget) setSelectedId(null)
   }, [])
 
-  const reset = useCallback(() => {
+  // Reset requires confirmation (it discards the whole document) but is
+  // itself undoable — it flows through setBlocks normally, so a misclick on
+  // the confirm button is still just one ⌘Z away, same as any other edit.
+  const requestReset = useCallback(() => setResetConfirmOpen(true), [])
+  const confirmReset = useCallback(() => {
     const fresh = makeStarterDocument()
-    historyRef.current = { past: [], future: [] }
-    lastPushRef.current = 0
-    skipHistoryRef.current = true
     setBlocks(fresh)
     setSelectedId(fresh[0]?.id ?? null)
-    setCanUndo(false)
-    setCanRedo(false)
+    setResetConfirmOpen(false)
   }, [])
 
   // --- export --------------------------------------------------------------
@@ -562,6 +569,39 @@ export function Studio() {
     }
     reader.readAsText(file)
   }, [baseUrl])
+
+  // Export/import the full project (blocks + theme-aware flag) as JSON, so a
+  // studio session can be handed off or backed up beyond localStorage.
+  const downloadProject = useCallback(() => {
+    const json = serializeProject(blocks, themeAware)
+    const blob = new Blob([json], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "shieldcn-studio-project.json"
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [blocks, themeAware])
+
+  const projectFileInputRef = useRef<HTMLInputElement>(null)
+  const onImportProjectFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : ""
+      const project = deserializeProject(text)
+      if (!project) {
+        toast.error("Couldn't load that project file")
+        return
+      }
+      setBlocks(project.blocks)
+      setSelectedId(project.blocks[0]?.id ?? null)
+      setThemeAware(project.themeAware)
+    }
+    reader.readAsText(file)
+  }, [])
 
   if (!hydrated) {
     return <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading studio…</div>
@@ -643,12 +683,24 @@ export function Studio() {
 
           <Separator orientation="vertical" className="mx-0.5 hidden h-5 sm:block" />
 
-          {/* IMPORT — bring a README.md file in (the one 'in' action) */}
-          <Tip label="Open a README.md file into the studio">
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => fileInputRef.current?.click()}>
-              <IconFileArrowRightIn size={15} /> <span className="hidden lg:inline">Import</span>
-            </Button>
-          </Tip>
+          {/* IMPORT — bring a README.md or a saved project (.json) in */}
+          <DropdownMenu>
+            <Tip label="Bring a file into the studio">
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5" aria-label="Import">
+                  <IconFileArrowRightIn size={15} /> <span className="hidden lg:inline">Import</span>
+                </Button>
+              </DropdownMenuTrigger>
+            </Tip>
+            <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+                <IconMarkdown size={15} /> Import Markdown (.md)
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => projectFileInputRef.current?.click()}>
+                <IconFileArrowRightIn size={15} /> Load project (.json)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* EXPORT — primary; menu offers clipboard + file. The button face
               flashes a spring "Copied" after a clipboard copy (the menu closes,
@@ -680,6 +732,9 @@ export function Studio() {
               <DropdownMenuItem onSelect={downloadMarkdown}>
                 <IconFileDownload size={15} /> Download .md
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={downloadProject}>
+                <IconFileDownload size={15} /> Download project (.json)
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -707,13 +762,13 @@ export function Studio() {
                 </span>
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={reset}>
+              <DropdownMenuItem variant="destructive" onSelect={requestReset}>
                 <IconArrowRotateCounterClockwise size={15} /> Reset to the starter document
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Hidden file picker driving Import */}
+          {/* Hidden file pickers driving Import */}
           <input
             ref={fileInputRef}
             type="file"
@@ -723,8 +778,32 @@ export function Studio() {
             aria-hidden="true"
             tabIndex={-1}
           />
+          <input
+            ref={projectFileInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={onImportProjectFile}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
         </div>
       </div>
+
+      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to the starter document?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This replaces every block in the current document with the starter layout. It&apos;s undoable with ⌘Z right after, same as any other edit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReset}>Reset</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">

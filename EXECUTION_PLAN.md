@@ -807,6 +807,45 @@ succeeds, `pnpm test` (262/10), and the two live-browser checks above.
   Reset (`studio.tsx:485`). **Verify:** round-trip export→import restores the doc;
   Reset requires confirmation.
 
+**Actual outcome:** `lib/studio-shared.ts` gained a small `StudioProject`
+JSON schema (`{version: 1, blocks, themeAware}`) plus `serializeProject`/
+`deserializeProject`. `deserializeProject` validates shape defensively —
+JSON parse failure, non-object, wrong `version`, empty/non-array `blocks`,
+or any block missing a string `id` / known `type` all return `null` rather
+than throwing, so a hand-edited or corrupted file degrades to a toast
+error instead of a crash or a half-applied document.
+
+Reset was split into `requestReset` (opens an `AlertDialog`) and
+`confirmReset` (does the actual `setBlocks(makeStarterDocument())`). The
+deliberate design choice: Reset does **not** get special-cased history
+handling — it flows through the same `setBlocks` → history-effect path as
+any other edit, so it lands on the undo stack for free and a misclick on
+the confirm button is one ⌘Z away, same as any other edit. The
+confirmation dialog is the primary safety net; undo is the backstop.
+
+The toolbar's "Import" button became a small dropdown (Import Markdown
+.md / Load project .json) to make room for the second import path,
+mirroring the existing Export dropdown's shape. Import-project failures
+reuse the PR-3.4 toast pattern (`toast.error("Couldn't load that project
+file")`) rather than inventing new inline error state, per this session's
+established preference for one error-surface convention across the app.
+
+Verified live via Playwright against a production build: (1) clicking
+Reset opens the confirmation dialog and Cancel closes it without changing
+the doc; (2) confirming Reset closes the dialog and the change is
+reachable via ⌘Z; (3) Download project (.json) produces valid
+`{version:1, blocks, themeAware}` JSON; (4) round-trip — toggling
+"Adaptive light & dark," downloading, then re-importing the same file —
+restores the toggled state with no error toast, confirming export→import
+fidelity; (5) importing an unrelated/malformed JSON file (`{foo:"bar"}`)
+correctly shows the "Couldn't load that project file" toast and leaves
+the current document untouched.
+
+Verified: `tsc --noEmit` clean, `pnpm --filter @shieldcn/web build`
+succeeds, `pnpm test` (262/10 in `@shieldcn/core`; web/engine/cli have no
+test scripts yet — that gap is precisely Phase 4's PR-4.2/PR-4.3), and the
+five live-browser checks above. This closes out Phase 3.
+
 ---
 
 ## Phase 4 — Test coverage
