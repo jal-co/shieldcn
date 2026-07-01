@@ -38,7 +38,7 @@ import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ChevronDown } from "lucide-react"
-import { motion, useScroll, useMotionValueEvent, type Transition } from "motion/react"
+import { motion, useScroll, useMotionValueEvent, useReducedMotion, type Transition } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { SponsorButton } from "@/components/sponsor-button"
 import { ThemeSwitcher } from "@/components/theme-switcher"
@@ -190,12 +190,15 @@ const ACTIONS = {
 export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
   // Scroll-state values (tuned, baked-in literals).
   const t = BAR
+  const reduce = useReducedMotion()
 
   // Entrance — single integer stage drives the staged reveal.
   // 1: bar  2: logo  3: nav  4: actions
-  const [stage, setStage] = useState(0)
+  // Reduced motion: skip straight to the final stage — no staggered drop-in.
+  const [stage, setStage] = useState(reduce ? 4 : 0)
 
   useEffect(() => {
+    if (reduce) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0)
     const timers: ReturnType<typeof setTimeout>[] = []
@@ -204,7 +207,7 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
     timers.push(setTimeout(() => setStage(s => Math.max(s, 3)), TIMING.nav))
     timers.push(setTimeout(() => setStage(s => Math.max(s, 4)), TIMING.actions))
     return () => timers.forEach(clearTimeout)
-  }, [])
+  }, [reduce])
 
   // Scroll — condense the bar once past the threshold.
   const { scrollY } = useScroll()
@@ -226,27 +229,29 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
         borderColor: scrolled ? "var(--border)" : "transparent",
         transition: "background-color 200ms ease, backdrop-filter 200ms ease, border-color 200ms ease",
       }}
-      initial={{ y: BAR.dropFrom, opacity: 0, height: BAR.topHeight }}
-      animate={{
+      initial={reduce ? { opacity: 1, y: 0, height: BAR.topHeight } : { y: BAR.dropFrom, opacity: 0, height: BAR.topHeight }}
+      animate={reduce ? { opacity: 1, y: 0, height } : {
         y: stage >= 1 ? 0 : BAR.dropFrom,
         opacity: stage >= 1 ? 1 : 0,
         height,
       }}
-      transition={{ y: BAR.spring as Transition, opacity: { duration: 0.3 }, height: BAR.stateSpring as Transition }}
+      transition={reduce
+        ? { duration: 0 }
+        : { y: BAR.spring as Transition, opacity: { duration: 0.3 }, height: BAR.stateSpring as Transition }}
     >
       <MobileNav />
 
       {/* Logo */}
       <motion.div
-        initial={{ opacity: 0, x: LOGO.offsetX }}
-        animate={{ opacity: stage >= 2 ? 1 : 0, x: stage >= 2 ? 0 : LOGO.offsetX }}
-        transition={LOGO.spring as Transition}
+        initial={reduce ? { opacity: 1, x: 0 } : { opacity: 0, x: LOGO.offsetX }}
+        animate={reduce ? { opacity: 1, x: 0 } : { opacity: stage >= 2 ? 1 : 0, x: stage >= 2 ? 0 : LOGO.offsetX }}
+        transition={reduce ? { duration: 0 } : (LOGO.spring as Transition)}
       >
         <Link
           href="/"
           className="flex items-center gap-2 rounded-md text-sm font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
-          <motion.span animate={{ scale: logoScale }} transition={BAR.stateSpring as Transition}>
+          <motion.span animate={{ scale: logoScale }} transition={reduce ? { duration: 0 } : (BAR.stateSpring as Transition)}>
             <ShieldcnLogo className="h-9 w-auto" />
           </motion.span>
           <span className="hidden font-heading sm:inline">shieldcn</span>
@@ -258,9 +263,9 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
         {NAV.items.map((item, i) => (
           <motion.div
             key={"children" in item ? item.label : item.href}
-            initial={{ opacity: 0, y: NAV.offsetY }}
-            animate={{ opacity: stage >= 3 ? 1 : 0, y: stage >= 3 ? 0 : NAV.offsetY }}
-            transition={{ ...(NAV.spring as Transition), delay: stage >= 3 ? i * NAV.stagger : 0 }}
+            initial={reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: NAV.offsetY }}
+            animate={reduce ? { opacity: 1, y: 0 } : { opacity: stage >= 3 ? 1 : 0, y: stage >= 3 ? 0 : NAV.offsetY }}
+            transition={reduce ? { duration: 0 } : { ...(NAV.spring as Transition), delay: stage >= 3 ? i * NAV.stagger : 0 }}
           >
             {"children" in item ? (
               <NavDropdown label={item.label} items={item.children} />
@@ -276,9 +281,9 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
       {/* Right-side actions */}
       <motion.div
         className="ml-auto flex items-center gap-1.5"
-        initial={{ opacity: 0, x: ACTIONS.offsetX }}
-        animate={{ opacity: stage >= 4 ? 1 : 0, x: stage >= 4 ? 0 : ACTIONS.offsetX }}
-        transition={ACTIONS.spring as Transition}
+        initial={reduce ? { opacity: 1, x: 0 } : { opacity: 0, x: ACTIONS.offsetX }}
+        animate={reduce ? { opacity: 1, x: 0 } : { opacity: stage >= 4 ? 1 : 0, x: stage >= 4 ? 0 : ACTIONS.offsetX }}
+        transition={reduce ? { duration: 0 } : (ACTIONS.spring as Transition)}
       >
         <SponsorButton className="hidden sm:inline-flex" />
         {githubButton}

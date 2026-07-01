@@ -11,7 +11,7 @@
 
 import Link from "next/link"
 import { Heart } from "lucide-react"
-import { motion, type Variants } from "motion/react"
+import { motion, useReducedMotion, type Variants } from "motion/react"
 import { cn } from "@/lib/utils"
 
 const MotionLink = motion.create(Link)
@@ -26,7 +26,15 @@ const HEART: Variants = {
   },
 }
 
+// Reduced motion: the heart just sits still on hover — no beat.
+const HEART_STATIC: Variants = {
+  rest: { scale: 1 },
+  beat: { scale: 1, transition: { duration: 0 } },
+}
+
 export function SponsorButton({ className }: { className?: string }) {
+  const reduce = useReducedMotion()
+
   return (
     <MotionLink
       href="/sponsor"
@@ -42,7 +50,7 @@ export function SponsorButton({ className }: { className?: string }) {
         className,
       )}
     >
-      <motion.span className="inline-flex" variants={HEART}>
+      <motion.span className="inline-flex" variants={reduce ? HEART_STATIC : HEART}>
         <Heart className="size-3.5 fill-rose-500 stroke-rose-500" />
       </motion.span>
       Sponsor

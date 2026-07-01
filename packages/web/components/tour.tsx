@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type React from "react";
 import {
 	createContext,
@@ -129,6 +129,7 @@ export function TourProvider({
 		height: number;
 	} | null>(null);
 	const [isCompleted, setIsCompleted] = useState(isTourCompleted);
+	const reduceMotion = useReducedMotion();
 
 	const updateElementPosition = useCallback(() => {
 		if (currentStep >= 0 && currentStep < steps.length) {
@@ -261,6 +262,7 @@ export function TourProvider({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
+							transition={reduceMotion ? { duration: 0 } : undefined}
 							className="fixed inset-0 z-50 overflow-hidden bg-black/50"
 							style={{
 								clipPath: `polygon(
@@ -281,6 +283,7 @@ export function TourProvider({
 							initial={{ opacity: 0, scale: 0.95 }}
 							animate={{ opacity: 1, scale: 1 }}
 							exit={{ opacity: 0, scale: 0.95 }}
+							transition={reduceMotion ? { duration: 0 } : undefined}
 							style={{
 								position: "fixed",
 								top: elementPosition.top - HIGHLIGHT_PAD,
@@ -303,7 +306,7 @@ export function TourProvider({
 								left: elementPosition.left + (steps[currentStep]?.width || elementPosition.width) / 2,
 							}}
 							exit={{ opacity: 0 }}
-							transition={{
+							transition={reduceMotion ? { duration: 0 } : {
 								type: "spring",
 								stiffness: 120,
 								damping: 20,
@@ -313,7 +316,7 @@ export function TourProvider({
 							className="z-[101] pointer-events-none"
 						>
 							<span className="relative flex size-3">
-								<span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+								<span className={cn("absolute inline-flex size-full rounded-full bg-primary opacity-75", !reduceMotion && "animate-ping")} />
 								<span className="relative inline-flex size-3 rounded-full bg-primary" />
 							</span>
 						</motion.div>
@@ -332,7 +335,7 @@ export function TourProvider({
 									steps[currentStep]?.position,
 								).left,
 							}}
-							transition={{
+							transition={reduceMotion ? { duration: 0 } : {
 								duration: 0.8,
 								ease: [0.16, 1, 0.3, 1],
 								opacity: { duration: 0.4 },
@@ -358,7 +361,7 @@ export function TourProvider({
 										animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
 										exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
 										className="overflow-hidden"
-										transition={{
+										transition={reduceMotion ? { duration: 0 } : {
 											duration: 0.2,
 											height: {
 												duration: 0.4,

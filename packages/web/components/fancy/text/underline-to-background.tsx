@@ -1,7 +1,7 @@
 "use client"
 
 import { ElementType, useEffect, useMemo, useRef } from "react"
-import { motion, ValueAnimationTransition } from "motion/react"
+import { motion, useReducedMotion, ValueAnimationTransition } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -57,6 +57,8 @@ const UnderlineToBackground = ({
   ...props
 }: UnderlineProps) => {
   const textRef = useRef<HTMLSpanElement>(null)
+  const reduce = useReducedMotion()
+  const appliedTransition = reduce ? { duration: 0 } : transition
 
   // Create custom motion component based on the 'as' prop
   const MotionComponent = useMemo(() => motion.create(as ?? "span"), [as])
@@ -92,7 +94,7 @@ const UnderlineToBackground = ({
     },
     target: {
       height: "100%",
-      transition: transition,
+      transition: appliedTransition,
     },
   }
 
@@ -103,7 +105,7 @@ const UnderlineToBackground = ({
     },
     target: {
       color: targetTextColor,
-      transition: transition,
+      transition: appliedTransition,
     },
   }
 

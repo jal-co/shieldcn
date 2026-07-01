@@ -553,6 +553,61 @@ asked for the branded UI, not response-status semantics.
   `fancy/text/underline-to-background`). **Verify:** with OS reduce-motion on, no
   JS spring animation runs.
 
+**Actual outcome:** All 9 named components wired (the plan text says "8
+remaining" but lists 9 — did all of them). For each, reduced motion means:
+staged entrances skip straight to their final `stage` value instead of
+running timers (no staggered reveal), infinite idle-float loops
+(`hero-showcase`'s card/badge drift, `site-announcement`'s sheen sweep) stop
+entirely rather than continuing at `duration: 0`, and hover/click-triggered
+springs (`sponsor-button`'s heart beat, `theme-switcher`'s sun/moon morph,
+`tour`'s highlight/cursor/content transitions) resolve instantly instead of
+animating.
+
+**Real bug caught in browser verification, fixed before landing:** the
+first pass used a shorthand `reduce ? { opacity: 1 } : { opacity, y, filter, ... }`
+pattern — the reduced branch only specified `opacity`, dropping `y`/
+`filter`/`x`/`scale`/etc. `useReducedMotion()` returns `null` on the very
+first render (matching SSR, which has no way to know the client's OS
+preference) and only resolves to `true`/`false` after mount. When it
+resolved to `true` *after* the component had already started its
+non-reduced entrance (e.g. mid-blur, offset from center), Motion's
+`animate` target no longer mentioned those properties at all — so they
+froze at whatever value they were at instead of resetting, leaving
+`/sponsor` permanently blurred under reduced motion (caught via a real
+Playwright screenshot with `prefers-reduced-motion` emulated, not just
+typecheck/build — this class of bug is invisible to both). Fixed by making
+every reduced branch specify the *same* properties as the animated branch,
+settled at their final resting value (e.g.
+`{ opacity: 1, y: 0, filter: "blur(0px)" }` instead of `{ opacity: 1 }`),
+across `hero-entrance`, `hero-showcase`, `sponsor-entrance`, and
+`animated-header`. Re-verified with the same screenshot technique — fixed.
+
+**Pre-existing gap found, left unfixed (out of scope):** the same
+Playwright verification surfaced a hydration mismatch (React error #418) in
+`app/template.tsx` — one of the 3 files *already* using `useReducedMotion()`
+before this PR (alongside `sidebar.tsx` and `studio.tsx`, neither of which
+this PR touched). Root cause: Motion's `useReducedMotion()` synchronously
+reads `matchMedia` on its very first render (confirmed by reading
+`framer-motion`'s source), so for a real user who already has OS
+reduce-motion enabled *before* the page loads, the client's first render
+already knows `reduce: true` — but the server has no way to know that and
+always renders the non-reduced baseline. React recovers gracefully (discards
+the mismatched SSR subtree, re-renders from the client — confirmed via
+screenshot that the final rendered page is correct either way), so this
+isn't user-visible breakage, just a wasted extra render pass and a
+dev-console warning. Properly fixing it means gating every
+`useReducedMotion()` consumer behind a `useHydrated()`-style flag so the
+first client render always matches SSR (accepting a one-frame "flash of
+un-reduced motion" on load for reduced-motion users) — a real architectural
+change touching the 3 pre-existing files too, well beyond "wire the hook
+into 8 more components." Logged as new backlog item.
+
+Verified: `pnpm typecheck` clean, `pnpm --filter @shieldcn/web build`
+succeeds, and (the meaningful check for this PR) `pnpm test` plus direct
+Playwright screenshots of `/` and `/sponsor` with `prefers-reduced-motion:
+reduce` emulated via `context.addInitScript` overriding `matchMedia` —
+confirmed fully-settled, non-blurred, non-offset content in both states.
+
 ### PR-3.3 — Keyboard operability + labels  · items: **F4 + F5** · effort S
 - Studio: Alt/Cmd+Arrow block reorder via existing `moveBlock` (`studio.tsx:370`);
   make the resize `role="slider"` (`canvas.tsx:199`) focusable with arrow keys and

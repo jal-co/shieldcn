@@ -24,7 +24,7 @@
 "use client"
 
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { motion, type Transition } from "motion/react"
+import { motion, useReducedMotion, type Transition } from "motion/react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
 // ---------------------------------------------------------------------------
@@ -106,6 +106,7 @@ function useHydrated() {
 export function HeroShowcase() {
   const hydrated = useHydrated()
   const { adaptUrl } = useBadgeMode()
+  const reduce = useReducedMotion()
 
   // Tuned layout + motion values baked out of DialKit before shipping.
   const d = {
@@ -131,9 +132,12 @@ export function HeroShowcase() {
 
   // Single integer stage drives the whole entrance.
   // 1: back card  2: front card  3: badges
-  const [stage, setStage] = useState(0)
+  // Reduced motion: skip straight to the final stage — no staggered reveal,
+  // and (further down) no infinite idle-float loops.
+  const [stage, setStage] = useState(reduce ? 4 : 0)
 
   useEffect(() => {
+    if (reduce) return
     // Reset so the entrance sequence replays on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0)
@@ -143,7 +147,7 @@ export function HeroShowcase() {
     timers.push(setTimeout(() => setStage(s => Math.max(s, 3)), d.card3))
     timers.push(setTimeout(() => setStage(s => Math.max(s, 4)), d.badges))
     return () => timers.forEach(clearTimeout)
-  }, [d.card1, d.card2, d.card3, d.badges])
+  }, [reduce, d.card1, d.card2, d.card3, d.badges])
 
   // Keep the placeholder identical in size to avoid layout shift pre-hydration.
   if (!hydrated) return <div className="h-[500px] w-full" />
@@ -158,19 +162,24 @@ export function HeroShowcase() {
               key={card.key}
               className="absolute"
               style={{ top: card.top, left: card.left, width: card.width, zIndex: card.z }}
-              initial={{ opacity: 0, y: d.cards.riseY, filter: `blur(${d.cards.blur}px)`, rotate: card.rotate }}
-              animate={{
-                opacity: stage >= atStage ? 1 : 0,
-                y: stage >= atStage ? 0 : d.cards.riseY,
-                filter: stage >= atStage ? "blur(0px)" : `blur(${d.cards.blur}px)`,
-                rotate: card.rotate,
-              }}
-              transition={d.cards.spring as Transition}
+              initial={reduce
+                ? { opacity: 1, y: 0, filter: "blur(0px)", rotate: card.rotate }
+                : { opacity: 0, y: d.cards.riseY, filter: `blur(${d.cards.blur}px)`, rotate: card.rotate }}
+              animate={reduce
+                ? { opacity: 1, y: 0, filter: "blur(0px)", rotate: card.rotate }
+                : {
+                  opacity: stage >= atStage ? 1 : 0,
+                  y: stage >= atStage ? 0 : d.cards.riseY,
+                  filter: stage >= atStage ? "blur(0px)" : `blur(${d.cards.blur}px)`,
+                  rotate: card.rotate,
+                }}
+              transition={reduce ? { duration: 0 } : (d.cards.spring as Transition)}
             >
-              {/* idle float loop (separate layer so it never fights the entrance) */}
+              {/* idle float loop (separate layer so it never fights the entrance).
+                  Reduced motion: no infinite loop — the card just sits still. */}
               <motion.div
-                animate={{ y: stage >= atStage ? [0, -d.cards.floatAmp, 0] : 0 }}
-                transition={{ repeat: Infinity, duration: d.cards.floatSecs, ease: "easeInOut", delay: i * 0.6 }}
+                animate={{ y: !reduce && stage >= atStage ? [0, -d.cards.floatAmp, 0] : 0 }}
+                transition={reduce ? { duration: 0 } : { repeat: Infinity, duration: d.cards.floatSecs, ease: "easeInOut", delay: i * 0.6 }}
                 className="overflow-hidden rounded-xl border border-border bg-card shadow-xl shadow-black/20"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -186,16 +195,16 @@ export function HeroShowcase() {
             key={badge.key}
             className="absolute"
             style={{ top: badge.top, left: badge.left, zIndex: badge.z }}
-            initial={{ opacity: 0, scale: BADGES.initialScale }}
-            animate={{
+            initial={reduce ? { opacity: 1, scale: d.badgeGroup.scale } : { opacity: 0, scale: BADGES.initialScale }}
+            animate={reduce ? { opacity: 1, scale: d.badgeGroup.scale } : {
               opacity: stage >= 4 ? 1 : 0,
               scale: stage >= 4 ? d.badgeGroup.scale : BADGES.initialScale,
             }}
-            transition={{ ...(d.badgeGroup.spring as Transition), delay: stage >= 4 ? i * d.badgeGroup.stagger : 0 }}
+            transition={reduce ? { duration: 0 } : { ...(d.badgeGroup.spring as Transition), delay: stage >= 4 ? i * d.badgeGroup.stagger : 0 }}
           >
             <motion.div
-              animate={{ y: stage >= 4 ? [0, -d.badgeGroup.floatAmp, 0] : 0 }}
-              transition={{ repeat: Infinity, duration: d.badgeGroup.floatSecs, ease: "easeInOut", delay: i * 0.4 }}
+              animate={{ y: !reduce && stage >= 4 ? [0, -d.badgeGroup.floatAmp, 0] : 0 }}
+              transition={reduce ? { duration: 0 } : { repeat: Infinity, duration: d.badgeGroup.floatSecs, ease: "easeInOut", delay: i * 0.4 }}
               className="drop-shadow-md"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -27,7 +27,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion, type Transition } from "motion/react"
+import { motion, useReducedMotion, type Transition } from "motion/react"
 
 // ---------------------------------------------------------------------------
 // Storyboard variants
@@ -123,12 +123,15 @@ function HeroEntranceStage({
   const preset = VARIANTS[variant]
   const t = preset.timing
   const riseCfg = preset.rise
+  const reduce = useReducedMotion()
 
   // Single integer stage drives the whole sequence.
   // 1: announcement  2: heading  3: subtext  4: input  5: cloud  6: scrollCta
-  const [stage, setStage] = useState(0)
+  // Reduced motion: skip straight to the final stage — no staggered reveal.
+  const [stage, setStage] = useState(reduce ? 6 : 0)
 
   useEffect(() => {
+    if (reduce) return
     const timers: ReturnType<typeof setTimeout>[] = []
     timers.push(setTimeout(() => setStage(s => Math.max(s, 1)), t.announcement))
     timers.push(setTimeout(() => setStage(s => Math.max(s, 2)), t.heading))
@@ -137,21 +140,27 @@ function HeroEntranceStage({
     timers.push(setTimeout(() => setStage(s => Math.max(s, 5)), t.cloud))
     timers.push(setTimeout(() => setStage(s => Math.max(s, 6)), t.scrollCta))
     return () => timers.forEach(clearTimeout)
-  }, [t.announcement, t.heading, t.subtext, t.input, t.cloud, t.scrollCta])
+  }, [reduce, t.announcement, t.heading, t.subtext, t.input, t.cloud, t.scrollCta])
 
   // Reusable reveal props for a rising column element at a given stage.
+  // Reduced motion: no y-offset/blur travel, and an instant transition. The
+  // reduced branch must specify every property the animated branch does
+  // (opacity, y, filter) at its settled value — useReducedMotion() can flip
+  // from null (matches SSR) to true *after* mount, and a target object
+  // missing a property leaves it frozen at whatever it was mid-entrance
+  // instead of resetting.
   const rise = (atStage: number) => ({
-    initial: {
+    initial: reduce ? { opacity: 1, y: 0, filter: "blur(0px)" } : {
       opacity: 0,
       y: riseCfg.offsetY,
       filter: `blur(${riseCfg.blur}px)`,
     },
-    animate: {
+    animate: reduce ? { opacity: 1, y: 0, filter: "blur(0px)" } : {
       opacity: stage >= atStage ? 1 : 0,
       y: stage >= atStage ? 0 : riseCfg.offsetY,
       filter: stage >= atStage ? "blur(0px)" : `blur(${riseCfg.blur}px)`,
     },
-    transition: riseCfg.spring as Transition,
+    transition: reduce ? { duration: 0 } : (riseCfg.spring as Transition),
   })
 
   return (
@@ -174,12 +183,12 @@ function HeroEntranceStage({
         ) : (
           <motion.div
             className="relative z-0 hidden items-center justify-center md:flex lg:w-1/2 lg:-ml-8"
-            initial={{ opacity: 0, scale: preset.cloud.initialScale }}
-            animate={{
+            initial={reduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: preset.cloud.initialScale }}
+            animate={reduce ? { opacity: 1, scale: 1 } : {
               opacity: stage >= 5 ? 1 : 0,
               scale: stage >= 5 ? 1 : preset.cloud.initialScale,
             }}
-            transition={preset.cloud.spring as Transition}
+            transition={reduce ? { duration: 0 } : (preset.cloud.spring as Transition)}
           >
             {cloud}
           </motion.div>
@@ -188,9 +197,9 @@ function HeroEntranceStage({
 
       {/* Scroll cta — fades in last */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: stage >= 6 ? 1 : 0 }}
-        transition={{ duration: 0.4 }}
+        initial={reduce ? { opacity: 1 } : { opacity: 0 }}
+        animate={{ opacity: reduce ? 1 : (stage >= 6 ? 1 : 0) }}
+        transition={reduce ? { duration: 0 } : { duration: 0.4 }}
       >
         {scrollCta}
       </motion.div>

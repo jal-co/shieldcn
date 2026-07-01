@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 import { cn } from "@/lib/utils"
 
 export function ThemeSwitcher() {
   const { setTheme, resolvedTheme } = useTheme()
+  const reduce = useReducedMotion()
   const mounted = React.useSyncExternalStore(
     () => () => {},
     () => true,
@@ -50,7 +51,7 @@ export function ThemeSwitcher() {
               y: resolvedTheme === "dark" ? 10 : 0,
               x: resolvedTheme === "dark" ? -12 : 0,
             }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+            transition={reduce ? { duration: 0 } : { ease: "easeInOut", duration: 0.35 }}
             d="M0-5h30a1 1 0 0 0 9 13v24H0Z"
           />
         </clipPath>
@@ -67,7 +68,7 @@ export function ThemeSwitcher() {
               scale: resolvedTheme === "dark" ? 0.5 : 1,
               opacity: resolvedTheme === "dark" ? 0 : 1,
             }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+            transition={reduce ? { duration: 0 } : { ease: "easeInOut", duration: 0.35 }}
             stroke="currentColor"
             strokeWidth="1.5"
           >

@@ -27,7 +27,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 import type { ReactNode } from "react"
 
 const TIMING = {
@@ -51,27 +51,36 @@ export function SponsorReveal({
   children: ReactNode
   className?: string
 }) {
-  const [shown, setShown] = useState(false)
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState(reduce ? true : false)
 
   useEffect(() => {
+    if (reduce) return
     const t = setTimeout(() => setShown(true), TIMING.start)
     return () => clearTimeout(t)
-  }, [])
+  }, [reduce])
+
+  // Reduced motion can flip from null (unresolved, matches SSR) to true
+  // *after* mount, once Motion's media-query check resolves — so the reduced
+  // branch must specify every property the animated branch does (opacity,
+  // y, filter), settled at its final value, or those properties freeze at
+  // whatever they were mid-entrance instead of resetting.
+  const settled = { opacity: 1, y: 0, filter: "blur(0px)" }
 
   return (
     <motion.div
       className={className}
-      initial={{
+      initial={reduce ? settled : {
         opacity: 0,
         y: REVEAL.offsetY,
         filter: `blur(${REVEAL.blur}px)`,
       }}
-      animate={{
+      animate={reduce ? settled : {
         opacity: shown ? 1 : 0,
         y: shown ? 0 : REVEAL.offsetY,
         filter: shown ? "blur(0px)" : `blur(${REVEAL.blur}px)`,
       }}
-      transition={{ ...REVEAL.spring, delay: step * REVEAL.stagger }}
+      transition={reduce ? { duration: 0 } : { ...REVEAL.spring, delay: step * REVEAL.stagger }}
     >
       {children}
     </motion.div>

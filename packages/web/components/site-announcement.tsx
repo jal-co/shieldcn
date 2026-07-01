@@ -28,7 +28,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { motion, type Transition } from "motion/react"
+import { motion, useReducedMotion, type Transition } from "motion/react"
 import {
   Announcement,
   AnnouncementBadge,
@@ -67,41 +67,46 @@ const ARROW = {
 
 export function SiteAnnouncement() {
   const sheen = SHEEN
+  const reduce = useReducedMotion()
 
   // Single integer stage drives the storyboard.
   // 1: sheen armed (begins looping)
+  // Reduced motion: never arms — the infinite sweep never starts.
   const [stage, setStage] = useState(0)
 
   useEffect(() => {
+    if (reduce) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0)
     const timer = setTimeout(() => setStage(1), TIMING.sheenArm)
     return () => clearTimeout(timer)
-  }, [])
+  }, [reduce])
 
   return (
     <Announcement className="group relative overflow-hidden">
-      {/* sheen sweep — armed at stage 1, then loops forever */}
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 z-10"
-        style={{
-          width: `${sheen.width}%`,
-          background: `linear-gradient(105deg, transparent 0%, color-mix(in oklch, var(--primary) ${Math.round(
-            sheen.intensity * 100,
-          )}%, transparent) 50%, transparent 100%)`,
-        }}
-        initial={{ x: `${sheen.from}%` }}
-        animate={{ x: stage >= 1 ? [`${sheen.from}%`, `${sheen.to}%`] : `${sheen.from}%` }}
-        transition={
-          {
-            repeat: Infinity,
-            duration: sheen.secs,
-            ease: "easeInOut",
-            repeatDelay: sheen.gapSecs,
-          } as Transition
-        }
-      />
+      {/* sheen sweep — armed at stage 1, then loops forever (unless reduced) */}
+      {!reduce && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-10"
+          style={{
+            width: `${sheen.width}%`,
+            background: `linear-gradient(105deg, transparent 0%, color-mix(in oklch, var(--primary) ${Math.round(
+              sheen.intensity * 100,
+            )}%, transparent) 50%, transparent 100%)`,
+          }}
+          initial={{ x: `${sheen.from}%` }}
+          animate={{ x: stage >= 1 ? [`${sheen.from}%`, `${sheen.to}%`] : `${sheen.from}%` }}
+          transition={
+            {
+              repeat: Infinity,
+              duration: sheen.secs,
+              ease: "easeInOut",
+              repeatDelay: sheen.gapSecs,
+            } as Transition
+          }
+        />
+      )}
 
       <AnnouncementBadge>New</AnnouncementBadge>
       <AnnouncementContent asChild>
