@@ -23,6 +23,7 @@ import { Kbd } from "@/components/ui/kbd"
 interface NavItem {
   title: string
   href: string
+  highlight?: boolean
   children?: NavItem[]
 }
 
@@ -53,7 +54,7 @@ const docsNav: NavGroup[] = [
       { title: "Introduction", href: "/docs" },
       { title: "README Studio", href: "/docs/studio" },
       { title: "CLI", href: "/docs/cli" },
-      { title: "Agent Skill", href: "/docs/skill" },
+      { title: "Agent Skill", href: "/docs/skill", highlight: true },
       { title: "Self-Hosting", href: "/docs/self-hosting" },
       { title: "API Reference", href: "/docs/api-reference" },
       { title: "Token Pool", href: "/token-pool" },
@@ -231,11 +232,13 @@ const ITEM_SPRING: Transition = { type: "spring", stiffness: 500, damping: 38 }
 function NavLink({
   href,
   title,
+  highlight,
   isActive,
   reduce,
 }: {
   href: string
   title: string
+  highlight?: boolean
   isActive: boolean
   reduce: boolean | null
 }) {
@@ -244,11 +247,14 @@ function NavLink({
       href={href}
       data-sidebar-active={isActive ? "true" : undefined}
       className={cn(
-        "group/navlink relative flex items-center rounded-md py-1.5 pl-3 pr-2 text-sm leading-5 outline-none transition-colors",
+        "group/navlink relative flex items-center rounded-md border py-1.5 pl-3 pr-2 text-sm leading-5 outline-none transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring/50",
         isActive
-          ? "font-medium text-foreground"
+          ? "border-transparent font-medium text-foreground"
           : "text-muted-foreground hover:text-foreground",
+        highlight && !isActive
+          ? "border-primary/20 bg-primary/5 text-foreground shadow-sm shadow-primary/5 hover:border-primary/30 hover:bg-primary/10 dark:bg-primary/10"
+          : "border-transparent",
       )}
     >
       {/* hover wash (sits behind text, only when not active) */}
@@ -274,12 +280,17 @@ function NavLink({
 
       <span
         className={cn(
-          "relative z-10 truncate transition-transform duration-150",
+          "relative z-10 flex-1 truncate transition-transform duration-150",
           !isActive && "group-hover/navlink:translate-x-0.5",
         )}
       >
         {title}
       </span>
+      {highlight && (
+        <span className="relative z-10 ml-2 shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary">
+          New
+        </span>
+      )}
     </Link>
   )
 }
@@ -310,14 +321,14 @@ function CollapsibleNavItem({
   }, [pathname, isRelevant])
 
   if (!hasChildren) {
-    return <NavLink href={item.href} title={item.title} isActive={isActive} reduce={reduce} />
+    return <NavLink href={item.href} title={item.title} highlight={item.highlight} isActive={isActive} reduce={reduce} />
   }
 
   return (
     <div className="flex flex-col">
       <div className="flex items-center">
         <div className="flex-1">
-          <NavLink href={item.href} title={item.title} isActive={isActive} reduce={reduce} />
+          <NavLink href={item.href} title={item.title} highlight={item.highlight} isActive={isActive} reduce={reduce} />
         </div>
         <button
           type="button"

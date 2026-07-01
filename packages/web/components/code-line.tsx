@@ -36,8 +36,9 @@ async function CodeLine({
     <div
       data-slot="code-line"
       className={cn(
-        "inline-flex w-full items-center gap-2 overflow-hidden rounded-lg border border-border/60 shadow-xs",
-        !theme && "bg-muted/30",
+        "inline-flex w-full items-center gap-2 overflow-hidden rounded-xl border border-border/60 shadow-sm",
+        "[&_.shiki]:!bg-transparent [&_.shiki_span]:!bg-transparent",
+        !theme && "bg-white dark:bg-[#101010]",
         className
       )}
       style={themeBg ? { backgroundColor: themeBg } : undefined}

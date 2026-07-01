@@ -34,6 +34,19 @@ Drop a badge into any README and it renders as a real shadcn Button.
 ![views](https://shieldcn.dev/views/repo/shieldcn/shieldcn.svg)
 ```
 
+## Agent skill
+
+Install the `shieldcn-badges` skill from [skills.sh](https://skills.sh) so your
+coding agent can add shieldcn badges, charts, and headers to READMEs:
+
+```bash
+npx skills add jal-co/shieldcn -a claude-code # installs to Claude Code
+npx skills add jal-co/shieldcn -a cursor # installs to Cursor
+```
+
+See [`skills/shieldcn-badges/SKILL.md`](skills/shieldcn-badges/SKILL.md) for
+prompt examples and options.
+
 ## Star History
 
 <p align="center">

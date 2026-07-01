@@ -71,6 +71,8 @@ interface CodeBlockProps extends Omit<React.ComponentProps<"div">, "children"> {
   muted?: boolean
   /** Hide the header bar. Copy button floats inside the code area. */
   compact?: boolean
+  /** Wrap long lines instead of horizontally scrolling. */
+  wrap?: boolean
   /** Shiki theme name for single-theme rendering (e.g. "dracula", "nord"). */
   theme?: string
   className?: string
@@ -85,6 +87,7 @@ export async function CodeBlock({
   maxHeight,
   muted = false,
   compact = false,
+  wrap = false,
   theme,
   className,
   ...props
@@ -157,7 +160,8 @@ export async function CodeBlock({
       <CodeBlockWrapper overflow={overflow} maxHeight={maxHeight} muted={muted}>
         <div
           className={cn(
-            "relative overflow-x-auto",
+            "relative",
+            wrap ? "overflow-x-hidden" : "overflow-x-auto",
             !muted && !theme && "bg-[var(--shiki-light-bg)] dark:bg-[var(--shiki-dark-bg)]"
           )}
         >
@@ -168,7 +172,11 @@ export async function CodeBlock({
           )}
           <div
             className={cn(
-              "code-block [&_code]:font-mono [&_code]:text-[13px] [&_pre]:m-0 [&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:sm:p-5",
+              "code-block [&_code]:font-mono [&_code]:text-[13px] [&_pre]:m-0 [&_pre]:p-4 [&_pre]:sm:p-5",
+              compact && "[&_pre]:pr-14 [&_pre]:sm:pr-14",
+              wrap
+                ? "[&_code]:break-words [&_code]:whitespace-pre-wrap [&_pre]:break-words [&_pre]:whitespace-pre-wrap [&_pre]:overflow-x-hidden"
+                : "[&_pre]:overflow-x-auto",
               theme
                 ? "[&_pre]:rounded-b-xl"
                 : "[&_pre]:bg-transparent",

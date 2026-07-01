@@ -27,10 +27,17 @@ This installs the `shieldcn-badges` skill to your coding agent.
 
 Once installed, ask your coding agent to add badges. The skill triggers automatically for requests like:
 
-- _"Add npm and GitHub badges to the README"_
-- _"Add a CI status badge for this repo"_
-- _"Add shieldcn badges to the docs"_
-- _"Set up a badge row with stars, license, and version"_
+<div className="not-prose my-6 space-y-3">
+  <CodeBlock compact wrap language="text" code={`Add npm and GitHub badges to the README.
+Use size xs, the ghost variant, and make them work in both light and dark mode.`} />
+  <CodeBlock compact wrap language="text" code={`Migrate the existing Shields.io badges in this README to shieldcn.
+Undo any split-style/two-tone badges: use single-surface badges and remove split=true, labelColor, and split-label styling unless explicitly needed.`} />
+  <CodeBlock compact wrap language="text" code={`Add a shieldcn star-history chart for this repo below the intro.
+Make it transparent, link it to the stargazers page, and keep it readable in both light and dark mode.`} />
+  <CodeBlock compact wrap language="text" code="Add a CI status badge for this repo" />
+  <CodeBlock compact wrap language="text" code="Add shieldcn badges to the docs" />
+  <CodeBlock compact wrap language="text" code="Set up a badge row with stars, license, and version" />
+</div>
 
 The agent knows all shieldcn providers, URL patterns, variants, and query parameters — no manual lookup needed.
 
