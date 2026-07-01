@@ -227,6 +227,33 @@ they close the widest-reaching holes.
   `style` attributes are stripped; lock it with tests.
 - **Verify:** 11-segment group returns a clean error badge; a data-URI SVG with an
   `onload` attribute renders with the attribute removed.
+- **Actual outcome:** capped `/group` at 10 segments (both SVG and JSON
+  formats — the JSON branch also fans out one upstream fetch per segment via
+  `Promise.all`, so it needed the same guard) and swapped the unchecked `style
+  as BadgeStyle` cast for `resolveVariant()`, validated against the group's
+  first segment as a representative provider (style is applied uniformly
+  across the whole group). `badges/group-route.test.ts` (5 tests) locks in the
+  boundary (10 OK, 11 rejected, both formats) and the style coercion — using
+  the static `badge/` provider so it needs no network. One test-writing
+  lesson worth recording: badge SVGs render text as Satori-generated glyph
+  *paths*, not literal strings, so asserting on raw SVG text content doesn't
+  work — the tests instead assert on the `Cache-Control` max-age (60s error
+  TTL vs 3600s success TTL), which reliably distinguishes the error-badge path
+  from a real render.
+  For `svg-parser.ts`: read through the full extraction implementation and
+  confirmed it's an *allowlist* extractor — it only ever pulls specific named
+  attributes (`d`, `cx`/`cy`/`r`, `x`/`y`/`width`/`height`, etc.) off specific
+  known elements via targeted regexes, then re-synthesizes new path strings
+  from validated numbers; it never copies an element or its attribute set
+  through verbatim, so there was no attribute-passthrough bug to fix. Traced
+  how the extracted data actually reaches output (`render.tsx:738-739` passes
+  `d`/`viewBox` as real JSX props into Satori, not string-concatenated
+  markup) to confirm the rendering side can't reintroduce an injection either.
+  Added `badges/svg-parser.test.ts` (19 tests) as a regression lock, not a
+  bug fix: `onload`/`onclick` handlers, `<script>`, `<foreignObject>`,
+  `href`/`javascript:` URIs, `style`/CSS injection, and quote-breakout
+  attempts in a `d` value all verified to never reach the extracted icon
+  data.
 
 ### PR-1.6 — Engine ops correctness  · items: **B10 + B11 + B21** · effort S
 - **Do:** fix `docker-publish.yml` dispatch tagging (guard `latest` to tag refs /

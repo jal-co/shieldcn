@@ -1663,6 +1663,20 @@ async function handleBadgeGroup(
     return Response.json({ error: "no badges specified" }, { status: 400, headers: ERROR_CACHE_HEADERS })
   }
 
+  // Cap segment count — each one fans out to a parallel upstream fetch, so an
+  // unbounded group is a DoS-amplification vector (one request, N upstream
+  // hits).
+  const MAX_GROUP_SEGMENTS = 10
+  if (badgePaths.length > MAX_GROUP_SEGMENTS) {
+    const msg = `too many badges in group (max ${MAX_GROUP_SEGMENTS})`
+    if (format === "svg") {
+      return new Response(await renderErrorBadge("group", msg), {
+        headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
+      })
+    }
+    return Response.json({ error: msg }, { status: 400, headers: ERROR_CACHE_HEADERS })
+  }
+
   // JSON: return array of badge data
   if (format === "json") {
     let hadError = false
@@ -1678,7 +1692,16 @@ async function handleBadgeGroup(
   }
 
   // SVG/PNG: resolve each segment
-  const style = (searchParams.get("style") || searchParams.get("variant") || "default") as BadgeStyle
+  // Style applies uniformly across the whole group, so validate it against
+  // the first segment's provider as a representative check — same
+  // resolveVariant() the single-badge path uses, instead of an unchecked
+  // `as BadgeStyle` cast that let an invalid variant reach the renderer.
+  const firstSegs = badgePaths[0]!.split("/").filter(Boolean)
+  const style = resolveVariant(
+    firstSegs[0] ?? "",
+    firstSegs.slice(1),
+    searchParams.get("style") || searchParams.get("variant") || undefined,
+  )
   const size = (searchParams.get("size") || undefined) as BadgeSize | undefined
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const theme = searchParams.get("theme") ?? undefined

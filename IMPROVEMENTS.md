@@ -61,10 +61,10 @@
 - [x] **B7. Rate-limit / bound public write + expensive endpoints** (M) — done via PR-1.3 (`memo` PUT + `gen-count` POST; PNG/GIF GET intentionally left alone, see plan notes)
   Zero inbound rate limiting exists anywhere. `POST /api/gen-count` (web and engine — identical routes) accepts unauthenticated, unbounded `count` increments; `PUT /memo/...` writes to Postgres; PNG/GIF rendering is CPU-heavy. Cap the `count` payload, and add a token bucket (in-memory for engine, Redis-backed on web where Upstash is already available) for PUT/POST paths.
 
-- [ ] **B8. Cap and validate `/group` badges** (S)
+- [x] **B8. Cap and validate `/group` badges** (S) — done via PR-1.5
   `rawPath.split("+")` (`route-handler.ts:1642`) has no segment limit — one URL fans out to arbitrarily many parallel upstream fetches (DoS amplification). Also the group path casts the style directly (`as BadgeStyle`, :1668) instead of validating via `resolveVariant` like the single-badge path (:3300-3304). Cap at ~10 segments and reuse `resolveVariant`.
 
-- [ ] **B9. Verify svg-parser attribute passthrough for user SVG data URIs** (S)
+- [x] **B9. Verify svg-parser attribute passthrough for user SVG data URIs** (S) — audited via PR-1.5: confirmed safe by construction (allowlist extractor), locked in with 19 adversarial tests
   `?logo=data:image/svg+xml...` content flows through `packages/core/src/badges/svg-parser.ts` into `render.tsx:499-576`. Sandboxed `<img>` mitigates script execution, but the badge SVG is also served raw when opened directly. Confirm the parser only emits path/shape elements and strips `on*`/`href`/`style` attributes; add tests locking that in.
 
 - [ ] **B10. Fix `docker-publish.yml` workflow_dispatch tagging bug** (S)
