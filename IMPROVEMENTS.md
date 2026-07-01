@@ -137,7 +137,7 @@
 - [x] **F5. Fix label association and icon-button names in builders** (S) — done via PR-3.3 (header/sponsors/contributors builders + LogoPicker trigger; variant-preview and disclosure buttons were already correctly labeled)
   Several `<Label>`s lack `htmlFor`/`id` linkage (`header-builder.tsx:197-212` and sponsors/contributors equivalents); the variant-preview image buttons (`badge-builder-core.tsx:508-526`) and reset/advanced disclosure buttons (:546-550) need explicit `aria-label`s.
 
-- [ ] **F6. Add a web test suite** (L)
+- [x] **F6. Add a web test suite** (L) — done via PR-4.3 (vitest + jsdom wired up; `gen/detect.ts`'s network-heavy `inspect()` orchestration left uncovered, same scoping decision as PR-4.2's CLI equivalent)
   `packages/web` has zero tests/config. Highest-value targets: `lib/studio-shared.ts` (Markdown export fidelity — the product's core promise), `lib/studio-import.ts` (README parsing), builders' output formatting, `lib/gen/detect.ts`.
 
 - [x] **F7. Surface silent failures to users (add a toast primitive)** (S) — done via PR-3.4 (gen-count/gen-users deliberately report to Sentry instead of a toast, see notes)

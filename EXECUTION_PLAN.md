@@ -970,6 +970,49 @@ Verified: `pnpm typecheck` clean across all 4 packages,
 - `lib/studio-shared.ts` (export fidelity — the core product promise),
   `lib/studio-import.ts`, builder output formatting, `lib/gen/detect.ts`.
 
+**Actual outcome:** `packages/web` had no test runner either — added
+`vitest` + `jsdom` (needed because `studio-import.ts`'s HTML-chunk parser
+uses the browser's real `DOMParser`, which only exists under a DOM test
+environment, not plain Node) + `vitest.config.ts` with an `@/*` alias
+matching the app's own tsconfig path.
+
+`studio-shared.test.ts` (35 tests) covers `documentToMarkdown`/
+`blockToMarkdown` — the actual "what you see in the editor is what ends up
+in your README" promise — across every block type's plain vs. aligned-
+wrapper vs. theme-aware `<picture>` shape, `tableToGfm`'s cell escaping
+(pipes/backslashes/newlines, short-row padding), `buildGroupUrl`/
+`buildChartUrl`'s empty-input null-returns, and the `serializeProject`/
+`deserializeProject` round-trip added in PR-3.7 (this PR is the first time
+that JSON schema got direct unit coverage rather than only the live-browser
+check from PR-3.7).
+
+`studio-import.test.ts` (13 tests) covers the inverse direction —
+`markdownToDocument` — including reversing shieldcn image URLs back into
+typed Badge/Header/Group blocks, GFM table parsing, and (since this file
+runs under jsdom) the `<p align>`/`<picture>` HTML-chunk path that a
+Node-only test environment can't reach at all. One test's own markdown
+fixture was wrong on the first pass — a bare `<picture>` tag with no
+block-level wrapper isn't a CommonMark HTML block (`picture` isn't in the
+spec's type-6 tag list), so it never reached the code path under test;
+fixed by wrapping it in `<p align>`, matching what `blockToMarkdown`
+actually emits in practice. Also added two round-trip tests (export the
+starter document, re-import it, assert block shape and specific field
+values survive).
+
+`builder-output.test.ts` (5 tests): full coverage of `formatImageOutput`'s
+three formats × linked/unlinked, the whole file (35 lines).
+
+`gen/detect.test.ts` (6 tests): `parseGithubUrl` only — this file's
+`inspect()` is the network-heavy orchestration function (probes ~50 files,
+fetches package.json/README from raw.githubusercontent.com, hits the npm
+registry), the same class of thing PR-4.2 already declined to cover for
+the CLI's `inspectLocal`/`inspectRemote` for the same reason: a pass/fail
+network mock can't tell "wired correctly" from "degrades to fewer badges,"
+and doing it properly needs realistic fixtures, not a table-driven sweep.
+
+Verified: `tsc --noEmit -p .` clean, `pnpm test` (288/10 core + 51 cli +
+14 engine + 59 web = 412 passed, 10 skipped). This closes out Phase 4.
+
 ---
 
 ## Phase 5 — Hygiene & polish (P2)
