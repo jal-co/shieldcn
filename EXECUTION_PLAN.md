@@ -328,6 +328,23 @@ hot-path wins.
 - Add indexed `token_hash` column; invalidate on 401 with one UPDATE instead of
   decrypting every row (`token-pool.ts:215`). Include a migration.
   **Verify:** invalidation test; migration runs idempotently.
+- **Actual outcome:** added `token_hash TEXT` (via `ALTER TABLE ... ADD COLUMN
+  IF NOT EXISTS`, safe to run against an already-existing deployment's table,
+  plus a partial index `WHERE token_hash IS NOT NULL`) to `db.ts`'s schema.
+  `addToken()` now populates it — including on the `ON CONFLICT (github_user)
+  DO UPDATE` path, which (same bug shape as B6 in memo.ts) previously would
+  have left a stale hash after a re-authorization. `invalidateToken()` tries
+  one indexed `UPDATE ... WHERE token_hash = $1 ... RETURNING id` first; only
+  if that touches zero rows does it fall back to the original decrypt-every-row
+  scan, scoped to `WHERE token_hash IS NULL` so it only ever considers rows
+  that predate this migration (self-healing: any row it touches gets a hash
+  the next time its owner re-authorizes). Verified all of this against the
+  same real Postgres instance from PR-1.4/1.6 — `token-pool.test.ts` gained 5
+  DB-backed tests (`describe.skipIf(!DATABASE_URL)`) covering hash storage,
+  the ON CONFLICT update, the fast path invalidating the right row without
+  touching a bystander, the legacy-row fallback (a row inserted directly with
+  `token_hash = NULL`, bypassing `addToken()`, to simulate a pre-migration
+  row), and the not-found no-op case.
 
 ### PR-2.4 — Distributed backoff/budget  · items: **B18** · effort M
 - Mirror `recordBackoff`/`isBackedOff` to Redis when the tier is configured

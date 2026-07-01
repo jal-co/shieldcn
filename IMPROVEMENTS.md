@@ -99,7 +99,7 @@
 - [x] **B16. Cache resolved icons in `simple-icons.ts`** (S) — done via PR-2.2, bounded LRU keyed by slug
   Every `?logo=ri:FaReact` badge re-runs `import("react-icons/fa")` + `renderToStaticMarkup` per request (`packages/core/src/badges/simple-icons.ts:59, 92-120`) with no memoization — this is the hot path for every badge with a non-default logo. Add a module-level LRU keyed by slug+color.
 
-- [ ] **B17. Store a token hash column in the token pool** (M)
+- [x] **B17. Store a token hash column in the token pool** (M) — done via PR-2.3, verified against real Postgres including the ON CONFLICT hash-staleness bug and legacy-row fallback
   `invalidateToken` (`token-pool.ts:215-234`) selects and decrypts **every** valid token row to find a match; the code comment itself says "Better approach: store a hash of the plaintext for lookup." Add an indexed `token_hash` column (sha256 helper already exists at :112) and invalidate with one UPDATE.
 
 - [ ] **B18. Share backoff/budget state via Redis on serverless** (M)

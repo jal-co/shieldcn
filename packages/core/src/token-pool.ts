@@ -144,12 +144,13 @@ function hashToken(token: string): string {
 export async function addToken(githubUser: string, accessToken: string) {
   await ensureInit()
   const encrypted = encryptToken(accessToken)
+  const hash = hashToken(accessToken)
   await query(
-    `INSERT INTO github_tokens (github_user, access_token, is_valid)
-     VALUES ($1, $2, TRUE)
+    `INSERT INTO github_tokens (github_user, access_token, token_hash, is_valid)
+     VALUES ($1, $2, $3, TRUE)
      ON CONFLICT (github_user)
-     DO UPDATE SET access_token = $2, is_valid = TRUE, created_at = NOW()`,
-    [githubUser, encrypted]
+     DO UPDATE SET access_token = $2, token_hash = $3, is_valid = TRUE, created_at = NOW()`,
+    [githubUser, encrypted, hash]
   )
   expireTokenCache()
 }
@@ -231,16 +232,28 @@ export async function invalidateToken(accessToken: string) {
 
   try {
     await ensureInit()
-    // We can't match on encrypted token directly, so find by decrypting
-    // For efficiency, mark all tokens invalid that fail auth — GitHub will
-    // reject them anyway. In practice, the caller retries without auth.
-    // Better approach: store a hash of the plaintext for lookup.
-    // last_used_at records when the token was invalidated, so the cleanup
-    // sweep in pickToken can remove it 7 days later.
-    const result = await query<{ id: number; access_token: string }>(
-      `SELECT id, access_token FROM github_tokens WHERE is_valid = TRUE`
+    const hash = hashToken(accessToken)
+
+    // Fast path: one indexed UPDATE by token_hash (every token added via
+    // addToken() since the token_hash column was introduced has one).
+    const result = await query<{ id: number }>(
+      `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW()
+       WHERE token_hash = $1 AND is_valid = TRUE
+       RETURNING id`,
+      [hash]
     )
-    for (const row of result.rows) {
+    if ((result.rowCount ?? 0) > 0) return
+
+    // Fallback for rows added before token_hash existed (no rowCount above
+    // means either the token wasn't found or it predates the backfill) —
+    // decrypt-and-compare each valid row, same as the original approach.
+    // Self-heals: any row this touches gets re-added via addToken() with a
+    // hash the next time its owner re-authorizes, so this path is exercised
+    // less and less over time as the pool cycles.
+    const legacy = await query<{ id: number; access_token: string }>(
+      `SELECT id, access_token FROM github_tokens WHERE is_valid = TRUE AND token_hash IS NULL`
+    )
+    for (const row of legacy.rows) {
       try {
         if (decryptToken(row.access_token) === accessToken) {
           await query(
@@ -250,7 +263,7 @@ export async function invalidateToken(accessToken: string) {
           return
         }
       } catch {
-        // Decryption failed — token was stored with different key, mark invalid
+        // Decryption failed — token was stored with a different key, mark invalid.
         await query(
           `UPDATE github_tokens SET is_valid = FALSE, last_used_at = NOW() WHERE id = $1`,
           [row.id]
