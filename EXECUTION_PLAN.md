@@ -909,6 +909,63 @@ Verified: `pnpm --filter @shieldcn/core exec tsc --noEmit` clean,
 - `migrate.ts` regex conversion, `inject.ts` marker writes, `detect.ts` parsing,
   engine OAuth callback state/scope validation.
 
+**Actual outcome:** Neither `packages/cli` nor `packages/engine` had a
+test runner wired up at all — added `vitest` + `vitest.config.ts` + a
+`test` script to both (mirroring `@shieldcn/core`'s setup), so `pnpm test`
+at the root now covers 3 packages instead of 1.
+
+`migrate.test.ts` (25 tests): every `convertShieldsUrl` branch — static
+badge pass-through, npm's `v`/`l` shorthand rewriting, the twitter→x
+rewrite, unknown-provider best-effort fallback, every `style=` → `variant=`
+mapping, `#`-stripping on color params, and the branded-variant
+auto-detection (including its two edge cases: an unrecognized provider
+must NOT get auto-branded, and a static `/badge/` only gets branded when
+its `logo=` param matches a known brand) — plus `migrateAll`/
+`replaceShieldsUrls`.
+
+`inject.test.ts` (12 tests): `injectBadges`'s pure marker logic (insert
+after first heading, prepend when no heading, replace between existing
+markers, idempotency — running it twice doesn't duplicate the block) plus
+`findReadme`/`injectIntoFile` round-tripped through a real scratch temp
+directory (`mkdtemp` under the OS tmp dir) rather than mocking `node:fs`,
+since the point of testing a destructive read-modify-write is proving it
+actually reads, modifies, and writes correctly. One test's expected string
+was wrong on the first pass (didn't account for a blank line already
+present in the source content before the inserted block) — caught by
+running it, fixed to match verified behavior.
+
+`detect.test.ts` (14 tests): `parseGithubUrl` (owner/repo shorthand,
+full URL, bare-host form, `.git`/trailing-slash stripping, extra path
+segments like `/tree/main`, non-github.com rejection, malformed input) and
+`extractShieldsIoUrls`. `inspectLocal`/`inspectRemote` (the fs- and
+network-heavy orchestration functions) are left uncovered — logged as a
+narrower follow-up rather than expanded into this PR, since properly
+testing them needs the same kind of fixture-based network mocking that
+PR-4.1's dropped smoke test ran into, applied to GitHub's raw-content API
+and the npm registry specifically; a scoped-down version of that is more
+tractable than the all-providers sweep and could reuse this PR's
+`mkdtemp`-based approach for the local-directory path.
+
+`route.test.ts` for the engine's OAuth callback (14 tests, new
+`app/api/auth/github/callback/route.test.ts`): the CSRF state check
+(missing state, mismatched state, single-use cookie deletion on every
+path including failure), the `not_configured` 503, both upstream fetch
+failure paths (token exchange, user lookup), GitHub's own error verdicts,
+missing-login rejection, the token-pool write failure path, and —
+highest-value assertion in the file — the `scoped_token` rejection: the
+pool must only ever hold zero-scope tokens, and since the authorize
+redirect URL is user-visible and tamperable, what GitHub actually granted
+has to be re-verified here rather than trusted. `next/headers`'s
+`cookies()` and `next/navigation`'s `redirect()` are mocked (their real
+implementations need an active Next.js request context that doesn't exist
+when the route module is imported directly under vitest); `redirect()`'s
+mock throws a sentinel error the same way Next's real implementation does,
+so the happy-path test asserts on the thrown redirect target rather than
+a return value.
+
+Verified: `pnpm typecheck` clean across all 4 packages,
+`pnpm test` (288/10 core + 51 cli + 14 engine = 353 passed, 10 skipped).
+
 ### PR-4.3 — Web  · items: **F6** · effort L
 - `lib/studio-shared.ts` (export fidelity — the core product promise),
   `lib/studio-import.ts`, builder output formatting, `lib/gen/detect.ts`.

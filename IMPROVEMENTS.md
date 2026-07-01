@@ -114,7 +114,7 @@
 - [x] **B21. Add startup env validation to the engine** (S) — done via PR-1.6, verified live (booted with `DATABASE_URL` unset, confirmed the warning)
   Nothing validates `DATABASE_URL` (documented as required) or warns on OAuth half-configuration — client ID without secret only 503s at callback time (`app/api/auth/github/callback/route.ts:32-36`). Add a register-time check in `instrumentation.ts` with clear log output.
 
-- [ ] **B22. Add tests for CLI and engine routes** (M)
+- [x] **B22. Add tests for CLI and engine routes** (M) — done via PR-4.2 (vitest wired up in both packages for the first time; `inspectLocal`/`inspectRemote`'s network-heavy paths left for a narrower follow-up, see PR-4.2 notes)
   Zero tests outside core. Highest value: `packages/cli/src/migrate.ts` (173 lines of regex URL conversion), `src/inject.ts` (destructive file writes between markers), `src/detect.ts` parsing, and the engine OAuth callback state/scope validation (`app/api/auth/github/callback/route.ts:60-75`) which guards the token pool.
 
 - [ ] **B23. Real per-provider smoke tests with response fixtures** (L)
