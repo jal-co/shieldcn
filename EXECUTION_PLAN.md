@@ -854,6 +854,57 @@ five live-browser checks above. This closes out Phase 3.
 - Prioritize: `badge.ts` parsing (pure), memo auth flows, `svg-parser` (security),
   and a table-driven provider smoke test off the example paths in `registry.ts`.
 
+**Actual outcome:** `providers/badge.ts` had zero coverage despite being
+pure, security-adjacent (fed straight from the URL path) parsing logic —
+added `providers/badge.test.ts` (26 tests): every branch of
+`parseStaticBadgeContent`'s shields.io-compatible format (1/2/3+ segment
+forms, double-dash escaping, single/double-underscore decoding, %-encoding,
+short-hex expansion, ambiguous 2-segment color-vs-label detection), the
+flag helpers, and `getDynamicJsonBadge` (JSONPath extraction, prefix/suffix,
+non-ok status, no-match, and the SSRF-blocked-URL path — mocking the
+network boundary the same way `safe-fetch.test.ts` does). Two of the first-
+draft assertions were themselves wrong (expected `resolveColor`'s *hex
+output* to equal the *input color name*, and expected `getFlagBadge`'s
+fallback to split on underscores when it only splits on whitespace) —
+caught by actually running the tests against the real implementation
+rather than trusting the drafted expectations, then fixed to match verified
+behavior.
+
+Memo auth flows and `svg-parser` already had real, dedicated coverage
+before this PR (`providers/memo.test.ts` + `badges/memo-route.test.ts`,
+19 svg-parser tests) — confirmed by reading both, no gap found, no changes
+made.
+
+The "table-driven provider smoke test off the example paths in
+`registry.ts`" was attempted and then deliberately dropped. First attempt:
+mock DNS + `fetch` to fail deterministically, walk every non-freeform
+`REGISTRY` topic's example path through the real `GET` handler, and assert
+the response isn't the generic "not found" 404 — the theory being that a
+genuinely-dispatched provider degrades a network failure into its own
+error/last-known-good badge (still non-404), while an example that's
+drifted out of sync with `route-handler.ts`'s hand-written switch/case
+falls through to the same generic 404 used for unrouted paths. Running it
+surfaced the theory's flaw directly: 147 of 181 cases "failed," and
+inspection showed most providers simply `catch { return null }` on any
+fetch error — which is the *identical* code path to "undispatched," so
+the test couldn't actually distinguish real registry/dispatcher drift from
+expected fail-closed behavior. `resolveGitHubBadge`'s more elaborate
+stale/last-known-good/`GITHUB_UNAVAILABLE` handling (the case this theory
+was built from) turned out to be the exception, not the norm, across ~30
+providers. A version with generically-successful mocked responses has the
+same problem for the same reason (most providers null-check specific
+expected fields and return null on anything else). Doing this properly
+needs realistic per-provider response fixtures (~30 providers × shapes),
+which is a real, separate, larger effort — logged as a new backlog item
+**B23** rather than force-fit into this PR with a test file that would
+either be permanently red or hollowed out to the point of asserting
+nothing. `registry.test.ts`'s existing "every topic's example resolves
+back to that topic" check already covers the routing-table-level half of
+this (via `resolveTopic`, independent of `route-handler.ts`'s dispatcher).
+
+Verified: `pnpm --filter @shieldcn/core exec tsc --noEmit` clean,
+`pnpm --filter @shieldcn/core test` (288/10, up from 262/10).
+
 ### PR-4.2 — CLI + engine  · items: **B22** · effort M
 - `migrate.ts` regex conversion, `inject.ts` marker writes, `detect.ts` parsing,
   engine OAuth callback state/scope validation.

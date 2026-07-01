@@ -108,7 +108,7 @@
 - [x] **B19. Encode path params consistently in providers; guard missing API keys** (S) — done via PR-2.5 (~45 provider files encoded, several extra gaps found beyond the original list; regression test in `src/providers/url-encoding.test.ts`)
   `starhistory.ts:107` interpolates `owner`/`repo` un-encoded (github.ts encodes); ~19 provider files use no `encodeURIComponent` at all (discord, docker, opencollective, packagist, reddit, skills, weblate, youtube, ...), letting crafted segments alter the upstream path/query. Also `youtube.ts:28ff` interpolates `key=${API_KEY}` without checking the env var — return null early with a clear "config missing" verdict.
 
-- [ ] **B20. Expand core test coverage to the risk-bearing modules** (L)
+- [x] **B20. Expand core test coverage to the risk-bearing modules** (L) — done via PR-4.1 (badge.ts parsing fully covered; memo/svg-parser already had coverage; the registry smoke test was attempted and dropped as unworkable without per-provider fixtures — see PR-4.1 notes and new item **B23**)
   Only 2 of ~55 providers are tested; no tests for `token-pool.ts`, `memo.ts`, `views.ts`, `render-group.tsx`, `render-sponsors.ts`, `simple-icons.ts`, `svg-parser.ts`, `animate.ts`, `gif.ts`, `validate.ts`. Highest value first: static/dynamic badge parsing (`badge.ts` — pure functions), memo auth flows, svg-parser (security-relevant), and a table-driven provider smoke test using the example paths already declared in `registry.ts`.
 
 - [x] **B21. Add startup env validation to the engine** (S) — done via PR-1.6, verified live (booted with `DATABASE_URL` unset, confirmed the warning)
@@ -116,6 +116,9 @@
 
 - [ ] **B22. Add tests for CLI and engine routes** (M)
   Zero tests outside core. Highest value: `packages/cli/src/migrate.ts` (173 lines of regex URL conversion), `src/inject.ts` (destructive file writes between markers), `src/detect.ts` parsing, and the engine OAuth callback state/scope validation (`app/api/auth/github/callback/route.ts:60-75`) which guards the token pool.
+
+- [ ] **B23. Real per-provider smoke tests with response fixtures** (L)
+  PR-4.1 attempted a table-driven smoke test over every `registry.ts` example path with the network mocked to fail closed, on the theory that a genuinely-dispatched provider degrades a failure into its own error badge (distinguishable from the generic "not found" used for an undispatched/drifted path). It doesn't work: most of the ~30 providers simply `catch { return null }` on any fetch error, which is indistinguishable from "not found" — only `github.ts`'s more elaborate last-known-good/`GITHUB_UNAVAILABLE` handling produces a distinguishing non-null result under total network failure. Doing this properly needs a small realistic response fixture per provider (mocking `fetch` to return the shape each API actually sends, not just fail/succeed-empty) so the assertion can be "extracts a real, non-error badge value," which would also incidentally catch response-shape drift in the providers themselves. Real, separate effort — not a table-driven sweep that can share one mock.
 
 ### Frontend (web)
 
