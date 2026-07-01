@@ -3813,10 +3813,28 @@ export async function handleBadgePUT(
   }
 
   const key = slug[1]
-  const label = decodeURIComponent(slug[2])
-  const value = decodeURIComponent(slug[3])
-  const color = slug[4] ? decodeURIComponent(slug[4]) : undefined
+  if (key.length > 200) {
+    return Response.json({ error: "Memo key too long (max 200 characters)" }, { status: 400 })
+  }
 
+  let label: string
+  let value: string
+  let color: string | undefined
+  try {
+    label = decodeURIComponent(slug[2])
+    value = decodeURIComponent(slug[3])
+    color = slug[4] ? decodeURIComponent(slug[4]) : undefined
+  } catch {
+    return Response.json({ error: "Invalid URL encoding in memo label, value, or color" }, { status: 400 })
+  }
+
+  const MAX_FIELD_LENGTH = 100
+  if (label.length > MAX_FIELD_LENGTH || value.length > MAX_FIELD_LENGTH || (color && color.length > MAX_FIELD_LENGTH)) {
+    return Response.json({ error: `Memo label, value, and color must each be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
+  }
+
+  // upsertMemoBadge never throws — it catches internally and returns
+  // { ok: false, error } — so no try/catch is needed here.
   const result = await upsertMemoBadge(key, label, value, color, token)
 
   if (!result.ok) {

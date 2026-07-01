@@ -197,6 +197,28 @@ they close the widest-reaching holes.
   probabilistic, and stop leaking `String(e)` in responses.
 - **Verify:** tests for malformed `%` key → clean 400 (not 500), expiry-takeover
   by a new token succeeds, over-length input rejected.
+- **Actual outcome:** `route-handler.ts`'s `handleBadgePUT` now guards
+  `decodeURIComponent` (400 on `URIError` instead of an unhandled 500), caps
+  the memo key at 200 chars and label/value/color at 100 each, and drops the
+  dead outer try/catch around `upsertMemoBadge` (that function already never
+  throws — it catches internally). `providers/memo.ts`'s check-then-write
+  became one atomic `INSERT ... ON CONFLICT (key) DO UPDATE ... WHERE
+  token_hash = EXCLUDED.token_hash OR expires_at < NOW() RETURNING key`,
+  fixing both the TOCTOU race and the `token_hash`-never-updated-on-takeover
+  bug in one change (zero `RETURNING` rows == blocked); the cleanup `DELETE`
+  is now probabilistic (2%, matching `token-pool.ts`'s pattern) instead of
+  running on every GET; and the catch-all now returns a fixed string instead
+  of `String(e)`. Verified the DB-level fix for real: spun up a local
+  Postgres 16 in this sandbox and wrote `providers/memo.test.ts` as a real
+  integration suite (`describe.skipIf(!DATABASE_URL)`, so it's skipped — not
+  faked — in the current CI which doesn't provision Postgres) that
+  specifically exercises the expired-takeover scenario the bug affected: the
+  new owner's *second* write must succeed against the *new* token_hash. Also
+  added `badges/memo-route.test.ts` (7 tests, no DB needed) for the
+  route-level validation — length caps, malformed encoding, and confirms the
+  PR-1.3 rate limit 429s. Provisioning a Postgres service in CI so
+  `memo.test.ts` actually runs there is left for Phase 4 (B20) rather than
+  expanding this fix's scope.
 
 ### PR-1.5 — Group caps + SVG sanitization  · items: **B8 + B9** · effort S
 - **Do:** cap `/group` at ~10 segments (`route-handler.ts:1642`) and validate its

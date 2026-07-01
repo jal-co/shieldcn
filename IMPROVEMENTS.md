@@ -52,10 +52,10 @@
 - [x] **B4. Cap response sizes on user-controlled fetches** (S) — done via PR-1.1 (`safeFetch`'s `maxBytes`, applied to header logo/image too)
   `response.json()` is unbounded in the dynamic JSON badge (`badge.ts:196`), `/https` proxy (`route-handler.ts:1506`), and chart JSON (`route-handler.ts:3077`); `JSON.stringify(first)` (`badge.ts:209`) can serialize a huge object. Header images already cap at 4 MB — apply the same byte-cap pattern to these paths.
 
-- [ ] **B5. Wrap `handleBadgePUT` in try/catch and validate input** (S)
+- [x] **B5. Wrap `handleBadgePUT` in try/catch and validate input** (S) — done via PR-1.4
   Unlike `handleBadgeGET` (`route-handler.ts:3143`), the PUT path has no error wrapper; `decodeURIComponent(slug[2])` (`route-handler.ts:3795-3797`) throws `URIError` on malformed `%` sequences → unhandled 500. Add the wrapper plus length limits on key/label/value.
 
-- [ ] **B6. Fix memo badge ownership bugs** (S)
+- [x] **B6. Fix memo badge ownership bugs** (S) — done via PR-1.4, verified against a real Postgres
   In `packages/core/src/providers/memo.ts`: (a) the `ON CONFLICT DO UPDATE` upsert (:94-101) never updates `token_hash`, so after expiry-takeover the new owner's next PUT is rejected; (b) the check-then-write at :85-101 is a TOCTOU race — collapse into one conditional upsert with `WHERE token_hash = $n OR expires_at < NOW()`; (c) `DELETE ... WHERE expires_at < NOW()` runs on **every GET** (:49) — make it probabilistic like token-pool's `CLEANUP_PROBABILITY`; (d) `String(e)` (:106) leaks internal error detail to API responses.
 
 - [x] **B7. Rate-limit / bound public write + expensive endpoints** (M) — done via PR-1.3 (`memo` PUT + `gen-count` POST; PNG/GIF GET intentionally left alone, see plan notes)
