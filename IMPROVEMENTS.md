@@ -96,7 +96,7 @@
 - [x] **B15. Deduplicate the 5 resvg-wasm init blocks and pin the wasm URL** (S) — done via PR-2.1, verified with real PNG byte-level tests
   Identical ~25-line init logic at `route-handler.ts:1807-1830, 2005-2027, 2203-2225, 2817-2839, 3722-3747` (`rasterizeToPng` at :2202 exists but is only used by sponsors/contributors). Each PNG request re-runs `fs.existsSync`/`readFileSync`, and the CDN fallback fetches **unversioned** `https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm` which can drift from the installed `^2.6.2` bindings. Extract one memoized `ensureResvg()` with a versioned URL.
 
-- [ ] **B16. Cache resolved icons in `simple-icons.ts`** (S)
+- [x] **B16. Cache resolved icons in `simple-icons.ts`** (S) — done via PR-2.2, bounded LRU keyed by slug
   Every `?logo=ri:FaReact` badge re-runs `import("react-icons/fa")` + `renderToStaticMarkup` per request (`packages/core/src/badges/simple-icons.ts:59, 92-120`) with no memoization — this is the hot path for every badge with a non-default logo. Add a module-level LRU keyed by slug+color.
 
 - [ ] **B17. Store a token hash column in the token pool** (M)

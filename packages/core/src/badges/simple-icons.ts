@@ -9,20 +9,52 @@
  * Returns SVG path data for inline rendering in badge SVGs.
  */
 
+import { LRUCache } from "lru-cache"
 import type { IconData } from "./icons"
 import { getCustomIcon } from "./custom-icons"
+
+type ResolvedIcon = { icon: IconData; defaultColor: string } | null
+// LRUCache's value type must extend {} (it uses undefined internally to mean
+// "not cached"), so a cached "not found" result is wrapped rather than
+// stored as a bare null.
+interface CacheEntry {
+  result: ResolvedIcon
+}
+
+/**
+ * Icon resolution is deterministic (same slug always resolves to the same
+ * path data) but not cheap for react-icons/Lucide slugs — every lookup
+ * dynamically imports the icon pack, renders it via renderToStaticMarkup,
+ * then extracts path/circle/line data with several regex passes. This is on
+ * the hot path of every badge with a non-default logo, so cache the
+ * resolved result (including negative "not found" results, so a bad slug
+ * requested repeatedly doesn't keep re-running the full resolution either).
+ * Bounded LRU rather than an unbounded Map so an attacker enumerating
+ * nonsense slugs can't grow this without limit.
+ */
+const iconCache = new LRUCache<string, CacheEntry>({ max: 1000 })
 
 /**
  * Look up an icon by slug. Supports SimpleIcons, React Icons, Lucide shorthand,
  * and custom icons shipped with shieldcn.
  *
  * @param slug - "react" (SimpleIcons) or "ri:FaReact" (React Icons) or "lu:Check" (Lucide)
- * @param logoColor - optional override color
+ * @param logoColor - accepted for API symmetry with callers that resolve color
+ *   separately; unused here — icon path data doesn't depend on color.
  */
 export async function getSimpleIcon(
   slug: string,
   logoColor?: string
-): Promise<{ icon: IconData; defaultColor: string } | null> {
+): Promise<ResolvedIcon> {
+  const cached = iconCache.get(slug)
+  if (cached !== undefined) return cached.result
+
+  const resolved = await resolveIcon(slug)
+  iconCache.set(slug, { result: resolved })
+  return resolved
+}
+
+async function resolveIcon(slug: string): Promise<ResolvedIcon> {
   // Lucide shorthand: ?logo=lu:Check → react-icons/lu LuCheck
   if (slug.startsWith("lu:")) {
     const name = slug.slice(3)

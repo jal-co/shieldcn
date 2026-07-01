@@ -310,6 +310,19 @@ hot-path wins.
 - Module-level LRU in `simple-icons.ts` keyed by slug+color to avoid re-importing
   react-icons and re-running `renderToStaticMarkup` per request. **Verify:** cache
   hit on second identical `?logo=ri:...` request; output byte-identical.
+- **Actual outcome:** keyed by slug only, not slug+color — `logoColor` was
+  already an unused parameter on `getSimpleIcon` (icon path data doesn't
+  depend on color; colors are applied by the caller downstream), confirmed
+  by grepping the function body before wiring the cache. Bounded `LRUCache`
+  (max 1000) rather than the plan's literal "cache," since an attacker
+  enumerating nonsense `?logo=` slugs shouldn't be able to grow an unbounded
+  Map — this also meant caching negative "not found" results, which needed
+  wrapping (`{ result: ResolvedIcon }`) since `lru-cache`'s value type can't
+  be a bare `null`. `badges/simple-icons.test.ts` (6 tests) verifies the win
+  directly: spies on `renderToStaticMarkup` and asserts it's called exactly
+  once across 3 repeated lookups of the same react-icons slug (proving the
+  cache hit, not just that the output matches), plus that different slugs
+  don't collide and negative results are cached too.
 
 ### PR-2.3 — Token-pool hash lookup  · items: **B17** · effort M
 - Add indexed `token_hash` column; invalidate on 401 with one UPDATE instead of
