@@ -1,0 +1,211 @@
+# shieldcn — Feature Audit & Improvement Backlog
+
+> Full-repo audit (2026-07). Each item is scoped for an agent to execute independently:
+> title, rationale with file references, and effort (S/M/L). Items are grouped by
+> priority tier, then by area. File:line references were verified at audit time and
+> may drift — re-verify before editing.
+
+---
+
+## 1. Feature inventory
+
+### `packages/core` — shared badge engine
+
+- **Route layer** — `src/route-handler.ts` (~3,800 lines): shared GET/PUT handler for web + engine. Output formats: `.svg`, `.png` (resvg-wasm), `.gif` (animated), `.json`, `shields.json` (shields.io compat). Endpoint families: single badges, `/group/{a+b+c}`, `/chart/...` (GitHub stars/issues/commits, npm download series, inline/remote JSON), `/header/{preset}`, `/sponsors/{login}`, `/contributors/{owner}/{repo}`, `/https/{host}/...` proxy, PUT `/memo/...` (bearer-token badge upsert). `src/normalize-params.ts` canonicalizes query params for CDN cache hits.
+- **Rendering** — `src/badges/render.tsx` (Satori main renderer), `render-group.tsx`, `render-chart.ts`, `render-header.ts`, `render-sponsors.ts` (also used by contributors); `gif.ts` + `animate.ts` (keyframe animations, GIF baking); icon stack: `simple-icons.ts` (SimpleIcons + `ri:` React Icons + `lu:` Lucide), `custom-icons.ts`, `twemoji.ts`, `svg-parser.ts` (user data-URI SVGs), `brand-colors.ts`, `flags.json`; design tokens: `button-tokens.ts`, `themes.ts`, `measure.ts`, `fonts.ts` (7 bundled TTFs); `registry.ts` + `validate.ts` (provider/variant registry).
+- **Providers** (~55 modules in `src/providers/`) — registries (npm, pypi, crates, rubygems, packagist, nuget, pub, maven, cocoapods, conda, homebrew, chocolatey, jsr, bundlephobia, jsdelivr), git hosting (github, gitlab, star/commit history), app stores (vscode, openvsx, chrome, amo, flathub, snapcraft, fdroid, modrinth), social (discord, reddit, bluesky, x, mastodon, lemmy, matrix, discourse, stackexchange, hackernews, youtube, twitch [disabled], wakatime, ...), funding (opencollective, liberapay, sponsors), quality (codecov, coveralls, sonar, weblate), stateful (static/dynamic `badge.ts`, `memo.ts`, `views.ts`).
+- **Infrastructure** — `src/cache.ts` (two-tier LRU + optional Upstash Redis, per-provider backoff, token-bucket budgets, stale-serve), `src/provider-fetch.ts` (8s timeout wrapper, used by 43/55 providers), `src/token-pool.ts` (GitHub OAuth token pool, Postgres, AES-256-CBC), `src/db.ts` (pg pool + retry), `src/migrate/` (shields.io transformer), `src/format.ts`. Tests: 15 vitest files, mostly renderer/route; only 2 of ~55 providers covered.
+
+### `packages/web` — Next.js 16 site (Vercel)
+
+- **Pages** — `/` landing + badge builder; `/studio` (Figma-style block editor with undo/redo, localStorage autosave, tiptap rich text, Markdown export `lib/studio-shared.ts`, README import `lib/studio-import.ts`); `/gen` + `/gen/profile` (README generators); `/showcase` (+ community submit → bot PR); `/gallery` (redirect); `/header`, `/sponsors`, `/contributors` builders; `/sponsor` pitch page; `/migrate` (shields.io migration → GitHub App PR); `/token-pool` (OAuth donation); `/privacy`; `/docs/[[...slug]]` (~90 Fumadocs MDX pages); 7 internal `/dev/*` preview pages.
+- **API routes** — `app/[...slug]/route.ts` (badge catch-all → core + Sentry + OpenPanel), `api/showcase` (PR creator), `api/migrate/{check,pr}`, `api/gen-{count,users,inspect}`, `api/auth/github{,/callback}`, `api/og/docs`, `api/markdown` (llms.txt), OpenPanel proxy, shadcn registry `app/r/[name]`, 7 `.well-known/*` agent-discovery routes.
+- **Components** — four builders + `lib/*-builder-shared.ts`; pickers (`logo-picker`, `color-input`, `svg-icon-upload`); badge display (`badge-preview`, `badge-modal`, `badge-group-modal`, sandboxes); site chrome (`site-header`, `sidebar`, `footer`, `mobile-nav`, `theme-switcher`); `tour.tsx` onboarding; shiki code blocks; 24 shadcn primitives.
+
+### `packages/engine` — self-hosted Docker badge API
+
+- `app/[...slug]/route.ts` (thin core wrapper + Sentry), `app/api/health` (pool stats), `app/api/auth/github{,/callback}` (token-pool OAuth), `app/api/gen-count`, minimal landing page. 3-stage Dockerfile (node:22-alpine, non-root, standalone output), docker-compose with postgres:17 sidecar, Sentry instrumentation (inert without DSN), self-hosting README.
+
+### `packages/cli` — `shieldcn-cli` (citty + consola)
+
+- Default command: scan local dir or remote GitHub repo (`src/detect.ts`, 649 lines), emit badge markdown/flat/html/json (`src/output.ts`), `--inject` between `<!-- shieldcn-start/end -->` markers, `--copy` clipboard. `shieldcn migrate` (shields.io URL conversion), `shieldcn init` (marker insertion).
+
+### Repo infrastructure
+
+- CI: `commit-check.yml` (conventional commits), `docker-publish.yml` (engine image on `engine@*` tags), `labeler.yml`. Husky pre-commit (web-only lint-staged), commit-msg, pre-push (branch lint). `skills/shieldcn-badges/` agent skill. **No CI job runs tests, typecheck, or builds.**
+
+---
+
+## 2. Improvements — P0: security & correctness
+
+### Backend (core / engine)
+
+- [ ] **B1. Central SSRF guard for user-supplied URL fetches** (M)
+  `getDynamicJsonBadge` (`packages/core/src/providers/badge.ts:168`), the `/https` proxy (`route-handler.ts:1490`), chart `?url=` (`route-handler.ts:3070`), header `?logo=`/`?image=` (`route-handler.ts:2085, 2166` — these even allow plain `http://`), and instance-host providers (`discourse.ts:19`, `mastodon.ts:17`, `lemmy.ts:17`, `matrix.ts:27`, `weblate.ts:26`, `sonar.ts:24`) all fetch attacker-controlled hosts with no private-IP/localhost/metadata-endpoint/redirect checks. Add one shared `safeFetch` (deny RFC1918, link-local, loopback, cloud metadata IPs; cap redirects; enforce https where possible) and apply at every call site.
+
+- [ ] **B2. Remove the silent weak-key fallback for token-pool encryption** (M)
+  `packages/core/src/token-pool.ts:85-88` derives the AES key from `GITHUB_OAUTH_CLIENT_SECRET || GITHUB_TOKEN || "shieldcn-dev-key"`. A deployment can silently encrypt donated tokens with a public constant, and key rotation bricks all stored tokens undetectably. Support an explicit `TOKEN_ENCRYPTION_KEY` env var and fail loudly in production when no real key is set. Document in engine README (see B16).
+
+- [ ] **B3. Fix `ssl: { rejectUnauthorized: false }` in db pool** (S)
+  `packages/core/src/db.ts:38` disables TLS cert verification for any connection string containing "neon"/"railway"/"supabase" — a MITM vector. Use proper CA verification (`sslmode=require` with system CAs works for all three hosts).
+
+- [ ] **B4. Cap response sizes on user-controlled fetches** (S)
+  `response.json()` is unbounded in the dynamic JSON badge (`badge.ts:196`), `/https` proxy (`route-handler.ts:1506`), and chart JSON (`route-handler.ts:3077`); `JSON.stringify(first)` (`badge.ts:209`) can serialize a huge object. Header images already cap at 4 MB — apply the same byte-cap pattern to these paths.
+
+- [ ] **B5. Wrap `handleBadgePUT` in try/catch and validate input** (S)
+  Unlike `handleBadgeGET` (`route-handler.ts:3143`), the PUT path has no error wrapper; `decodeURIComponent(slug[2])` (`route-handler.ts:3795-3797`) throws `URIError` on malformed `%` sequences → unhandled 500. Add the wrapper plus length limits on key/label/value.
+
+- [ ] **B6. Fix memo badge ownership bugs** (S)
+  In `packages/core/src/providers/memo.ts`: (a) the `ON CONFLICT DO UPDATE` upsert (:94-101) never updates `token_hash`, so after expiry-takeover the new owner's next PUT is rejected; (b) the check-then-write at :85-101 is a TOCTOU race — collapse into one conditional upsert with `WHERE token_hash = $n OR expires_at < NOW()`; (c) `DELETE ... WHERE expires_at < NOW()` runs on **every GET** (:49) — make it probabilistic like token-pool's `CLEANUP_PROBABILITY`; (d) `String(e)` (:106) leaks internal error detail to API responses.
+
+- [ ] **B7. Rate-limit / bound public write + expensive endpoints** (M)
+  Zero inbound rate limiting exists anywhere. `POST /api/gen-count` (web and engine — identical routes) accepts unauthenticated, unbounded `count` increments; `PUT /memo/...` writes to Postgres; PNG/GIF rendering is CPU-heavy. Cap the `count` payload, and add a token bucket (in-memory for engine, Redis-backed on web where Upstash is already available) for PUT/POST paths.
+
+- [ ] **B8. Cap and validate `/group` badges** (S)
+  `rawPath.split("+")` (`route-handler.ts:1642`) has no segment limit — one URL fans out to arbitrarily many parallel upstream fetches (DoS amplification). Also the group path casts the style directly (`as BadgeStyle`, :1668) instead of validating via `resolveVariant` like the single-badge path (:3300-3304). Cap at ~10 segments and reuse `resolveVariant`.
+
+- [ ] **B9. Verify svg-parser attribute passthrough for user SVG data URIs** (S)
+  `?logo=data:image/svg+xml...` content flows through `packages/core/src/badges/svg-parser.ts` into `render.tsx:499-576`. Sandboxed `<img>` mitigates script execution, but the badge SVG is also served raw when opened directly. Confirm the parser only emits path/shape elements and strips `on*`/`href`/`style` attributes; add tests locking that in.
+
+- [ ] **B10. Fix `docker-publish.yml` workflow_dispatch tagging bug** (S)
+  On manual dispatch, `${GITHUB_REF_NAME#engine@}` yields the branch name (e.g. `main`), so a dispatch from a branch overwrites `engine:latest` and pushes a bogus `engine:main` tag. Guard `latest` behind tag refs only, or take the version as a dispatch input.
+
+- [ ] **B11. Make `/api/health` actually reflect health** (S)
+  `getPoolStats()` (`token-pool.ts:255-278`) swallows all errors and returns zeros, so `packages/engine/app/api/health/route.ts` reports `ok: true` with Postgres down and the Docker healthcheck can never fail. Add a cheap DB ping and return 503/degraded state.
+
+### Frontend (web)
+
+- [ ] **F1. Rate-limit the PR-creating POST endpoints** (M)
+  `app/api/showcase/route.ts` and `app/api/migrate/pr/route.ts` create real branches/PRs on the repo with only field-length validation (`showcase/route.ts:107-113`) and no rate limiting — a script can spam the repo with bot PRs. Add Redis-backed throttling (Upstash env already wired via turbo.json) + per-IP caps. (Overlaps B7; implement as one shared limiter.)
+
+---
+
+## 3. Improvements — P1: reliability, performance, testing, a11y
+
+### Backend (core / engine / infra)
+
+- [ ] **B12. Add a real CI workflow: tests, typecheck, lint, builds** (S)
+  Core has a 15-file vitest suite that no workflow ever runs — only commit-lint and the labeler run on PRs. Add `ci.yml`: `pnpm install`, `turbo build lint`, `vitest run` in core, `tsc --noEmit` in cli/engine. Also add `test`/`typecheck` tasks to `turbo.json` and lint scripts to engine (root `lint-staged` currently covers only `packages/web/**`).
+
+- [ ] **B13. Build the engine Docker image on PRs touching engine/core** (S)
+  `docker-publish.yml` only fires on `engine@*` tags, so a broken `packages/engine/Dockerfile` (fragile glob COPY of `@resvg+resvg-wasm@*` at ~line 36) is only discovered at release time. Add a `push: false` build job with path filters.
+
+- [ ] **B14. Route dynamic/https badges through the cache/backoff layer** (S)
+  The dynamic JSON badge and `/https` proxy call raw `fetch` per request (`badge.ts:168`, `route-handler.ts:1493`) with no `cachedFetch`, backoff, or budget — unlike every registry provider. A hot README hammers the third-party endpoint on every CDN miss. Wrap in `cachedFetch("dynamic", url+query, ...)`.
+
+- [ ] **B15. Deduplicate the 5 resvg-wasm init blocks and pin the wasm URL** (S)
+  Identical ~25-line init logic at `route-handler.ts:1807-1830, 2005-2027, 2203-2225, 2817-2839, 3722-3747` (`rasterizeToPng` at :2202 exists but is only used by sponsors/contributors). Each PNG request re-runs `fs.existsSync`/`readFileSync`, and the CDN fallback fetches **unversioned** `https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm` which can drift from the installed `^2.6.2` bindings. Extract one memoized `ensureResvg()` with a versioned URL.
+
+- [ ] **B16. Cache resolved icons in `simple-icons.ts`** (S)
+  Every `?logo=ri:FaReact` badge re-runs `import("react-icons/fa")` + `renderToStaticMarkup` per request (`packages/core/src/badges/simple-icons.ts:59, 92-120`) with no memoization — this is the hot path for every badge with a non-default logo. Add a module-level LRU keyed by slug+color.
+
+- [ ] **B17. Store a token hash column in the token pool** (M)
+  `invalidateToken` (`token-pool.ts:215-234`) selects and decrypts **every** valid token row to find a match; the code comment itself says "Better approach: store a hash of the plaintext for lookup." Add an indexed `token_hash` column (sha256 helper already exists at :112) and invalidate with one UPDATE.
+
+- [ ] **B18. Share backoff/budget state via Redis on serverless** (M)
+  Backoff windows and token-bucket budgets are per-instance in-memory Maps (`cache.ts:61, 137`), so N concurrent lambdas allow N× the configured upstream rate and a 429 on one instance doesn't protect the others. When the Redis tier is configured, mirror `recordBackoff`/`isBackedOff` there. Also prune the unbounded `staleAlerted` set (`cache.ts:372`).
+
+- [ ] **B19. Encode path params consistently in providers; guard missing API keys** (S)
+  `starhistory.ts:107` interpolates `owner`/`repo` un-encoded (github.ts encodes); ~19 provider files use no `encodeURIComponent` at all (discord, docker, opencollective, packagist, reddit, skills, weblate, youtube, ...), letting crafted segments alter the upstream path/query. Also `youtube.ts:28ff` interpolates `key=${API_KEY}` without checking the env var — return null early with a clear "config missing" verdict.
+
+- [ ] **B20. Expand core test coverage to the risk-bearing modules** (L)
+  Only 2 of ~55 providers are tested; no tests for `token-pool.ts`, `memo.ts`, `views.ts`, `render-group.tsx`, `render-sponsors.ts`, `simple-icons.ts`, `svg-parser.ts`, `animate.ts`, `gif.ts`, `validate.ts`. Highest value first: static/dynamic badge parsing (`badge.ts` — pure functions), memo auth flows, svg-parser (security-relevant), and a table-driven provider smoke test using the example paths already declared in `registry.ts`.
+
+- [ ] **B21. Add startup env validation to the engine** (S)
+  Nothing validates `DATABASE_URL` (documented as required) or warns on OAuth half-configuration — client ID without secret only 503s at callback time (`app/api/auth/github/callback/route.ts:32-36`). Add a register-time check in `instrumentation.ts` with clear log output.
+
+- [ ] **B22. Add tests for CLI and engine routes** (M)
+  Zero tests outside core. Highest value: `packages/cli/src/migrate.ts` (173 lines of regex URL conversion), `src/inject.ts` (destructive file writes between markers), `src/detect.ts` parsing, and the engine OAuth callback state/scope validation (`app/api/auth/github/callback/route.ts:60-75`) which guards the token pool.
+
+### Frontend (web)
+
+- [ ] **F2. Add route-level `loading.tsx` / `error.tsx` / `not-found.tsx`** (M)
+  Zero exist in the entire `app/` tree; only `app/global-error.tsx` catches crashes. Async server pages (`app/token-pool/page.tsx:24` awaits `getPoolStats()`, `/showcase`) render nothing while fetching, and throws fall to the bare global error. Add loading skeletons for `/`, `/showcase`, `/gen`, `/token-pool`, `/docs`, plus a branded `not-found.tsx`.
+
+- [ ] **F3. Honor `prefers-reduced-motion` in the remaining motion components** (M)
+  Only 4 of 12 motion-importing files use `useReducedMotion`. `hero-entrance.tsx:30`, `hero-showcase.tsx`, `sponsor-button.tsx:14`, `sponsor-entrance.tsx`, `theme-switcher.tsx:5`, `tour.tsx:3`, `site-announcement.tsx`, `animated-header.tsx`, `fancy/text/underline-to-background.tsx` run JS spring animations the global CSS override (`app/globals.css:249-256`) cannot suppress. Direct PRODUCT.md WCAG commitment violation.
+
+- [ ] **F4. Keyboard-accessible block reordering + resize in Studio** (S)
+  `components/studio/canvas.tsx:406-421` handles Enter/Space/Delete but reordering is pointer-drag only (:470-477) — `moveBlock(from, to)` already exists at `studio.tsx:370`; wire Alt/Cmd+ArrowUp/Down on the focused BlockFrame. Also the image-resize `role="slider"` at `canvas.tsx:199-204` has `tabIndex={-1}` and no arrow-key handling or `aria-valuenow/min/max`.
+
+- [ ] **F5. Fix label association and icon-button names in builders** (S)
+  Several `<Label>`s lack `htmlFor`/`id` linkage (`header-builder.tsx:197-212` and sponsors/contributors equivalents); the variant-preview image buttons (`badge-builder-core.tsx:508-526`) and reset/advanced disclosure buttons (:546-550) need explicit `aria-label`s.
+
+- [ ] **F6. Add a web test suite** (L)
+  `packages/web` has zero tests/config. Highest-value targets: `lib/studio-shared.ts` (Markdown export fidelity — the product's core promise), `lib/studio-import.ts` (README parsing), builders' output formatting, `lib/gen/detect.ts`.
+
+- [ ] **F7. Surface silent failures to users (add a toast primitive)** (S)
+  Clipboard writes swallow errors via `.catch(() => {})` in all builders (`badge-builder.tsx:98`) and `generator-client.tsx:275, 284`; `api/gen-count`/`gen-users` POSTs fail with no feedback. No toast primitive exists in `components/ui/` — add one (shadcn sonner) and wire it in.
+
+- [ ] **F8. Extract shared copy-output module for the four builders** (M)
+  `formatOutput()`, `COPY_FORMATS`, and the `handleCopy` pattern are copy-pasted with drifted signatures across `badge-builder.tsx:30/90`, `header-builder.tsx:47/92`, `sponsors-builder.tsx:44/110`, `contributors-builder.tsx:44/110`; `badge-modal.tsx:37-40` and `badge-group-modal.tsx:38-41` duplicate SIZES/THEMES/MODES constants and copy UI. Extract `lib/builder-output.ts`, a `CopyOutputSection` component, and a `useCopyToClipboard` hook. While there, fix the hydration-unsafe baseUrl in `badge-builder.tsx:74` (setState-in-effect) by standardizing on the `useSyncExternalStore` pattern the other three builders use (`header-builder.tsx:76-80`).
+
+- [ ] **F9. Defer non-critical motion imports on the landing path** (M)
+  `motion/react` is imported eagerly at module top in `sidebar.tsx:6` (site chrome on every page), `hero-entrance.tsx`, `sponsor-button.tsx`, `tour.tsx`, `theme-switcher.tsx`. Use `next/dynamic` for the tour and hero choreography, or motion's `LazyMotion`/`m`, to cut the shared client bundle.
+
+- [ ] **F10. Studio: project export/import + safe Reset** (M)
+  Persistence is a single localStorage slot (`studio.tsx:114, 275`); Reset clears document and history (:485) with no confirmation or backup, and there's no way to save/share drafts. Add "Download/Load project (.json)" next to the Markdown export (:519-524) and make Reset confirmed or undo-able.
+
+---
+
+## 4. Improvements — P2: polish, hygiene, docs
+
+- [ ] **P1. Guard or noindex the `/dev/*` pages in production** (S)
+  7 pages under `app/dev/` ship to prod with no `NODE_ENV` guard or `robots: noindex` (robots.txt disallows them but they're reachable); `app/dev/preview/page.tsx` pulls `html-to-image` into the prod bundle. Return `notFound()` outside development.
+
+- [ ] **P2. Add missing routes to the sitemap; add web manifest + theme-color** (S)
+  `app/sitemap.ts:30-41` omits `/contributors`, `/sponsors`, `/privacy`. No `manifest.webmanifest` or `theme-color` meta in `app/layout.tsx` despite icons existing.
+
+- [ ] **P3. Remove dead code in core** (S)
+  Unused `pkg` computation with a baffling slice at `route-handler.ts:514`; `getCocoaPodsPlatform` fetches then returns hardcoded `"ios | macos"` (`cocoapods.ts:63-69`); legacy `src/github.ts` duplicates providers/github.ts + format.ts (`formatStarCount` is `@deprecated`); `KNOWN_PARAMS` in `normalize-params.ts:25` is documented as stripping unknown params but never used — the doc lies about behavior.
+
+- [ ] **P4. Resolve the disabled Twitch provider** (S)
+  Provider is fully written but dead behind commented-out routing (`route-handler.ts:1081-1089`), and the builder option is commented out (`packages/web/lib/badge-builder-shared.ts:80` TODO). Either env-gate/re-enable it end-to-end or delete both sides.
+
+- [ ] **P5. Deduplicate cross-file render helpers** (M)
+  `luminance`/`rgba` (render.tsx:82-157 vs render-group.tsx:75-84), `esc`/`r2`/`clamp` redefined in render-chart.ts:174 / render-header.ts:58 / render-sponsors.ts:101, `findFontsDir` (render.tsx:38 vs render-group.tsx:32), `isRateLimitResponse` (github.ts vs starhistory.ts), coverage→color mapping (codecov.ts vs coveralls.ts), `formatCount` implemented twice (`src/format.ts:15` and `src/github.ts:68`). Consolidate into shared utils.
+
+- [ ] **P6. Extract shared badge-route glue from web/engine into core** (S)
+  `packages/engine/app/[...slug]/route.ts` and `packages/web/app/[...slug]/route.ts` contain byte-identical `reportBadgeError`/`emitMetric` implementations; engine's PUT doesn't pass `onError`/`onMetric` while its GET does (likely an oversight). A `createBadgeHandlers({onTrack?})` factory in core kills the drift.
+
+- [ ] **P7. Replace unchecked `as` casts on upstream JSON with safe accessors** (M)
+  E.g. `(d.license as Record<string,unknown>)?.spdx_id as string` (`github.ts:287`), `meta.stargazers_count as number` (`starhistory.ts:145`), `lastPage["@id"] as string` fed back into fetch (`nuget.ts:42`), `data.url as string` (`mastodon.ts:34`). A tiny `str()`/`num()` coercion helper in `provider-fetch.ts` eliminates the "[object Object]"/NaN badge class when upstream schemas shift.
+
+- [ ] **P8. Bound badge dimension overrides at the renderer** (S)
+  The route clamps numeric params (`route-handler.ts:3560-3577`) but `renderBadge`/`renderBadgeGroup` accept `height`/`fontSize`/`iconSize` unchecked (`render.tsx:258-268`), so other callers (engine, future endpoints) can pass `height: 1e9` into Satori. Mirror the clamps in the renderer and wrap the `satori()` call (:405) to degrade to `renderErrorBadge`.
+
+- [ ] **P9. De-duplicate hardcoded versions** (S)
+  Engine health route hardcodes `version: "0.0.1"` (`app/api/health/route.ts:15`) vs its package.json; CLI hardcodes `const version = "1.0.0"` (`src/bin.ts:24`). Import from package.json or inject at build (tsup `define`).
+
+- [ ] **P10. Add npm release automation for the CLI; stop committing `dist/`** (M)
+  `shieldcn-cli` has no publish workflow and `packages/cli/dist/bin.js` is tracked in git (guaranteed staleness vs `src/`). Add a tag-triggered `npm publish --provenance` workflow mirroring `docker-publish.yml`; gitignore `packages/cli/dist`.
+
+- [ ] **P11. Fix commit-rule drift between husky and CI** (S)
+  `.husky/commit-msg` accepts `perf`/`build`/`revert` but `commit-check.toml` omits `perf` and `build` — locally-valid commits fail CI. Branch-type lists also differ (`commit-check.toml [branch]` lacks `docs/refactor/style/test/perf/ci/build` that `.husky/pre-push` allows). Align both.
+
+- [ ] **P12. Harden Docker image + workflow supply chain** (M)
+  Pin `node:22-alpine` by digest, add a `HEALTHCHECK` instruction to the Dockerfile itself (only compose defines one today), build `linux/amd64,linux/arm64` (ARM self-hosters currently can't run the image), SHA-pin workflow actions, add SBOM/provenance attestation.
+
+- [ ] **P13. Add Dependabot/Renovate config** (S)
+  Root package.json carries seven manual security `pnpm.overrides` — evidence patching is manual. Add `.github/dependabot.yml` covering npm (workspace), github-actions, and docker.
+
+- [ ] **P14. Make Sentry sample rates configurable in the engine** (S)
+  `packages/engine/sentry.server.config.ts` hardcodes `tracesSampleRate: 1` and `profilesSampleRate: 1` — expensive at badge-service request volumes. Read from env with defaults ~0.1.
+
+- [ ] **P15. Fill engine README/env-doc gaps** (S)
+  Env table omits `NEXT_PUBLIC_SENTRY_DSN` (compose passes it); OAuth token-pool endpoints and `/api/gen-count` are undocumented; quick-start ships `shieldcn:shieldcn` postgres credentials with no "change this" note; document the token-encryption key behavior (see B2).
+
+- [ ] **P16. Split the two monolith client files** (M)
+  `components/studio/inspectors.tsx` (1,387 lines — all block inspectors in one client file) and `app/gen/generator-client.tsx` (1,068 lines with five "Pre-existing react-compiler debt" comments at :72, :82, :132, :158, :239). Split per block type / extract generator sections for maintainability and per-inspector code-splitting.
+
+---
+
+## 5. Suggested execution order
+
+1. **B12 (CI)** first — everything after it lands with a safety net.
+2. P0 security batch: B1–B9 in core (mostly independent; B1+B4+B14 touch the same fetch paths and combine well), B10–B11, F1/B7 as one rate-limiting change.
+3. P1 reliability/a11y: F2, F3, F4/F5, B14–B19, B21.
+4. Test debt: B20, B22, F6 (large; can proceed in parallel with P2 items).
+5. P2 hygiene batch in any order; P5/P6/P8 pair naturally with render work, P9–P15 are quick wins.
+
+Overlaps to implement once, not twice: the encryption-key fix (B2) and its docs (P15); rate limiting (B7 + F1) as one shared limiter; Twitch (P4) spans core + web.
