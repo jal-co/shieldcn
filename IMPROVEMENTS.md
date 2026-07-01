@@ -143,7 +143,7 @@
 - [x] **F8. Extract shared copy-output module for the four builders** (M) — done via PR-3.5
   `formatOutput()`, `COPY_FORMATS`, and the `handleCopy` pattern are copy-pasted with drifted signatures across `badge-builder.tsx:30/90`, `header-builder.tsx:47/92`, `sponsors-builder.tsx:44/110`, `contributors-builder.tsx:44/110`; `badge-modal.tsx:37-40` and `badge-group-modal.tsx:38-41` duplicate SIZES/THEMES/MODES constants and copy UI. Extract `lib/builder-output.ts`, a `CopyOutputSection` component, and a `useCopyToClipboard` hook. While there, fix the hydration-unsafe baseUrl in `badge-builder.tsx:74` (setState-in-effect) by standardizing on the `useSyncExternalStore` pattern the other three builders use (`header-builder.tsx:76-80`).
 
-- [ ] **F9. Defer non-critical motion imports on the landing path** (M)
+- [x] **F9. Defer non-critical motion imports on the landing path** (M) — done via PR-3.6 (tour + sidebar; hero/header deliberately left eager, see notes — they're first-paint content, not deferrable)
   `motion/react` is imported eagerly at module top in `sidebar.tsx:6` (site chrome on every page), `hero-entrance.tsx`, `sponsor-button.tsx`, `tour.tsx`, `theme-switcher.tsx`. Use `next/dynamic` for the tour and hero choreography, or motion's `LazyMotion`/`m`, to cut the shared client bundle.
 
 - [ ] **F10. Studio: project export/import + safe Reset** (M)

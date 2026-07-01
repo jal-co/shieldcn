@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { motion, useReducedMotion, AnimatePresence, LayoutGroup, type Transition } from "motion/react"
+import { m, useReducedMotion, AnimatePresence, LayoutGroup, LazyMotion, domMax, type Transition } from "motion/react"
 import { ChevronDown, ChevronRight, Search, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -265,12 +265,12 @@ function NavLink({
       {/* active treatment: tint + sliding rail (shared element) */}
       {isActive && (
         <>
-          <motion.span
+          <m.span
             layoutId="sidebar-active-bg"
             className="absolute inset-0 rounded-md bg-accent"
             transition={reduce ? { duration: 0 } : ITEM_SPRING}
           />
-          <motion.span
+          <m.span
             layoutId="sidebar-active-rail"
             className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary"
             transition={reduce ? { duration: 0 } : ITEM_SPRING}
@@ -341,7 +341,7 @@ function CollapsibleNavItem({
       </div>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -359,7 +359,7 @@ function CollapsibleNavItem({
                 />
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -449,7 +449,7 @@ function CollapsibleSection({
       <SectionHeading title={group.title} open={open} onToggle={() => setOpen(o => !o)} active={containsActive} />
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -457,7 +457,7 @@ function CollapsibleSection({
             className="overflow-hidden pt-0.5"
           >
             {items}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -503,7 +503,7 @@ function ProviderCategory({
       </button>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -521,7 +521,7 @@ function ProviderCategory({
                 />
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -551,7 +551,7 @@ function ProvidersSection({
       <SectionHeading title={PROVIDERS_SECTION} open={open} onToggle={() => setOpen(o => !o)} active={containsActive} />
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -563,7 +563,7 @@ function ProvidersSection({
                 <ProviderCategory key={g.title} group={g} pathname={pathname} reduce={reduce} />
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -743,45 +743,52 @@ export function Sidebar() {
   }, [pathname, reduce])
 
   return (
-    <div className="relative flex h-full flex-col">
-      {/* Search */}
-      <div className="shrink-0 p-4 pb-3">
-        <DocsSearch />
-      </div>
+    // LazyMotion + the `m` component (instead of `motion`) loads the
+    // animation engine as a separate async chunk rather than bundling it
+    // inline with every file that imports "motion/react" — domMax is needed
+    // (not the smaller domAnimation) because the active-item indicator below
+    // uses layoutId shared-layout animation.
+    <LazyMotion features={domMax}>
+      <div className="relative flex h-full flex-col">
+        {/* Search */}
+        <div className="shrink-0 p-4 pb-3">
+          <DocsSearch />
+        </div>
 
-      {/* Scrollable nav */}
-      <div ref={scrollRef} className="no-scrollbar flex-1 overflow-y-auto px-4 pb-14">
-        <LayoutGroup>
-          <nav className="flex flex-col gap-1">
-            {renderUnits.map((unit, i) =>
-              unit.kind === "providers" ? (
-                <ProvidersSection key={`providers-${i}`} groups={unit.groups} pathname={pathname} reduce={reduce} />
-              ) : (
-                <CollapsibleSection key={unit.group.title} group={unit.group} pathname={pathname} reduce={reduce} />
-              ),
-            )}
-          </nav>
-        </LayoutGroup>
-      </div>
+        {/* Scrollable nav */}
+        <div ref={scrollRef} className="no-scrollbar flex-1 overflow-y-auto px-4 pb-14">
+          <LayoutGroup>
+            <nav className="flex flex-col gap-1">
+              {renderUnits.map((unit, i) =>
+                unit.kind === "providers" ? (
+                  <ProvidersSection key={`providers-${i}`} groups={unit.groups} pathname={pathname} reduce={reduce} />
+                ) : (
+                  <CollapsibleSection key={unit.group.title} group={unit.group} pathname={pathname} reduce={reduce} />
+                ),
+              )}
+            </nav>
+          </LayoutGroup>
+        </div>
 
-      {/* "More" scroll affordance */}
-      <div
-        className={cn(
-          "absolute inset-x-0 bottom-0 z-20 flex flex-col items-center transition-opacity duration-200",
-          canScroll ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      >
-        <div className="h-8 w-full bg-gradient-to-t from-background to-transparent" />
-        <button
-          type="button"
-          aria-label="Scroll down for more"
-          onClick={() => scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })}
-          className="flex w-full cursor-pointer flex-col items-center gap-0.5 bg-background pb-3 pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        {/* "More" scroll affordance */}
+        <div
+          className={cn(
+            "absolute inset-x-0 bottom-0 z-20 flex flex-col items-center transition-opacity duration-200",
+            canScroll ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
         >
-          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">More</span>
-          <ChevronDown className="size-3 text-muted-foreground motion-safe:animate-pulse" />
-        </button>
+          <div className="h-8 w-full bg-gradient-to-t from-background to-transparent" />
+          <button
+            type="button"
+            aria-label="Scroll down for more"
+            onClick={() => scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })}
+            className="flex w-full cursor-pointer flex-col items-center gap-0.5 bg-background pb-3 pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">More</span>
+            <ChevronDown className="size-3 text-muted-foreground motion-safe:animate-pulse" />
+          </button>
+        </div>
       </div>
-    </div>
+    </LazyMotion>
   )
 }

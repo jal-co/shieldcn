@@ -749,6 +749,59 @@ PR-3.4 toast on a simulated clipboard failure.
   top-level `motion/react` from `sidebar.tsx:6`. **Verify:** shared client bundle
   shrinks (check `next build` output / bundle analyzer); animations still fire.
 
+**Actual outcome:** Both named targets landed; "hero choreography" itself
+was left alone (see below).
+- **Tour deferral:** extracted the motion-heavy spotlight/cursor/content
+  overlay out of `tour.tsx` into a new `tour-overlay.tsx`, loaded via
+  `next/dynamic(() => import("@/components/tour-overlay"), { ssr: false })`.
+  The naive version of this (render `<TourOverlay>` only while
+  `currentStep >= 0`) would have broken the close/exit fade, since
+  `AnimatePresence` needs to still be mounted at the moment its child is
+  removed to animate the exit — so instead `TourProvider` latches an
+  `everStarted` flag true the first time a tour starts and keeps
+  `TourOverlay` mounted from then on; `TourOverlay` owns its own
+  `AnimatePresence` and decides internally whether to render anything.
+  Verified via a live Playwright run against the production build,
+  tracking network responses for the overlay's chunk: **not** fetched on
+  `/gen`'s initial load, fetched exactly when the user clicks "Show me
+  around" (confirmed on both counts), and the overlay itself renders
+  correctly (spotlight cutout, pulsing cursor, step counter, screenshotted).
+- **Sidebar:** migrated from `motion.div`/`motion.span` (eagerly bundling the
+  full animation engine into whatever chunk imports `sidebar.tsx`) to
+  `LazyMotion` + `m.div`/`m.span`, with `domMax` (not the smaller
+  `domAnimation`) because the active-nav-item indicator uses `layoutId`
+  shared-layout animation, which needs the layout-animation feature set.
+  This is a code-splitting win (the animation engine becomes a separately
+  fetched chunk, not inlined into every file importing `motion/react`)
+  rather than a raw-byte reduction, since `domMax` has near-full feature
+  parity — `LazyMotion`'s value here is parallel/deferred fetching, not a
+  smaller total download. Verified live: docs sidebar renders correctly and
+  the "Customization" group's expand/collapse (chevron rotation +
+  `layoutId`-driven active-indicator slide) still animates identically
+  (before/after screenshots).
+- **Hero choreography — deliberately left alone:** `hero-entrance.tsx`,
+  `hero-showcase.tsx`, and `animated-header.tsx` all run on first paint of
+  the routes that use them (the homepage hero, and `animated-header` via
+  `SiteHeader` on literally every page through `SiteShell`) — there's no
+  "later" to defer them to; the animation IS the first paint. Deferring
+  `AnimatedHeader` in particular would mean the nav bar doesn't render
+  until a second async chunk arrives, which is a regression, not an
+  optimization. The plan text bundled "tour + hero choreography" together,
+  but they aren't the same class of problem — tour is conditional-on-user-
+  action (a genuine deferral candidate); the header/hero aren't.
+
+Bundle-size measurement caveat: Turbopack's build output doesn't print a
+webpack-style size table, and no bundle analyzer is configured, so this
+was verified two ways instead — (1) grepping `.next/static/chunks/*.js`
+for the tour overlay's distinguishing string confirmed it landed in its
+own ~8KB chunk, separate from `/gen`'s main bundle; (2) the live network-
+tracking Playwright run is the actual, direct proof the chunk isn't
+fetched until needed, which is the property that matters more than the
+byte count.
+
+Verified: `pnpm typecheck` clean, `pnpm --filter @shieldcn/web build`
+succeeds, `pnpm test` (262/10), and the two live-browser checks above.
+
 ### PR-3.7 — Studio project export/import + safe reset  · items: **F10** · effort M
 - "Download/Load project (.json)" beside the Markdown export; confirmed/undo-able
   Reset (`studio.tsx:485`). **Verify:** round-trip export→import restores the doc;
