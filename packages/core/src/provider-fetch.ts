@@ -141,3 +141,23 @@ export async function providerFetchText(
     ttl,
   )
 }
+
+/**
+ * Coerce an unknown upstream JSON value to a string, or `undefined` if it
+ * isn't one — replaces `value as string` casts on parsed JSON, which lie to
+ * the type checker rather than checking anything. A schema shift upstream
+ * (a field turning into an object/number/null) then surfaces as a missing
+ * value instead of a `"[object Object]"` badge or a malformed fetch URL.
+ */
+export function str(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined
+}
+
+/**
+ * Coerce an unknown upstream JSON value to a finite number, or `undefined`
+ * if it isn't one — replaces `value as number` casts on parsed JSON. See
+ * {@link str}.
+ */
+export function num(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined
+}

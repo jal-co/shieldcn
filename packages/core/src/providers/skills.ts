@@ -97,7 +97,7 @@ async function fetchSkillDirect(
   return providerFetch<V1SkillDetail>({
     provider: "skills",
     cacheKey: `v1:${owner}/${repo}/${skill}`,
-    url: `${API_BASE}/skills/${owner}/${repo}/${skill}`,
+    url: `${API_BASE}/skills/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(skill)}`,
     headers,
     ttl: 300, // 5 min, matching upstream Cache-Control
   })
@@ -166,7 +166,7 @@ async function scanLeaderboard(
 // ---------------------------------------------------------------------------
 
 function skillLink(owner: string, repo: string, skill: string): string {
-  return `https://www.skills.sh/${owner}/${repo}/${skill}`
+  return `https://www.skills.sh/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(skill)}`
 }
 
 // ---------------------------------------------------------------------------

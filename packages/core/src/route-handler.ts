@@ -6,7 +6,7 @@
  * self-hosted engine. Handles GET (badge rendering) and PUT (memo badges).
  */
 
-import { renderBadge, renderBadgeBase, renderErrorBadge } from "./badges/render"
+import { renderBadge, renderBadgeBase, renderErrorBadge, clampBadgeDim } from "./badges/render"
 import { renderChart, resolveAccent, resolveFontFamily, type ChartSeries, type ChartPoint } from "./badges/render-chart"
 import { renderHeader, type HeaderLogoInput } from "./badges/render-header"
 import { renderSponsors, type SponsorAvatar, type SponsorTier } from "./badges/render-sponsors"
@@ -3542,26 +3542,16 @@ async function handleBadgeGETInner(
   // Override label if provided
   const label = searchParams.get("label") || data.label
 
-  // Parse configurable layout params. Each is clamped to a sane range — an
-  // unbounded ?height=1e9 would otherwise balloon the Satori render, and
-  // negative values break layout.
-  const NUM_BOUNDS: Record<string, [number, number]> = {
-    labelOpacity: [0, 1],
-    height: [8, 240],
-    fontSize: [5, 120],
-    radius: [0, 120],
-    padX: [0, 120],
-    iconSize: [0, 120],
-    gap: [0, 60],
-    labelGap: [0, 60],
-  }
+  // Parse configurable layout params. Each is clamped against the same
+  // BADGE_DIM_BOUNDS the renderer itself enforces (single source of truth —
+  // see render.tsx) — an unbounded ?height=1e9 would otherwise balloon the
+  // Satori render, and negative values break layout.
   function num(key: string): number | undefined {
     const v = searchParams.get(key)
     if (v === null) return undefined
     const n = parseFloat(v)
     if (!Number.isFinite(n)) return undefined
-    const [min, max] = NUM_BOUNDS[key] ?? [0, 1000]
-    return Math.min(max, Math.max(min, n))
+    return clampBadgeDim(key, n)
   }
 
   // Parse gradient
@@ -3740,13 +3730,39 @@ async function handleBadgeGETInner(
 export async function handleBadgePUT(
   request: Request,
   slug: string[],
+  options?: BadgeRequestOptions,
 ) {
+  try {
+    return await handleBadgePUTInner(request, slug, options)
+  } catch (error) {
+    // Mirror handleBadgeGET's outer catch: a memo write should never surface
+    // an unhandled 500 without at least being reported.
+    if (options?.onError) {
+      try {
+        options.onError(error, { path: slug.join("/") })
+      } catch { /* never let reporting break the response */ }
+    }
+    return Response.json({ error: "internal error" }, { status: 500 })
+  }
+}
+
+async function handleBadgePUTInner(
+  request: Request,
+  slug: string[],
+  options?: BadgeRequestOptions,
+) {
+  function emit(outcome: string) {
+    options?.onMetric?.({ type: "counter", name: "memo.write", value: 1, tags: { outcome } })
+  }
+
   if (slug[0] !== "memo" || slug.length < 4) {
+    emit("bad_request")
     return Response.json({ error: "Invalid memo URL. Use PUT /memo/{key}/{label}/{value}/{color}" }, { status: 400 })
   }
 
   const limit = await checkRateLimit("memo-put", getClientIdentifier(request), { max: 20, windowMs: 60_000 })
   if (!limit.allowed) {
+    emit("rate_limited")
     return Response.json(
       { error: "Too many memo badge writes. Try again shortly." },
       { status: 429, headers: { "Retry-After": String(Math.ceil(limit.resetMs / 1000)) } },
@@ -3755,15 +3771,18 @@ export async function handleBadgePUT(
 
   const auth = request.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) {
+    emit("unauthorized")
     return Response.json({ error: "Missing Authorization: Bearer <token> header" }, { status: 401 })
   }
   const token = auth.slice(7)
   if (!token) {
+    emit("unauthorized")
     return Response.json({ error: "Empty bearer token" }, { status: 401 })
   }
 
   const key = slug[1]
   if (key.length > 200) {
+    emit("bad_request")
     return Response.json({ error: "Memo key too long (max 200 characters)" }, { status: 400 })
   }
 
@@ -3775,11 +3794,13 @@ export async function handleBadgePUT(
     value = decodeURIComponent(slug[3])
     color = slug[4] ? decodeURIComponent(slug[4]) : undefined
   } catch {
+    emit("bad_request")
     return Response.json({ error: "Invalid URL encoding in memo label, value, or color" }, { status: 400 })
   }
 
   const MAX_FIELD_LENGTH = 100
   if (label.length > MAX_FIELD_LENGTH || value.length > MAX_FIELD_LENGTH || (color && color.length > MAX_FIELD_LENGTH)) {
+    emit("bad_request")
     return Response.json({ error: `Memo label, value, and color must each be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
   }
 
@@ -3788,8 +3809,41 @@ export async function handleBadgePUT(
   const result = await upsertMemoBadge(key, label, value, color, token)
 
   if (!result.ok) {
+    emit("forbidden")
     return Response.json({ error: result.error }, { status: 403 })
   }
 
+  emit("ok")
   return Response.json({ ok: true, key, label, value, color, expiresIn: "32 days" })
+}
+
+/**
+ * Standard Next.js route-segment params shape for a `[...slug]` catch-all —
+ * matches what `app/[...slug]/route.ts` receives as its second argument.
+ */
+interface SlugRouteContext {
+  params: Promise<{ slug: string[] }>
+}
+
+/**
+ * Builds the `{ GET, PUT }` handlers for a `[...slug]/route.ts` catch-all,
+ * wiring both to the same `BadgeRequestOptions`. web and engine previously
+ * duplicated the `params` unwrapping and the "call handleBadgeGET/PUT with
+ * this app's callbacks" glue verbatim in each route file (and engine's PUT
+ * silently dropped `onError`/`onMetric` because there was nothing forcing it
+ * to stay in sync with GET). Each app still supplies its own `onError`/
+ * `onMetric` (typically wired to Sentry) — core stays dependency-free, per
+ * {@link BadgeRequestOptions}.
+ */
+export function createBadgeHandlers(options: BadgeRequestOptions = {}) {
+  return {
+    async GET(request: Request, { params }: SlugRouteContext) {
+      const { slug } = await params
+      return handleBadgeGET(request, slug, options)
+    },
+    async PUT(request: Request, { params }: SlugRouteContext) {
+      const { slug } = await params
+      return handleBadgePUT(request, slug, options)
+    },
+  }
 }

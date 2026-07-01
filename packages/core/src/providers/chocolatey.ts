@@ -41,7 +41,7 @@ export async function getChocolateyVersion(pkg: string): Promise<BadgeData | nul
   return {
     label: "chocolatey",
     value: `v${version}`,
-    link: `https://community.chocolatey.org/packages/${pkg}`,
+    link: `https://community.chocolatey.org/packages/${encodeURIComponent(pkg)}`,
   }
 }
 
@@ -62,6 +62,6 @@ export async function getChocolateyDownloads(pkg: string): Promise<BadgeData | n
   return {
     label: "downloads",
     value: formatCount(count),
-    link: `https://community.chocolatey.org/packages/${pkg}`,
+    link: `https://community.chocolatey.org/packages/${encodeURIComponent(pkg)}`,
   }
 }

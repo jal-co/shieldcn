@@ -10,6 +10,7 @@
 
 import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
+import { str, num } from "../provider-fetch"
 
 const CLIENT_ID = process.env.TWITCH_CLIENT_ID
 const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET
@@ -66,19 +67,19 @@ export async function getTwitchStatus(login: string): Promise<BadgeData | null> 
 
   const streams = data.data as Array<Record<string, unknown>> | undefined
   if (streams && streams.length > 0) {
-    const viewers = (streams[0].viewer_count as number) ?? 0
+    const viewers = num(streams[0].viewer_count) ?? 0
     return {
       label: login,
       value: `🔴 live · ${formatCount(viewers)} viewers`,
       color: "green",
-      link: `https://twitch.tv/${login}`,
+      link: `https://twitch.tv/${encodeURIComponent(login)}`,
     }
   }
 
   return {
     label: login,
     value: "offline",
-    link: `https://twitch.tv/${login}`,
+    link: `https://twitch.tv/${encodeURIComponent(login)}`,
   }
 }
 
@@ -93,14 +94,15 @@ export async function getTwitchFollowers(login: string): Promise<BadgeData | nul
   const users = userData.data as Array<Record<string, unknown>> | undefined
   if (!users || users.length === 0) return null
 
-  const userId = users[0].id as string
-  const data = await twitchFetch(`channels/followers?broadcaster_id=${userId}&first=1`)
+  const userId = str(users[0].id)
+  if (!userId) return null
+  const data = await twitchFetch(`channels/followers?broadcaster_id=${encodeURIComponent(userId)}&first=1`)
   if (!data) return null
 
-  const total = (data.total as number) ?? 0
+  const total = num(data.total) ?? 0
   return {
     label: login,
     value: `${formatCount(total)} followers`,
-    link: `https://twitch.tv/${login}`,
+    link: `https://twitch.tv/${encodeURIComponent(login)}`,
   }
 }

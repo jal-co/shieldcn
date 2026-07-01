@@ -22,7 +22,7 @@ async function npmFetch(url: string, key: string): Promise<Record<string, unknow
 export async function getNpmVersion(pkg: string, tag?: string): Promise<BadgeData | null> {
   const encoded = encodeURIComponent(pkg)
   const dist = tag || "latest"
-  const data = await npmFetch(`https://registry.npmjs.org/${encoded}/${dist}`, `v:${pkg}:${dist}`)
+  const data = await npmFetch(`https://registry.npmjs.org/${encoded}/${encodeURIComponent(dist)}`, `v:${pkg}:${dist}`)
   if (!data || typeof data.version !== "string") return null
 
   return {

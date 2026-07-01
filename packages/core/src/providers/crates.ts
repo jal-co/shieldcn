@@ -33,7 +33,7 @@ export async function getCratesVersion(crate: string): Promise<BadgeData | null>
   return {
     label: "crates.io",
     value: `v${c.max_version}`,
-    link: `https://crates.io/crates/${crate}`,
+    link: `https://crates.io/crates/${encodeURIComponent(crate)}`,
   }
 }
 
@@ -61,7 +61,7 @@ export async function getCratesDownloads(crate: string, period: string = "total"
   return {
     label: "downloads",
     value: `${formatCount(downloads)}${suffix}`,
-    link: `https://crates.io/crates/${crate}`,
+    link: `https://crates.io/crates/${encodeURIComponent(crate)}`,
   }
 }
 
@@ -81,6 +81,6 @@ export async function getCratesLicense(crate: string): Promise<BadgeData | null>
   return {
     label: "license",
     value: license,
-    link: `https://crates.io/crates/${crate}`,
+    link: `https://crates.io/crates/${encodeURIComponent(crate)}`,
   }
 }

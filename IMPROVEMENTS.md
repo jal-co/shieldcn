@@ -165,13 +165,13 @@
 - [ ] **P5. Deduplicate cross-file render helpers** (M)
   `luminance`/`rgba` (render.tsx:82-157 vs render-group.tsx:75-84), `esc`/`r2`/`clamp` redefined in render-chart.ts:174 / render-header.ts:58 / render-sponsors.ts:101, `findFontsDir` (render.tsx:38 vs render-group.tsx:32), `isRateLimitResponse` (github.ts vs starhistory.ts), coverage→color mapping (codecov.ts vs coveralls.ts), `formatCount` implemented twice (`src/format.ts:15` and `src/github.ts:68`). Consolidate into shared utils.
 
-- [ ] **P6. Extract shared badge-route glue from web/engine into core** (S)
+- [x] **P6. Extract shared badge-route glue from web/engine into core** (S) — done via PR-2.6 (`createBadgeHandlers()`; also fixed `handleBadgePUT` never accepting `onError`/`onMetric` in either app, not just engine)
   `packages/engine/app/[...slug]/route.ts` and `packages/web/app/[...slug]/route.ts` contain byte-identical `reportBadgeError`/`emitMetric` implementations; engine's PUT doesn't pass `onError`/`onMetric` while its GET does (likely an oversight). A `createBadgeHandlers({onTrack?})` factory in core kills the drift.
 
-- [ ] **P7. Replace unchecked `as` casts on upstream JSON with safe accessors** (M)
+- [x] **P7. Replace unchecked `as` casts on upstream JSON with safe accessors** (M) — done via PR-2.6 (`str()`/`num()` in `provider-fetch.ts`; also applied to discord.ts and twitch.ts casts found in the same sweep)
   E.g. `(d.license as Record<string,unknown>)?.spdx_id as string` (`github.ts:287`), `meta.stargazers_count as number` (`starhistory.ts:145`), `lastPage["@id"] as string` fed back into fetch (`nuget.ts:42`), `data.url as string` (`mastodon.ts:34`). A tiny `str()`/`num()` coercion helper in `provider-fetch.ts` eliminates the "[object Object]"/NaN badge class when upstream schemas shift.
 
-- [ ] **P8. Bound badge dimension overrides at the renderer** (S)
+- [x] **P8. Bound badge dimension overrides at the renderer** (S) — done via PR-2.6 (`BADGE_DIM_BOUNDS`/`clampBadgeDim()`, satori() wrapped with a non-recursive error-badge fallback)
   The route clamps numeric params (`route-handler.ts:3560-3577`) but `renderBadge`/`renderBadgeGroup` accept `height`/`fontSize`/`iconSize` unchecked (`render.tsx:258-268`), so other callers (engine, future endpoints) can pass `height: 1e9` into Satori. Mirror the clamps in the renderer and wrap the `satori()` call (:405) to degrade to `renderErrorBadge`.
 
 - [ ] **P9. De-duplicate hardcoded versions** (S)

@@ -250,6 +250,33 @@ export function sanitizeBadgeText(input: unknown): string {
   return s.length > MAX_TEXT_LENGTH ? `${s.slice(0, MAX_TEXT_LENGTH - 1)}…` : s
 }
 
+/**
+ * Sane [min, max] ranges for renderer dimension overrides. The route layer
+ * (route-handler.ts) clamps these against the same bounds before building a
+ * `BadgeConfig`, but that's caller discipline, not a guarantee — a future
+ * endpoint or a direct `renderBadge()` caller could pass `height: 1e9`
+ * straight through. Clamping again here, right before Satori sees the
+ * values, means the renderer can't be crashed or made to balloon regardless
+ * of what called it.
+ */
+export const BADGE_DIM_BOUNDS: Record<string, [number, number]> = {
+  labelOpacity: [0, 1],
+  height: [8, 240],
+  fontSize: [5, 120],
+  radius: [0, 120],
+  padX: [0, 120],
+  iconSize: [0, 120],
+  gap: [0, 60],
+  labelGap: [0, 60],
+}
+
+/** Clamp `value` into `BADGE_DIM_BOUNDS[key]` (default `[0, 1000]` for unlisted keys). */
+export function clampBadgeDim(key: string, value: number): number {
+  if (!Number.isFinite(value)) return BADGE_DIM_BOUNDS[key]?.[0] ?? 0
+  const [min, max] = BADGE_DIM_BOUNDS[key] ?? [0, 1000]
+  return Math.min(max, Math.max(min, value))
+}
+
 function resolve(config: BadgeConfig): ResolvedBadge {
   const mode = config.mode === "light" ? lightMode : darkMode
   const bs = getButtonStyle(config.style, mode, config.brandColor)
@@ -260,15 +287,18 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   const font = config.font ?? "inter"
   const fontFamily = FONT_CONFIG[font]?.name ?? FONT_CONFIG.inter.name
 
-  const height = config.height ?? bz.height
-  const paddingX = config.padX ?? bz.paddingX
-  const fontSize = config.fontSize ?? bz.fontSize
-  const gap = config.gap ?? bz.gap
-  const iconSize = config.iconSize ?? bz.iconSize
-  const labelGap = config.labelGap ?? gap
+  // Clamped regardless of whether the value came from a caller override or
+  // a size preset — presets are already in-bounds, so this is a no-op for
+  // them and a hard guardrail for overrides (see BADGE_DIM_BOUNDS above).
+  const height = clampBadgeDim("height", config.height ?? bz.height)
+  const paddingX = clampBadgeDim("padX", config.padX ?? bz.paddingX)
+  const fontSize = clampBadgeDim("fontSize", config.fontSize ?? bz.fontSize)
+  const gap = clampBadgeDim("gap", config.gap ?? bz.gap)
+  const iconSize = clampBadgeDim("iconSize", config.iconSize ?? bz.iconSize)
+  const labelGap = clampBadgeDim("labelGap", config.labelGap ?? gap)
   // Gradient badges need higher label opacity for readability — semi-transparent
   // text on colored backgrounds kills contrast far more than on solid dark/light bg
-  const labelOpacity = config.labelOpacity ?? (config.gradient ? 0.9 : 0.7)
+  const labelOpacity = clampBadgeDim("labelOpacity", config.labelOpacity ?? (config.gradient ? 0.9 : 0.7))
 
   // --- Resolve colors ---
   const isFilled = bs.bg !== "transparent"
@@ -399,16 +429,35 @@ function resolve(config: BadgeConfig): ResolvedBadge {
 // Public API
 // ---------------------------------------------------------------------------
 
+/**
+ * Marks a config built internally by `renderErrorBadge` so `renderBadge`'s
+ * catch block doesn't recurse into it again on a second failure — a config
+ * this plain (no icon, no dimension overrides) failing Satori means Satori
+ * itself is broken, not the input, so the second failure should propagate
+ * instead of looping.
+ */
+const ERROR_FALLBACK_MARKER = Symbol("errorFallback")
+
 export async function renderBadge(config: BadgeConfig): Promise<string> {
-  const r = resolve(config)
-  const el = r.split ? renderSplit(r) : renderSingle(r)
-  const fonts = getFonts(config.font)
-  const raw = await satori(el, { height: r.height, fonts })
-  const svg = rgbaToHexOpacity(inlineDataUriImages(raw))
-  const optimized = optimizeSvg(svg)
-  const mode = config.animate ?? "none"
-  if (mode === "none") return optimized
-  return animateSvg(optimized, mode, r.dotColor)
+  try {
+    const r = resolve(config)
+    const el = r.split ? renderSplit(r) : renderSingle(r)
+    const fonts = getFonts(config.font)
+    const raw = await satori(el, { height: r.height, fonts })
+    const svg = rgbaToHexOpacity(inlineDataUriImages(raw))
+    const optimized = optimizeSvg(svg)
+    const mode = config.animate ?? "none"
+    if (mode === "none") return optimized
+    return animateSvg(optimized, mode, r.dotColor)
+  } catch (err) {
+    // Malformed upstream data (e.g. invalid custom icon path syntax) can make
+    // Satori throw instead of yielding a merely-ugly SVG. Route-handler.ts
+    // has its own catch-all today, but callers of this exported function
+    // shouldn't have to duplicate that discipline — degrade to a plain error
+    // badge here so a single bad badge can never become an unhandled 500.
+    if ((config as unknown as Record<PropertyKey, unknown>)[ERROR_FALLBACK_MARKER]) throw err
+    return renderErrorBadge("error", "render failed")
+  }
 }
 
 /**
@@ -419,12 +468,17 @@ export async function renderBadge(config: BadgeConfig): Promise<string> {
 export async function renderBadgeBase(
   config: BadgeConfig,
 ): Promise<{ svg: string; dotColor?: string }> {
-  const r = resolve(config)
-  const el = r.split ? renderSplit(r) : renderSingle(r)
-  const fonts = getFonts(config.font)
-  const raw = await satori(el, { height: r.height, fonts })
-  const svg = optimizeSvg(rgbaToHexOpacity(inlineDataUriImages(raw)))
-  return { svg, dotColor: r.dotColor }
+  try {
+    const r = resolve(config)
+    const el = r.split ? renderSplit(r) : renderSingle(r)
+    const fonts = getFonts(config.font)
+    const raw = await satori(el, { height: r.height, fonts })
+    const svg = optimizeSvg(rgbaToHexOpacity(inlineDataUriImages(raw)))
+    return { svg, dotColor: r.dotColor }
+  } catch (err) {
+    if ((config as unknown as Record<PropertyKey, unknown>)[ERROR_FALLBACK_MARKER]) throw err
+    return { svg: await renderErrorBadge("error", "render failed"), dotColor: undefined }
+  }
 }
 
 /**
@@ -615,12 +669,14 @@ function rgbaToHexOpacity(svg: string): string {
 }
 
 export async function renderErrorBadge(label: string, message: string): Promise<string> {
-  return renderBadge({
+  const config: BadgeConfig & Record<PropertyKey, unknown> = {
     label: label || "error",
     value: message,
     style: "destructive",
     colors: { labelBg: "#18181b", labelFg: "#a1a1aa", valueBg: "#dc2626", valueFg: "#ffffff", border: "#27272a" },
-  })
+  }
+  config[ERROR_FALLBACK_MARKER] = true
+  return renderBadge(config)
 }
 
 // ---------------------------------------------------------------------------

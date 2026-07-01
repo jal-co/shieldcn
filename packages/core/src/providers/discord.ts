@@ -7,7 +7,7 @@
 
 import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
-import { providerFetch } from "../provider-fetch"
+import { providerFetch, str, num } from "../provider-fetch"
 
 /**
  * Fetch online member count for a Discord server by server ID.
@@ -19,17 +19,17 @@ export async function getDiscordOnline(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "discord",
     cacheKey: `widget:${serverId}`,
-    url: `https://discord.com/api/guilds/${serverId}/widget.json`,
+    url: `https://discord.com/api/guilds/${encodeURIComponent(serverId)}/widget.json`,
     ttl: 3600,
   })
   if (!data || typeof data.name !== "string") return null
 
-  const count = (data.presence_count as number) ?? 0
+  const count = num(data.presence_count) ?? 0
 
   return {
     label: "discord",
     value: `${formatCount(count)} online`,
-    link: (data.instant_invite as string) ?? `https://discord.com/servers`,
+    link: str(data.instant_invite) ?? `https://discord.com/servers`,
   }
 }
 
@@ -43,25 +43,25 @@ export async function getDiscordByInvite(
   const data = await providerFetch<Record<string, unknown>>({
     provider: "discord",
     cacheKey: `invite:${inviteCode}:${topic}`,
-    url: `https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`,
+    url: `https://discord.com/api/v10/invites/${encodeURIComponent(inviteCode)}?with_counts=true`,
     ttl: 3600,
   })
   if (!data) return null
 
-  const members = (data.approximate_member_count as number) ?? 0
-  const online = (data.approximate_presence_count as number) ?? 0
+  const members = num(data.approximate_member_count) ?? 0
+  const online = num(data.approximate_presence_count) ?? 0
 
   if (topic === "online-members") {
     return {
       label: "discord",
       value: `${formatCount(online)} online`,
-      link: `https://discord.gg/${inviteCode}`,
+      link: `https://discord.gg/${encodeURIComponent(inviteCode)}`,
     }
   }
 
   return {
     label: "discord",
     value: `${formatCount(members)} members`,
-    link: `https://discord.gg/${inviteCode}`,
+    link: `https://discord.gg/${encodeURIComponent(inviteCode)}`,
   }
 }

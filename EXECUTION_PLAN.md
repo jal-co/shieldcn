@@ -430,6 +430,68 @@ packages, and `pnpm --filter @shieldcn/engine build` succeeds.
   **Verify:** `height=1e9` degrades gracefully; schema-shift returns a sensible
   badge not `[object Object]`; both apps build against the shared factory.
 
+**Actual outcome:** All three sub-items landed as planned, plus some
+follow-on findings from working the same code paths:
+- **P8 (renderer clamps):** Added `BADGE_DIM_BOUNDS`/`clampBadgeDim()` in
+  `render.tsx`, exported and reused by `route-handler.ts`'s own `num()`
+  parser (single source of truth — the route no longer hand-duplicates the
+  bounds table). `resolve()` now clamps `height`/`fontSize`/`padX`/
+  `iconSize`/`gap`/`labelGap`/`labelOpacity` unconditionally, so a direct
+  `renderBadge()` caller that skips the route layer entirely still can't
+  balloon a Satori render. `renderBadge`/`renderBadgeBase` now wrap their
+  `satori()` call and degrade to `renderErrorBadge` on failure, guarded by a
+  module-private `ERROR_FALLBACK_MARKER` symbol so the fallback call can't
+  recurse forever if Satori is broken outright (verified in
+  `render-safety.test.ts` by mocking `satori` to fail once — degrades
+  cleanly — and to fail always — rethrows after exactly 2 calls instead of
+  looping). Found in passing: `BadgeConfig.radius` is parsed and clamped by
+  the route but never actually read by `resolve()` for single/group badges
+  (`?radius=` is a no-op on the current renderer) — left as-is since fixing
+  it is a visual-behavior change outside this item's scope, worth its own
+  backlog entry later.
+- **P7 (safe casts):** Added `str()`/`num()` to `provider-fetch.ts` and
+  applied them at the four call sites named in the plan, plus `discord.ts`'s
+  `presence_count`/`instant_invite` casts (found while grepping for the same
+  pattern) and `twitch.ts`'s `viewer_count`/`total`/`users[0].id` casts (the
+  `id` cast is fed into a follow-up fetch URL — the same risk class as the
+  nuget.ts case named in the plan).
+- **P6 (shared route glue):** `createBadgeHandlers(options)` in
+  `route-handler.ts` unwraps the Next.js `[...slug]` params and wires the
+  same `BadgeRequestOptions` to both `GET` and `PUT`; both apps' route files
+  now just build their Sentry callbacks and `export const { GET, PUT } =
+  createBadgeHandlers({...})`. This also fixes the actual PUT gap: neither
+  app's PUT handler passed `onError`/`onMetric` before this change —
+  `handleBadgePUT` didn't even accept an options parameter — so memo writes
+  had zero error reporting or metrics in both web and engine, not just
+  engine as the plan text assumed. `handleBadgePUT` now accepts
+  `BadgeRequestOptions`, wraps its body in the same outer try/catch pattern
+  as `handleBadgeGET`, and emits a `memo.write` counter tagged by outcome
+  (`ok`/`forbidden`/`rate_limited`/`unauthorized`/`bad_request`). core
+  deliberately still doesn't import Sentry itself (`onError`/`onMetric`
+  stay pass-through) — the "core stays dependency-free" comment on
+  `BadgeRequestOptions` predates this PR and nothing here needed to violate it.
+
+Also found and fixed four more B19-class encoding gaps the earlier PR-2.5
+sweep missed, surfaced by grepping for the same "unencoded `${var}` in a
+fetch/link template literal" pattern while working this PR's adjacent code:
+`skills.ts` (owner/repo/skill were unencoded in *both* the fetch URL and the
+link — the most severe of the four, since it hits the live API call, not
+just an outbound link), `npm.ts` (the `tag` override, reachable via
+`/npm/v/{pkg}/{tag}`, was unencoded), and link-only gaps in `crates.ts`,
+`chocolatey.ts`, and `twitch.ts`. `docker.ts`'s `getDockerSize` tag param
+was also encoded defensively even though it isn't currently reachable with
+user input through `route-handler.ts` (always defaults to `"latest"`).
+
+New tests: `render-safety.test.ts` (clamp bounds + Satori-failure fallback,
+mocking `satori`'s default export), `provider-fetch.test.ts` (str/num
+coercion), `route-glue.test.ts` (createBadgeHandlers params-unwrapping and
+option-forwarding, specifically covering the PUT onMetric gap). Verified:
+full `pnpm test` (262 passed/10 skipped), `pnpm typecheck` clean, both
+`pnpm --filter @shieldcn/engine build` and `pnpm --filter @shieldcn/web
+build` succeed, and a live engine server confirms `?height=1e9` still
+renders (clamped to 240) and the shared `createBadgeHandlers`-wired PUT
+route correctly 401s without a bearer token.
+
 ---
 
 ## Phase 3 — Frontend accessibility & UX (P1, web)

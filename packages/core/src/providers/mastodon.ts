@@ -8,7 +8,7 @@
 
 import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
-import { providerFetch } from "../provider-fetch"
+import { providerFetch, str, num } from "../provider-fetch"
 
 async function mastodonFetch(instance: string, acct: string): Promise<Record<string, unknown> | null> {
   return providerFetch({
@@ -28,11 +28,11 @@ export async function getMastodonFollowers(instance: string, acct: string): Prom
   const data = await mastodonFetch(instance, acct)
   if (!data) return null
 
-  const count = (data.followers_count as number) ?? 0
+  const count = num(data.followers_count) ?? 0
   return {
     label: "mastodon",
     value: `${formatCount(count)} followers`,
-    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
+    link: str(data.url) || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }
 
@@ -44,11 +44,11 @@ export async function getMastodonFollowing(instance: string, acct: string): Prom
   const data = await mastodonFetch(instance, acct)
   if (!data) return null
 
-  const count = (data.following_count as number) ?? 0
+  const count = num(data.following_count) ?? 0
   return {
     label: "mastodon",
     value: `${formatCount(count)} following`,
-    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
+    link: str(data.url) || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }
 
@@ -60,10 +60,10 @@ export async function getMastodonPosts(instance: string, acct: string): Promise<
   const data = await mastodonFetch(instance, acct)
   if (!data) return null
 
-  const count = (data.statuses_count as number) ?? 0
+  const count = num(data.statuses_count) ?? 0
   return {
     label: "mastodon",
     value: `${formatCount(count)} posts`,
-    link: data.url as string || `https://${instance}/@${encodeURIComponent(acct)}`,
+    link: str(data.url) || `https://${instance}/@${encodeURIComponent(acct)}`,
   }
 }

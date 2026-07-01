@@ -13,7 +13,7 @@ import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
 import { pickToken, invalidateToken } from "../token-pool"
 import { isBackedOff, recordBackoff, clearBackoff } from "../cache"
-import { raceTimeout } from "../provider-fetch"
+import { raceTimeout, str } from "../provider-fetch"
 
 // ---------------------------------------------------------------------------
 // Fetch helper
@@ -284,9 +284,10 @@ export async function getGitHubWatchers(owner: string, repo: string): Promise<Ba
 export async function getGitHubLicense(owner: string, repo: string): Promise<BadgeData | null> {
   const d = await repoData(owner, repo)
   if (!d) return null
-  const lic = (d.license as Record<string, unknown>)?.spdx_id as string | undefined
+  const license = d.license && typeof d.license === "object" ? d.license as Record<string, unknown> : undefined
+  const lic = str(license?.spdx_id)
   if (!lic || lic === "NOASSERTION") return { label: "license", value: "unknown", link: link(owner, repo) }
-  return { label: "license", value: lic, link: link(owner, repo, `/blob/${(d.default_branch as string) || "main"}/LICENSE`) }
+  return { label: "license", value: lic, link: link(owner, repo, `/blob/${str(d.default_branch) || "main"}/LICENSE`) }
 }
 
 // ---------------------------------------------------------------------------
