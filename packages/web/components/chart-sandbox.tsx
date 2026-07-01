@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useId, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ColorInput } from "@/components/color-input"
@@ -164,9 +165,13 @@ export function ChartSandbox({ kind: initialKind = "stars", defaults = {} }: Cha
 
   const handleCopy = useCallback(() => {
     if (!formattedOutput) return
-    navigator.clipboard.writeText(formattedOutput)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(formattedOutput).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }, [formattedOutput])
 
   return (

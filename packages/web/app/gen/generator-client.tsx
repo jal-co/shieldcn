@@ -9,6 +9,7 @@ import {
 } from "react"
 import { useQueryStates } from "nuqs"
 import { useOpenPanel } from "@openpanel/nextjs"
+import * as Sentry from "@sentry/nextjs"
 import { Copy, Download, FileUp, RefreshCw, Trash2, X } from "lucide-react"
 import {
   badgeHtml,
@@ -268,11 +269,14 @@ export default function GeneratorApp() {
       target: `${result.source.owner}/${result.source.repo}`,
       badge_count: enabledCount,
     })
+    // Background telemetry — failure doesn't affect the user's generated
+    // badges, so it's reported (not surfaced as a toast) to avoid implying
+    // their actual request failed when it didn't.
     fetch("/api/gen-count", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ count: enabledCount }),
-    }).catch(() => {})
+    }).catch((err) => Sentry.captureException(err, { tags: { area: "gen-count" } }))
     fetch("/api/gen-users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -281,7 +285,7 @@ export default function GeneratorApp() {
         repo: result.source.repo,
         badgeCount: enabledCount,
       }),
-    }).catch(() => {})
+    }).catch((err) => Sentry.captureException(err, { tags: { area: "gen-users" } }))
   }, [inputUrl, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, qs.themeAware, track])
 
   const handleConfigUpload = useCallback(async (file: File) => {

@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react"
 import { Copy, Check } from "lucide-react"
+import { toast } from "sonner"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { formatBadgeOutput } from "@/lib/badge-output"
 
@@ -43,9 +44,13 @@ export function BadgePreview({ src, alt, description, code }: BadgePreviewProps)
   })
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(displayCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(displayCode).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }
 
   return (
@@ -112,9 +117,13 @@ export function BadgePreviewCard({ src, alt, description }: BadgePreviewProps) {
   })
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(displayCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(displayCode).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }
 
   return (

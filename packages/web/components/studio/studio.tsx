@@ -17,6 +17,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import {
   Plus, Trash2, Copy as Duplicate,
   ChevronUp, ChevronDown, Type, GripVertical, X, MoreHorizontal,
@@ -525,9 +526,13 @@ export function Studio() {
   }, [blocks, baseUrl, themeAware, setCodeDraft])
 
   const copyMarkdown = useCallback(() => {
-    navigator.clipboard.writeText(shownMarkdown)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(shownMarkdown).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }, [shownMarkdown])
 
   const downloadMarkdown = useCallback(() => {

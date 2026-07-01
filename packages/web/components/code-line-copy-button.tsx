@@ -13,6 +13,7 @@
 
 import * as React from "react"
 import { Check, Copy } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 interface CodeLineCopyButtonProps extends Omit<React.ComponentProps<"button">, "value"> {
@@ -23,9 +24,13 @@ function CodeLineCopyButton({ value, className, ...props }: CodeLineCopyButtonPr
   const [copied, setCopied] = React.useState(false)
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(value)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      toast.error("Couldn't copy to clipboard")
+    }
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Copy, Check, ExternalLink, Plus, Trash2, GripVertical } from "lucide-react"
+import { toast } from "sonner"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { formatBadgeOutput } from "@/lib/badge-output"
 import {
@@ -162,9 +163,13 @@ export function BadgeGroupModal({
   }, [outputFormat, fullUrl, title])
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(formattedOutput)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(formattedOutput).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }, [formattedOutput])
 
   const addSegment = useCallback(() => {

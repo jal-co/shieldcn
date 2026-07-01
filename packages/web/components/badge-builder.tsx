@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Copy, Check } from "lucide-react"
+import { toast } from "sonner"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -97,6 +98,7 @@ export function BadgeBuilder() {
       () => {
         setCopyError(true)
         setTimeout(() => setCopyError(false), 2000)
+        toast.error("Couldn't copy to clipboard")
       },
     )
   }, [output])

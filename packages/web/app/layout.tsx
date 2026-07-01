@@ -4,6 +4,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@/components/analytics"
 import { WebMCP } from "@/components/webmcp"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 
@@ -101,6 +102,7 @@ export default function RootLayout({
         <NuqsAdapter>
           <ThemeProvider>
             {children}
+            <Toaster />
           </ThemeProvider>
         </NuqsAdapter>
         <Analytics />

@@ -137,7 +137,7 @@
 - [ ] **F6. Add a web test suite** (L)
   `packages/web` has zero tests/config. Highest-value targets: `lib/studio-shared.ts` (Markdown export fidelity — the product's core promise), `lib/studio-import.ts` (README parsing), builders' output formatting, `lib/gen/detect.ts`.
 
-- [ ] **F7. Surface silent failures to users (add a toast primitive)** (S)
+- [x] **F7. Surface silent failures to users (add a toast primitive)** (S) — done via PR-3.4 (gen-count/gen-users deliberately report to Sentry instead of a toast, see notes)
   Clipboard writes swallow errors via `.catch(() => {})` in all builders (`badge-builder.tsx:98`) and `generator-client.tsx:275, 284`; `api/gen-count`/`gen-users` POSTs fail with no feedback. No toast primitive exists in `components/ui/` — add one (shadcn sonner) and wire it in.
 
 - [ ] **F8. Extract shared copy-output module for the four builders** (M)

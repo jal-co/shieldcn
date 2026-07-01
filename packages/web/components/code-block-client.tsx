@@ -14,6 +14,7 @@
 
 import * as React from "react"
 import { Check, ChevronDown, Copy } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 interface CodeBlockCopyButtonProps extends Omit<React.ComponentProps<"button">, "value"> {
@@ -24,9 +25,13 @@ export function CodeBlockCopyButton({ value, className, ...props }: CodeBlockCop
   const [copied, setCopied] = React.useState(false)
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(value)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      toast.error("Couldn't copy to clipboard")
+    }
   }
 
   return (

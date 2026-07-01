@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import {
   Dialog,
@@ -184,9 +185,13 @@ export function BadgeModal({
   }, [outputFormat, fullUrl, title])
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(formattedOutput)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(formattedOutput).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }, [formattedOutput])
 
   const sizeHeight = { xs: "h-6", sm: "h-8", default: "h-9", lg: "h-10" }[size] || "h-8"

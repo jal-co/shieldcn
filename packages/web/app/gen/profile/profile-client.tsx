@@ -9,6 +9,7 @@ import {
 } from "react"
 import { useQueryStates } from "nuqs"
 import { useOpenPanel } from "@openpanel/nextjs"
+import * as Sentry from "@sentry/nextjs"
 import { Copy, Download, RefreshCw, Trash2, X } from "lucide-react"
 import {
   badgeHtml,
@@ -273,11 +274,14 @@ export default function ProfileGeneratorClient() {
         target: result.source.username,
         badge_count: enabledCount,
       })
+      // Background telemetry — failure doesn't affect the user's generated
+      // badges, so it's reported (not surfaced as a toast) to avoid implying
+      // their actual request failed when it didn't.
       fetch("/api/gen-count", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ count: enabledCount }),
-      }).catch(() => {})
+      }).catch((err) => Sentry.captureException(err, { tags: { area: "gen-count" } }))
     },
     [inputUser, runInspect, setQs, qs.variant, qs.size, qs.mode, qs.theme, qs.font, qs.themeAware, track],
   )

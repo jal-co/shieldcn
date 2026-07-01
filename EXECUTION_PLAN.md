@@ -665,6 +665,38 @@ order, not just that no error was thrown).
   failures with user feedback. **Verify:** clipboard-denied and network-fail paths
   show a toast.
 
+**Actual outcome:** Added `sonner` as a dependency (wasn't installed —
+`pnpm add sonner`), a `components/ui/sonner.tsx` `Toaster` themed via
+`next-themes` (standard shadcn registry pattern), mounted once in
+`app/layout.tsx`. Then audited every `navigator.clipboard.writeText(...)`
+call site (17 files, not just the ones with a literal `.catch(() => {})`) —
+most used a fire-and-forget `writeText(x); setCopied(true)` pattern that set
+"Copied!" state *unconditionally*, regardless of whether the write actually
+succeeded — a worse bug than silence, since it actively lied to the user on
+failure. Fixed all of them (8 files) to `.then(onSuccess, onError)` with
+`toast.error("Couldn't copy to clipboard")` in the error branch; the 4 files
+that already had a `.then(success, error)` pair with inline "Failed" button
+state got the toast added alongside their existing handler (both signals
+now fire); 2 files awaited the write with no error handling at all
+(unhandled promise rejection) — wrapped in try/catch.
+
+**Deliberate deviation from the plan text for `gen-count`/`gen-users`:**
+these are background telemetry POSTs that fire *after* the user's badge
+generation already succeeded — the generate action itself doesn't depend on
+them. A toast here would read as "your request failed" when it didn't,
+which is worse UX than the silence it replaces. Reported via
+`Sentry.captureException` (tagged `area: "gen-count"`/`"gen-users"`)
+instead, so the failure is visible to us without confusing the user who did
+nothing wrong. Left the two `.catch(() => {})` swallows in `app/dev/*`
+(internal preview tooling, not user-facing) untouched.
+
+Verified: `pnpm typecheck` clean, `pnpm test` (262/10), `pnpm --filter
+@shieldcn/web build` succeeds, and — the meaningful check — a live
+Playwright run against the production build that overrides
+`navigator.clipboard.writeText` to reject and confirms the toast text
+renders (screenshot: bottom-right toast "Couldn't copy to clipboard"
+alongside the existing inline "Failed" button state).
+
 ### PR-3.5 — Builder output extraction + hydration fix  · items: **F8** · effort M
 - Extract `lib/builder-output.ts`, a `CopyOutputSection` component, and a
   `useCopyToClipboard` hook shared by all four builders + both badge modals; fold

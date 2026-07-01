@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react"
 import { Copy, Check } from "lucide-react"
+import { toast } from "sonner"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
 /** Hydration flag without a setState-in-effect (lint-clean). */
@@ -34,9 +35,13 @@ export function ChartPreview({ src, alt, description, code }: ChartPreviewProps)
   const displayCode = code ?? `![${alt || "chart"}](${fullUrl})`
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(displayCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(displayCode).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }
 
   return (

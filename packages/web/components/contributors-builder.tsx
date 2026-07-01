@@ -10,6 +10,7 @@
 
 "use client"
 
+import { toast } from "sonner"
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
 import { Copy, Check, Shuffle, AlignLeft, AlignCenter, AlignRight } from "lucide-react"
 import { useTheme } from "next-themes"
@@ -117,6 +118,7 @@ export function ContributorsBuilder() {
       () => {
         setCopyError(true)
         setTimeout(() => setCopyError(false), 2000)
+        toast.error("Couldn't copy to clipboard")
       },
     )
   }, [output])

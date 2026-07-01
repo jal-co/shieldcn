@@ -8,6 +8,7 @@
  */
 
 import * as React from "react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 interface InstallBlockProps {
@@ -30,9 +31,13 @@ export function InstallBlock({ name, className }: InstallBlockProps) {
   const command = managers.find((m) => m.id === active)?.cmd(name) ?? ""
 
   const handleCopy = React.useCallback(() => {
-    navigator.clipboard.writeText(command)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(command).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      },
+      () => toast.error("Couldn't copy to clipboard"),
+    )
   }, [command])
 
   return (
