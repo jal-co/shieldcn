@@ -67,10 +67,10 @@
 - [x] **B9. Verify svg-parser attribute passthrough for user SVG data URIs** (S) — audited via PR-1.5: confirmed safe by construction (allowlist extractor), locked in with 19 adversarial tests
   `?logo=data:image/svg+xml...` content flows through `packages/core/src/badges/svg-parser.ts` into `render.tsx:499-576`. Sandboxed `<img>` mitigates script execution, but the badge SVG is also served raw when opened directly. Confirm the parser only emits path/shape elements and strips `on*`/`href`/`style` attributes; add tests locking that in.
 
-- [ ] **B10. Fix `docker-publish.yml` workflow_dispatch tagging bug** (S)
+- [x] **B10. Fix `docker-publish.yml` workflow_dispatch tagging bug** (S) — done via PR-1.6 (`version` input required, `latest` gated to real tag pushes)
   On manual dispatch, `${GITHUB_REF_NAME#engine@}` yields the branch name (e.g. `main`), so a dispatch from a branch overwrites `engine:latest` and pushes a bogus `engine:main` tag. Guard `latest` behind tag refs only, or take the version as a dispatch input.
 
-- [ ] **B11. Make `/api/health` actually reflect health** (S)
+- [x] **B11. Make `/api/health` actually reflect health** (S) — done via PR-1.6, verified against real Postgres (live server, both up and down)
   `getPoolStats()` (`token-pool.ts:255-278`) swallows all errors and returns zeros, so `packages/engine/app/api/health/route.ts` reports `ok: true` with Postgres down and the Docker healthcheck can never fail. Add a cheap DB ping and return 503/degraded state.
 
 ### Frontend (web)
@@ -111,7 +111,7 @@
 - [ ] **B20. Expand core test coverage to the risk-bearing modules** (L)
   Only 2 of ~55 providers are tested; no tests for `token-pool.ts`, `memo.ts`, `views.ts`, `render-group.tsx`, `render-sponsors.ts`, `simple-icons.ts`, `svg-parser.ts`, `animate.ts`, `gif.ts`, `validate.ts`. Highest value first: static/dynamic badge parsing (`badge.ts` — pure functions), memo auth flows, svg-parser (security-relevant), and a table-driven provider smoke test using the example paths already declared in `registry.ts`.
 
-- [ ] **B21. Add startup env validation to the engine** (S)
+- [x] **B21. Add startup env validation to the engine** (S) — done via PR-1.6, verified live (booted with `DATABASE_URL` unset, confirmed the warning)
   Nothing validates `DATABASE_URL` (documented as required) or warns on OAuth half-configuration — client ID without secret only 503s at callback time (`app/api/auth/github/callback/route.ts:32-36`). Add a register-time check in `instrumentation.ts` with clear log output.
 
 - [ ] **B22. Add tests for CLI and engine routes** (M)

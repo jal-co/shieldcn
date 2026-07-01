@@ -4,6 +4,15 @@ on:
   push:
     tags: ["engine@*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: >-
+          Version tag to publish (e.g. 1.2.3). Required for manual runs.
+          The "latest" tag is only ever applied on a real engine@* tag push,
+          never on a manual dispatch — a manual run from an arbitrary branch
+          must not be able to overwrite what "latest" points at.
+        required: true
+        type: string
 
 jobs:
   build-and-push:
@@ -22,17 +31,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from tag
+      - name: Resolve tags for this run
         id: version
-        run: echo "version=${GITHUB_REF_NAME#engine@}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#engine@}"
+            {
+              echo "tags<<EOF"
+              echo "ghcr.io/${{ github.repository }}/engine:latest"
+              echo "ghcr.io/${{ github.repository }}/engine:${version}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=ghcr.io/${{ github.repository }}/engine:${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: docker/build-push-action@v6
         with:
           context: .
           file: packages/engine/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/engine:latest
-            ghcr.io/${{ github.repository }}/engine:${{ steps.version.outputs.version }}
+          tags: ${{ steps.version.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

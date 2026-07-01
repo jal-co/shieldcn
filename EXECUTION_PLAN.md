@@ -262,6 +262,22 @@ they close the widest-reaching holes.
   (`DATABASE_URL` required; warn on OAuth half-config).
 - **Verify:** health returns 503 with DB stopped; dispatch from a branch no longer
   clobbers `engine:latest`; engine logs a clear error when `DATABASE_URL` is unset.
+- **Actual outcome:** `docker-publish.yml`'s `workflow_dispatch` now requires a
+  `version` input; `latest` is only ever added to the tag list when
+  `github.ref_type == 'tag'` (a real `engine@*` push), so a manual dispatch
+  from a branch can no longer clobber it. `/api/health` now runs
+  `query("SELECT 1")` before reporting status, returning `{ok:false,
+  db:"down"}` with HTTP 503 on failure — verified against real Postgres in
+  this sandbox both ways (started the actual `next start` server against a
+  live DB → 200/ok, then against an unreachable one → 503/down), which also
+  confirmed the fix is wired correctly with the existing `docker-compose.yml`
+  healthcheck (`wget --spider`, which fails on any non-2xx). Added
+  `validateEnv()` to `instrumentation.ts`, called from `register()` on the
+  nodejs runtime: warns (not throws — the engine can still serve
+  static/dynamic badges without a DB, so a hard crash would be
+  disproportionate) when `DATABASE_URL` is unset or exactly one of the two
+  `GITHUB_OAUTH_CLIENT_*` vars is set; also verified live by booting the
+  server with `DATABASE_URL` unset and confirming the warning appears.
 
 ---
 
