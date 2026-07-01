@@ -119,7 +119,7 @@
 
 ### Frontend (web)
 
-- [ ] **F2. Add route-level `loading.tsx` / `error.tsx` / `not-found.tsx`** (M)
+- [x] **F2. Add route-level `loading.tsx` / `error.tsx` / `not-found.tsx`** (M) — done via PR-3.1
   Zero exist in the entire `app/` tree; only `app/global-error.tsx` catches crashes. Async server pages (`app/token-pool/page.tsx:24` awaits `getPoolStats()`, `/showcase`) render nothing while fetching, and throws fall to the bare global error. Add loading skeletons for `/`, `/showcase`, `/gen`, `/token-pool`, `/docs`, plus a branded `not-found.tsx`.
 
 - [ ] **F3. Honor `prefers-reduced-motion` in the remaining motion components** (M)

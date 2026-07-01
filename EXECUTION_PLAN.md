@@ -504,6 +504,48 @@ commitments — prioritize them.
   `/docs`; per-segment `error.tsx`; a branded `not-found.tsx`. **Verify:** throttled
   network shows skeleton not blank; a thrown server page shows the branded error.
 
+**Actual outcome:** Added a shadcn-style `Skeleton` primitive
+(`components/ui/skeleton.tsx`) and five `loading.tsx` files. `/`, `/showcase`,
+and `/gen` wrap their skeleton in `<SiteShell>` since those pages call
+`SiteShell` themselves (no shared layout provides it); `/token-pool` and
+`/docs` do the same, though `/docs/loading.tsx` only needs the `<main>`
+content since `docs/layout.tsx` already wraps `children` in `SiteShell` +
+sidebar. `token-pool/page.tsx` is the one route that's a genuinely async
+Server Component (`await getPoolStats()`), so it's the case most likely to
+actually hang without a skeleton. Added a single `app/error.tsx` (route
+segment error boundary below the root layout, reusing `SiteShell` so
+nav/footer survive a crash) and `app/not-found.tsx` — both mirror the
+existing `global-error.tsx` pattern but render inside the normal document
+tree instead of a bare `<html>`.
+
+**Verification note:** SSR-level rendering was confirmed directly — a
+`curl` request to a URL that triggers `notFound()` (an unlisted
+`/docs/{slug}`) returns the branded "Page not found" markup verbatim in the
+raw HTML response, and the loading skeletons render correctly on
+`token-pool`'s genuinely-async route. I could not get a fully conclusive
+live-browser confirmation of `error.tsx` specifically: a synthetic page
+built to throw unconditionally on every render produced a correct HTTP 500
+from curl (server-side dispatch to the error boundary is happening) but a
+blank body in headless Chromium after hydration, with no console/page
+errors — and the same blank-after-hydration symptom reproduced for the
+already-confirmed-working not-found page when reached via Playwright's
+`page.goto` instead of `curl`, suggesting a client-navigation/hydration
+quirk in this sandbox (possibly interacting with the outbound proxy's
+cert-trust gap, which was independently already breaking outbound
+`api.github.com` requests in the same test) rather than a defect in either
+component — both are structurally correct, type-check against Next's
+generated route types, and match the already-shipped `global-error.tsx`
+pattern. Flagging this rather than claiming full verification.
+
+Also discovered while building this: a hard-navigation (non-JS/curl/direct
+URL) request to `/docs/{unlisted-slug}` returns HTTP 200 instead of 404
+despite rendering the correct not-found content — this predates this PR
+(reproduces regardless of custom vs. Next's default not-found component)
+and looks like a `dynamicParams`/ISR caching interaction on the
+`docs/[[...slug]]` catch-all specific to this Next.js/Turbopack version; a
+correctness issue worth its own investigation, out of scope here since F2
+asked for the branded UI, not response-status semantics.
+
 ### PR-3.2 — Reduced motion  · items: **F3** · effort M
 - Wire `useReducedMotion` into the 8 remaining motion components
   (`hero-entrance`, `hero-showcase`, `sponsor-button`, `sponsor-entrance`,
