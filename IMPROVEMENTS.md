@@ -58,7 +58,7 @@
 - [ ] **B6. Fix memo badge ownership bugs** (S)
   In `packages/core/src/providers/memo.ts`: (a) the `ON CONFLICT DO UPDATE` upsert (:94-101) never updates `token_hash`, so after expiry-takeover the new owner's next PUT is rejected; (b) the check-then-write at :85-101 is a TOCTOU race — collapse into one conditional upsert with `WHERE token_hash = $n OR expires_at < NOW()`; (c) `DELETE ... WHERE expires_at < NOW()` runs on **every GET** (:49) — make it probabilistic like token-pool's `CLEANUP_PROBABILITY`; (d) `String(e)` (:106) leaks internal error detail to API responses.
 
-- [ ] **B7. Rate-limit / bound public write + expensive endpoints** (M)
+- [x] **B7. Rate-limit / bound public write + expensive endpoints** (M) — done via PR-1.3 (`memo` PUT + `gen-count` POST; PNG/GIF GET intentionally left alone, see plan notes)
   Zero inbound rate limiting exists anywhere. `POST /api/gen-count` (web and engine — identical routes) accepts unauthenticated, unbounded `count` increments; `PUT /memo/...` writes to Postgres; PNG/GIF rendering is CPU-heavy. Cap the `count` payload, and add a token bucket (in-memory for engine, Redis-backed on web where Upstash is already available) for PUT/POST paths.
 
 - [ ] **B8. Cap and validate `/group` badges** (S)
@@ -75,7 +75,7 @@
 
 ### Frontend (web)
 
-- [ ] **F1. Rate-limit the PR-creating POST endpoints** (M)
+- [x] **F1. Rate-limit the PR-creating POST endpoints** (M) — done via PR-1.3 (shared limiter with B7)
   `app/api/showcase/route.ts` and `app/api/migrate/pr/route.ts` create real branches/PRs on the repo with only field-length validation (`showcase/route.ts:107-113`) and no rate limiting — a script can spam the repo with bot PRs. Add Redis-backed throttling (Upstash env already wired via turbo.json) + per-IP caps. (Overlaps B7; implement as one shared limiter.)
 
 ---

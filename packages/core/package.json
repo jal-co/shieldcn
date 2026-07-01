@@ -19,6 +19,7 @@
     "./gen-counter": "./src/gen-counter.ts",
     "./gen-users": "./src/gen-users.ts",
     "./provider-fetch": "./src/provider-fetch.ts",
+    "./rate-limit": "./src/rate-limit.ts",
     "./normalize-params": "./src/normalize-params.ts",
     "./format": "./src/format.ts",
     "./github": "./src/github.ts",

@@ -23,12 +23,21 @@ import {
   gh,
 } from "../github-app"
 import { trackEvent } from "@/lib/openpanel"
+import { checkRateLimit, getClientIdentifier } from "@shieldcn/core/rate-limit"
 
 export async function POST(req: NextRequest) {
   if (!process.env.GITHUB_APP_ID) {
     return NextResponse.json(
       { error: "Migration tool not configured" },
       { status: 503 },
+    )
+  }
+
+  const limit = await checkRateLimit("migrate-pr", getClientIdentifier(req), { max: 5, windowMs: 60 * 60_000 })
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many migration PRs. Try again later." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(limit.resetMs / 1000)) } },
     )
   }
 

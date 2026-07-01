@@ -170,6 +170,23 @@ they close the widest-reaching holes.
   bursts; a normal single request succeeds.
 - **Risk:** tune thresholds generously; badges are embedded and re-requested
   often. Start permissive, log near-limit hits.
+- **Actual outcome:** shipped `packages/core/src/rate-limit.ts` —
+  `checkRateLimit(bucket, identifier, {max, windowMs})` (fixed-window; Redis
+  via the same Upstash env vars as the badge cache when configured, in-memory
+  per-process fallback otherwise) and `getClientIdentifier(request)` (parses
+  `x-forwarded-for`/`x-real-ip`). 9 unit tests, exercising the in-memory path
+  (no Upstash env in test/CI). Deliberately did **not** touch the PNG/GIF
+  badge-rendering GET hot path — that's the core product (READMEs embed and
+  re-request it constantly, and it's already CDN/cache-fronted); B7's mention
+  of render cost was read as rationale for guarding the *write* paths, not a
+  directive to throttle badge views. Applied to: `handleBadgePUT` (memo, 20/min
+  per IP, `route-handler.ts`), `gen-count` POST in both web and engine (30/min
+  per IP + capped `count` at 100 — previously totally uncapped), and the two
+  PR-creating routes `showcase` and `migrate/pr` (5/hour per IP each). All
+  return 429 with a `Retry-After` header except `gen-count`, which keeps its
+  existing fail-silent `{ok: true}` shape (it's a best-effort counter the
+  client already ignores failures on) but with a 429 status so it's visible in
+  logs/metrics.
 
 ### PR-1.4 — Memo + PUT hardening  · items: **B5 + B6** · effort S
 - **Do:** wrap `handleBadgePUT` in try/catch; guard `decodeURIComponent`

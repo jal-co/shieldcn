@@ -176,6 +176,7 @@ import { getShipperClubMember } from "./providers/shipperclub"
 import { cachedFetchStale, cachedFetch, isBackedOff } from "./cache"
 import { raceTimeout } from "./provider-fetch"
 import { safeFetch, UnsafeUrlError, ResponseTooLargeError } from "./safe-fetch"
+import { checkRateLimit, getClientIdentifier } from "./rate-limit"
 
 /** Response format. */
 type Format = "svg" | "png" | "gif" | "json" | "shields"
@@ -3792,6 +3793,14 @@ export async function handleBadgePUT(
 ) {
   if (slug[0] !== "memo" || slug.length < 4) {
     return Response.json({ error: "Invalid memo URL. Use PUT /memo/{key}/{label}/{value}/{color}" }, { status: 400 })
+  }
+
+  const limit = await checkRateLimit("memo-put", getClientIdentifier(request), { max: 20, windowMs: 60_000 })
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many memo badge writes. Try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(limit.resetMs / 1000)) } },
+    )
   }
 
   const auth = request.headers.get("authorization")
