@@ -185,21 +185,34 @@ const THEME_DERIVED_VARIANTS = new Set<string>([
 ]);
 
 /**
+ * Params that pin a badge to a single appearance, so a light/dark <picture>
+ * swap would show identical images. Any of these disables theme-aware output.
+ */
+const COLOR_LOCKING_PARAMS = [
+  'color',
+  'labelColor',
+  'valueColor',
+  'labelTextColor',
+  'gradient',
+];
+
+/**
  * Whether a badge would actually change between light and dark mode, so it's
- * worth wrapping in <picture>. True when the resolved variant is theme-derived
- * and the badge has no explicit color override pinning it to one look.
+ * worth wrapping in <picture>. True when the RESOLVED variant (after per-badge
+ * overrides are merged) is theme-derived and nothing pins the badge to one look.
+ *
+ * Must reflect the same URL `badgeUrl()` emits, so it resolves against
+ * `mergeQuery()` rather than the raw query — a per-badge `overrides.variant` or
+ * color override can flip adaptivity and would otherwise be missed.
  */
 export function isThemeAdaptive(badge: Badge, global: GlobalSettings): boolean {
-  const variant =
-    badge.query.variant ||
-    (global.variant !== 'default' ? global.variant : 'default');
+  const merged = mergeQuery(badge, global);
+  const variant = merged.variant ?? 'default';
   if (!THEME_DERIVED_VARIANTS.has(variant)) return false;
-  // An explicit color (query or override) locks the badge to one appearance.
-  if (badge.query.color) return false;
-  if (badge.overrides.color) return false;
+  // An explicit color/gradient locks the badge to one appearance.
+  if (COLOR_LOCKING_PARAMS.some((p) => merged[p])) return false;
   // An explicit mode pins the badge to one theme, so <picture> is pointless.
-  if (badge.query.mode) return false;
-  if (badge.overrides.mode) return false;
+  if (merged.mode) return false;
   return true;
 }
 
@@ -208,15 +221,23 @@ export function isThemeAdaptive(badge: Badge, global: GlobalSettings): boolean {
  * viewers; the <img> fallback (light) covers light-theme viewers and renderers
  * that don't support <picture> (npm, PyPI, etc).
  */
+function escapeAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export function badgePicture(badge: Badge, global: GlobalSettings): string {
   const dark = badgeUrl(badge, global, 'dark');
   const light = badgeUrl(badge, global, 'light');
-  const alt = badge.label.replace(/"/g, '&quot;');
+  const alt = escapeAttr(badge.label);
   const pic =
     `<picture>` +
-    `<source media="(prefers-color-scheme: dark)" srcset="${dark}">` +
-    `<img alt="${alt}" src="${light}"></picture>`;
-  return badge.linkUrl ? `<a href="${badge.linkUrl}">${pic}</a>` : pic;
+    `<source media="(prefers-color-scheme: dark)" srcset="${escapeAttr(dark)}">` +
+    `<img alt="${alt}" src="${escapeAttr(light)}"></picture>`;
+  return badge.linkUrl ? `<a href="${escapeAttr(badge.linkUrl)}">${pic}</a>` : pic;
 }
 
 export function badgeMarkdown(badge: Badge, global: GlobalSettings): string {
