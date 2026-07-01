@@ -1840,29 +1840,7 @@ async function handleBadgeGroup(
 
   // PNG response
   if (format === "png") {
-    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-    try {
-      let wasmLoaded = false
-      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-        try {
-          const fs = await import("node:fs")
-          const path = await import("node:path")
-          const candidates = [
-            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
-          ]
-          for (const p of candidates) {
-            if (fs.existsSync(p)) {
-              await initWasm(fs.readFileSync(p))
-              wasmLoaded = true
-              break
-            }
-          }
-        } catch { /* fs not available or file not found */ }
-      }
-      if (!wasmLoaded) {
-        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-      }
-    } catch { /* already initialized */ }
+    const { Resvg } = await ensureResvg()
     const resvg = new Resvg(svg)
     const png = resvg.render().asPng()
     return new Response(Buffer.from(png), {
@@ -2038,29 +2016,7 @@ async function handleChart(
   }
 
   if (format === "png") {
-    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-    try {
-      let wasmLoaded = false
-      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-        try {
-          const fs = await import("node:fs")
-          const path = await import("node:path")
-          const candidates = [
-            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
-          ]
-          for (const p of candidates) {
-            if (fs.existsSync(p)) {
-              await initWasm(fs.readFileSync(p))
-              wasmLoaded = true
-              break
-            }
-          }
-        } catch { /* fs not available */ }
-      }
-      if (!wasmLoaded) {
-        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-      }
-    } catch { /* already initialized */ }
+    const { Resvg } = await ensureResvg()
     const resvg = new Resvg(svg)
     const png = resvg.render().asPng()
     return new Response(Buffer.from(png), {
@@ -2231,35 +2187,61 @@ const SPONSORS_RENDER_CAP = 80
 const SPONSORS_FRESH_TTL = 60 * 30 // 30 min fresh copy
 const SPONSORS_STALE_TTL = 60 * 60 * 24 * 7 // 7 day last-known-good fallback
 
+// ---------------------------------------------------------------------------
+// resvg-wasm init (shared across every PNG render path)
+// ---------------------------------------------------------------------------
+//
+// Every PNG-rendering call site used to run its own copy of this init logic,
+// re-running fs.existsSync/readFileSync (or re-fetching the CDN fallback)
+// on every single request even after the wasm module was already
+// initialized — initWasm() only needs to run once per process. ensureResvg()
+// memoizes that with a single module-level promise so concurrent/subsequent
+// calls reuse the already-initialized module instead of redoing the work.
+//
+// The CDN fallback URL is pinned to the exact installed @resvg/resvg-wasm
+// version (keep this in sync with the dependency in package.json) — an
+// unversioned unpkg URL would silently serve whatever is "latest" there,
+// which can drift out of sync with the installed JS bindings.
+const RESVG_WASM_VERSION = "2.6.2"
+const RESVG_WASM_CDN_URL = `https://unpkg.com/@resvg/resvg-wasm@${RESVG_WASM_VERSION}/index_bg.wasm`
+
+let resvgModulePromise: Promise<typeof import("@resvg/resvg-wasm")> | null = null
+
+async function ensureResvg(): Promise<typeof import("@resvg/resvg-wasm")> {
+  if (!resvgModulePromise) {
+    resvgModulePromise = (async () => {
+      const mod = await import("@resvg/resvg-wasm")
+      try {
+        let wasmLoaded = false
+        if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+          try {
+            const fs = await import("node:fs")
+            const path = await import("node:path")
+            // In standalone mode, WASM is copied to node_modules/@resvg/resvg-wasm/
+            const candidate = path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm")
+            if (fs.existsSync(candidate)) {
+              await mod.initWasm(fs.readFileSync(candidate))
+              wasmLoaded = true
+            }
+          } catch { /* fs not available or file not found */ }
+        }
+        if (!wasmLoaded) {
+          await mod.initWasm(fetch(RESVG_WASM_CDN_URL))
+        }
+      } catch { /* already initialized — safe to ignore and use the module */ }
+      return mod
+    })()
+  }
+  return resvgModulePromise
+}
+
 /**
  * Rasterize an SVG string to PNG bytes via resvg-wasm, with the bundled fonts
  * supplied so text (sponsor names, titles) renders in the wasm sandbox (which
  * has no system fonts). Mirrors the header PNG path.
  */
 async function rasterizeToPng(svg: string): Promise<Uint8Array> {
-  const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-  try {
-    let wasmLoaded = false
-    if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-      try {
-        const fs = await import("node:fs")
-        const path = await import("node:path")
-        const candidates = [
-          path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
-        ]
-        for (const p of candidates) {
-          if (fs.existsSync(p)) {
-            await initWasm(fs.readFileSync(p))
-            wasmLoaded = true
-            break
-          }
-        }
-      } catch { /* fs not available */ }
-    }
-    if (!wasmLoaded) {
-      await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-    }
-  } catch { /* already initialized */ }
+  const { Resvg } = await ensureResvg()
   const { getFontBuffers, DEFAULT_FONT_FAMILY } = await import("./badges/fonts")
   const resvg = new Resvg(svg, {
     font: {
@@ -2851,40 +2833,10 @@ async function handleHeader(
   }
 
   if (format === "png") {
-    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-    try {
-      let wasmLoaded = false
-      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-        try {
-          const fs = await import("node:fs")
-          const path = await import("node:path")
-          const candidates = [
-            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
-          ]
-          for (const p of candidates) {
-            if (fs.existsSync(p)) {
-              await initWasm(fs.readFileSync(p))
-              wasmLoaded = true
-              break
-            }
-          }
-        } catch { /* fs not available */ }
-      }
-      if (!wasmLoaded) {
-        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-      }
-    } catch { /* already initialized */ }
-    // Headers are text-centric: supply the bundled fonts so resvg can
-    // rasterize the title/subtitle (the wasm sandbox has no system fonts).
-    const { getFontBuffers, DEFAULT_FONT_FAMILY } = await import("./badges/fonts")
-    const resvg = new Resvg(svg, {
-      font: {
-        fontBuffers: getFontBuffers(),
-        defaultFontFamily: DEFAULT_FONT_FAMILY,
-        loadSystemFonts: false,
-      },
-    })
-    const png = resvg.render().asPng()
+    // Headers are text-centric: rasterizeToPng() supplies the bundled fonts
+    // so resvg can render the title/subtitle (the wasm sandbox has no
+    // system fonts).
+    const png = await rasterizeToPng(svg)
     return new Response(Buffer.from(png), {
       headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
     })
@@ -3755,32 +3707,7 @@ async function handleBadgeGETInner(
 
   // PNG response
   if (format === "png") {
-    const { Resvg, initWasm } = await import("@resvg/resvg-wasm")
-    try {
-      // Try loading WASM from a local file first (Docker/standalone),
-      // fall back to CDN fetch (Vercel/dev)
-      let wasmLoaded = false
-      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-        try {
-          const fs = await import("node:fs")
-          const path = await import("node:path")
-          // In standalone mode, WASM is copied to node_modules/@resvg/resvg-wasm/
-          const candidates = [
-            path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm"),
-          ]
-          for (const p of candidates) {
-            if (fs.existsSync(p)) {
-              await initWasm(fs.readFileSync(p))
-              wasmLoaded = true
-              break
-            }
-          }
-        } catch { /* fs not available or file not found */ }
-      }
-      if (!wasmLoaded) {
-        await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-      }
-    } catch { /* already initialized */ }
+    const { Resvg } = await ensureResvg()
     const resvg = new Resvg(svg)
     const png = resvg.render().asPng()
 

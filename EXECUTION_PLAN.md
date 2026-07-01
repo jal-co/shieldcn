@@ -291,6 +291,20 @@ hot-path wins.
   (`route-handler.ts:1807, 2005, 2203, 2817, 3722`); pin the CDN fallback to the
   installed `@resvg/resvg-wasm` version. **Verify:** PNG/GIF endpoints still
   render; no repeated `fs` reads under load (spot-check with a log/counter).
+- **Actual outcome:** `ensureResvg()` memoizes the wasm module behind a single
+  module-level promise, so concurrent/subsequent calls reuse it instead of
+  redoing `fs.existsSync`/`readFileSync` or re-fetching the CDN wasm per
+  request. Two of the five call sites (both header PNG paths) turned out to
+  be functionally identical to the existing `rasterizeToPng()` helper, so
+  they now just call it directly instead of duplicating the font-setup logic
+  too — net reduction is more than the raw init-block dedup alone. Pinned the
+  CDN fallback to `2.6.2` (the exact installed version) with a comment to
+  keep it in sync. No existing test exercised the PNG path at all — added
+  `badges/png-route.test.ts` (3 tests, `NODE_ENV=production` to force the
+  local-file path so it doesn't depend on network access to unpkg.com, which
+  is blocked by this sandbox's egress policy and would have made the
+  CDN-fallback branch untestable here anyway) verifying real PNG magic bytes
+  out of both the plain `ensureResvg()` path and the `rasterizeToPng()` path.
 
 ### PR-2.2 — Icon resolution LRU  · items: **B16** · effort S
 - Module-level LRU in `simple-icons.ts` keyed by slug+color to avoid re-importing

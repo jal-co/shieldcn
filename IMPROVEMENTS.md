@@ -93,7 +93,7 @@
 - [x] **B14. Route dynamic/https badges through the cache/backoff layer** (S) — done via PR-1.1 (dynamic badge uses `cachedFetchStale`, `/https` uses `cachedFetch`)
   The dynamic JSON badge and `/https` proxy call raw `fetch` per request (`badge.ts:168`, `route-handler.ts:1493`) with no `cachedFetch`, backoff, or budget — unlike every registry provider. A hot README hammers the third-party endpoint on every CDN miss. Wrap in `cachedFetch("dynamic", url+query, ...)`.
 
-- [ ] **B15. Deduplicate the 5 resvg-wasm init blocks and pin the wasm URL** (S)
+- [x] **B15. Deduplicate the 5 resvg-wasm init blocks and pin the wasm URL** (S) — done via PR-2.1, verified with real PNG byte-level tests
   Identical ~25-line init logic at `route-handler.ts:1807-1830, 2005-2027, 2203-2225, 2817-2839, 3722-3747` (`rasterizeToPng` at :2202 exists but is only used by sponsors/contributors). Each PNG request re-runs `fs.existsSync`/`readFileSync`, and the CDN fallback fetches **unversioned** `https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm` which can drift from the installed `^2.6.2` bindings. Extract one memoized `ensureResvg()` with a versioned URL.
 
 - [ ] **B16. Cache resolved icons in `simple-icons.ts`** (S)
