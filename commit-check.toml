@@ -4,7 +4,7 @@ subject_capitalized = false
 subject_imperative = false
 subject_max_length = 80
 subject_min_length = 5
-allow_commit_types = ["feat", "fix", "docs", "style", "refactor", "test", "chore", "ci"]
+allow_commit_types = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "ci", "build", "revert"]
 allow_merge_commits = true
 allow_revert_commits = true
 allow_empty_commits = false
@@ -16,6 +16,6 @@ ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "shie
 
 [branch]
 conventional_branch = true
-allow_branch_types = ["feature", "bugfix", "hotfix", "release", "chore", "feat", "fix"]
+allow_branch_types = ["feature", "feat", "bugfix", "fix", "hotfix", "docs", "refactor", "style", "test", "perf", "ci", "build", "chore", "release"]
 require_rebase_target = "origin/main"
 ignore_authors = ["dependabot[bot]", "copilot[bot]", "pre-commit-ci[bot]", "shieldcn-dev[bot]"]

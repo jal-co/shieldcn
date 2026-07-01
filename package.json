@@ -5,6 +5,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
     "dev:web": "turbo dev --filter=@shieldcn/web",
     "dev:engine": "turbo dev --filter=@shieldcn/engine",
     "build:web": "turbo build --filter=@shieldcn/web",

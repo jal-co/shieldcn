@@ -68,6 +68,15 @@ Land all three first. Small, low-risk, unblocks trust in every later change.
 - **Verify:** open the PR against itself — CI must run and pass on current `main`.
 - **Risk:** may surface pre-existing type/lint failures. If so, fix them in this
   PR (or a fast follow) so the branch is green.
+- **Actual outcome:** build/test/typecheck were clean once `@types/node` was
+  added to `packages/cli` (missing devDependency was causing cascading
+  `process`/`node:*` type errors). `pnpm lint` surfaced 17 pre-existing errors
+  in `packages/web` unrelated to this change (React Compiler effect-timing
+  issues, `<a>` vs `next/link`) — too large and behavior-sensitive to fix
+  blind inside a CI-setup PR. Shipped the Lint step as `continue-on-error:
+  true` with a comment pointing at the tracked follow-up (**P17**, added
+  below) rather than silently weakening the gate or blocking this PR on an
+  unrelated fix.
 
 ### PR-0.2 — Align commit/branch rules  · items: **P11** · effort S
 - **Do:** reconcile `.husky/commit-msg`, `.husky/pre-push`, and `commit-check.toml`
@@ -278,6 +287,9 @@ Batch freely; each is independent. P5/P8 already folded into PR-2.6.
 - **PR-5.9** Configurable Sentry sample rates · **P14** · S
 - **PR-5.10** Split monolith client files (`inspectors.tsx`, `generator-client.tsx`)
   · **P16** · M
+- **PR-5.11** Pay down pre-existing web lint debt (17 errors, mostly
+  React-Compiler setState-in-effect timing issues); flip `ci.yml`'s Lint step
+  from `continue-on-error: true` to a hard gate · **P17** · M
 
 ---
 
@@ -285,7 +297,7 @@ Batch freely; each is independent. P5/P8 already folded into PR-2.6.
 
 | Milestone | PRs | Items | Exit criteria |
 |---|---|---|---|
-| M0 Foundation | 0.1–0.3 | B12, P11, P13 | CI green on every PR; deps automated |
+| M0 Foundation | 0.1–0.3 | B12, P11, P13 | Build/test/typecheck green on every PR; deps automated; lint runs but is non-blocking pending PR-5.11 |
 | M1 Security | 1.1–1.6 | B1–B11, F1, P15 | No known SSRF / weak-crypto / unbounded-write paths |
 | M2 Reliability | 2.1–2.6 | B15–B19, P6–P8 | Hot paths cached; renderer can't be crashed by input |
 | M3 Frontend a11y | 3.1–3.7 | F2–F10 | WCAG 2.1 AA commitments met; keyboard-complete studio |
