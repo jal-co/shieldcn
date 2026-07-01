@@ -19,6 +19,9 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ⚠️ Change POSTGRES_PASSWORD (and the matching DATABASE_URL above) before
+  # deploying anywhere reachable beyond your own machine — "shieldcn" is a
+  # placeholder, not a real credential.
   postgres:
     image: postgres:17-alpine
     environment:
@@ -99,17 +102,31 @@ Create a token at [github.com/settings/tokens](https://github.com/settings/token
 | `UPSTASH_REDIS_REST_URL` | — | — | Upstash Redis URL for persistent cache |
 | `UPSTASH_REDIS_REST_TOKEN` | — | — | Upstash Redis token |
 | `NEXT_PUBLIC_URL` | — | `http://localhost:3000` | Base URL for OAuth callbacks |
+| `NEXT_PUBLIC_SENTRY_DSN` | — | — | Sentry DSN for error monitoring. Leave unset to run without it. |
 | `SHIELDCN_ALLOW_PRIVATE_FETCH` | — | `false` | Set to `true` only if you intentionally want badges (dynamic JSON, `/https`, header logo/image, chart `?url=`, and instance-host providers like Mastodon/Lemmy) to be able to reach private/loopback/link-local/metadata addresses on your network. Unset keeps the SSRF guard fully enforced — enabling this turns the badge route into a proxy into your private network, so only set it if you understand that tradeoff. |
 
 ## Endpoints
 
 ```
-GET /{provider}/{...params}.svg     → SVG badge
-GET /{provider}/{...params}.png     → PNG badge
-GET /{provider}/{...params}.json    → raw JSON data
-GET /api/health/                    → health check
-PUT /memo/{key}/{label}/{value}     → create memo badge
+GET /{provider}/{...params}.svg      → SVG badge
+GET /{provider}/{...params}.png      → PNG badge
+GET /{provider}/{...params}.json     → raw JSON data
+GET /api/health/                     → health check
+PUT /memo/{key}/{label}/{value}      → create memo badge
+POST /api/gen-count                  → increment the badge-generation counter (rate-limited, capped at 100/request)
+GET /api/auth/github                 → start the GitHub OAuth flow for the token pool (see below)
+GET /api/auth/github/callback        → OAuth callback; stores a zero-scope token in the pool
 ```
+
+### GitHub token pool
+
+If you're hitting GitHub's unauthenticated rate limit even with `GITHUB_TOKEN`
+set, visitors can donate their own read-only GitHub token to a shared pool via
+`GET /api/auth/github`. Requires `GITHUB_OAUTH_CLIENT_ID` and
+`GITHUB_OAUTH_CLIENT_SECRET` (see `.env.example`) and, for a real deployment,
+`TOKEN_ENCRYPTION_KEY` (see above). The OAuth app should request no scopes —
+the callback rejects any token GitHub reports as scoped, since the pool only
+ever holds read-only public-data access.
 
 ## Supported Providers
 

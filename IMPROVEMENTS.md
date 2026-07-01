@@ -186,19 +186,19 @@
 - [ ] **P10. Add npm release automation for the CLI; stop committing `dist/`** (M)
   `shieldcn-cli` has no publish workflow and `packages/cli/dist/bin.js` is tracked in git (guaranteed staleness vs `src/`). Add a tag-triggered `npm publish --provenance` workflow mirroring `docker-publish.yml`; gitignore `packages/cli/dist`.
 
-- [ ] **P11. Fix commit-rule drift between husky and CI** (S)
+- [x] **P11. Fix commit-rule drift between husky and CI** (S) — done via PR-0.2; checkbox was left unticked at the time, corrected here
   `.husky/commit-msg` accepts `perf`/`build`/`revert` but `commit-check.toml` omits `perf` and `build` — locally-valid commits fail CI. Branch-type lists also differ (`commit-check.toml [branch]` lacks `docs/refactor/style/test/perf/ci/build` that `.husky/pre-push` allows). Align both.
 
 - [ ] **P12. Harden Docker image + workflow supply chain** (M)
   Pin `node:22-alpine` by digest, add a `HEALTHCHECK` instruction to the Dockerfile itself (only compose defines one today), build `linux/amd64,linux/arm64` (ARM self-hosters currently can't run the image), SHA-pin workflow actions, add SBOM/provenance attestation.
 
-- [ ] **P13. Add Dependabot/Renovate config** (S)
+- [x] **P13. Add Dependabot/Renovate config** (S) — done via PR-0.3; checkbox was left unticked at the time, corrected here
   Root package.json carries seven manual security `pnpm.overrides` — evidence patching is manual. Add `.github/dependabot.yml` covering npm (workspace), github-actions, and docker.
 
 - [ ] **P14. Make Sentry sample rates configurable in the engine** (S)
   `packages/engine/sentry.server.config.ts` hardcodes `tracesSampleRate: 1` and `profilesSampleRate: 1` — expensive at badge-service request volumes. Read from env with defaults ~0.1.
 
-- [ ] **P15. Fill engine README/env-doc gaps** (S)
+- [x] **P15. Fill engine README/env-doc gaps** (S) — `TOKEN_ENCRYPTION_KEY`/`SHIELDCN_ALLOW_PRIVATE_FETCH` done via PR-1.2; the rest (Sentry DSN env var, OAuth/gen-count endpoint docs, postgres credential warning) finished during Phase 5 hygiene pass
   Env table omits `NEXT_PUBLIC_SENTRY_DSN` (compose passes it); OAuth token-pool endpoints and `/api/gen-count` are undocumented; quick-start ships `shieldcn:shieldcn` postgres credentials with no "change this" note; document the token-encryption key behavior (see B2).
 
 - [ ] **P16. Split the two monolith client files** (M)

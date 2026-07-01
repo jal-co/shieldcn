@@ -1019,6 +1019,17 @@ Verified: `tsc --noEmit -p .` clean, `pnpm test` (288/10 core + 51 cli +
 
 Batch freely; each is independent. P5/P8 already folded into PR-2.6.
 
+**Pre-Phase-5 bookkeeping fix:** P11 and P13 were completed back in Phase 0
+(PR-0.2, PR-0.3) but their `IMPROVEMENTS.md` checkboxes were never ticked —
+corrected now, verified against the actual files (`commit-check.toml`
+already matches `.husky`'s type/branch lists; `.github/dependabot.yml`
+exists and covers npm/github-actions/docker). P15 was intentionally left
+partial by PR-1.2 (only the crypto/TLS-related env docs were in scope
+there); finished the rest here — `NEXT_PUBLIC_SENTRY_DSN` added to the env
+table, `/api/gen-count` and the two OAuth token-pool endpoints documented,
+and a "change this" warning added next to the quick-start's placeholder
+Postgres credentials.
+
 - **PR-5.1** SEO/PWA: sitemap gaps + manifest + theme-color · **P2** · S
 - **PR-5.2** Guard/noindex `/dev/*`; drop `html-to-image` from prod bundle · **P1** · S
 - **PR-5.3** Dead-code removal (`route-handler.ts:514`, `cocoapods` platform,
