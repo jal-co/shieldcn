@@ -34,7 +34,7 @@ function isRateLimitResponse(response: Response): boolean {
 }
 
 async function githubFetch(url: string, revalidate: number = 3600): Promise<Response | null> {
-  if (isBackedOff("github")) return null
+  if (await isBackedOff("github")) return null
 
   try {
     const token = await pickToken()
@@ -64,12 +64,12 @@ async function githubFetch(url: string, revalidate: number = 3600): Promise<Resp
     // Track rate limits (429, or 403 with exhausted quota) and outages —
     // recordBackoff also surfaces the Sentry alert.
     if (isRateLimitResponse(response) || response.status === 503) {
-      recordBackoff("github", response.status)
+      await recordBackoff("github", response.status)
       return null
     }
 
     if (!response.ok) return null
-    clearBackoff("github")
+    await clearBackoff("github")
     return response
   } catch {
     return null
@@ -100,7 +100,7 @@ export async function githubGraphQL(
   revalidate: number = 3600,
   tokenOverride?: string,
 ): Promise<Record<string, unknown> | null> {
-  if (isBackedOff("github")) return null
+  if (await isBackedOff("github")) return null
 
   try {
     // An explicit override (e.g. the maintainer's read:user token for the
@@ -136,7 +136,7 @@ export async function githubGraphQL(
     }
 
     if (isRateLimitResponse(response) || response.status === 503) {
-      recordBackoff("github", response.status)
+      await recordBackoff("github", response.status)
       return null
     }
 
@@ -145,7 +145,7 @@ export async function githubGraphQL(
     const json = (await response.json().catch(() => null)) as { data?: unknown } | null
     const data = json?.data
     if (data && typeof data === "object") {
-      clearBackoff("github")
+      await clearBackoff("github")
       return data as Record<string, unknown>
     }
 
@@ -157,7 +157,7 @@ export async function githubGraphQL(
       response.headers.get("x-ratelimit-remaining") === "0" ||
       response.headers.get("retry-after") !== null
     ) {
-      recordBackoff("github", 429)
+      await recordBackoff("github", 429)
     }
     return null
   } catch {
@@ -230,7 +230,7 @@ export async function githubRepoExists(owner: string, repo: string): Promise<boo
  * as transient, never as "does not exist".
  */
 async function githubHeadExists(url: string): Promise<boolean | null> {
-  if (isBackedOff("github")) return null
+  if (await isBackedOff("github")) return null
   try {
     const token = await pickToken()
     const response = await raceTimeout(
@@ -246,11 +246,11 @@ async function githubHeadExists(url: string): Promise<boolean | null> {
     if (!response) return null
     if (response.status === 404) return false
     if (isRateLimitResponse(response) || response.status === 503) {
-      recordBackoff("github", response.status)
+      await recordBackoff("github", response.status)
       return null
     }
     if (response.ok) {
-      clearBackoff("github")
+      await clearBackoff("github")
       return true
     }
     return null

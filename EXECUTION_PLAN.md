@@ -350,6 +350,42 @@ hot-path wins.
 - Mirror `recordBackoff`/`isBackedOff` to Redis when the tier is configured
   (`cache.ts:61, 137`); prune the unbounded `staleAlerted` set (`:372`).
   **Verify:** simulated 429 on one "instance" backs off a second; set size bounded.
+- **Actual outcome:** `isBackedOff`/`recordBackoff`/`clearBackoff` are now
+  async, checking/writing a Redis-mirrored copy (keyed with a TTL matching
+  the backoff window, so it self-expires) whenever the local in-memory Map
+  doesn't already have fresh state — that only adds a Redis round trip on a
+  cache-miss (already about to hit the network) or a fresh instance's first
+  failure, never on the warm-cache path. `recordBackoff` also checks the
+  remote state before deciding whether it's starting a *new* backoff cycle,
+  so instances don't each independently alert on what's really one outage.
+  `handleUpstreamStatus` (the fire-and-forget wrapper 3 provider files call)
+  stays synchronous — it fires the now-async calls without awaiting, since
+  its callers don't need the Redis write to land before continuing, only
+  future requests need it to have landed eventually. Updated all 9 direct
+  call sites across `route-handler.ts`/`starhistory.ts`/`github.ts` to
+  `await`. Deliberately scoped to backoff only, not `consumeBudget`'s smooth
+  token-bucket refill — a correct distributed version of that needs an
+  atomic Redis Lua script to avoid a check-then-decrement race, which is a
+  meaningfully larger undertaking than this item's effort budget; left as a
+  future item rather than shipping a half-correct version. `staleAlerted`
+  pruning mirrors the existing `token-pool.ts`/`memo.ts` probabilistic-sweep
+  pattern (1% of checks).
+  Testing this honestly required simulating two separate serverless
+  instances, which a single in-process test can't do by construction (the
+  whole bug is that they *don't* share memory) — `cache-distributed-backoff.test.ts`
+  uses `vi.resetModules()` + a fresh dynamic `import("./cache")` per
+  "instance" (each gets its own private module-level Map) against one shared
+  mocked Redis backing store. Writing this test surfaced a real gap in the
+  first version: an instance that had already hydrated a backoff window from
+  a *read* kept trusting that local copy even after another instance
+  cleared it in Redis, since `isBackedOff` only re-checks Redis when its own
+  local state is absent or expired — not resolvable without either a Redis
+  round-trip on every single check (defeating the performance point of
+  hydrating at all) or a pub/sub push, so it's now a documented, bounded
+  (≤ the backoff window, same 15s–300s range) eventual-consistency tradeoff
+  rather than a bug, with a test locking in the exact guarantee: an instance
+  that hasn't hydrated a window sees a clear immediately; one that has,
+  doesn't, until its local copy naturally expires.
 
 ### PR-2.5 — Provider input hygiene  · items: **B19** · effort S
 - `encodeURIComponent` for all interpolated path params (starhistory + ~19

@@ -64,16 +64,82 @@ const backoff = new Map<string, BackoffState>()
 const MAX_BACKOFF_MS = 5 * 60 * 1000
 
 /**
- * Check if a provider is currently in backoff.
+ * Backoff state used to live only in a per-instance Map, so under N
+ * concurrent serverless instances the effective upstream request rate was
+ * N× the intended budget — a 429 recorded on one instance did nothing to
+ * protect the others, and each independently re-alerted on what was really
+ * one outage. When Redis is configured, state is mirrored there (keyed with
+ * a TTL matching the backoff window, so it self-expires) and consulted
+ * whenever the local in-memory copy doesn't already show an active window —
+ * that only happens on a cache-miss request (already about to hit the
+ * network) or the first failure on a fresh instance, so this doesn't add
+ * Redis latency to the common warm-cache path.
  */
-export function isBackedOff(provider: string): boolean {
-  const state = backoff.get(provider)
-  if (!state) return false
-  if (Date.now() >= state.until) {
-    backoff.delete(provider)
-    return false
+function backoffRedisKey(provider: string): string {
+  return `shieldcn:backoff:${provider}`
+}
+
+async function getRemoteBackoff(provider: string): Promise<BackoffState | null> {
+  const r = getRedis()
+  if (!r) return null
+  try {
+    const state = await r.get<BackoffState>(backoffRedisKey(provider))
+    return state && Date.now() < state.until ? state : null
+  } catch {
+    return null
   }
-  return true
+}
+
+async function setRemoteBackoff(provider: string, state: BackoffState): Promise<void> {
+  const r = getRedis()
+  if (!r) return
+  try {
+    const ttlSeconds = Math.max(1, Math.ceil((state.until - Date.now()) / 1000))
+    await r.set(backoffRedisKey(provider), state, { ex: ttlSeconds })
+  } catch {
+    // Best effort — the local in-memory copy still protects this instance.
+  }
+}
+
+async function clearRemoteBackoff(provider: string): Promise<void> {
+  const r = getRedis()
+  if (!r) return
+  try {
+    await r.del(backoffRedisKey(provider))
+  } catch {
+    // Best effort.
+  }
+}
+
+/**
+ * Check if a provider is currently in backoff — locally, and (when Redis is
+ * configured and the local Map doesn't already know) against the shared
+ * remote state so one instance's backoff protects every instance.
+ *
+ * Eventual-consistency tradeoff, deliberate: once this instance hydrates a
+ * window from Redis, it trusts that local copy for the rest of the window
+ * rather than re-checking Redis on every call — otherwise every request to a
+ * currently-backed-off provider would cost a Redis round trip. That means an
+ * early `clearBackoff` from another instance (upstream recovered faster than
+ * the backoff delay assumed) won't reach an instance that already hydrated
+ * until its local copy's `until` naturally elapses — bounded by the same
+ * 15s–300s window the backoff would have run for anyway. A naturally
+ * *expiring* backoff never has this gap: every instance agrees on the same
+ * `until` timestamp from the start.
+ */
+export async function isBackedOff(provider: string): Promise<boolean> {
+  const state = backoff.get(provider)
+  if (state) {
+    if (Date.now() < state.until) return true
+    backoff.delete(provider)
+  }
+
+  const remote = await getRemoteBackoff(provider)
+  if (remote) {
+    backoff.set(provider, remote) // hydrate the local copy
+    return true
+  }
+  return false
 }
 
 /**
@@ -83,24 +149,30 @@ export function isBackedOff(provider: string): boolean {
  * Also surfaces a provider alert (Sentry issue) on the request that *starts*
  * a backoff cycle — when there is no active backoff window. Subsequent
  * blocked requests within the same window don't re-alert, so this stays
- * roughly one alert per outage rather than one per request. This is the
- * single chokepoint every provider funnels rate limits / 5xx through (via
- * githubFetch, handleUpstreamStatus, or provider-fetch), so adding it here
- * gives every provider rate-limit alerting, not just GitHub.
+ * roughly one alert per outage rather than one per request (or, with Redis
+ * configured, one per outage across every instance rather than one per
+ * instance). This is the single chokepoint every provider funnels rate
+ * limits / 5xx through (via githubFetch, handleUpstreamStatus, or
+ * provider-fetch), so adding it here gives every provider rate-limit
+ * alerting, not just GitHub.
  *
  * @param provider - provider name (e.g. "github", "npm")
  * @param status - upstream HTTP status that triggered the backoff, if known
  */
-export function recordBackoff(provider: string, status?: number): void {
-  const state = backoff.get(provider)
-  // A new cycle = no backoff state, or the previous window has elapsed.
+export async function recordBackoff(provider: string, status?: number): Promise<void> {
+  let state = backoff.get(provider)
+  if (!state || Date.now() >= state.until) {
+    // No active local window — check whether another instance already
+    // started this cycle before deciding whether this is a "new" one.
+    state = (await getRemoteBackoff(provider)) ?? undefined
+  }
+
   const newCycle = !state || Date.now() >= state.until
   const count = (state?.count ?? 0) + 1
   const delay = Math.min(15000 * Math.pow(2, count - 1), MAX_BACKOFF_MS)
-  backoff.set(provider, {
-    until: Date.now() + delay,
-    count,
-  })
+  const newState: BackoffState = { until: Date.now() + delay, count }
+  backoff.set(provider, newState)
+  await setRemoteBackoff(provider, newState)
 
   if (newCycle) {
     reportProviderAlert({
@@ -119,8 +191,9 @@ export function recordBackoff(provider: string, status?: number): void {
 /**
  * Clear backoff for a provider (on successful request).
  */
-export function clearBackoff(provider: string): void {
+export async function clearBackoff(provider: string): Promise<void> {
   backoff.delete(provider)
+  await clearRemoteBackoff(provider)
 }
 
 // ---------------------------------------------------------------------------
@@ -370,6 +443,14 @@ const STALE_ALERT_AFTER_MS = 60 * 60 * 1000 // 1 hour
 const STALE_ALERT_THROTTLE_MS = 60 * 60 * 1000 // 1 hour
 
 const staleAlerted = new Map<string, number>()
+/** Fraction of alert checks that also sweep expired throttle entries. */
+const STALE_ALERTED_CLEANUP_PROBABILITY = 0.01
+
+function pruneStaleAlerted(now: number) {
+  for (const [key, at] of staleAlerted) {
+    if (now - at > STALE_ALERT_THROTTLE_MS) staleAlerted.delete(key)
+  }
+}
 
 /**
  * Emit a throttled "stale" alert when a last-known-good value served from the
@@ -382,8 +463,9 @@ function maybeAlertStale(provider: string, key: string, ts: number): void {
   if (age < STALE_ALERT_AFTER_MS) return
 
   const alertKey = `${provider}:${key}`
-  const last = staleAlerted.get(alertKey)
   const now = Date.now()
+  if (Math.random() < STALE_ALERTED_CLEANUP_PROBABILITY) pruneStaleAlerted(now)
+  const last = staleAlerted.get(alertKey)
   if (last && now - last < STALE_ALERT_THROTTLE_MS) return
   staleAlerted.set(alertKey, now)
 
@@ -419,7 +501,7 @@ export async function cachedFetch<T>(
   })
 
   // 2. Is the provider backed off?
-  if (isBackedOff(provider)) {
+  if (await isBackedOff(provider)) {
     cacheMetricsCallback?.({
       type: "counter", name: "badge.backoff", value: 1,
       tags: { provider },
@@ -440,7 +522,7 @@ export async function cachedFetch<T>(
   try {
     const data = await fetcher()
     if (data !== null) {
-      clearBackoff(provider)
+      await clearBackoff(provider)
       await cacheSet(fullKey, data, ttlSeconds)
     }
     return data
@@ -449,7 +531,7 @@ export async function cachedFetch<T>(
     if (err instanceof Response) {
       const status = err.status
       if (status === 429 || status === 503) {
-        recordBackoff(provider, status)
+        await recordBackoff(provider, status)
       }
     }
     return null
@@ -549,7 +631,7 @@ export async function cachedFetchStale<T>(
   }
 
   // 2. Provider backed off — don't hammer it, serve last-known-good.
-  if (isBackedOff(provider)) {
+  if (await isBackedOff(provider)) {
     cacheMetricsCallback?.({
       type: "counter", name: "badge.backoff", value: 1,
       tags: { provider },
@@ -563,13 +645,13 @@ export async function cachedFetchStale<T>(
     data = await fetcher()
   } catch (err) {
     if (err instanceof Response && (err.status === 429 || err.status === 503)) {
-      recordBackoff(provider, err.status)
+      await recordBackoff(provider, err.status)
     }
     data = null
   }
 
   if (data !== null) {
-    clearBackoff(provider)
+    await clearBackoff(provider)
     if (opts?.isError?.(data)) {
       // Terminal error verdict: cache briefly so we don't re-hit the upstream
       // on every request, but never persist it as last-known-good and never
@@ -590,11 +672,16 @@ export async function cachedFetchStale<T>(
 /**
  * Record a fetch response status for backoff tracking.
  * Call this from provider fetch helpers when they get a response.
+ *
+ * Stays synchronous (fire-and-forget the now-async recordBackoff/
+ * clearBackoff) rather than rippling `await` through its call sites —
+ * callers don't need the Redis mirror write to complete before continuing,
+ * only future requests (via isBackedOff) need it to have landed eventually.
  */
 export function handleUpstreamStatus(provider: string, status: number): void {
   if (status === 429 || status === 503) {
-    recordBackoff(provider, status)
+    void recordBackoff(provider, status)
   } else if (status >= 200 && status < 400) {
-    clearBackoff(provider)
+    void clearBackoff(provider)
   }
 }

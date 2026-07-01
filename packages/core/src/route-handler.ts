@@ -600,7 +600,7 @@ async function fetchBadgeData(
       // resolveGitHubBadge never got a chance to run — produce it here so a
       // brand-new badge during an outage reads "unavailable" (gray, 60s),
       // not "not found" (red, implies the badge URL is wrong).
-      if (isBackedOff("github")) return GITHUB_UNAVAILABLE
+      if (await isBackedOff("github")) return GITHUB_UNAVAILABLE
       return null
     }
 

@@ -192,19 +192,19 @@ describe("provider alerts", () => {
 
   it("alerts any provider once per backoff cycle on a rate limit", async () => {
     const provider = `prov-${Date.now()}-${n++}`
-    clearBackoff(provider)
+    await clearBackoff(provider)
     const alerts: ProviderAlert[] = []
     setProviderAlertCallback((a) => alerts.push(a))
 
     // First failure starts a backoff cycle → one alert with the status.
-    recordBackoff(provider, 429)
+    await recordBackoff(provider, 429)
     // Subsequent failures within the same active window must NOT re-alert.
-    recordBackoff(provider, 429)
-    recordBackoff(provider, 429)
+    await recordBackoff(provider, 429)
+    await recordBackoff(provider, 429)
 
     expect(alerts).toHaveLength(1)
     expect(alerts[0]).toMatchObject({ provider, reason: "rate_limit", status: 429 })
 
-    clearBackoff(provider)
+    await clearBackoff(provider)
   })
 })

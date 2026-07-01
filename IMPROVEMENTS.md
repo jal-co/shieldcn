@@ -102,7 +102,7 @@
 - [x] **B17. Store a token hash column in the token pool** (M) — done via PR-2.3, verified against real Postgres including the ON CONFLICT hash-staleness bug and legacy-row fallback
   `invalidateToken` (`token-pool.ts:215-234`) selects and decrypts **every** valid token row to find a match; the code comment itself says "Better approach: store a hash of the plaintext for lookup." Add an indexed `token_hash` column (sha256 helper already exists at :112) and invalidate with one UPDATE.
 
-- [ ] **B18. Share backoff/budget state via Redis on serverless** (M)
+- [x] **B18. Share backoff/budget state via Redis on serverless** (M) — backoff done via PR-2.4 (Redis-mirrored, tested with real cross-instance simulation); `consumeBudget`'s token bucket intentionally left for a future PR (needs an atomic Lua script for correctness, see plan notes)
   Backoff windows and token-bucket budgets are per-instance in-memory Maps (`cache.ts:61, 137`), so N concurrent lambdas allow N× the configured upstream rate and a 429 on one instance doesn't protect the others. When the Redis tier is configured, mirror `recordBackoff`/`isBackedOff` there. Also prune the unbounded `staleAlerted` set (`cache.ts:372`).
 
 - [ ] **B19. Encode path params consistently in providers; guard missing API keys** (S)

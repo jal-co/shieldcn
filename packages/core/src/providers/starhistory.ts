@@ -63,7 +63,7 @@ async function ghFetch(
   accept: string,
   revalidate: number,
 ): Promise<Response | null> {
-  if (isBackedOff("github")) return null
+  if (await isBackedOff("github")) return null
   try {
     const token = await pickToken()
     const doFetch = (auth?: string) =>
@@ -87,11 +87,11 @@ async function ghFetch(
     }
 
     if (isRateLimitResponse(response) || response.status === 503) {
-      recordBackoff("github", response.status)
+      await recordBackoff("github", response.status)
       return null
     }
     if (!response.ok) return null
-    clearBackoff("github")
+    await clearBackoff("github")
     return response
   } catch {
     return null
