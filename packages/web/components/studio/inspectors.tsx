@@ -18,7 +18,7 @@ import { IconAlignmentRight } from "@central-icons-react/round-filled-radius-1-s
 import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { ColorInput } from "@/components/color-input"
-import { SearchablePicker, type SearchablePickerFilter, type SearchablePickerSection } from "@/components/searchable-picker"
+import { SearchablePicker, type SearchablePickerSection } from "@/components/searchable-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -45,7 +45,6 @@ import {
   SIZES,
   FONTS,
   THEMES,
-  type BadgePreset,
   type BuilderState,
 } from "@/lib/badge-builder-shared"
 import {
@@ -76,6 +75,15 @@ import {
   CONTRIBUTORS_THEMES,
   type ContributorsState,
 } from "@/lib/contributors-builder-shared"
+import {
+  PRESET_GROUPS,
+  PRESET_GROUP_NAMES,
+  PRESET_FILTERS,
+  getPresetService,
+  getPresetDisplayLabel,
+  presetMatchesSearch,
+  findMatchingPreset,
+} from "@/lib/badge-preset-match"
 import {
   CHART_THEMES,
   CHART_FONTS,
@@ -161,91 +169,9 @@ function AlignControl({ value, onChange }: { value: Alignment; onChange: (v: Ali
   )
 }
 
-// Grouped preset options for the searchable badge type picker (index-based,
-// mirroring the homepage badge builder).
-const PRESET_GROUPS: Map<string, BadgePreset[]> = (() => {
-  const m = new Map<string, BadgePreset[]>()
-  for (const p of BADGE_PRESETS) {
-    const list = m.get(p.group) || []
-    list.push(p)
-    m.set(p.group, list)
-  }
-  return m
-})()
-
-const PRESET_GROUP_ORDER = [
-  "Custom", "Package", "GitHub", "Social", "Community", "Quality",
-  "Funding", "Editor marketplaces", "App stores", "Localization",
-  "Game/modding", "Other", "Group",
-]
-
-const PRESET_GROUP_NAMES = [
-  ...PRESET_GROUP_ORDER.filter(g => PRESET_GROUPS.has(g)),
-  ...Array.from(PRESET_GROUPS.keys()).filter(g => !PRESET_GROUP_ORDER.includes(g)),
-]
-
-function getPresetService(p: BadgePreset): string {
-  return p.service ?? p.group
-}
-
-function presetDisplay(p: BadgePreset): string {
-  const svc = getPresetService(p)
-  if (!svc || p.label.toLowerCase().startsWith(svc.toLowerCase())) return p.label
-  return `${svc} ${p.label}`
-}
-
-const PRESET_FILTERS: SearchablePickerFilter[] = (() => {
-  const order = ["Custom", "npm", "GitHub", "Docker", "PyPI", "Crates.io", "JSR", "Discord", "NBA", "Reddit", "X", "YouTube", "Country flag", "Group"]
-  const services = Array.from(new Set(BADGE_PRESETS.map(getPresetService)))
-  const ordered = [
-    ...order.filter(s => services.includes(s)),
-    ...services.filter(s => !order.includes(s)),
-  ]
-  return [{ value: "all", label: "All" }, ...ordered.map(s => ({ value: s, label: s }))]
-})()
-
-function presetMatchesSearch(p: BadgePreset, search: string, serviceFilter: string): boolean {
-  const service = getPresetService(p)
-  if (serviceFilter !== "all" && service !== serviceFilter) return false
-  const q = search.trim().toLowerCase()
-  if (!q) return true
-  const haystack = [
-    p.label, service, p.group, p.template,
-    ...(p.searchKeywords ?? []),
-    ...p.params.flatMap(param => [param.key, param.label, param.placeholder]),
-  ].join(" ").toLowerCase()
-  return haystack.includes(q)
-}
-
-/** Reverse-match a badge path back to a preset index + param values. */
-function findPresetForPath(path: string): { preset: BadgePreset; idx: number; values: Record<string, string> } | null {
-  const clean = path.replace(/\?.*$/, "")
-  // Escape every regex metacharacter in the literal chunks of a template. This
-  // matters for "Group" presets whose templates contain a literal "+" (the group
-  // segment joiner) — left unescaped, "+" becomes a quantifier and corrupts param
-  // extraction, which is what made the package/owner fields keep gaining a "+".
-  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  for (let idx = 0; idx < BADGE_PRESETS.length; idx++) {
-    const preset = BADGE_PRESETS[idx]
-    if (preset.customResolver === "static") continue
-    const placeholder = /\{([^}]+)\}/g
-    let pattern = "^"
-    let lastIndex = 0
-    let m: RegExpExecArray | null
-    while ((m = placeholder.exec(preset.template)) !== null) {
-      pattern += escapeRe(preset.template.slice(lastIndex, m.index)) + "([^/]+)"
-      lastIndex = placeholder.lastIndex
-    }
-    pattern += escapeRe(preset.template.slice(lastIndex)) + "$"
-    const match = clean.match(new RegExp(pattern))
-    if (match) {
-      const values: Record<string, string> = {}
-      preset.params.forEach((p, i) => { values[p.key] = match[i + 1] || p.default })
-      return { preset, idx, values }
-    }
-  }
-  return null
-}
+/** Reverse-match a badge path, excluding the dash-format static Custom preset
+ *  (the Studio handles those through a separate control). */
+const findPresetForPath = (path: string) => findMatchingPreset(path, { skipStatic: true })
 
 // ---------------------------------------------------------------------------
 // Markdown inspector
@@ -732,7 +658,7 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
       const presets = PRESET_GROUPS.get(group) ?? []
       const items = presets
         .filter(p => presetMatchesSearch(p, search, filter))
-        .map(p => ({ value: String(BADGE_PRESETS.indexOf(p)), label: presetDisplay(p), tag: getPresetService(p) }))
+        .map(p => ({ value: String(BADGE_PRESETS.indexOf(p)), label: getPresetDisplayLabel(p), tag: getPresetService(p) }))
       return { heading: group, items }
     })
   }, [search, filter])
@@ -771,7 +697,7 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
       <Field label="Type">
         <SearchablePicker
           value={selectedValue}
-          triggerLabel={matched ? presetDisplay(matched.preset) : "Custom path"}
+          triggerLabel={matched ? getPresetDisplayLabel(matched.preset) : "Custom path"}
           placeholder="Search badge types..."
           emptyLabel="No badge type found."
           search={search}
@@ -957,7 +883,7 @@ function GroupSegmentEditor({ item, onChange, onRemove, index }: {
       const presets = PRESET_GROUPS.get(group) ?? []
       const items = presets
         .filter(p => presetMatchesSearch(p, search, filter))
-        .map(p => ({ value: String(BADGE_PRESETS.indexOf(p)), label: presetDisplay(p), tag: getPresetService(p) }))
+        .map(p => ({ value: String(BADGE_PRESETS.indexOf(p)), label: getPresetDisplayLabel(p), tag: getPresetService(p) }))
       return { heading: group, items }
     })
   }, [search, filter])
@@ -994,7 +920,7 @@ function GroupSegmentEditor({ item, onChange, onRemove, index }: {
       <Field label="Type">
         <SearchablePicker
           value={selectedValue}
-          triggerLabel={matched ? presetDisplay(matched.preset) : "Custom path"}
+          triggerLabel={matched ? getPresetDisplayLabel(matched.preset) : "Custom path"}
           placeholder="Search badge types..."
           emptyLabel="No badge type found."
           search={search}

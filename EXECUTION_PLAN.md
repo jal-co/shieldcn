@@ -1189,8 +1189,38 @@ Postgres credentials.
   Verified: engine typechecks + builds, and the parser's fallback/clamp logic
   passes a unit check (undefined/empty/valid/0/1/out-of-range/non-numeric all
   resolve as intended). Sentry stays fully inert without a DSN, unchanged.
-- **PR-5.10** Split monolith client files (`inspectors.tsx`, `generator-client.tsx`)
-  · **P16** · M
+- **PR-5.10** ◑ Split monolith client files (`inspectors.tsx`, `generator-client.tsx`)
+  · **P16** · M — **partially done, with a deliberate re-scope.** While surveying
+  `inspectors.tsx` (1387 lines) for a per-block-type split, I found the more
+  meaningful problem: its badge-preset grouping/search/reverse-match helpers
+  (`PRESET_GROUPS`, `PRESET_GROUP_NAMES`, `PRESET_FILTERS`, `getPresetService`,
+  the display-label fn, `presetMatchesSearch`, and the path→preset matcher) were
+  **duplicated** in `badge-builder-core.tsx` — and the two `findMatchingPreset`
+  copies had diverged: the builder's escaped only `.` in templates, so a Group
+  preset's literal `+` acted as a regex quantifier and corrupted param
+  extraction (the exact bug the Studio's copy documented having fixed). Extracted
+  the unified, correct logic to a new pure module `lib/badge-preset-match.ts`,
+  wired both consumers to it (preserving each call site's exact semantics via a
+  `skipStatic` option — the builder must still reverse-match the static Custom
+  preset, the Studio must not), and added `lib/badge-preset-match.test.ts`
+  (14 tests, incl. a regression lock on the `+`-template case and a round-trip
+  over every non-static preset). This removes ~90 lines from `inspectors.tsx` and
+  ~115 from `badge-builder-core.tsx`, fixes a real latent bug in the builder, and
+  makes the trickiest logic unit-testable — the substantive maintainability win.
+  **Deferred (documented, not silently skipped):** the raw per-block-type JSX
+  file explosion of both monoliths. Rationale: (1) these inspectors are all
+  statically imported and conditionally rendered by `studio.tsx`, so
+  file-splitting yields **zero bundle savings** — the plan's cited "per-inspector
+  code-splitting" benefit only materializes with a separate `next/dynamic`
+  conversion, which is a behavior change (loading states) beyond this item's
+  scope; (2) the files have no test coverage, making large mechanical JSX churn
+  disproportionately risky for a purely-cosmetic editor-readability gain; (3) the
+  genuine coupling debt (the duplicated logic) is now resolved. Logged the
+  remaining editor-readability split as **P19**. Verified: `tsc` clean, `pnpm
+  test` (web 73, +14), full `next build`, and a live Playwright pass — the
+  homepage badge builder's preset picker (grouping, "stars" search →
+  GitHub-stars + both `+`-template Group presets, display labels) and the Studio
+  badge inspector both work correctly against the shared module.
 - **PR-5.11** Pay down pre-existing web lint debt (17 errors, mostly
   React-Compiler setState-in-effect timing issues); flip `ci.yml`'s Lint step
   from `continue-on-error: true` to a hard gate · **P17** · M

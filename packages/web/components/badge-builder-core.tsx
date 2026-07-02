@@ -18,7 +18,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { RotateCcw, Code2, Link, ChevronDown } from "lucide-react"
 import { LogoPicker } from "@/components/logo-picker"
-import { SearchablePicker, type SearchablePickerFilter, type SearchablePickerSection } from "@/components/searchable-picker"
+import { SearchablePicker, type SearchablePickerSection } from "@/components/searchable-picker"
 import { ColorSwatch } from "@/components/color-input"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { Button } from "@/components/ui/button"
@@ -49,127 +49,15 @@ import {
   type BuilderState,
   type BadgePreset,
 } from "@/lib/badge-builder-shared"
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Group presets by category */
-function groupPresets(): Map<string, BadgePreset[]> {
-  const groups = new Map<string, BadgePreset[]>()
-  for (const preset of BADGE_PRESETS) {
-    const list = groups.get(preset.group) || []
-    list.push(preset)
-    groups.set(preset.group, list)
-  }
-  return groups
-}
-
-const PRESET_GROUPS = groupPresets()
-const PRESET_GROUP_ORDER = [
-  "Custom",
-  "Package",
-  "GitHub",
-  "Social",
-  "Community",
-  "Quality",
-  "Funding",
-  "Editor marketplaces",
-  "App stores",
-  "Localization",
-  "Game/modding",
-  "Other",
-  "Group",
-]
-const PRESET_SERVICE_FILTER_ORDER = [
-  "Custom",
-  "npm",
-  "GitHub",
-  "Docker",
-  "PyPI",
-  "Crates.io",
-  "JSR",
-  "Discord",
-  "NBA",
-  "Reddit",
-  "X",
-  "YouTube",
-  "Country flag",
-  "Group",
-]
-
-function getPresetService(preset: BadgePreset): string {
-  return preset.service ?? preset.group
-}
-
-function getPresetDisplayLabel(preset: BadgePreset): string {
-  const service = getPresetService(preset)
-  if (!service || preset.label.toLowerCase().startsWith(service.toLowerCase())) {
-    return preset.label
-  }
-  return `${service} ${preset.label}`
-}
-
-function getOrderedPresetGroups(): string[] {
-  const groupNames = Array.from(PRESET_GROUPS.keys())
-  return [
-    ...PRESET_GROUP_ORDER.filter(group => PRESET_GROUPS.has(group)),
-    ...groupNames.filter(group => !PRESET_GROUP_ORDER.includes(group)),
-  ]
-}
-
-function buildPresetFilters(): SearchablePickerFilter[] {
-  const services = Array.from(new Set(BADGE_PRESETS.map(getPresetService)))
-  const orderedServices = [
-    ...PRESET_SERVICE_FILTER_ORDER.filter(service => services.includes(service)),
-    ...services.filter(service => !PRESET_SERVICE_FILTER_ORDER.includes(service)),
-  ]
-  return [
-    { value: "all", label: "All" },
-    ...orderedServices.map(service => ({ value: service, label: service })),
-  ]
-}
-
-const PRESET_GROUP_NAMES = getOrderedPresetGroups()
-const PRESET_FILTERS = buildPresetFilters()
-
-function presetMatchesSearch(preset: BadgePreset, search: string, serviceFilter: string): boolean {
-  const service = getPresetService(preset)
-  if (serviceFilter !== "all" && service !== serviceFilter) return false
-
-  const q = search.trim().toLowerCase()
-  if (!q) return true
-
-  const haystack = [
-    preset.label,
-    service,
-    preset.group,
-    preset.template,
-    ...(preset.searchKeywords ?? []),
-    ...preset.params.flatMap(param => [param.key, param.label, param.placeholder]),
-  ].join(" ").toLowerCase()
-
-  return haystack.includes(q)
-}
-
-/** Find a preset that matches a given path */
-function findMatchingPreset(path: string): { preset: BadgePreset; values: Record<string, string> } | null {
-  for (const preset of BADGE_PRESETS) {
-    let pattern = preset.template
-      .replace(/\./g, "\\.")
-      .replace(/\{([^}]+)\}/g, "([^/]+)")
-    pattern = `^${pattern}$`
-    const match = path.match(new RegExp(pattern))
-    if (match) {
-      const values: Record<string, string> = {}
-      preset.params.forEach((p, i) => {
-        values[p.key] = match[i + 1] || p.default
-      })
-      return { preset, values }
-    }
-  }
-  return null
-}
+import {
+  PRESET_GROUPS,
+  PRESET_GROUP_NAMES,
+  PRESET_FILTERS,
+  getPresetService,
+  getPresetDisplayLabel,
+  presetMatchesSearch,
+  findMatchingPreset,
+} from "@/lib/badge-preset-match"
 
 // ---------------------------------------------------------------------------
 // Variant clamping
