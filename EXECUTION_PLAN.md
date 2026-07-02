@@ -1148,8 +1148,37 @@ Postgres credentials.
   `npm pack --dry-run` ships exactly `dist/bin.js` + `package.json` + README +
   LICENSE, a clean rebuild regenerates `dist/` (now correctly gitignored, not
   re-added to git), and full `pnpm typecheck`/`pnpm test` stay green.
-- **PR-5.8** Docker/supply-chain hardening (digest pin, HEALTHCHECK, arm64, SHA-pin
-  actions, SBOM) + build-on-PR (**B13**) · **P12** · M
+- **PR-5.8** ✅ Docker/supply-chain hardening (digest pin, HEALTHCHECK, arm64, SHA-pin
+  actions, SBOM) + build-on-PR (**B13**) · **P12** · M —
+  **Dockerfile:** both `FROM node:22-alpine` lines now pin the base by digest
+  (`sha256:16e22a55…`, resolved live from Docker Hub's registry API and confirmed
+  to be a multi-arch index covering linux/amd64 + linux/arm64), so a rebuild can't
+  silently pull a different base. Added a baked-in `HEALTHCHECK` using node's
+  global `fetch` against `/api/health` — no curl/wget dependency in the runtime
+  image, and unlike the compose-only healthcheck it applies to a bare
+  `docker run` too.
+  **Workflow (`docker-publish.yml`):** builds `linux/amd64,linux/arm64` via
+  `setup-qemu-action` (ARM self-hosters previously had no runnable image);
+  emits SBOM + `mode=max` SLSA provenance attestations on pushed images (added
+  `id-token: write` + `attestations: write`); and **B13** — added a
+  `pull_request` trigger (paths-filtered to engine/core/lockfile/Dockerfile) that
+  builds the image without pushing, so a broken Dockerfile is caught in review
+  instead of at release. Only tag/dispatch runs log in to GHCR and push.
+  **Action SHA-pinning — deliberately deferred, not skipped:** actions are kept
+  on major-version tags managed by the existing Dependabot `github-actions`
+  ecosystem (P13). Converting to verified commit-SHA pins requires a resolver
+  that checks each SHA against upstream (e.g. `pinact`), which needs GitHub API
+  access this build environment's proxy blocks — hand-typing unverifiable SHAs is
+  a worse footgun than a Dependabot-watched tag. Documented inline at the top of
+  the workflow.
+  **Verification limits:** no Docker daemon in this environment (CLI present,
+  socket absent), so a real `docker build` couldn't run. Verified instead: both
+  workflow files are valid YAML, the base digest resolves + is genuinely
+  multi-arch, and the HEALTHCHECK node one-liner passes `node --check` with
+  `fetch` confirmed global in node 22. The Dockerfile changes are mechanical
+  (digest-format pin + one HEALTHCHECK line); the actual multi-arch build /
+  attestation runs will first exercise on the next PR via the new build-on-PR
+  trigger.
 - **PR-5.9** Configurable Sentry sample rates · **P14** · S
 - **PR-5.10** Split monolith client files (`inspectors.tsx`, `generator-client.tsx`)
   · **P16** · M

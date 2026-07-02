@@ -87,7 +87,7 @@
 - [ ] **B12. Add a real CI workflow: tests, typecheck, lint, builds** (S)
   Core has a 15-file vitest suite that no workflow ever runs — only commit-lint and the labeler run on PRs. Add `ci.yml`: `pnpm install`, `turbo build lint`, `vitest run` in core, `tsc --noEmit` in cli/engine. Also add `test`/`typecheck` tasks to `turbo.json` and lint scripts to engine (root `lint-staged` currently covers only `packages/web/**`).
 
-- [ ] **B13. Build the engine Docker image on PRs touching engine/core** (S)
+- [x] **B13. Build the engine Docker image on PRs touching engine/core** (S) — done via PR-5.8 (paths-filtered pull_request trigger builds without pushing)
   `docker-publish.yml` only fires on `engine@*` tags, so a broken `packages/engine/Dockerfile` (fragile glob COPY of `@resvg+resvg-wasm@*` at ~line 36) is only discovered at release time. Add a `push: false` build job with path filters.
 
 - [x] **B14. Route dynamic/https badges through the cache/backoff layer** (S) — done via PR-1.1 (dynamic badge uses `cachedFetchStale`, `/https` uses `cachedFetch`)
@@ -189,7 +189,7 @@
 - [x] **P11. Fix commit-rule drift between husky and CI** (S) — done via PR-0.2; checkbox was left unticked at the time, corrected here
   `.husky/commit-msg` accepts `perf`/`build`/`revert` but `commit-check.toml` omits `perf` and `build` — locally-valid commits fail CI. Branch-type lists also differ (`commit-check.toml [branch]` lacks `docs/refactor/style/test/perf/ci/build` that `.husky/pre-push` allows). Align both.
 
-- [ ] **P12. Harden Docker image + workflow supply chain** (M)
+- [x] **P12. Harden Docker image + workflow supply chain** (M) — done via PR-5.8 (base digest pin, HEALTHCHECK, amd64+arm64, SBOM + provenance; action SHA-pinning left to Dependabot-managed tags — see PR-5.8 notes for why hand-typed SHAs were declined)
   Pin `node:22-alpine` by digest, add a `HEALTHCHECK` instruction to the Dockerfile itself (only compose defines one today), build `linux/amd64,linux/arm64` (ARM self-hosters currently can't run the image), SHA-pin workflow actions, add SBOM/provenance attestation.
 
 - [x] **P13. Add Dependabot/Renovate config** (S) — done via PR-0.3; checkbox was left unticked at the time, corrected here

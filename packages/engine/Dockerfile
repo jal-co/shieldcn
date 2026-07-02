@@ -1,5 +1,8 @@
 # ── Base ──────────────────────────────────────────────
-FROM node:22-alpine AS base
+# Pinned by digest (node:22-alpine as of the last update) so a rebuild can't
+# silently pull a different base image. Refresh the digest deliberately when
+# bumping the base — `docker buildx imagetools inspect node:22-alpine`.
+FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS base
 RUN corepack enable pnpm
 
 # ── Dependencies ──────────────────────────────────────
@@ -20,7 +23,7 @@ COPY turbo.json ./
 RUN pnpm --filter @shieldcn/engine build
 
 # ── Runner ────────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -42,4 +45,10 @@ COPY --from=builder /app/node_modules/.pnpm/@resvg+resvg-wasm@*/node_modules/@re
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME="0.0.0.0"
+
+# Baked into the image so `docker run` (not just compose) gets health status.
+# Uses node's built-in fetch — no curl/wget dependency in the runtime image.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
 CMD ["node", "packages/engine/server.js"]
