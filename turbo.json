@@ -18,7 +18,8 @@
     "PGDATABASE",
     "NEON_PROJECT_ID",
     "UPSTASH_REDIS_REST_URL",
-    "UPSTASH_REDIS_REST_TOKEN"
+    "UPSTASH_REDIS_REST_TOKEN",
+    "OPENPANEL_*"
   ],
   "tasks": {
     "build": {
