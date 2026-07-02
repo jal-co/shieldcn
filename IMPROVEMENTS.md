@@ -168,7 +168,7 @@
 - [x] **P4. Resolve the disabled Twitch provider** (S) — done via PR-5.4 (re-enabled end-to-end; also fixed a real routing bug found while uncommenting it, and a pre-existing unrelated test-timeout flake found while verifying)
   Provider is fully written but dead behind commented-out routing (`route-handler.ts:1081-1089`), and the builder option is commented out (`packages/web/lib/badge-builder-shared.ts:80` TODO). Either env-gate/re-enable it end-to-end or delete both sides.
 
-- [ ] **P5. Deduplicate cross-file render helpers** (M)
+- [x] **P5. Deduplicate cross-file render helpers** (M) — done via PR-5.5 (5 shared modules/exports; render-chart's spaced-rgba kept separate by design, see notes)
   `luminance`/`rgba` (render.tsx:82-157 vs render-group.tsx:75-84), `esc`/`r2`/`clamp` redefined in render-chart.ts:174 / render-header.ts:58 / render-sponsors.ts:101, `findFontsDir` (render.tsx:38 vs render-group.tsx:32), `isRateLimitResponse` (github.ts vs starhistory.ts), coverage→color mapping (codecov.ts vs coveralls.ts), `formatCount` implemented twice (`src/format.ts:15` and `src/github.ts:68`). Consolidate into shared utils.
 
 - [x] **P6. Extract shared badge-route glue from web/engine into core** (S) — done via PR-2.6 (`createBadgeHandlers()`; also fixed `handleBadgePUT` never accepting `onError`/`onMetric` in either app, not just engine)

@@ -8,6 +8,7 @@
 
 import type { BadgeData } from "../badges/types"
 import { providerFetch } from "../provider-fetch"
+import { coveragePctAndColor } from "./coverage-color"
 
 // ---------------------------------------------------------------------------
 // Coverage
@@ -32,12 +33,7 @@ export async function getCodecovCoverage(
   const coverage = totals?.coverage as number | undefined
   if (coverage === undefined || coverage === null) return null
 
-  const pct = Math.round(coverage * 100) / 100
-  let color: string | undefined
-  if (pct >= 90) color = "green"
-  else if (pct >= 75) color = "yellow"
-  else if (pct >= 50) color = "amber"
-  else color = "red"
+  const { pct, color } = coveragePctAndColor(coverage)
 
   return {
     label: "coverage",

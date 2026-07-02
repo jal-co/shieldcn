@@ -12,11 +12,8 @@
 
 import satori from "satori"
 import { optimize } from "svgo"
-import { readFileSync, existsSync } from "node:fs"
-import { join, dirname } from "node:path"
-import { fileURLToPath } from "node:url"
 import type { BadgeConfig } from "./types"
-import { sanitizeBadgeText } from "./render"
+import { sanitizeBadgeText, luminance, rgba } from "./render"
 import {
   darkMode,
   lightMode,
@@ -24,73 +21,7 @@ import {
   getButtonSize,
   type ModeColors,
 } from "./button-tokens"
-
-// ---------------------------------------------------------------------------
-// Font loading (same as render.tsx)
-// ---------------------------------------------------------------------------
-
-function findFontsDir(): string {
-  const candidates = [
-    join(dirname(fileURLToPath(import.meta.url)), "..", "fonts"),
-    join(process.cwd(), "packages", "core", "src", "fonts"),
-    join(process.cwd(), "..", "core", "src", "fonts"),
-    join(process.cwd(), "lib", "fonts"),
-  ]
-  for (const dir of candidates) {
-    if (existsSync(join(dir, "inter-medium.ttf"))) return dir
-  }
-  throw new Error(`Could not find font files. Searched: ${candidates.join(", ")}`)
-}
-
-const fontsDir = findFontsDir()
-const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
-const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
-const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
-const jetbrainsMonoData = readFileSync(join(fontsDir, "jetbrains-mono-medium.ttf"))
-const firaCodeData = readFileSync(join(fontsDir, "fira-code-medium.ttf"))
-const robotoData = readFileSync(join(fontsDir, "roboto-medium.ttf"))
-const spaceGroteskData = readFileSync(join(fontsDir, "space-grotesk-medium.ttf"))
-
-type BadgeFont = "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
-
-const FONT_CONFIG: Record<BadgeFont, { name: string; data: Buffer }> = {
-  inter: { name: "Inter", data: interData },
-  geist: { name: "Geist", data: geistData },
-  "geist-mono": { name: "Geist Mono", data: geistMonoData },
-  "jetbrains-mono": { name: "JetBrains Mono", data: jetbrainsMonoData },
-  "fira-code": { name: "Fira Code", data: firaCodeData },
-  roboto: { name: "Roboto", data: robotoData },
-  "space-grotesk": { name: "Space Grotesk", data: spaceGroteskData },
-}
-
-function getFonts(font: BadgeFont = "inter") {
-  const f = FONT_CONFIG[font] ?? FONT_CONFIG.inter
-  return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
-}
-
-// ---------------------------------------------------------------------------
-// Color utilities (same as render.tsx)
-// ---------------------------------------------------------------------------
-
-function luminance(hex: string): number {
-  const h = hex.replace("#", "")
-  const r = parseInt(h.substring(0, 2), 16)
-  const g = parseInt(h.substring(2, 4), 16)
-  const b = parseInt(h.substring(4, 6), 16)
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return 0
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255
-}
-
-function rgba(hex: string, opacity: number): string {
-  if (opacity >= 1) return hex
-  if (hex === "transparent") return "transparent"
-  const h = hex.replace("#", "")
-  const r = parseInt(h.substring(0, 2), 16)
-  const g = parseInt(h.substring(2, 4), 16)
-  const b = parseInt(h.substring(4, 6), 16)
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return hex
-  return `rgba(${r},${g},${b},${opacity})`
-}
+import { getFonts, FONT_CONFIG, type BadgeFont } from "./satori-fonts"
 
 // ---------------------------------------------------------------------------
 // Segment — one badge cell in the group

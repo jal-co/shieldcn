@@ -13,6 +13,7 @@
 
 import { formatCount } from "../format"
 import { resolveColor, themes, type ThemeName } from "./themes"
+import { esc, r2 } from "./svg-text-utils"
 
 /**
  * A single point on a chart series. `date` (ISO-8601) places the point on a
@@ -171,14 +172,6 @@ export function resolveAccent(
   return DEFAULT_ACCENT
 }
 
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
 /** Convert hex (#rrggbb) to an rgba() string at the given alpha. */
 function rgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "")
@@ -186,11 +179,6 @@ function rgba(hex: string, alpha: number): string {
   const g = parseInt(h.substring(2, 4), 16)
   const b = parseInt(h.substring(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
-
-/** Round to 2dp for compact path data. */
-function r2(n: number): number {
-  return Math.round(n * 100) / 100
 }
 
 /** Format a date as a short month/year label. */

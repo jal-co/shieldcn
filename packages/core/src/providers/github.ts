@@ -13,25 +13,11 @@ import type { BadgeData } from "../badges/types"
 import { formatCount } from "../format"
 import { pickToken, invalidateToken } from "../token-pool"
 import { isBackedOff, recordBackoff, clearBackoff } from "../cache"
-import { raceTimeout, str } from "../provider-fetch"
+import { raceTimeout, str, isRateLimitResponse } from "../provider-fetch"
 
 // ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
-
-/**
- * True when a response is a rate limit. GitHub signals primary and secondary
- * rate limits as 403 (with an exhausted quota header or a Retry-After), not
- * just 429 — a plain 403 (e.g. a blocked repo) is NOT a rate limit.
- */
-function isRateLimitResponse(response: Response): boolean {
-  if (response.status === 429) return true
-  return (
-    response.status === 403 &&
-    (response.headers.get("x-ratelimit-remaining") === "0" ||
-      response.headers.get("retry-after") !== null)
-  )
-}
 
 async function githubFetch(url: string, revalidate: number = 3600): Promise<Response | null> {
   if (await isBackedOff("github")) return null

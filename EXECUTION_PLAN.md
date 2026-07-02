@@ -1093,8 +1093,37 @@ Postgres credentials.
   and degrade to a graceful "not found" (not a crash) without Twitch
   credentials configured — the same fail-open behavior every other
   optional-credential provider already has.
-- **PR-5.5** Dedup render helpers (`luminance`/`rgba`/`esc`/`clamp`/`findFontsDir`/
-  `formatCount` ×2) · **P5** · M
+- **PR-5.5** ✅ Dedup render helpers (`luminance`/`rgba`/`esc`/`clamp`/`findFontsDir`/
+  `formatCount` ×2) · **P5** · M — consolidated five clusters of copy-pasted
+  helpers into shared modules, grouped by their genuine consumer rather than
+  forced into one grab-bag:
+  - **`badges/satori-fonts.ts`** (new) — the `findFontsDir()` + 7 `readFileSync`
+    calls + `FONT_CONFIG` + `getFonts()` block was byte-identical in `render.tsx`
+    and `render-group.tsx` (both render shadcn Buttons via Satori). `BadgeFont` is
+    re-exported from `render.tsx` so its public type surface is unchanged.
+    Deliberately kept separate from the existing `fonts.ts`, which loads the same
+    TTFs but shapes them as a flat `Uint8Array[]` for **resvg**'s PNG API — a
+    different consumer with a different shape, not a merge candidate.
+  - **`render.tsx` now exports `luminance`/`rgba`** — `render-group.tsx` imported
+    them instead of redefining (its own copies were verbatim).
+  - **`badges/svg-text-utils.ts`** (new) — `esc`/`r2`/`clamp` were triplicated
+    across the three hand-built-SVG renderers (chart/header/sponsors); chart had
+    no `clamp`, the other two did — the shared module exports all three.
+  - **`provider-fetch.ts` now exports `isRateLimitResponse`** — was identical in
+    `providers/github.ts` and `providers/starhistory.ts` (both hit the GitHub API
+    directly and need the same 403-with-exhausted-quota detection).
+  - **`providers/coverage-color.ts`** (new) — `providers/codecov.ts` and
+    `providers/coveralls.ts` had the same `pct >= 90 ? green : …` threshold ladder;
+    `coveragePctAndColor()` gives them one source of truth so the two coverage
+    providers can't drift on what counts as "good."
+  Note: `render-chart.ts` keeps its own `rgba` — it takes a *spaced* `rgba(r, g,
+  b, a)` string for inline SVG, distinct from `render.tsx`'s compact
+  `rgba(r,g,b,a)` for Satori; merging them would change one renderer's output
+  bytes, so they're intentionally left separate. Verified: `tsc --noEmit` clean,
+  full `pnpm test` (288/10 core, all packages green), full `next build`, and a
+  live Playwright screenshot pass — badge/group/chart/header all render
+  byte-identically to before (group's outline ButtonGroup + separator, header's
+  gradient/title/subtitle, chart's axes/gridlines, single badge's branded fill).
 - **PR-5.6** Version single-sourcing (engine health, CLI) · **P9** · S
 - **PR-5.7** CLI npm release workflow + gitignore `dist/` · **P10** · M
 - **PR-5.8** Docker/supply-chain hardening (digest pin, HEALTHCHECK, arm64, SHA-pin

@@ -19,7 +19,7 @@
 
 import { pickToken, invalidateToken } from "../token-pool"
 import { isBackedOff, recordBackoff, clearBackoff, cachedFetchStale } from "../cache"
-import { raceTimeout } from "../provider-fetch"
+import { raceTimeout, isRateLimitResponse } from "../provider-fetch"
 
 /** A single point on a cumulative curve. */
 export interface StarPoint {
@@ -43,16 +43,6 @@ export interface StarHistory {
 const MAX_POINTS = 30
 /** GitHub caps stargazer pagination at 400 pages (40k stars). */
 const MAX_PAGE = 400
-
-/** Same rate-limit detection as the main GitHub client. */
-function isRateLimitResponse(response: Response): boolean {
-  if (response.status === 429) return true
-  return (
-    response.status === 403 &&
-    (response.headers.get("x-ratelimit-remaining") === "0" ||
-      response.headers.get("retry-after") !== null)
-  )
-}
 
 /**
  * Fetch a GitHub URL through the token pool. `accept` lets the caller request

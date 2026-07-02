@@ -161,3 +161,19 @@ export function str(value: unknown): string | undefined {
 export function num(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined
 }
+
+/**
+ * True when a GitHub API response is a rate limit. GitHub signals primary and
+ * secondary rate limits as 403 (with an exhausted quota header or a
+ * Retry-After), not just 429 — a plain 403 (e.g. a blocked repo) is NOT a
+ * rate limit. Shared by providers/github.ts and providers/starhistory.ts,
+ * both of which hit the GitHub API directly.
+ */
+export function isRateLimitResponse(response: Response): boolean {
+  if (response.status === 429) return true
+  return (
+    response.status === 403 &&
+    (response.headers.get("x-ratelimit-remaining") === "0" ||
+      response.headers.get("retry-after") !== null)
+  )
+}

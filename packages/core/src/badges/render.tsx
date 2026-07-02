@@ -17,9 +17,6 @@
 import * as React from "react"
 import satori from "satori"
 import { optimize } from "svgo"
-import { readFileSync } from "node:fs"
-import { join, dirname } from "node:path"
-import { fileURLToPath } from "node:url"
 import type { BadgeConfig } from "./types"
 import { animateSvg } from "./animate"
 import {
@@ -29,57 +26,12 @@ import {
   getButtonSize,
   type ModeColors,
 } from "./button-tokens"
+import { getFonts, FONT_CONFIG, type BadgeFont } from "./satori-fonts"
 
-// Pre-load all font files
-// Try multiple paths to find fonts — Vercel, Docker standalone, and local dev
-// all resolve import.meta.url and process.cwd() differently.
-import { existsSync } from "node:fs"
-
-function findFontsDir(): string {
-  const candidates = [
-    // 1. Relative to this file via import.meta.url (works in Docker standalone)
-    join(dirname(fileURLToPath(import.meta.url)), "..", "fonts"),
-    // 2. In packages/core/src/fonts relative to cwd (works in local dev / Vercel)
-    join(process.cwd(), "packages", "core", "src", "fonts"),
-    // 3. Relative to cwd when cwd is packages/web (Vercel with root=packages/web)
-    join(process.cwd(), "..", "core", "src", "fonts"),
-    // 4. Legacy path (pre-monorepo)
-    join(process.cwd(), "lib", "fonts"),
-  ]
-  for (const dir of candidates) {
-    if (existsSync(join(dir, "inter-medium.ttf"))) return dir
-  }
-  throw new Error(`Could not find font files. Searched: ${candidates.join(", ")}`)
-}
-
-const fontsDir = findFontsDir()
-const interData = readFileSync(join(fontsDir, "inter-medium.ttf"))
-const geistData = readFileSync(join(fontsDir, "geist-medium.ttf"))
-const geistMonoData = readFileSync(join(fontsDir, "geist-mono-medium.ttf"))
-const jetbrainsMonoData = readFileSync(join(fontsDir, "jetbrains-mono-medium.ttf"))
-const firaCodeData = readFileSync(join(fontsDir, "fira-code-medium.ttf"))
-const robotoData = readFileSync(join(fontsDir, "roboto-medium.ttf"))
-const spaceGroteskData = readFileSync(join(fontsDir, "space-grotesk-medium.ttf"))
-
-export type BadgeFont = "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
-
-const FONT_CONFIG: Record<BadgeFont, { name: string; data: Buffer }> = {
-  inter: { name: "Inter", data: interData },
-  geist: { name: "Geist", data: geistData },
-  "geist-mono": { name: "Geist Mono", data: geistMonoData },
-  "jetbrains-mono": { name: "JetBrains Mono", data: jetbrainsMonoData },
-  "fira-code": { name: "Fira Code", data: firaCodeData },
-  roboto: { name: "Roboto", data: robotoData },
-  "space-grotesk": { name: "Space Grotesk", data: spaceGroteskData },
-}
-
-function getFonts(font: BadgeFont = "inter") {
-  const f = FONT_CONFIG[font] ?? FONT_CONFIG.inter
-  return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
-}
+export type { BadgeFont }
 
 /** Relative luminance of a hex color (0 = black, 1 = white). */
-function luminance(hex: string): number {
+export function luminance(hex: string): number {
   const h = hex.replace("#", "")
   const r = parseInt(h.substring(0, 2), 16)
   const g = parseInt(h.substring(2, 4), 16)
@@ -154,7 +106,7 @@ function ensureLightModeContrast(hex: string): string {
 }
 
 /** Hex → rgba with baked-in opacity */
-function rgba(hex: string, opacity: number): string {
+export function rgba(hex: string, opacity: number): string {
   if (opacity >= 1) return hex
   if (hex === "transparent") return "transparent"
   const h = hex.replace("#", "")
