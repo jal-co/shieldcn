@@ -3,7 +3,8 @@
 # silently pull a different base image. Refresh the digest deliberately when
 # bumping the base — `docker buildx imagetools inspect node:22-alpine`.
 FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
-RUN corepack enable pnpm
+# Node 25+ no longer bundles Corepack — install it explicitly
+RUN npm install -g corepack@latest && corepack enable pnpm
 
 # ── Dependencies ──────────────────────────────────────
 FROM base AS deps
