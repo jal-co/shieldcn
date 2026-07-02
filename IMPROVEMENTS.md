@@ -159,7 +159,7 @@
 - [ ] **P1. Guard or noindex the `/dev/*` pages in production** (S)
   7 pages under `app/dev/` ship to prod with no `NODE_ENV` guard or `robots: noindex` (robots.txt disallows them but they're reachable); `app/dev/preview/page.tsx` pulls `html-to-image` into the prod bundle. Return `notFound()` outside development.
 
-- [ ] **P2. Add missing routes to the sitemap; add web manifest + theme-color** (S)
+- [x] **P2. Add missing routes to the sitemap; add web manifest + theme-color** (S) — done via PR-5.1
   `app/sitemap.ts:30-41` omits `/contributors`, `/sponsors`, `/privacy`. No `manifest.webmanifest` or `theme-color` meta in `app/layout.tsx` despite icons existing.
 
 - [ ] **P3. Remove dead code in core** (S)

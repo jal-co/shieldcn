@@ -1030,7 +1030,7 @@ table, `/api/gen-count` and the two OAuth token-pool endpoints documented,
 and a "change this" warning added next to the quick-start's placeholder
 Postgres credentials.
 
-- **PR-5.1** SEO/PWA: sitemap gaps + manifest + theme-color · **P2** · S
+- **PR-5.1** ✅ SEO/PWA: sitemap gaps + manifest + theme-color · **P2** · S — `app/sitemap.ts` gained `/contributors`, `/sponsors`, `/privacy` (matched to their nearest sibling's priority/frequency — `/gallery` deliberately excluded, it's a bare redirect to `/showcase` with no content of its own, and a sitemap entry for a redirect is sitemap spam, not a real gap); new `app/manifest.ts` (Next's file-convention → auto-linked `<link rel="manifest">`, verified live); `layout.tsx` gained a `viewport` export with light/dark `themeColor` (Next 14+ moved `themeColor` out of `metadata` into its own export — putting it in `metadata` would silently no-op). Verified live via curl: `/manifest.webmanifest` serves valid JSON, `/sitemap.xml` contains all three new routes, and both `<meta name="theme-color">` tags render with the correct `media` queries.
 - **PR-5.2** Guard/noindex `/dev/*`; drop `html-to-image` from prod bundle · **P1** · S
 - **PR-5.3** Dead-code removal (`route-handler.ts:514`, `cocoapods` platform,
   legacy `github.ts`, unused `KNOWN_PARAMS`) · **P3** · S

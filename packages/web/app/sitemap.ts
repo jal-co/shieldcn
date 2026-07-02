@@ -32,11 +32,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/studio`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE_URL}/showcase`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/header`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/contributors`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/sponsors`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/gen`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/gen/profile`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/sponsor`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/token-pool`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BASE_URL}/migrate`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE_URL}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ]
 
   // Docs pages — auto-discovered from content/docs
