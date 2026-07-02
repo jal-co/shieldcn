@@ -85,7 +85,7 @@ jobs:
             echo "tags=ghcr.io/${{ github.repository }}/engine:pr-${{ github.event.number }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: packages/engine/Dockerfile
