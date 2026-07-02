@@ -1,6 +1,7 @@
 // shieldcn — app/dev/badge-og/page.tsx
 // OG-ready badge background with vignette and logo space in center
 
+import { notFound } from "next/navigation"
 import { allBadgePaths } from "@/lib/showcase-data"
 
 function shuffleWithSeed(arr: string[], seed: number): string[] {
@@ -16,6 +17,8 @@ const ROW_COUNT = 9
 const BADGES_PER_ROW = 24
 
 export default function BadgeOgPage() {
+  if (process.env.NODE_ENV !== "development") notFound()
+
   const rows: string[][] = []
   for (let i = 0; i < ROW_COUNT; i++) {
     const shuffled = shuffleWithSeed(allBadgePaths, i * 7 + 3)

@@ -156,7 +156,7 @@
 
 ## 4. Improvements — P2: polish, hygiene, docs
 
-- [ ] **P1. Guard or noindex the `/dev/*` pages in production** (S)
+- [x] **P1. Guard or noindex the `/dev/*` pages in production** (S) — done via PR-5.2; found a broader pre-existing 404-status-code issue along the way, logged as **P18**
   7 pages under `app/dev/` ship to prod with no `NODE_ENV` guard or `robots: noindex` (robots.txt disallows them but they're reachable); `app/dev/preview/page.tsx` pulls `html-to-image` into the prod bundle. Return `notFound()` outside development.
 
 - [x] **P2. Add missing routes to the sitemap; add web manifest + theme-color** (S) — done via PR-5.1
@@ -203,6 +203,9 @@
 
 - [ ] **P16. Split the two monolith client files** (M)
   `components/studio/inspectors.tsx` (1,387 lines — all block inspectors in one client file) and `app/gen/generator-client.tsx` (1,068 lines with five "Pre-existing react-compiler debt" comments at :72, :82, :132, :158, :239). Split per block type / extract generator sections for maintainability and per-inspector code-splitting.
+
+- [ ] **P18. `notFound()` serves 200, not 404, site-wide under `next start`** (M)
+  Discovered while gating `/dev/*` (PR-5.2, generalizing a narrower case already flagged in PR-3.1's notes): any route whose page calls `notFound()` — including genuinely unmatched paths like `/this-does-not-exist-xyz` with no matching route at all — renders the correct "Page not found" content but is served with HTTP `200`, not `404`. Reproduces with a stock `next build && next start`, unrelated to any backlog change. Likely an interaction between `middleware.ts`'s `NextResponse.next()` passthrough (it runs on every non-asset route per its matcher) and how Turbopack serves prerendered not-found output — needs isolating whether the middleware is stripping/overriding the status, or if it's a Next 16 static-notFound serving quirk independent of middleware. Wrong status code affects crawler/monitoring signals (search engines and uptime checks that key off status rather than content will misclassify these as healthy 200s) even though `robots.txt` already keeps `/dev/*` out of the crawl.
 
 - [ ] **P17. Pay down pre-existing web lint debt; make `pnpm lint` a hard CI gate** (M)
   Discovered while wiring CI (B12): `cd packages/web && eslint .` reports 17 errors / 9 warnings on unmodified `main` — none introduced by this backlog. Root `lint-staged` only lints staged files on commit, so historical files were never swept. Breakdown: ~12 files trip `react-hooks` "Calling setState synchronously within an effect can trigger cascading renders" (`components/mobile-nav.tsx:15`, `badge-card.tsx:19`, `badge-marquee.tsx:49`, `group-showcase.tsx:29`, `hero-icon-cloud.tsx:32`, `github-star-cta.tsx:31`, `animated-showcase.tsx:59`, `analytics.tsx:16`, `app/migrate/migrate-client.tsx:102`, `components/tour.tsx:143`, plus 2 more); `components/fancy/text/underline-to-background.tsx:111` trips "Cannot create components during render"; `components/tour.tsx:162` trips "Cannot access variable before it is declared" and a related "Compilation Skipped: Existing memoization could not be preserved" at `:217`; `components/animated-showcase.tsx:68` and `components/token-pool/page.tsx:121` use `<a>` instead of `next/link` for internal navigation; a handful of unused-var/unused-expression warnings round it out. Fix each (each setState-in-effect case likely needs the state derived during render or the update deferred, not a blanket suppression), then flip the CI `Lint` step (`.github/workflows/ci.yml`) from `continue-on-error: true` to a hard gate. **Do not silence these with eslint-disable — several flag real timing bugs, not false positives.**

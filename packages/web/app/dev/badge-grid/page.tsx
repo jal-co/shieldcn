@@ -1,9 +1,12 @@
 // shieldcn — app/dev/badge-grid/page.tsx
 // Full-page badge grid for OG image / social image screenshots
 
+import { notFound } from "next/navigation"
 import { allBadgePaths } from "@/lib/showcase-data"
 
 export default function BadgeGridPage() {
+  if (process.env.NODE_ENV !== "development") notFound()
+
   // Use all showcase badges
   const badges = allBadgePaths
 
