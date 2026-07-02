@@ -28,21 +28,27 @@ let resvgReady: Promise<void> | null = null
 async function ensureResvg(initWasm: (input: unknown) => Promise<void>): Promise<void> {
   if (resvgReady) return resvgReady
   resvgReady = (async () => {
+    if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+      try {
+        const fs = await import("node:fs")
+        const path = await import("node:path")
+        const p = path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm")
+        if (fs.existsSync(p)) {
+          await initWasm(fs.readFileSync(p))
+          return
+        }
+      } catch { /* fs unavailable */ }
+    }
     try {
-      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-        try {
-          const fs = await import("node:fs")
-          const path = await import("node:path")
-          const p = path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm")
-          if (fs.existsSync(p)) {
-            await initWasm(fs.readFileSync(p))
-            return
-          }
-        } catch { /* fs unavailable */ }
-      }
       await initWasm(fetch("https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm"))
-    } catch { /* already initialized */ }
+    } catch (err) {
+      // initWasm throws if already initialized — fine. Anything else (e.g. a
+      // transient CDN failure) must reject so the next call retries.
+      if (!/already/i.test(String(err))) throw err
+    }
   })()
+  // Never cache a failure — clear so the next request retries initialization.
+  resvgReady.catch(() => { resvgReady = null })
   return resvgReady
 }
 

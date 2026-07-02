@@ -2219,26 +2219,34 @@ async function ensureResvg(): Promise<typeof import("@resvg/resvg-wasm")> {
   if (!resvgModulePromise) {
     resvgModulePromise = (async () => {
       const mod = await import("@resvg/resvg-wasm")
-      try {
-        let wasmLoaded = false
-        if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-          try {
-            const fs = await import("node:fs")
-            const path = await import("node:path")
-            // In standalone mode, WASM is copied to node_modules/@resvg/resvg-wasm/
-            const candidate = path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm")
-            if (fs.existsSync(candidate)) {
-              await mod.initWasm(fs.readFileSync(candidate))
-              wasmLoaded = true
-            }
-          } catch { /* fs not available or file not found */ }
-        }
-        if (!wasmLoaded) {
+      let wasmLoaded = false
+      if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+        try {
+          const fs = await import("node:fs")
+          const path = await import("node:path")
+          // In standalone mode, WASM is copied to node_modules/@resvg/resvg-wasm/
+          const candidate = path.join(process.cwd(), "node_modules", "@resvg", "resvg-wasm", "index_bg.wasm")
+          if (fs.existsSync(candidate)) {
+            await mod.initWasm(fs.readFileSync(candidate))
+            wasmLoaded = true
+          }
+        } catch { /* fs not available or file not found */ }
+      }
+      if (!wasmLoaded) {
+        try {
           await mod.initWasm(fetch(RESVG_WASM_CDN_URL))
+        } catch (err) {
+          // initWasm throws if the module is already initialized — that's fine.
+          // Anything else (e.g. a transient CDN fetch failure) must reject so
+          // the cache below is cleared and the next request retries.
+          if (!/already/i.test(String(err))) throw err
         }
-      } catch { /* already initialized — safe to ignore and use the module */ }
+      }
       return mod
     })()
+    // Never cache a failure: a rejected promise stored here would otherwise
+    // make every future PNG render fail until the process restarts.
+    resvgModulePromise.catch(() => { resvgModulePromise = null })
   }
   return resvgModulePromise
 }
