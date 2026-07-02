@@ -2,7 +2,7 @@
 # Pinned by digest (node:22-alpine as of the last update) so a rebuild can't
 # silently pull a different base image. Refresh the digest deliberately when
 # bumping the base — `docker buildx imagetools inspect node:22-alpine`.
-FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS base
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 RUN corepack enable pnpm
 
 # ── Dependencies ──────────────────────────────────────
@@ -23,7 +23,7 @@ COPY turbo.json ./
 RUN pnpm --filter @shieldcn/engine build
 
 # ── Runner ────────────────────────────────────────────
-FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS runner
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
