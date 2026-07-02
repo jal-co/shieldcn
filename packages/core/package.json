@@ -28,23 +28,23 @@
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
-    "@upstash/redis": "^1.37.0",
-    "@vercel/oidc": "^3.6.1",
+    "@upstash/redis": "^1.38.0",
+    "@vercel/oidc": "^3.8.0",
     "jsonpath-plus": "^10.4.0",
-    "lru-cache": "^11.3.5",
+    "lru-cache": "^11.5.1",
     "modern-gif": "^2.1.0",
-    "pg": "^8.20.0",
-    "react-icons": "^5.6.0",
+    "pg": "^8.22.0",
+    "react-icons": "^5.7.0",
     "satori": "^0.26.0",
-    "simple-icons": "^16.17.0",
+    "simple-icons": "^16.24.1",
     "svgo": "^4.0.1"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "typescript": "^5",
-    "vitest": "^3"
+    "typescript": "^6",
+    "vitest": "^4"
   },
   "peerDependencies": {
     "react": "^19",

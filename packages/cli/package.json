@@ -41,16 +41,16 @@
     "url": "https://github.com/jal-co/shieldcn/issues"
   },
   "dependencies": {
-    "citty": "^0.1.6",
+    "citty": "^0.2.2",
     "consola": "^3.4.2",
     "picocolors": "^1.1.1",
-    "yaml": "^2.7.1"
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "tsup": "^8.5.0",
-    "typescript": "^5",
-    "vitest": "^3"
+    "typescript": "^6",
+    "vitest": "^4"
   },
   "engines": {
     "node": ">=18"

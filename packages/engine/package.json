@@ -11,18 +11,18 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.56.0",
+    "@sentry/nextjs": "^10.63.0",
     "@shieldcn/core": "workspace:*",
-    "next": "16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
-    "@sentry/profiling-node": "^10.56.0",
-    "@types/node": "^20",
+    "@sentry/profiling-node": "^10.63.0",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "typescript": "^5",
-    "vitest": "^3"
+    "typescript": "^6",
+    "vitest": "^4"
   }
 }
