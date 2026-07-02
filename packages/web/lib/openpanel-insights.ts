@@ -16,6 +16,7 @@
  */
 
 const API_BASE = "https://api.openpanel.dev/insights"
+const EXPORT_BASE = "https://api.openpanel.dev/export"
 
 const projectId = process.env.OPENPANEL_PROJECT_ID
 const clientId = process.env.OPENPANEL_READ_CLIENT_ID
@@ -85,6 +86,49 @@ export async function getTopPages(): Promise<TopPage[] | null> {
 export async function getLiveVisitors(): Promise<number | null> {
   const data = await opGet<{ visitors: number }>("/live", 60)
   return typeof data?.visitors === "number" ? data.visitors : null
+}
+
+export interface BadgesServed {
+  /** Total badge_rendered events in the window. */
+  total: number
+  /** Daily counts, oldest first. */
+  series: { date: string; count: number }[]
+}
+
+/**
+ * Badges served over the last 30 days — the count of server-tracked
+ * badge_rendered events (every SVG/PNG/GIF badge response), via the
+ * aggregated /export/charts endpoint.
+ */
+export async function getBadgesServed(): Promise<BadgesServed | null> {
+  if (!configured) return null
+  try {
+    const params = new URLSearchParams({
+      events: JSON.stringify([{ name: "badge_rendered", segment: "event" }]),
+      range: "30d",
+      interval: "day",
+      chartType: "linear",
+    })
+    const res = await fetch(`${EXPORT_BASE}/charts?${params}`, {
+      headers: {
+        "openpanel-client-id": clientId!,
+        "openpanel-client-secret": clientSecret!,
+      },
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const serie = data?.series?.[0]
+    if (!serie) return null
+    const series = (serie.data ?? []).map((p: { date: string; count: number }) => ({
+      date: p.date,
+      count: Number(p.count ?? 0),
+    }))
+    const total = Number(serie.metrics?.sum ?? 0)
+    return { total, series }
+  } catch {
+    return null
+  }
 }
 
 export function isAnalyticsConfigured(): boolean {

@@ -17,6 +17,7 @@ import {
   getAnalyticsOverview,
   getTopPages,
   getLiveVisitors,
+  getBadgesServed,
 } from "@/lib/openpanel-insights"
 import { getGenCount } from "@shieldcn/core/gen-counter"
 
@@ -99,10 +100,11 @@ function ChartCard({
 }
 
 export default async function StatsPage() {
-  const [overview, topPages, live, stars, genCount] = await Promise.all([
+  const [overview, topPages, live, badges, stars, genCount] = await Promise.all([
     getAnalyticsOverview(),
     getTopPages(),
     getLiveVisitors(),
+    getBadgesServed(),
     getGitHubStars(),
     getGenCount(),
   ])
@@ -170,6 +172,30 @@ export default async function StatsPage() {
             </div>
           )}
 
+          {badges && (
+            <>
+              <h2 className="mt-10 text-lg font-semibold tracking-tight">Badge traffic</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Every badge served — README embeds, npm pages, docs sites —
+                tracked server-side at render time.
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <StatCard label="Badges served (30d)" value={formatStat(badges.total)} />
+                <StatCard
+                  label="Per day (avg)"
+                  value={formatStat(badges.series.length ? badges.total / badges.series.length : null)}
+                />
+              </div>
+              <div className="mt-4">
+                <ChartCard
+                  title="Badges served"
+                  points={badges.series.map((p) => p.count)}
+                  color="var(--chart-3)"
+                />
+              </div>
+            </>
+          )}
+
           {topPages && topPages.length > 0 && (
             <div className="mt-4 rounded-lg border border-border bg-card p-4">
               <p className="mb-3 text-sm font-medium text-muted-foreground">Top pages</p>
@@ -196,8 +222,9 @@ export default async function StatsPage() {
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            Badge-serving traffic (README embeds) is not included — these are
-            website visits only. Interested in sponsoring?{" "}
+            Website metrics and badge traffic are tracked separately — badge
+            counts are server-side render events, not pageviews. Interested in
+            sponsoring?{" "}
             <Link href="/sponsor" className="underline underline-offset-4 hover:text-foreground">
               See sponsor tiers
             </Link>
