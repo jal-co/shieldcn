@@ -44,7 +44,7 @@ jobs:
 
       # QEMU enables cross-building the linux/arm64 image on an amd64 runner —
       # ARM self-hosters previously had no runnable image.
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
 
       - uses: docker/setup-buildx-action@v3
 
