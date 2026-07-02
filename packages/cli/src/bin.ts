@@ -18,8 +18,11 @@ import { migrateAll, replaceShieldsUrls } from "./migrate.js"
 import { findReadme, injectBadges, hasMarkers } from "./inject.js"
 import { VARIANTS, SIZES, THEMES, SHIELDCN_BASE } from "./constants.js"
 import type { GlobalSettings, Badge } from "./types.js"
+import pkg from "../package.json" with { type: "json" }
 
-const version = "1.0.0"
+// Single-sourced from package.json (esbuild inlines the JSON at build time),
+// so `shieldcn --version` can never drift from the published npm version.
+const version: string = pkg.version
 
 // ── Helpers ───────────────────────────────────────────────────────────
 

@@ -1124,7 +1124,16 @@ Postgres credentials.
   live Playwright screenshot pass — badge/group/chart/header all render
   byte-identically to before (group's outline ButtonGroup + separator, header's
   gradient/title/subtitle, chart's axes/gridlines, single badge's branded fill).
-- **PR-5.6** Version single-sourcing (engine health, CLI) · **P9** · S
+- **PR-5.6** ✅ Version single-sourcing (engine health, CLI) · **P9** · S — both
+  the CLI (`bin.ts`, was a hardcoded `const version = "1.0.0"`) and the engine
+  health route (was `version: "0.0.1"` string literal) now
+  `import pkg from "…/package.json" with { type: "json" }` and read `pkg.version`.
+  esbuild inlines the JSON into the CLI's `dist/bin.js` at build (verified:
+  `shieldcn --version` → `1.0.0`); Next bundles it into the engine route
+  (verified live: `GET /api/health` → `"version":"0.0.1"`). Both are now
+  physically incapable of drifting from their package.json. Verified: `tsc`
+  clean for both packages, CLI built + `--version` checked, engine `next build`
+  + live `/api/health` hit.
 - **PR-5.7** CLI npm release workflow + gitignore `dist/` · **P10** · M
 - **PR-5.8** Docker/supply-chain hardening (digest pin, HEALTHCHECK, arm64, SHA-pin
   actions, SBOM) + build-on-PR (**B13**) · **P12** · M

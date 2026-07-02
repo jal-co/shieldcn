@@ -7,6 +7,7 @@
 
 import { getPoolStats } from "@shieldcn/core/token-pool"
 import { query } from "@shieldcn/core/db"
+import pkg from "../../../package.json" with { type: "json" }
 
 export async function GET() {
   // getPoolStats() swallows its own DB errors and returns zeros on failure —
@@ -23,7 +24,7 @@ export async function GET() {
   const pool = await getPoolStats()
 
   return Response.json(
-    { ok: dbOk, engine: "shieldcn", version: "0.0.1", db: dbOk ? "up" : "down", pool },
+    { ok: dbOk, engine: "shieldcn", version: pkg.version, db: dbOk ? "up" : "down", pool },
     { status: dbOk ? 200 : 503 },
   )
 }

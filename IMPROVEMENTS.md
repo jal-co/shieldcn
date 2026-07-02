@@ -180,7 +180,7 @@
 - [x] **P8. Bound badge dimension overrides at the renderer** (S) — done via PR-2.6 (`BADGE_DIM_BOUNDS`/`clampBadgeDim()`, satori() wrapped with a non-recursive error-badge fallback)
   The route clamps numeric params (`route-handler.ts:3560-3577`) but `renderBadge`/`renderBadgeGroup` accept `height`/`fontSize`/`iconSize` unchecked (`render.tsx:258-268`), so other callers (engine, future endpoints) can pass `height: 1e9` into Satori. Mirror the clamps in the renderer and wrap the `satori()` call (:405) to degrade to `renderErrorBadge`.
 
-- [ ] **P9. De-duplicate hardcoded versions** (S)
+- [x] **P9. De-duplicate hardcoded versions** (S) — done via PR-5.6 (both import from package.json; verified CLI --version and engine /api/health)
   Engine health route hardcodes `version: "0.0.1"` (`app/api/health/route.ts:15`) vs its package.json; CLI hardcodes `const version = "1.0.0"` (`src/bin.ts:24`). Import from package.json or inject at build (tsup `define`).
 
 - [ ] **P10. Add npm release automation for the CLI; stop committing `dist/`** (M)

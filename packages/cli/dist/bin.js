@@ -1002,8 +1002,67 @@ ${INJECT_END}`;
   return block + "\n\n" + content;
 }
 
+// package.json
+var package_default = {
+  name: "shieldcn-cli",
+  version: "1.0.0",
+  description: "Generate beautiful README badges from your terminal. Scans your repo, detects your stack, and outputs copy-paste markdown.",
+  type: "module",
+  bin: {
+    shieldcn: "dist/bin.js"
+  },
+  files: [
+    "dist"
+  ],
+  scripts: {
+    build: "tsup",
+    dev: "tsup --watch",
+    typecheck: "tsc --noEmit",
+    test: "vitest run",
+    "test:watch": "vitest"
+  },
+  keywords: [
+    "badges",
+    "readme",
+    "shields",
+    "shields.io",
+    "shadcn",
+    "github",
+    "npm",
+    "cli",
+    "markdown",
+    "svg"
+  ],
+  author: "Justin Levine <hey@justinlevine.me> (https://justinlevine.me)",
+  license: "MIT",
+  repository: {
+    type: "git",
+    url: "https://github.com/jal-co/shieldcn",
+    directory: "packages/cli"
+  },
+  homepage: "https://shieldcn.dev/docs/cli",
+  bugs: {
+    url: "https://github.com/jal-co/shieldcn/issues"
+  },
+  dependencies: {
+    citty: "^0.1.6",
+    consola: "^3.4.2",
+    picocolors: "^1.1.1",
+    yaml: "^2.7.1"
+  },
+  devDependencies: {
+    "@types/node": "^20",
+    tsup: "^8.5.0",
+    typescript: "^5",
+    vitest: "^3"
+  },
+  engines: {
+    node: ">=18"
+  }
+};
+
 // src/bin.ts
-var version = "1.0.0";
+var version = package_default.version;
 function copyToClipboard(text) {
   try {
     const platform = process.platform;
