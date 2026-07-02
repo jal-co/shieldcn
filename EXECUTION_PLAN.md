@@ -1179,7 +1179,16 @@ Postgres credentials.
   (digest-format pin + one HEALTHCHECK line); the actual multi-arch build /
   attestation runs will first exercise on the next PR via the new build-on-PR
   trigger.
-- **PR-5.9** Configurable Sentry sample rates · **P14** · S
+- **PR-5.9** ✅ Configurable Sentry sample rates · **P14** · S — both
+  `sentry.server.config.ts` (traces + profiles) and `sentry.edge.config.ts`
+  (traces) hardcoded `tracesSampleRate: 1`/`profilesSampleRate: 1` — sampling
+  every request, expensive at badge-service volumes. Now read from
+  `SENTRY_TRACES_SAMPLE_RATE` / `SENTRY_PROFILES_SAMPLE_RATE` via a small
+  clamped parser (default `0.1`, ignores out-of-range/non-numeric input and
+  falls back). Documented both in the README env table and `.env.example`.
+  Verified: engine typechecks + builds, and the parser's fallback/clamp logic
+  passes a unit check (undefined/empty/valid/0/1/out-of-range/non-numeric all
+  resolve as intended). Sentry stays fully inert without a DSN, unchanged.
 - **PR-5.10** Split monolith client files (`inspectors.tsx`, `generator-client.tsx`)
   · **P16** · M
 - **PR-5.11** Pay down pre-existing web lint debt (17 errors, mostly

@@ -195,7 +195,7 @@
 - [x] **P13. Add Dependabot/Renovate config** (S) — done via PR-0.3; checkbox was left unticked at the time, corrected here
   Root package.json carries seven manual security `pnpm.overrides` — evidence patching is manual. Add `.github/dependabot.yml` covering npm (workspace), github-actions, and docker.
 
-- [ ] **P14. Make Sentry sample rates configurable in the engine** (S)
+- [x] **P14. Make Sentry sample rates configurable in the engine** (S) — done via PR-5.9 (SENTRY_TRACES/PROFILES_SAMPLE_RATE env vars, default 0.1, clamped)
   `packages/engine/sentry.server.config.ts` hardcodes `tracesSampleRate: 1` and `profilesSampleRate: 1` — expensive at badge-service request volumes. Read from env with defaults ~0.1.
 
 - [x] **P15. Fill engine README/env-doc gaps** (S) — `TOKEN_ENCRYPTION_KEY`/`SHIELDCN_ALLOW_PRIVATE_FETCH` done via PR-1.2; the rest (Sentry DSN env var, OAuth/gen-count endpoint docs, postgres credential warning) finished during Phase 5 hygiene pass

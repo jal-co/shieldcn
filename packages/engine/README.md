@@ -105,6 +105,8 @@ Create a token at [github.com/settings/tokens](https://github.com/settings/token
 | `UPSTASH_REDIS_REST_TOKEN` | — | — | Upstash Redis token |
 | `NEXT_PUBLIC_URL` | — | `http://localhost:3000` | Base URL for OAuth callbacks |
 | `NEXT_PUBLIC_SENTRY_DSN` | — | — | Sentry DSN for error monitoring. Leave unset to run without it. |
+| `SENTRY_TRACES_SAMPLE_RATE` | — | `0.1` | Fraction (0–1) of requests traced. Default samples 10% — raise toward `1` only for low-traffic deployments. |
+| `SENTRY_PROFILES_SAMPLE_RATE` | — | `0.1` | Fraction (0–1) of traced requests profiled (server runtime only). |
 | `SHIELDCN_ALLOW_PRIVATE_FETCH` | — | `false` | Set to `true` only if you intentionally want badges (dynamic JSON, `/https`, header logo/image, chart `?url=`, and instance-host providers like Mastodon/Lemmy) to be able to reach private/loopback/link-local/metadata addresses on your network. Unset keeps the SSRF guard fully enforced — enabling this turns the badge route into a proxy into your private network, so only set it if you understand that tradeoff. |
 
 ## Endpoints
