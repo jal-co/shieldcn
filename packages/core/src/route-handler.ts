@@ -513,7 +513,6 @@ async function fetchBadgeData(
       const npmTopics = new Set(["v", "dw", "dm", "dy", "dt", "license", "node", "types", "dependents"])
       if (npmTopics.has(rest[0])) {
         const topic = rest[0]
-        const pkg = rest.slice(1, rest.length - (rest.length > 2 && !rest[rest.length - 1].includes("@") && rest[rest.length - 1] !== rest[1] ? 0 : 0)).join("/")
         // Handle scoped packages: /npm/v/@scope/pkg or /npm/v/@scope/pkg/tag
         let pkgName: string
         let tag: string | undefined

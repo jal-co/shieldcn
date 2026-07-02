@@ -1,10 +1,8 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import {
-  fetchGitHubRepo,
-  formatCount,
-} from "@shieldcn/core/github"
+import { fetchGitHubRepo } from "@shieldcn/core/github"
+import { formatCount } from "@shieldcn/core/format"
 
 type IconStyle = "currentColor" | "github" | "copilot" | "muted"
 

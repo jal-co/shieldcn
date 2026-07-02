@@ -162,7 +162,7 @@
 - [x] **P2. Add missing routes to the sitemap; add web manifest + theme-color** (S) — done via PR-5.1
   `app/sitemap.ts:30-41` omits `/contributors`, `/sponsors`, `/privacy`. No `manifest.webmanifest` or `theme-color` meta in `app/layout.tsx` despite icons existing.
 
-- [ ] **P3. Remove dead code in core** (S)
+- [x] **P3. Remove dead code in core** (S) — done via PR-5.3
   Unused `pkg` computation with a baffling slice at `route-handler.ts:514`; `getCocoaPodsPlatform` fetches then returns hardcoded `"ios | macos"` (`cocoapods.ts:63-69`); legacy `src/github.ts` duplicates providers/github.ts + format.ts (`formatStarCount` is `@deprecated`); `KNOWN_PARAMS` in `normalize-params.ts:25` is documented as stripping unknown params but never used — the doc lies about behavior.
 
 - [ ] **P4. Resolve the disabled Twitch provider** (S)

@@ -55,16 +55,3 @@ export async function getCocoaPodsLicense(pod: string): Promise<BadgeData | null
     link: `https://cocoapods.org/pods/${encodeURIComponent(pod)}`,
   }
 }
-
-// ---------------------------------------------------------------------------
-// Platform
-// ---------------------------------------------------------------------------
-
-export async function getCocoaPodsPlatform(pod: string): Promise<BadgeData | null> {
-  // CocoaPods trunk API returns version info; platform is in the podspec
-  return {
-    label: "platform",
-    value: "ios | macos",
-    link: `https://cocoapods.org/pods/${encodeURIComponent(pod)}`,
-  }
-}

@@ -1032,8 +1032,29 @@ Postgres credentials.
 
 - **PR-5.1** ✅ SEO/PWA: sitemap gaps + manifest + theme-color · **P2** · S — `app/sitemap.ts` gained `/contributors`, `/sponsors`, `/privacy` (matched to their nearest sibling's priority/frequency — `/gallery` deliberately excluded, it's a bare redirect to `/showcase` with no content of its own, and a sitemap entry for a redirect is sitemap spam, not a real gap); new `app/manifest.ts` (Next's file-convention → auto-linked `<link rel="manifest">`, verified live); `layout.tsx` gained a `viewport` export with light/dark `themeColor` (Next 14+ moved `themeColor` out of `metadata` into its own export — putting it in `metadata` would silently no-op). Verified live via curl: `/manifest.webmanifest` serves valid JSON, `/sitemap.xml` contains all three new routes, and both `<meta name="theme-color">` tags render with the correct `media` queries.
 - **PR-5.2** ✅ Guard/noindex `/dev/*`; drop `html-to-image` from prod bundle · **P1** · S — all 7 pages under `app/dev/` now call `notFound()` outside development. The two client-component pages (`preview`, `social` — the ones that import `html-to-image`) were restructured: their component bodies moved to `preview-client.tsx`/`social-client.tsx` (still `"use client"`), and `page.tsx` became a plain server component doing the guard + rendering the client component — so in production the guard runs *before* any client JS ships, not after. The other 5 pages (already server components) got the guard inline. Verified live: all 7 routes render "Page not found" content in production (grepped the served HTML for the not-found page's text, absent any dev-page-specific markup), and `/dev/preview`/`/dev/social`'s served HTML contains no reference to `html-to-image`/`toPng` — confirming that bundle never reaches a production client. **Found but out of scope:** the HTTP status served for these (and, it turns out, for *any* unmatched route site-wide, e.g. `/this-does-not-exist-xyz`) is `200`, not `404` — the rendered content is correct but the status code isn't. This reproduces without any of this PR's changes and is broader than the single `/docs/{slug}` case flagged in PR-3.1's notes; likely an interaction between `middleware.ts`'s `NextResponse.next()` passthrough and Turbopack's static-notFound handling under `next start`. Logged as new backlog item **P18** rather than debugged here — `robots.txt` already disallows `/dev/`, so crawl exposure isn't blocked on this, but a wrong status code is worth its own investigation.
-- **PR-5.3** Dead-code removal (`route-handler.ts:514`, `cocoapods` platform,
-  legacy `github.ts`, unused `KNOWN_PARAMS`) · **P3** · S
+- **PR-5.3** ✅ Dead-code removal (`route-handler.ts:514`, `cocoapods` platform,
+  legacy `github.ts`, unused `KNOWN_PARAMS`) · **P3** · S — removed the unused
+  `pkg` computation in `route-handler.ts`'s npm case (its ternary's both branches
+  evaluated to the same value — a no-op slice whose result was never read anyway);
+  deleted `getCocoaPodsPlatform` entirely (confirmed zero call sites — it wasn't
+  even wired into `route-handler.ts`'s dispatch, and returned a hardcoded
+  `"ios | macos"` for every pod regardless of what it actually supports, so
+  keeping it as dead code was strictly worse than deleting it); removed
+  `formatCount`'s duplicate definition + the dead `formatStarCount` alias + the
+  unused `fetchShieldcnRepoCount` from core's legacy `src/github.ts` (kept
+  `fetchGitHubRepo`/`GitHubRepo`, still used by `github-stars-button.tsx`) —
+  `github-stars-button.tsx` now imports `formatCount` from `@shieldcn/core/format`
+  (the canonical, still-used copy) instead of the deleted duplicate; removed the
+  never-referenced `KNOWN_PARAMS` set from `normalize-params.ts` and corrected
+  its docblock, which claimed unknown params get stripped when the code never
+  did that (only default-valued params are stripped — provider-specific params
+  like chart's `values`/`days`/`icon` always pass through, and there's no single
+  allowlist that covers every provider, so this doc fix describes reality rather
+  than adding new filtering behavior that could silently break working badge
+  URLs). Verified: `tsc --noEmit` clean across all 4 packages, `pnpm test`
+  (288/10 core unaffected by these deletions — nothing tested the removed dead
+  code), and a full `next build` + live screenshot of the header confirming
+  `github-stars-button.tsx` still renders correctly with the swapped import.
 - **PR-5.4** Resolve Twitch (re-enable end-to-end or delete both sides) · **P4** · S
 - **PR-5.5** Dedup render helpers (`luminance`/`rgba`/`esc`/`clamp`/`findFontsDir`/
   `formatCount` ×2) · **P5** · M

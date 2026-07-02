@@ -6,7 +6,11 @@
  * ?variant=outline&mode=light&size=lg and ?size=lg&mode=light&variant=outline
  * produce the same badge but are different cache keys without normalization.
  *
- * Also strips unknown/default params so the canonical URL is minimal.
+ * Also strips default-valued and empty params so the canonical URL is
+ * minimal. Params outside the known set (e.g. provider-specific ones like
+ * chart's `values`/`days`/`icon`) are passed through unchanged — there's no
+ * single allowlist that covers every provider's query params, so this
+ * intentionally doesn't attempt one.
  */
 
 /** Default values — if a param matches its default, strip it. */
@@ -20,19 +24,6 @@ const DEFAULTS: Record<string, string> = {
   statusDot: "auto",
   labelOpacity: "0.7",
 }
-
-/** Known badge params (anything else is passed through). */
-const KNOWN_PARAMS = new Set([
-  "variant", "style", "size", "mode", "theme", "font",
-  "split", "statusDot", "logo", "logoColor",
-  "color", "labelColor", "valueColor", "labelTextColor",
-  "label", "labelOpacity",
-  "height", "fontSize", "radius", "padX", "iconSize", "gap", "labelGap",
-  // provider-specific
-  "workflow", "branch",
-  // dynamic badge
-  "url", "query", "prefix", "suffix",
-])
 
 /**
  * Normalize search params: sort alphabetically, strip defaults.
