@@ -77,8 +77,8 @@ export const BADGE_PRESETS: BadgePreset[] = [
   { label: "follow", service: "X", template: "/x/follow/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },
   { label: "mention", service: "X", template: "/x/mention/{username}.svg", params: [{ key: "username", label: "Username", placeholder: "jal_co", default: "jal_co" }], group: "Social", defaultLinkUrl: "https://x.com/{username}" },
   { label: "subscribers", service: "YouTube", template: "/youtube/subscribers/{channelId}.svg", params: [{ key: "channelId", label: "Channel ID", placeholder: "UCsBjURrPoezykLs9EqgamOA", default: "UCsBjURrPoezykLs9EqgamOA" }], group: "Social", defaultLinkUrl: "https://www.youtube.com/channel/{channelId}" },
-  // TODO: The Twitch provider route is currently disabled. There's no point enabling this option if the badge returns a 404. When it is re-enabled, we can uncomment this line
-  // { label: "status", service: "Twitch", template: "/twitch/status/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
+  { label: "status", service: "Twitch", template: "/twitch/status/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
+  { label: "followers", service: "Twitch", template: "/twitch/followers/{channel}.svg", params: [{ key: "channel", label: "Channel", placeholder: "shroud", default: "shroud" }], group: "Social", defaultLinkUrl: "https://www.twitch.tv/{channel}" },
 
   // Other
   { label: "built in", service: "Country flag", template: "/flag/{code}.svg", params: [{ key: "code", label: "Country code", placeholder: "us", default: "us" }], group: "Other" },

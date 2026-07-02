@@ -148,7 +148,7 @@ import { getPubVersion, getPubLikes, getPubPoints, getPubPopularity } from "./pr
 import { getHomebrewVersion, getHomebrewCaskVersion, getHomebrewInstalls, getHomebrewFormulaDownloads, getHomebrewCaskDownloads } from "./providers/homebrew"
 import { getMavenVersion } from "./providers/maven"
 import { getCocoaPodsVersion } from "./providers/cocoapods"
-// import { getTwitchStatus, getTwitchFollowers } from "./providers/twitch" // disabled: needs TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET
+import { getTwitchStatus, getTwitchFollowers } from "./providers/twitch"
 import { getCodecovCoverage } from "./providers/codecov"
 import { getWakaTimeCodingTime } from "./providers/wakatime"
 import { getTokscaleTokens, getTokscaleCost, getTokscaleRank, getTokscaleActiveDays, getTokscaleStats } from "./providers/tokscale"
@@ -1078,16 +1078,25 @@ async function fetchBadgeData(
 
     // /twitch/{topic}/{login}
     // e.g. /twitch/status/shroud or /twitch/followers/ninja
-    // Disabled: requires TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET
-    // case "twitch": {
-    //   const rest = segments.slice(1)
-    //   if (rest.length < 2) return null
-    //   switch (rest[0]) {
-    //     case "status": return getTwitchStatus(rest[1])
-    //     case "followers": return getTwitchFollowers(rest[1])
-    //     default: return getTwitchStatus(rest[0])
-    //   }
-    // }
+    // e.g. /twitch/shroud → status (default)
+    // Requires TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET — providers/twitch.ts
+    // returns null gracefully (same as any other misconfigured provider) when
+    // those aren't set, so this is safe to route unconditionally.
+    case "twitch": {
+      const rest = segments.slice(1)
+      if (rest.length === 0) return null
+
+      const twitchTopics = new Set(["status", "followers"])
+      if (twitchTopics.has(rest[0]) && rest[1]) {
+        switch (rest[0]) {
+          case "status": return getTwitchStatus(rest[1])
+          case "followers": return getTwitchFollowers(rest[1])
+          default: return null
+        }
+      }
+
+      return getTwitchStatus(rest[0])
+    }
 
     // /codecov/{service}/{owner}/{repo}[/{branch}]
     // e.g. /codecov/github/codecov/codecov-cli

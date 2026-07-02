@@ -439,6 +439,15 @@ export const REGISTRY: BadgeProvider[] = [
     topics: [],
   },
   {
+    provider: "twitch",
+    description: "Twitch live status and follower count. Requires TWITCH_CLIENT_ID/TWITCH_CLIENT_SECRET.",
+    defaultTopic: "status",
+    topics: [
+      t("status", "Live status + viewer count", ["status", "shroud"]),
+      t("followers", "Follower count", ["followers", "shroud"]),
+    ],
+  },
+  {
     provider: "codecov",
     description: "Codecov coverage percentage.",
     freeform: true,

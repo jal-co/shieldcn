@@ -165,7 +165,7 @@
 - [x] **P3. Remove dead code in core** (S) — done via PR-5.3
   Unused `pkg` computation with a baffling slice at `route-handler.ts:514`; `getCocoaPodsPlatform` fetches then returns hardcoded `"ios | macos"` (`cocoapods.ts:63-69`); legacy `src/github.ts` duplicates providers/github.ts + format.ts (`formatStarCount` is `@deprecated`); `KNOWN_PARAMS` in `normalize-params.ts:25` is documented as stripping unknown params but never used — the doc lies about behavior.
 
-- [ ] **P4. Resolve the disabled Twitch provider** (S)
+- [x] **P4. Resolve the disabled Twitch provider** (S) — done via PR-5.4 (re-enabled end-to-end; also fixed a real routing bug found while uncommenting it, and a pre-existing unrelated test-timeout flake found while verifying)
   Provider is fully written but dead behind commented-out routing (`route-handler.ts:1081-1089`), and the builder option is commented out (`packages/web/lib/badge-builder-shared.ts:80` TODO). Either env-gate/re-enable it end-to-end or delete both sides.
 
 - [ ] **P5. Deduplicate cross-file render helpers** (M)

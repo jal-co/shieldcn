@@ -1055,7 +1055,44 @@ Postgres credentials.
   (288/10 core unaffected by these deletions — nothing tested the removed dead
   code), and a full `next build` + live screenshot of the header confirming
   `github-stars-button.tsx` still renders correctly with the swapped import.
-- **PR-5.4** Resolve Twitch (re-enable end-to-end or delete both sides) · **P4** · S
+- **PR-5.4** ✅ Resolve Twitch (re-enable end-to-end or delete both sides) · **P4** · S
+  — chose re-enable over delete: `providers/twitch.ts` was fully written and
+  gracefully returns `null` when `TWITCH_CLIENT_ID`/`TWITCH_CLIENT_SECRET`
+  aren't set (identical fail-open pattern to YouTube's `YOUTUBE_API_KEY`),
+  so there was working code behind the flag, not a stub. Uncommented the
+  import and the `route-handler.ts` case — and fixed a real bug in the
+  disabled draft while re-enabling it: the original commented code guarded
+  with `if (rest.length < 2) return null`, which would have permanently
+  blocked the bare-login form (`/twitch/{login}` with no topic segment,
+  `rest.length === 1`) even after uncommenting; rewrote it to match the
+  topic-or-bare-identifier pattern every other provider in this switch uses
+  (`amo`, `chrome`, `flathub`, …): `rest.length === 0` guard, dispatch by
+  topic when `rest[0]` is a known topic AND `rest[1]` exists, else treat
+  `rest[0]` itself as the login defaulting to `status`. Added a `twitch`
+  entry to `badges/registry.ts` (it had none — every other routed provider
+  does), uncommented + added a `followers` companion to the web badge
+  builder's Twitch preset, and documented `TWITCH_CLIENT_ID`/
+  `TWITCH_CLIENT_SECRET` in the engine's README env table, `.env.example`,
+  and `docker-compose.yml`.
+  **Found and fixed along the way:** while running the full test suite to
+  verify this, `memo-route.test.ts`'s rate-limit test started failing —
+  confirmed via `git stash` that this is 100% pre-existing and unrelated
+  (reproduces on the commit before this PR too). Root cause: with no
+  `DATABASE_URL` in this environment, each of the 20 under-the-limit
+  requests reaches `upsertMemoBadge`, which retries once after a 250ms
+  pause on a connection error (`db.ts`'s `query()` — a deliberate
+  serverless-Postgres-wake-up retry, correct production behavior, not a
+  bug). 20 × ~250ms lands right at vitest's 5000ms default timeout, an
+  inherently fragile margin. Bumped just that test's timeout to 15s rather
+  than touching the retry logic or mocking the DB layer (which the test
+  file's own docstring deliberately avoids for its other 6 assertions).
+  Verified: `pnpm typecheck` clean across all 4 packages, `pnpm test`
+  (288/10 core, previously-flaky memo-route test now reliably green,
+  51 cli + 14 engine + 59 web unaffected), and live: `/twitch/status/
+  {login}.svg`, `.json`, and the bare-login form all dispatch correctly
+  and degrade to a graceful "not found" (not a crash) without Twitch
+  credentials configured — the same fail-open behavior every other
+  optional-credential provider already has.
 - **PR-5.5** Dedup render helpers (`luminance`/`rgba`/`esc`/`clamp`/`findFontsDir`/
   `formatCount` ×2) · **P5** · M
 - **PR-5.6** Version single-sourcing (engine health, CLI) · **P9** · S

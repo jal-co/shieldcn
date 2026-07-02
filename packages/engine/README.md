@@ -99,6 +99,8 @@ Create a token at [github.com/settings/tokens](https://github.com/settings/token
 | `GITHUB_OAUTH_CLIENT_SECRET` | — | — | GitHub OAuth App secret. Also used to derive the token pool's encryption key if `TOKEN_ENCRYPTION_KEY` isn't set (see below). |
 | `TOKEN_ENCRYPTION_KEY` | — | — | Encryption key for donated GitHub tokens stored in the pool. Recommended for any real deployment — set this explicitly rather than relying on `GITHUB_OAUTH_CLIENT_SECRET` doubling as the key, since rotating that secret would then also silently break decryption of already-stored tokens. **Required in production**: if neither this nor `GITHUB_OAUTH_CLIENT_SECRET` is set and `NODE_ENV=production`, adding a token to the pool fails loudly rather than encrypting it with a guessable fallback. |
 | `YOUTUBE_API_KEY` | — | — | YouTube Data API v3 key |
+| `TWITCH_CLIENT_ID` | — | — | Twitch application client ID (for `/twitch/*` badges) |
+| `TWITCH_CLIENT_SECRET` | — | — | Twitch application client secret |
 | `UPSTASH_REDIS_REST_URL` | — | — | Upstash Redis URL for persistent cache |
 | `UPSTASH_REDIS_REST_TOKEN` | — | — | Upstash Redis token |
 | `NEXT_PUBLIC_URL` | — | `http://localhost:3000` | Base URL for OAuth callbacks |
@@ -130,7 +132,7 @@ ever holds read-only public-data access.
 
 ## Supported Providers
 
-npm, GitHub, PyPI, crates.io, Docker Hub, Discord, Bluesky, JSR, YouTube, VS Code Marketplace, Open Collective, Hacker News, Mastodon, Lemmy, Packagist, RubyGems, NuGet, Pub.dev, Homebrew, Maven, CocoaPods, Codecov, WakaTime, Tokscale, IndieDevs, Reddit, Bundlephobia, and static/dynamic badges.
+npm, GitHub, PyPI, crates.io, Docker Hub, Discord, Bluesky, JSR, YouTube, VS Code Marketplace, Open Collective, Hacker News, Mastodon, Lemmy, Packagist, RubyGems, NuGet, Pub.dev, Homebrew, Maven, CocoaPods, Codecov, WakaTime, Tokscale, IndieDevs, Reddit, Bundlephobia, Twitch (requires `TWITCH_CLIENT_ID`/`TWITCH_CLIENT_SECRET`), and static/dynamic badges. See the [full provider list](https://shieldcn.dev/docs/api-reference) — this is a highlight reel, not exhaustive.
 
 ## Upgrading
 

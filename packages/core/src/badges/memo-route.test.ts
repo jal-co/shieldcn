@@ -59,6 +59,11 @@ describe("handleBadgePUT /memo validation", () => {
   })
 
   it("429s after exceeding the per-IP write rate limit", async () => {
+    // The 20 requests under the limit still reach upsertMemoBadge, which — with
+    // no DATABASE_URL configured — retries once after a 250ms pause on each
+    // connection error (db.ts's query(), a deliberate serverless-Postgres-
+    // wake-up retry, not a bug). 20 × ~250ms comes in right at vitest's 5s
+    // default, so this needs real headroom rather than a tighter budget.
     const ip = "1.1.1.7"
     let lastStatus = 0
     for (let i = 0; i < 21; i++) {
@@ -66,5 +71,5 @@ describe("handleBadgePUT /memo validation", () => {
       lastStatus = res.status
     }
     expect(lastStatus).toBe(429)
-  })
+  }, 15_000)
 })
