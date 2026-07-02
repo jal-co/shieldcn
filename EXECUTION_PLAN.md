@@ -1134,7 +1134,20 @@ Postgres credentials.
   physically incapable of drifting from their package.json. Verified: `tsc`
   clean for both packages, CLI built + `--version` checked, engine `next build`
   + live `/api/health` hit.
-- **PR-5.7** CLI npm release workflow + gitignore `dist/` · **P10** · M
+- **PR-5.7** ✅ CLI npm release workflow + gitignore `dist/` · **P10** · M —
+  `packages/cli/dist/bin.js` was tracked in git (guaranteed to drift from
+  `src/`): `git rm --cached`'d it and added `packages/cli/.gitignore` (`dist/`).
+  Added a `prepublishOnly: pnpm build` hook so any publish path (CI or manual)
+  ships a fresh bundle. New `.github/workflows/cli-publish.yml`: triggers on
+  `cli@*` tag push (mirroring `docker-publish.yml`'s `engine@*` convention) or
+  manual dispatch (defaulting to a `--dry-run`); runs typecheck + test + build
+  as a release gate, verifies the tag version matches package.json on tag pushes
+  (fails loudly on a mistag), and `pnpm publish --access public --provenance`
+  with `id-token: write` for npm provenance attestation. Requires an `NPM_TOKEN`
+  repo secret (documented in the workflow). Verified: workflow is valid YAML,
+  `npm pack --dry-run` ships exactly `dist/bin.js` + `package.json` + README +
+  LICENSE, a clean rebuild regenerates `dist/` (now correctly gitignored, not
+  re-added to git), and full `pnpm typecheck`/`pnpm test` stay green.
 - **PR-5.8** Docker/supply-chain hardening (digest pin, HEALTHCHECK, arm64, SHA-pin
   actions, SBOM) + build-on-PR (**B13**) · **P12** · M
 - **PR-5.9** Configurable Sentry sample rates · **P14** · S

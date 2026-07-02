@@ -1,0 +1,2 @@
+# Build output — produced by `tsup`, published to npm from CI (never committed).
+dist/

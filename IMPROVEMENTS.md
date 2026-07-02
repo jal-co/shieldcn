@@ -183,7 +183,7 @@
 - [x] **P9. De-duplicate hardcoded versions** (S) — done via PR-5.6 (both import from package.json; verified CLI --version and engine /api/health)
   Engine health route hardcodes `version: "0.0.1"` (`app/api/health/route.ts:15`) vs its package.json; CLI hardcodes `const version = "1.0.0"` (`src/bin.ts:24`). Import from package.json or inject at build (tsup `define`).
 
-- [ ] **P10. Add npm release automation for the CLI; stop committing `dist/`** (M)
+- [x] **P10. Add npm release automation for the CLI; stop committing `dist/`** (M) — done via PR-5.7 (tag-triggered publish workflow w/ provenance; dist/ untracked + gitignored; requires NPM_TOKEN secret)
   `shieldcn-cli` has no publish workflow and `packages/cli/dist/bin.js` is tracked in git (guaranteed staleness vs `src/`). Add a tag-triggered `npm publish --provenance` workflow mirroring `docker-publish.yml`; gitignore `packages/cli/dist`.
 
 - [x] **P11. Fix commit-rule drift between husky and CI** (S) — done via PR-0.2; checkbox was left unticked at the time, corrected here

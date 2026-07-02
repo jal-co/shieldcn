@@ -1,0 +1,68 @@
+name: Publish CLI to npm
+
+on:
+  push:
+    tags: ["cli@*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run through build/test/pack without actually publishing."
+        type: boolean
+        default: true
+
+# Provenance requires an OIDC token; publish needs nothing else from GitHub.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Gate the release on the same checks CI runs, scoped to the CLI.
+      - name: Typecheck
+        run: pnpm --filter shieldcn-cli typecheck
+
+      - name: Test
+        run: pnpm --filter shieldcn-cli test
+
+      - name: Build
+        run: pnpm --filter shieldcn-cli build
+
+      # For a tag push, the tag's version must match package.json — otherwise a
+      # mistagged release publishes the wrong version. Fail loudly instead.
+      - name: Verify tag matches package.json version
+        if: github.ref_type == 'tag'
+        run: |
+          tag_version="${GITHUB_REF_NAME#cli@}"
+          pkg_version="$(node -p "require('./packages/cli/package.json').version")"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::Tag cli@${tag_version} does not match package.json version ${pkg_version}"
+            exit 1
+          fi
+          echo "Publishing shieldcn-cli@${pkg_version}"
+
+      - name: Publish (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: pnpm --filter shieldcn-cli publish --dry-run --no-git-checks --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish
+        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+        run: pnpm --filter shieldcn-cli publish --no-git-checks --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
