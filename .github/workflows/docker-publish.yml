@@ -40,7 +40,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # QEMU enables cross-building the linux/arm64 image on an amd64 runner —
       # ARM self-hosters previously had no runnable image.
