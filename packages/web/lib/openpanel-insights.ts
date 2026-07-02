@@ -88,6 +88,31 @@ export async function getLiveVisitors(): Promise<number | null> {
   return typeof data?.visitors === "number" ? data.visitors : null
 }
 
+export interface CountryStat {
+  /** ISO 3166-1 alpha-2 code, e.g. "US". */
+  name: string
+  sessions: number
+  pageviews: number
+}
+
+/** Sessions/pageviews by country over the last 30 days. */
+export async function getCountries(): Promise<CountryStat[] | null> {
+  const data = await opGet<CountryStat[]>("/country?range=30d&limit=250")
+  return Array.isArray(data) ? data.filter((c) => !!c.name) : null
+}
+
+export interface ReferrerStat {
+  name: string | null
+  sessions: number
+  pageviews: number
+}
+
+/** Top traffic sources over the last 30 days. Null name = direct. */
+export async function getTopReferrers(): Promise<ReferrerStat[] | null> {
+  const data = await opGet<ReferrerStat[]>("/referrer_name?range=30d&limit=10")
+  return Array.isArray(data) ? data : null
+}
+
 export interface BadgesServed {
   /** Total badge_rendered events in the window. */
   total: number

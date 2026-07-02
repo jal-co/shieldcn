@@ -26,6 +26,7 @@
         "X-License-Key": "${SHADCNCRAFT_LICENSE_KEY}",
         "X-Instance-Name": "${SHADCNCRAFT_INSTANCE_NAME}"
       }
-    }
+    },
+    "@bklit": "https://ui.bklit.com/r/{name}.json"
   }
 }
