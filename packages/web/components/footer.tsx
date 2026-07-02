@@ -52,6 +52,7 @@ const footerLinks = {
   community: [
     { label: "GitHub", href: "https://github.com/jal-co/shieldcn", external: true },
     { label: "jal-co/ui", href: "https://ui.justinlevine.me", external: true },
+    { label: "Stats", href: "/stats", external: false },
     { label: "llms.txt", href: "/llms.txt", external: false },
     { label: "Privacy", href: "/privacy", external: false },
     { label: "Contact", href: "mailto:justin@justinlevine.me", external: true },
