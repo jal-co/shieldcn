@@ -4,9 +4,10 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import { IconCloud } from "@/components/icon-cloud"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { useHydrated } from "@/lib/use-hydrated"
 import { allBadgePaths } from "@/lib/showcase-data"
 
 /** Max badges in the cloud — enough to look full, few enough to stay readable */
@@ -25,12 +26,8 @@ function selectBadges(paths: string[], count: number): string[] {
 }
 
 export function HeroIconCloud() {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const { adaptUrl } = useBadgeMode()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const badgeUrls = useMemo(
     () => selectBadges(allBadgePaths, CLOUD_SIZE).map(adaptUrl),

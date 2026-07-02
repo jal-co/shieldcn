@@ -158,6 +158,11 @@ function MarkdownContent({ block, onChange }: { block: MarkdownBlock; onChange: 
 function ImageContent({ block, selected, onChange }: { block: ImageBlock; selected: boolean; onChange: (b: Block) => void }) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [liveWidth, setLiveWidth] = useState<number | null>(null)
+  // Rendered width of an unsized image, captured on load (an event handler, so
+  // no setState-in-effect) — used as the aria-valuenow / keyboard-resize
+  // baseline instead of reading imgRef.current during render (which React
+  // Compiler flags: refs aren't reactive, so a render-time read can go stale).
+  const [naturalWidth, setNaturalWidth] = useState<number | null>(null)
 
   if (!block.src) return <p className="text-sm text-muted-foreground italic">Add an image URL or path in the inspector.</p>
 
@@ -188,7 +193,7 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
 
   const parsedBlockWidth = block.width ? Number(block.width) : NaN
   const currentWidth = liveWidth
-    ?? (Number.isFinite(parsedBlockWidth) ? parsedBlockWidth : imgRef.current?.offsetWidth)
+    ?? (Number.isFinite(parsedBlockWidth) ? parsedBlockWidth : naturalWidth)
     ?? MIN_WIDTH
 
   // Arrow keys resize by STEP (BIG_STEP with Shift) — keyboard equivalent of
@@ -214,6 +219,7 @@ function ImageContent({ block, selected, onChange }: { block: ImageBlock; select
           src={block.src}
           alt={block.alt}
           draggable={false}
+          onLoad={e => setNaturalWidth(e.currentTarget.offsetWidth)}
           style={width ? { width } : undefined}
           className="block max-w-full rounded-md"
         />

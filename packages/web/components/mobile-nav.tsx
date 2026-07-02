@@ -11,9 +11,14 @@ export function MobileNav() {
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
 
-  React.useEffect(() => {
+  // Close the menu on navigation. React's "adjust state when a value changes"
+  // pattern (a render-phase reset keyed on the previous pathname) rather than a
+  // setState-in-effect, which triggers an extra cascading render.
+  const [prevPathname, setPrevPathname] = React.useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
     setOpen(false)
-  }, [pathname])
+  }
 
   React.useEffect(() => {
     if (open) {

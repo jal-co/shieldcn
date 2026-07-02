@@ -182,6 +182,7 @@ export async function GET(req: Request) {
                 {safeTitle}
               </span>
               {badgeDataUri && (
+                // eslint-disable-next-line @next/next/no-img-element -- satori/ImageResponse JSX; next/image is not available in OG image generation
                 <img
                   src={badgeDataUri}
                   height={40}

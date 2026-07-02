@@ -1,28 +1,33 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useSyncExternalStore } from "react"
 import { useSearchParams } from "next/navigation"
 import { OpenPanelComponent } from "@openpanel/nextjs"
 
 const STORAGE_KEY = "shieldcn-no-track"
+const noop = () => () => {}
 
 function AnalyticsInner() {
-  const [enabled, setEnabled] = useState(true)
   const searchParams = useSearchParams()
+  const noTrackParam = searchParams.has("no-track")
 
+  // Persist the opt-out when the ?no-track param is present. A write-only
+  // effect (syncing React state OUT to an external store) — not a
+  // setState-in-effect, so it doesn't trigger a cascading render.
   useEffect(() => {
-    if (searchParams.has("no-track")) {
-      localStorage.setItem(STORAGE_KEY, "true")
-      setEnabled(false)
-      return
-    }
+    if (noTrackParam) localStorage.setItem(STORAGE_KEY, "true")
+  }, [noTrackParam])
 
-    if (localStorage.getItem(STORAGE_KEY) === "true") {
-      setEnabled(false)
-    }
-  }, [searchParams])
+  // Read the persisted opt-out hydration-safely: false on the server / first
+  // paint, the real localStorage value on the client — no setState-in-effect,
+  // and no flash of the analytics script loading before the opt-out is honored.
+  const persistedOptOut = useSyncExternalStore(
+    noop,
+    () => localStorage.getItem(STORAGE_KEY) === "true",
+    () => false,
+  )
 
-  if (!enabled) return null
+  if (noTrackParam || persistedOptOut) return null
 
   return (
     <OpenPanelComponent

@@ -136,8 +136,8 @@ export async function gh(
 
 export function getAppInstallUrl(owner: string, repo: string): string {
   const appSlug = process.env.GITHUB_APP_SLUG || "shieldcn-dev"
-  // GitHub App install flow — redirect_uri brings them back to /migrate after install
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://shieldcn.dev"
+  // GitHub App install flow — the owner/repo is round-tripped via `state`; the
+  // post-install return URL is configured on the GitHub App itself, not here.
   const state = encodeURIComponent(`${owner}/${repo}`)
   return `https://github.com/apps/${appSlug}/installations/select_target?state=${state}`
 }

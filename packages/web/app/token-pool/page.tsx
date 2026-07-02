@@ -118,6 +118,10 @@ export default async function TokenPoolPage({
             )}
 
             {oauthConfigured ? (
+              // Not a page — this is an API route that 302s to GitHub's OAuth
+              // authorize endpoint, so it needs a real browser navigation, not
+              // next/link's client-side transition.
+              // eslint-disable-next-line @next/next/no-html-link-for-pages
               <a href="/api/auth/github">
                 <Button size="lg" className="gap-2">
                   <svg viewBox="0 0 16 16" fill="currentColor" className="size-4">

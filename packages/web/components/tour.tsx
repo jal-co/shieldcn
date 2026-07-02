@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-import { Sparkles } from "lucide-react";
 
 // Only the ~5% of visitors who actually start the tour need this chunk (the
 // spotlight/cursor/content overlay, and the "motion/react" animation engine
@@ -91,10 +90,11 @@ export function TourProvider({
 	// import fires once (fetching it lazily) and then stays mounted — letting
 	// its own AnimatePresence track exit animations across steps and on close,
 	// rather than being torn down and re-fetched every time.
+	// Latch during render (React's "adjust state while rendering" pattern)
+	// rather than in an effect — the value is derived purely from currentStep,
+	// so a setState-in-effect would just add a cascading render.
 	const [everStarted, setEverStarted] = useState(false);
-	useEffect(() => {
-		if (currentStep >= 0 && !everStarted) setEverStarted(true);
-	}, [currentStep, everStarted]);
+	if (currentStep >= 0 && !everStarted) setEverStarted(true);
 
 	const updateElementPosition = useCallback(() => {
 		if (currentStep >= 0 && currentStep < steps.length) {
@@ -106,6 +106,13 @@ export function TourProvider({
 	}, [currentStep, steps]);
 
 	useEffect(() => {
+		// Legitimate post-render layout measurement: the spotlight position comes
+		// from the target's getBoundingClientRect(), which is only knowable after
+		// the DOM has painted, so the initial measurement genuinely must run here
+		// (the same fn is also the resize/scroll listener). This is a
+		// measure-and-store effect, not the cascading-render pattern the rule
+		// targets — hence the scoped disable rather than a suppression across the file.
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		updateElementPosition();
 		window.addEventListener("resize", updateElementPosition);
 		window.addEventListener("scroll", updateElementPosition);
@@ -115,6 +122,13 @@ export function TourProvider({
 			window.removeEventListener("scroll", updateElementPosition);
 		};
 	}, [updateElementPosition]);
+
+	// Declared before nextStep, which calls it — a stable wrapper around the
+	// raw setIsCompleted setter. (Previously declared further down, so nextStep
+	// referenced it before its initialization: react-hooks/immutability.)
+	const setIsTourCompleted = useCallback((completed: boolean) => {
+		setIsCompleted(completed);
+	}, []);
 
 	const nextStep = useCallback(async () => {
 		setCurrentStep((prev) => {
@@ -128,7 +142,7 @@ export function TourProvider({
 			setIsTourCompleted(true);
 			onComplete?.();
 		}
-	}, [steps.length, onComplete, currentStep]);
+	}, [steps.length, onComplete, currentStep, setIsTourCompleted]);
 
 	const previousStep = useCallback(() => {
 		setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
@@ -179,10 +193,6 @@ export function TourProvider({
 			window.removeEventListener("click", handleClick);
 		};
 	}, [handleClick]);
-
-	const setIsTourCompleted = useCallback((completed: boolean) => {
-		setIsCompleted(completed);
-	}, []);
 
 	// Arrow key navigation
 	useEffect(() => {

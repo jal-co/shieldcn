@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { BadgeModal } from "@/components/badge-modal"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { useHydrated } from "@/lib/use-hydrated"
 
 import type { ShowcaseBadge } from "@/lib/showcase-data"
 export type { ShowcaseBadge }
@@ -13,10 +14,8 @@ interface BadgeCardProps {
 
 export function BadgeCard({ badge }: BadgeCardProps) {
   const [modalOpen, setModalOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const { adaptUrl } = useBadgeMode()
-
-  useEffect(() => { setMounted(true) }, [])
 
   return (
     <>
@@ -26,8 +25,8 @@ export function BadgeCard({ badge }: BadgeCardProps) {
         aria-label={`${badge.title} badge`}
       >
         <div className="flex w-full justify-center overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           {mounted ? (
+            // eslint-disable-next-line @next/next/no-img-element -- dynamic badge SVG; next/image can't optimize a remote SVG endpoint
             <img
               src={adaptUrl(badge.badgePath)}
               alt={badge.title}

@@ -1221,9 +1221,54 @@ Postgres credentials.
   homepage badge builder's preset picker (grouping, "stars" search →
   GitHub-stars + both `+`-template Group presets, display labels) and the Studio
   badge inspector both work correctly against the shared module.
-- **PR-5.11** Pay down pre-existing web lint debt (17 errors, mostly
+- **PR-5.11** ✅ Pay down pre-existing web lint debt (17 errors, mostly
   React-Compiler setState-in-effect timing issues); flip `ci.yml`'s Lint step
-  from `continue-on-error: true` to a hard gate · **P17** · M
+  from `continue-on-error: true` to a hard gate · **P17** · M — cleared all
+  errors + warnings (`pnpm lint` exit 0) and flipped the CI gate to hard.
+  Breakdown of the ~21 problems, fixed by root cause rather than suppression
+  (the audit's explicit requirement):
+  - **Hydration-gate class (5 files):** `badge-card`, `group-showcase`,
+    `hero-icon-cloud`, `animated-showcase`, `badge-marquee` each did the
+    `useState(false)` + `useEffect(() => setMounted(true))` dance. Replaced with
+    a new `lib/use-hydrated.ts` (`useSyncExternalStore`, false on server/first
+    paint → true after hydration) — behavior-identical, no cascading render.
+    (This hook is also the building block **F11** proposed; F11's own fix —
+    wrapping the 12 `useReducedMotion` consumers — is separate and still open.)
+  - **localStorage-read-into-state (2 files):** `analytics`, `github-star-cta`
+    read persisted opt-out/dismissal via `useSyncExternalStore` now, keeping only
+    the genuine *write* side effects (consent write, visit-count, open/close
+    timers) in effects. `analytics` also loses its flash-of-analytics-before-
+    opt-out.
+  - **Reset-on-change:** `mobile-nav`'s `setOpen(false)` on route change →
+    React's render-phase "adjust state when a value changes" (prev-pathname
+    key), not an effect.
+  - **Latch:** `tour`'s `everStarted` set during render instead of an effect.
+  - **Real ordering bug:** `tour`'s `setIsTourCompleted` was used by `nextStep`
+    before its declaration (react-hooks/immutability) — hoisted it above.
+  - **Refs-during-render (3, `canvas.tsx`):** the image-resize handle read
+    `imgRef.current?.offsetWidth` during render for `aria-valuenow`. Now captures
+    the natural width via the img's `onLoad` (an event handler) into state.
+  - **Create-component-during-render (`underline-to-background`):** used
+    `motion.create(as)` in render; no caller ever overrode the `span` default, so
+    switched to the static `motion.span` and dropped the unused `as` prop.
+  - **Trivial:** `<a>`→`<Link>` for an internal docs link; a justified
+    `no-html-link-for-pages` disable for the token-pool `<a>` that points at an
+    OAuth *API* route (not a page); justified `no-img-element` disables for the
+    two dynamic-badge/satori `<img>`s; removed 3 unused vars + 2 stale
+    eslint-disable directives; `&&`-expression-as-statement → `if`.
+  - **Two justified suppressions (not silenced bugs):** `tour`'s post-render DOM
+    layout measurement and `migrate-client`'s on-mount install-redirect resume
+    are legitimate effect-setState (measure-and-store / initialize-from-URL), not
+    the cascading-render pattern the rule targets — scoped `eslint-disable` with
+    a comment explaining each, per the audit's "several are false positives" note.
+  Verified: `pnpm lint` exit 0, `pnpm typecheck` clean, `pnpm test` (all
+  packages green), full `next build`, and a live Playwright pass across home
+  (icon cloud / marquee / underline / star-CTA / analytics), showcase
+  (badge-card / group-showcase / animated-showcase, 278 badges), studio
+  (canvas), and docs at mobile width (MobileNav open/close) — zero page errors
+  beyond the pre-existing site-wide "not" SyntaxError (logged as **P20**). CI
+  `Lint` step flipped to a hard gate. **This closes out Phase 5 and the entire
+  execution plan.**
 
 ---
 

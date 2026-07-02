@@ -90,6 +90,11 @@ export default function MigrateClient() {
   const [prUrl, setPrUrl] = useState<string | null>(null)
 
   // -- Auto-resume after GitHub App install redirect --
+  // Legitimate on-mount initialization from a non-React source (the return URL
+  // GitHub redirects to after an App install): read the params once, hydrate the
+  // form, clear the URL, and kick off the check. The one extra render this
+  // schedules only happens on that specific redirect, not the cascading-render
+  // hot path the rule targets — hence the scoped disable on the initial writes.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const setupAction = params.get("setup_action")
@@ -99,9 +104,11 @@ export default function MigrateClient() {
       // User just installed the App — state contains "owner/repo"
       const parsed = parseRepoUrl(state)
       if (parsed) {
+        /* eslint-disable react-hooks/set-state-in-effect */
         setInput(state)
         setOwner(parsed.owner)
         setRepo(parsed.repo)
+        /* eslint-enable react-hooks/set-state-in-effect */
         // Clean URL
         window.history.replaceState({}, "", "/migrate")
         // Auto-check after a brief delay (installation takes a moment to propagate)
@@ -136,7 +143,7 @@ export default function MigrateClient() {
         }, 1500)
       }
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // -- Toggle individual badges --
   const [excludedBadges, setExcludedBadges] = useState<Set<number>>(new Set())

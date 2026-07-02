@@ -100,7 +100,7 @@ import { CircleHelp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function TourReplayButton() {
-  const { setIsTourCompleted, startTour, isTourCompleted, setSteps } = useTour()
+  const { setIsTourCompleted, startTour, setSteps } = useTour()
   const hasReset = useRef(false)
 
   return (

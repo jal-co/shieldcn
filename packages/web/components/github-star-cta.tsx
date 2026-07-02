@@ -3,7 +3,7 @@
 
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { Sparkles, Star } from "lucide-react"
 import {
   Popover,
@@ -22,15 +22,21 @@ export function GitHubStarCta({
   className?: string
 }) {
   const [open, setOpen] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  // Locally-dismissed (this session, via the dismiss button) OR persisted in
+  // localStorage. The persisted read is hydration-safe (false on server/first
+  // paint) instead of a setState-in-effect that would flash + cascade-render.
+  const [locallyDismissed, setLocallyDismissed] = useState(false)
+  const persistedDismissed = useSyncExternalStore(
+    () => () => {},
+    () => localStorage.getItem(STORAGE_KEY) === "true",
+    () => false,
+  )
+  const dismissed = locallyDismissed || persistedDismissed
   const openTimerRef = useRef<number | null>(null)
   const closeTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const hasDismissed = localStorage.getItem(STORAGE_KEY) === "true"
-    setDismissed(hasDismissed)
-
-    if (hasDismissed) return
+    if (persistedDismissed) return
 
     const rawVisits = localStorage.getItem(VISIT_STORAGE_KEY)
     const visits = rawVisits ? Number.parseInt(rawVisits, 10) || 0 : 0
@@ -47,7 +53,7 @@ export function GitHubStarCta({
       if (openTimerRef.current) window.clearTimeout(openTimerRef.current)
       if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current)
     }
-  }, [])
+  }, [persistedDismissed])
 
   useEffect(() => {
     if (closeTimerRef.current) {
@@ -68,7 +74,7 @@ export function GitHubStarCta({
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "true")
-    setDismissed(true)
+    setLocallyDismissed(true)
     setOpen(false)
   }
 

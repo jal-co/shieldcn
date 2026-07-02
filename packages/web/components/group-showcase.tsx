@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { BadgeGroupModal } from "@/components/badge-group-modal"
 import { useBadgeMode } from "@/lib/use-badge-mode"
+import { useHydrated } from "@/lib/use-hydrated"
 import { cn } from "@/lib/utils"
 import type { GroupShowcaseItem } from "@/lib/showcase-data"
 import { Copy } from "lucide-react"
@@ -23,10 +24,8 @@ export function GroupShowcase({ items }: GroupShowcaseProps) {
 
 function GroupCard({ item }: { item: GroupShowcaseItem }) {
   const [modalOpen, setModalOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const { adaptUrl } = useBadgeMode()
-
-  useEffect(() => { setMounted(true) }, [])
 
   return (
     <>

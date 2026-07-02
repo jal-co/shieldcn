@@ -42,9 +42,7 @@ jobs:
       - name: Typecheck (cli, engine)
         run: pnpm typecheck
 
-      # Non-blocking until the pre-existing React Compiler lint debt is paid
-      # down (see IMPROVEMENTS.md item P17). Flip to a hard gate once web
-      # lints clean.
-      - name: Lint (non-blocking, tracked in P17)
+      # Hard gate: the pre-existing React Compiler lint debt was paid down in
+      # PR-5.11 (P17), so lint failures now block CI.
+      - name: Lint
         run: pnpm lint
-        continue-on-error: true

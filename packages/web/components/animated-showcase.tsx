@@ -12,7 +12,8 @@
 
 "use client"
 
-import { useEffect, useState } from "react"
+import Link from "next/link"
+import { useHydrated } from "@/lib/use-hydrated"
 import { Sparkles } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 
@@ -53,10 +54,8 @@ const ANIMATED_BADGES: AnimatedItem[] = [
 ]
 
 export function AnimatedShowcase() {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const { adaptUrl } = useBadgeMode()
-
-  useEffect(() => { setMounted(true) }, [])
 
   return (
     <div className="space-y-3">
@@ -65,12 +64,12 @@ export function AnimatedShowcase() {
           <Sparkles className="size-3.5 text-primary" />
           Animated badges
         </h2>
-        <a
+        <Link
           href="/docs/api-reference#animate"
           className="text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           docs →
-        </a>
+        </Link>
       </div>
 
       <div className="rounded-lg border border-border bg-card/50 p-4">

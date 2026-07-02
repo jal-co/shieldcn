@@ -202,7 +202,7 @@ function BadgeMatrix({
 
         {entry.expanded && activeVariants.length > 0 && (
           <button
-            onClick={(e) => { e.stopPropagation(); cardsRef.current && onSaveOne(cardsRef.current) }}
+            onClick={(e) => { e.stopPropagation(); if (cardsRef.current) onSaveOne(cardsRef.current) }}
             className="rounded-full p-1 text-zinc-700 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
             title="Save this badge as PNG"
           >
