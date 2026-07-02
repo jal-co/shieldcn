@@ -3169,6 +3169,48 @@ export async function handleBadgeGET(
   }
 }
 
+/**
+ * The badge's identity — everything after the provider segment (e.g.
+ * "stars/vercel/next.js" for /github/stars/vercel/next.js.svg, or "v/react"
+ * for /npm/v/react.svg). Capped so pathological URLs can't bloat events.
+ */
+function badgeSubject(cleanSegments: string[]): string {
+  return cleanSegments.slice(1).join("/").slice(0, 200)
+}
+
+/**
+ * Classify where a badge request came from, for analytics.
+ *
+ * GitHub proxies README images through Camo (camo.githubusercontent.com),
+ * which strips the Referer header — so GitHub views are identified by
+ * user-agent instead. Camo also caches per our Cache-Control TTL, meaning
+ * GitHub counts are a floor ("at least N"), not a total. Other embedders
+ * (npm, docs sites) typically send a Referer; only its host is kept — never
+ * the full URL — to avoid collecting anything identifying.
+ */
+function requestOrigin(request: Request): Record<string, string> {
+  const ua = request.headers.get("user-agent") ?? ""
+  const referer = request.headers.get("referer")
+
+  if (/\bgithub-camo\b|camo\.githubusercontent\.com/i.test(ua)) {
+    return { source: "github-camo" }
+  }
+
+  let refererHost: string | undefined
+  if (referer) {
+    try {
+      refererHost = new URL(referer).hostname
+    } catch { /* malformed referer — ignore */ }
+  }
+  if (refererHost) {
+    if (refererHost === "www.npmjs.com" || refererHost === "npmjs.com") {
+      return { source: "npm", refererHost }
+    }
+    return { source: "referer", refererHost }
+  }
+  return { source: "direct" }
+}
+
 async function handleBadgeGETInner(
   request: Request,
   slug: string[],
@@ -3176,6 +3218,17 @@ async function handleBadgeGETInner(
 ) {
   const url = new URL(request.url)
   const searchParams = normalizeSearchParams(url.searchParams)
+
+  // Enrich every tracked event with the request origin (source + referer
+  // host) so analytics can answer "where is this badge embedded?".
+  if (options?.onTrack) {
+    const baseTrack = options.onTrack
+    const origin = requestOrigin(request)
+    options = {
+      ...options,
+      onTrack: (event) => baseTrack({ name: event.name, data: { ...origin, ...event.data } }),
+    }
+  }
 
   // Parse format from URL
   const { format, cleanSegments } = parseFormat(slug)
@@ -3650,6 +3703,7 @@ async function handleBadgeGETInner(
           name: "badge_rendered",
           data: {
             provider: cleanSegments[0] || "unknown",
+            subject: badgeSubject(cleanSegments),
             format: "gif",
             style,
             size: size ?? "sm",
@@ -3695,6 +3749,7 @@ async function handleBadgeGETInner(
       name: "badge_rendered",
       data: {
         provider,
+        subject: badgeSubject(cleanSegments),
         format,
         style,
         size: size ?? "sm",
