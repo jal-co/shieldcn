@@ -12,8 +12,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.7",
-    "@ai-sdk/openai": "^4.0.7",
     "@central-icons-react/round-filled-radius-1-stroke-1.5": "^1.1.290",
     "@central-icons-react/round-filled-radius-3-stroke-1.5": "^1.1.290",
     "@central-icons-react/round-outlined-radius-3-stroke-1.5": "^1.1.290",
