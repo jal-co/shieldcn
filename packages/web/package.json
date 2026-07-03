@@ -86,7 +86,7 @@
     "@types/react-dom": "^19",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
-    "eslint": "^10",
+    "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "jsdom": "^29",
     "shadcn": "^4.12.0",
