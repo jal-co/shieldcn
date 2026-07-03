@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   url.searchParams.set("products", productId)
   url.searchParams.set("customerExternalId", auth.orgId)
-  url.searchParams.set("metadata.orgId", auth.orgId)
-  url.searchParams.set("metadata.plan", plan)
+  // The handler parses `metadata` as a single JSON object param.
+  url.searchParams.set("metadata", JSON.stringify({ orgId: auth.orgId, plan }))
 
   return handler(new NextRequest(url, req))
 }

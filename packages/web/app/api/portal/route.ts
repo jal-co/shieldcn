@@ -17,9 +17,9 @@ export const GET = accessToken
   ? CustomerPortal({
       accessToken,
       server,
-      getCustomerId: async () => {
+      // Customers are keyed by the org's external id (set at checkout).
+      getExternalCustomerId: async () => {
         const auth = await requireOrg()
-        // Polar resolves the customer by the external id we set at checkout.
         return auth?.orgId ?? ""
       },
     })
