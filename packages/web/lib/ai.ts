@@ -19,6 +19,8 @@ import { Ingestion } from "@polar-sh/ingestion"
 import { LLMStrategy } from "@polar-sh/ingestion/strategies/LLM"
 
 const AI_MODEL = process.env.AI_MODEL ?? "anthropic/claude-sonnet-4.5"
+/** Polar meter name the LLM strategy ingests token events under. */
+const AI_METER = "ai_tokens"
 const polarToken = process.env.POLAR_ACCESS_TOKEN
 const polarServer = (process.env.POLAR_SERVER as "sandbox" | "production") ?? "sandbox"
 
@@ -41,11 +43,14 @@ let strategy: any = null
 function getStrategy() {
   if (!polarToken) return null
   if (!strategy) {
-    strategy = Ingestion({ accessToken: polarToken, server: polarServer }).strategy(
+    strategy = Ingestion({ accessToken: polarToken, server: polarServer })
       // The LLM strategy wraps an AI SDK v2 model; the gateway model is
       // compatible at runtime but the published types differ by a version.
-      new LLMStrategy(baseModel() as never),
-    )
+      .strategy(new LLMStrategy(baseModel() as never))
+      // Emit one "ai_tokens" event per generation. The metadata carries
+      // inputTokens/outputTokens/totalTokens, which the Polar meter aggregates
+      // into the org's credit balance.
+      .ingest(AI_METER)
   }
   return strategy
 }
