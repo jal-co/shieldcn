@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
 import { Heart, ExternalLink, Star } from "lucide-react"
@@ -163,12 +163,7 @@ const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
       <div className="flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/sponsors/trading-goose.png" alt="TradingGoose" className="size-11 w-auto drop-shadow-sm" />
-        <span
-          className="text-xl font-bold tracking-tight"
-          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
-        >
-          TradingGoose
-        </span>
+        <span className="text-xl font-bold tracking-tight text-foreground">TradingGoose</span>
       </div>
     ),
   },
@@ -179,12 +174,9 @@ const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
     logo: (
       <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sponsors/notra-wordmark.svg"
-          alt="Notra"
-          className="h-11 w-auto"
-          style={{ filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.4))" }}
-        />
+        <img src="/sponsors/notra-wordmark.svg" alt="Notra" className="h-11 w-auto dark:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/sponsors/notra-wordmark-dark.svg" alt="Notra" className="hidden h-11 w-auto dark:block" />
       </>
     ),
   },
@@ -200,12 +192,7 @@ const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
           alt="context.dev"
           className="size-11 rounded-lg drop-shadow-sm"
         />
-        <span
-          className="text-xl font-bold tracking-tight"
-          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
-        >
-          context.dev
-        </span>
+        <span className="text-xl font-bold tracking-tight text-foreground">context.dev</span>
       </div>
     ),
   },
@@ -215,45 +202,11 @@ const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
 // dynamic supporters list below.
 const HIGHLIGHT_LOGINS = new Set(["usenotra"])
 
-// Literal metal-plaque finishes: a brushed metallic gradient, a beveled rim,
-// and an engraved tier label. Rendered the same in light and dark site themes
-// so the metal always reads as metal.
-const PLAQUE_STYLE: Record<
-  HighlightSponsor["tier"],
-  { plate: CSSProperties; rivet: CSSProperties; label: CSSProperties; brush: string }
-> = {
-  Silver: {
-    plate: {
-      background:
-        "linear-gradient(145deg, #f6f7f9 0%, #c6cad0 18%, #edeff2 38%, #a9adb5 56%, #dadde1 76%, #b4b8bf 100%)",
-      boxShadow:
-        "inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 7px rgba(0,0,0,0.32), 0 12px 28px -10px rgba(0,0,0,0.55)",
-    },
-    rivet: {
-      background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #c2c5cb 45%, #6f747c 100%)",
-      boxShadow: "inset 0 -1px 1px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.5)",
-    },
-    label: { color: "#3a3d42", textShadow: "0 1px 0 rgba(255,255,255,0.5)" },
-    brush: "rgba(255,255,255,0.07)",
-  },
-  Bronze: {
-    plate: {
-      background:
-        "linear-gradient(145deg, #e6c49a 0%, #b9763a 18%, #dc9d5d 38%, #8a4f24 56%, #cb874b 76%, #9d5f2d 100%)",
-      boxShadow:
-        "inset 0 2px 3px rgba(255,236,210,0.55), inset 0 -3px 7px rgba(60,30,0,0.4), 0 12px 28px -10px rgba(0,0,0,0.55)",
-    },
-    rivet: {
-      background: "radial-gradient(circle at 35% 30%, #ffe6c4 0%, #c88a4f 45%, #6f3f17 100%)",
-      boxShadow: "inset 0 -1px 1px rgba(40,20,0,0.45), 0 1px 1px rgba(255,230,196,0.5)",
-    },
-    label: { color: "#5a3517", textShadow: "0 1px 0 rgba(255,225,190,0.45)" },
-    brush: "rgba(255,255,255,0.06)",
-  },
-}
-
-function Rivet({ style, className }: { style: CSSProperties; className: string }) {
-  return <span aria-hidden className={`absolute size-2 rounded-full ${className}`} style={style} />
+// Flat tier accents: just a small colored label per tier, on cards that
+// otherwise match the Supporters grid.
+const TIER_LABEL_CLASS: Record<HighlightSponsor["tier"], string> = {
+  Silver: "text-zinc-500 dark:text-zinc-400",
+  Bronze: "text-amber-700 dark:text-amber-500/80",
 }
 
 // Active GitHub Sponsors of the maintainer (the authenticated viewer), via
@@ -425,48 +378,23 @@ export default async function SponsorPage() {
               <h3 className="text-sm font-medium text-muted-foreground">Sponsors</h3>
               <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
             </div>
-            {HIGHLIGHT_SPONSORS.map((s) => {
-              const p = PLAQUE_STYLE[s.tier]
-              return (
-                <a
-                  key={s.name}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={s.name}
-                  className="group relative flex items-center justify-center overflow-hidden rounded-lg p-9 ring-1 ring-black/15 transition-transform duration-200 hover:-translate-y-0.5"
-                  style={p.plate}
+            {HIGHLIGHT_SPONSORS.map((s) => (
+              <a
+                key={s.name}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.name}
+                className="group relative flex items-center justify-center rounded-xl border border-border bg-card/40 p-9 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-accent/30"
+              >
+                <span
+                  className={`absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-[0.08em] ${TIER_LABEL_CLASS[s.tier]}`}
                 >
-                  {/* brushed-metal grain */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                      backgroundImage: `repeating-linear-gradient(90deg, ${p.brush} 0 1px, transparent 1px 3px)`,
-                      mixBlendMode: "overlay",
-                    }}
-                  />
-                  {/* moving sheen on hover */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
-                  />
-                  {/* corner rivets */}
-                  <Rivet style={p.rivet} className="left-2.5 top-2.5" />
-                  <Rivet style={p.rivet} className="right-2.5 top-2.5" />
-                  <Rivet style={p.rivet} className="bottom-2.5 left-2.5" />
-                  <Rivet style={p.rivet} className="bottom-2.5 right-2.5" />
-                  {/* engraved tier label */}
-                  <span
-                    className="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-[0.08em]"
-                    style={p.label}
-                  >
-                    {s.tier} sponsor
-                  </span>
-                  <span className="relative">{s.logo}</span>
-                </a>
-              )
-            })}
+                  {s.tier} sponsor
+                </span>
+                {s.logo}
+              </a>
+            ))}
           </SponsorReveal>
 
           {/* Supporters — partner tools + the rest of the GitHub sponsors */}
