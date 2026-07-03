@@ -188,6 +188,27 @@ const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
       </>
     ),
   },
+  {
+    name: "context.dev",
+    href: "https://context.dev",
+    tier: "Bronze",
+    logo: (
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sponsors/context-dev.svg"
+          alt="context.dev"
+          className="size-11 rounded-lg drop-shadow-sm"
+        />
+        <span
+          className="text-xl font-bold tracking-tight"
+          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
+        >
+          context.dev
+        </span>
+      </div>
+    ),
+  },
 ]
 
 // GitHub logins covered by HIGHLIGHT_SPONSORS, so they aren't duplicated in the
