@@ -2,27 +2,15 @@
  * shieldcn
  * lib/auth.ts
  *
- * Server-side session resolution for Neon Auth (hosted Better Auth). Neon Auth
- * issues a session JWT signed by the project's JWKS; we verify it here and
- * expose the caller's user id and active organization (a company/team) id.
+ * App-facing session helpers, backed by the Neon Auth server SDK. Every
+ * Pro/Plus resource is scoped to the caller's active organization (a
+ * company/team), so requireOrg() is the common gate.
  *
- * The active organization is the tenant key for brands, saved READMEs, billing,
- * and analytics — every Pro/Plus resource is owned by an org, never a bare user.
+ * Kept as a thin wrapper so route handlers depend on a small, stable surface
+ * (getSession / requireOrg) rather than the SDK's full shape.
  */
 
-import { cookies, headers } from "next/headers"
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose"
-
-const JWKS_URL = process.env.NEON_AUTH_JWKS_URL
-const BASE_URL = process.env.NEON_AUTH_BASE_URL
-
-/** Lazily-constructed, cached remote JWKS. */
-let jwks: ReturnType<typeof createRemoteJWKSet> | null = null
-function getJwks() {
-  if (!JWKS_URL) return null
-  if (!jwks) jwks = createRemoteJWKSet(new URL(JWKS_URL))
-  return jwks
-}
+import { auth } from "@/lib/auth/server"
 
 export interface Session {
   userId: string
@@ -32,59 +20,20 @@ export interface Session {
   name?: string
 }
 
-interface NeonAuthClaims extends JWTPayload {
-  sub?: string
-  email?: string
-  name?: string
-  activeOrganizationId?: string
-  active_organization_id?: string
-  org_id?: string
-}
-
-/** Names the Neon Auth session cookie may use, most specific first. */
-const SESSION_COOKIE_NAMES = [
-  "better-auth.session_token",
-  "__Secure-better-auth.session_token",
-  "neon_auth.session_token",
-]
-
-async function readToken(): Promise<string | null> {
-  // Prefer an explicit Authorization header (API clients), then cookies (browser).
-  const h = await headers()
-  const auth = h.get("authorization")
-  if (auth?.startsWith("Bearer ")) return auth.slice(7)
-
-  const store = await cookies()
-  for (const name of SESSION_COOKIE_NAMES) {
-    const v = store.get(name)?.value
-    if (v) return v
-  }
-  return null
-}
-
 /**
- * Resolve the current session, or null when unauthenticated / misconfigured.
- * Never throws — an auth outage resolves to "logged out", not a 500.
+ * Resolve the current session, or null when unauthenticated. Never throws —
+ * an auth outage resolves to "logged out", not a 500.
  */
 export async function getSession(): Promise<Session | null> {
-  const keys = getJwks()
-  if (!keys) return null
-
-  const token = await readToken()
-  if (!token) return null
-
   try {
-    const { payload } = await jwtVerify<NeonAuthClaims>(token, keys)
-    if (!payload.sub) return null
+    const { data } = await auth.getSession()
+    const user = data?.user
+    if (!user?.id) return null
     return {
-      userId: payload.sub,
-      orgId:
-        payload.activeOrganizationId ??
-        payload.active_organization_id ??
-        payload.org_id ??
-        null,
-      email: payload.email,
-      name: payload.name,
+      userId: user.id,
+      orgId: data?.session?.activeOrganizationId ?? null,
+      email: user.email ?? undefined,
+      name: user.name ?? undefined,
     }
   } catch {
     return null
@@ -106,4 +55,4 @@ export async function requireOrg(): Promise<{ session: Session; orgId: string } 
   return { session, orgId: session.orgId }
 }
 
-export const authConfigured = Boolean(JWKS_URL && BASE_URL)
+export const authConfigured = Boolean(process.env.NEON_AUTH_BASE_URL)

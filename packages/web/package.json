@@ -16,6 +16,7 @@
     "@central-icons-react/round-filled-radius-3-stroke-1.5": "^1.1.290",
     "@central-icons-react/round-outlined-radius-3-stroke-1.5": "^1.1.290",
     "@davestewart/outliner": "^1.2.0",
+    "@neondatabase/auth": "0.4.2-beta",
     "@number-flow/react": "^0.6.1",
     "@openpanel/nextjs": "^1.5.1",
     "@polar-sh/ingestion": "^0.4.2",
