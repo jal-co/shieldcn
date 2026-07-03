@@ -97,7 +97,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: "Sponsor",
     description:
-      "Support shieldcn — free, open-source README badges for everyone. Sponsor tiers, stargazers, and how to contribute.",
+      "Support shieldcn — open-source README badges. Public badges are free; sponsor tiers, stargazers, and how to contribute.",
     path: "/sponsor",
   }),
 }
@@ -381,20 +381,22 @@ export default async function SponsorPage() {
                 Sponsor
               </div>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                I&apos;ll never charge, but if you want to help
+                Public badges are free. If you want to help
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
                 shieldcn renders README badges, charts, headers, and sponsor
                 walls as real shadcn/ui components, served from public endpoints.
-                All of it is free, and that part isn&apos;t changing.
+                The public badge service is free, and that part isn&apos;t
+                changing.
               </p>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-                There&apos;s no pro tier, and nothing locked behind a
-                sponsorship. So this isn&apos;t a sales pitch. But shieldcn still
-                costs me real time to build and keep running, and sponsoring is an
-                easy way to tell me that time is worth spending. It&apos;s what
-                lets me treat this like a real project instead of something I poke
-                at on weekends.
+                For individuals, sponsoring is the easy way to support the
+                project. Companies who want managed brands, saved READMEs, and
+                analytics can go a step further with a paid plan &mdash; but
+                shieldcn still costs real time to build and keep running, and
+                every bit of support tells me that time is worth spending. It&apos;s
+                what lets me treat this like a real project instead of something I
+                poke at on weekends.
               </p>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
                 Any amount genuinely helps. And if money isn&apos;t your thing,

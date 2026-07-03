@@ -25,6 +25,8 @@ import { isTwemojiLogo, resolveTwemojiSvg } from "./badges/twemoji"
 import { getProviderBrandColor } from "./badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "./badges/svg-parser"
 import { normalizeSearchParams } from "./normalize-params"
+import { getBrand, applyBrandToParams } from "./brands"
+import { recordBadgeStat } from "./badge-stats"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/types"
 import { resolveVariant } from "./badges/validate"
 
@@ -3217,7 +3219,7 @@ async function handleBadgeGETInner(
   options?: BadgeRequestOptions,
 ) {
   const url = new URL(request.url)
-  const searchParams = normalizeSearchParams(url.searchParams)
+  let searchParams = normalizeSearchParams(url.searchParams)
 
   // Enrich every tracked event with the request origin (source + referer
   // host) so analytics can answer "where is this badge embedded?".
@@ -3231,7 +3233,8 @@ async function handleBadgeGETInner(
   }
 
   // Parse format from URL
-  const { format, cleanSegments } = parseFormat(slug)
+  const { format } = parseFormat(slug)
+  let { cleanSegments } = parseFormat(slug)
 
   if (cleanSegments.length === 0) {
     if (format === "svg") {
@@ -3240,6 +3243,61 @@ async function handleBadgeGETInner(
       })
     }
     return Response.json({ error: "invalid url" }, { status: 400, headers: ERROR_CACHE_HEADERS })
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stored brands: /b/{slug}/{provider}/... or any badge URL with ?brand={slug}.
+  // A resolved brand's style tokens are overlaid *under* explicit query params
+  // (query wins), so a rebrand re-styles every embed on next fetch. Fail-open:
+  // an unknown/deleted brand renders defaults and is tracked as brand_miss.
+  // ---------------------------------------------------------------------------
+  let brandId: number | null = null
+  {
+    let brandSlug: string | null = null
+    if (cleanSegments[0] === "b" && cleanSegments[1]) {
+      brandSlug = cleanSegments[1]
+      cleanSegments = cleanSegments.slice(2)
+    } else {
+      brandSlug = searchParams.get("brand")
+    }
+    if (brandSlug) {
+      const brand = await getBrand(brandSlug)
+      if (brand) {
+        brandId = brand.id
+        searchParams = applyBrandToParams(searchParams, brand.config)
+      } else if (options?.onTrack) {
+        void options.onTrack({ name: "brand_miss", data: { brand: brandSlug.slice(0, 40) } })
+      }
+    }
+    if (cleanSegments.length === 0) {
+      if (format === "svg") {
+        return new Response(await renderErrorBadge("error", "invalid url"), {
+          headers: { "Content-Type": "image/svg+xml", ...ERROR_CACHE_HEADERS },
+        })
+      }
+      return Response.json({ error: "invalid url" }, { status: 400, headers: ERROR_CACHE_HEADERS })
+    }
+  }
+
+  // Attach brandId to every event and feed the per-brand analytics rollup from
+  // the same track path (fire-and-forget; never blocks the response).
+  if (options?.onTrack) {
+    const withOrigin = options.onTrack
+    options = {
+      ...options,
+      onTrack: (event) => {
+        const data = brandId != null ? { ...event.data, brandId } : event.data
+        if (event.name === "badge_rendered") {
+          void recordBadgeStat({
+            brandId,
+            provider: String(data.provider ?? cleanSegments[0] ?? "unknown"),
+            subject: typeof data.subject === "string" ? data.subject : "",
+            source: typeof data.source === "string" ? data.source : "direct",
+          })
+        }
+        withOrigin({ name: event.name, data })
+      },
+    }
   }
 
   // ---------------------------------------------------------------------------

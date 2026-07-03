@@ -24,6 +24,9 @@ import {
 } from "../github-app"
 import { trackEvent } from "@/lib/openpanel"
 import { checkRateLimit, getClientIdentifier } from "@shieldcn/core/rate-limit"
+import { requireOrg } from "@/lib/auth"
+import { hasPlan } from "@shieldcn/core/entitlements"
+import { meterEvent } from "@/lib/polar-meter"
 
 export async function POST(req: NextRequest) {
   if (!process.env.GITHUB_APP_ID) {
@@ -33,7 +36,23 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const limit = await checkRateLimit("migrate-pr", getClientIdentifier(req), { max: 5, windowMs: 60 * 60_000 })
+  // Scanning/preview is free (see /api/migrate/check). Opening a PR — single
+  // or bulk — requires the Plus plan, so the free tool can't undercut it.
+  const auth = await requireOrg()
+  if (!auth) {
+    return NextResponse.json(
+      { error: "Sign in with Plus to open migration PRs." },
+      { status: 401 },
+    )
+  }
+  if (!(await hasPlan(auth.orgId, "plus"))) {
+    return NextResponse.json(
+      { error: "Opening migration PRs requires the Plus plan." },
+      { status: 402 },
+    )
+  }
+
+  const limit = await checkRateLimit("migrate-pr", getClientIdentifier(req), { max: 25, windowMs: 60 * 60_000 })
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Too many migration PRs. Try again later." },
@@ -147,6 +166,13 @@ export async function POST(req: NextRequest) {
         badgeCount: badgeCount || 0,
         prNumber: pr.number,
       },
+    })
+
+    // Meter one migration event against the org's Polar balance.
+    void meterEvent(auth.orgId, "readme_migration", {
+      owner,
+      repo,
+      badgeCount: badgeCount || 0,
     })
 
     return NextResponse.json({
