@@ -107,6 +107,9 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   const [aiDialog, setAiDialog] = useState(false)
   const [aiPrompt, setAiPrompt] = useState("")
   const [aiBusy, setAiBusy] = useState(false)
+  // Pro: pick one of your brands to style the generated badges.
+  const [brands, setBrands] = useState<{ slug: string; name: string | null }[]>([])
+  const [aiBrand, setAiBrand] = useState("")
 
   // Baseline = the exact blocks/themeAware references at the last save or open.
   // Reference identity is cheap and exact: Studio makes a new array on every
@@ -290,7 +293,14 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   const onGenerateClick = useCallback(() => {
     if (!gatePlus("AI README generation")) return
     setAiDialog(true)
-  }, [gatePlus])
+    // Pro: load the owner's brands so generated badges can be styled with one.
+    if (isPro) {
+      void fetch("/api/brands", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : { brands: [] }))
+        .then((j) => setBrands(Array.isArray(j.brands) ? j.brands : []))
+        .catch(() => {})
+    }
+  }, [gatePlus, isPro])
 
   const runGenerate = useCallback(async () => {
     const summary = aiPrompt.trim() || getMarkdown().slice(0, 4000)
@@ -299,7 +309,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
     try {
       const res = await fetch("/api/ai/readme", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary }),
+        body: JSON.stringify({ summary, brand: aiBrand || undefined }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -317,7 +327,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
     } finally {
       setAiBusy(false)
     }
-  }, [aiPrompt, getMarkdown, applyMarkdown])
+  }, [aiPrompt, aiBrand, getMarkdown, applyMarkdown])
 
   const onSaveAsBrand = useCallback(() => {
     if (!gatePro("Managed brands")) return
@@ -365,10 +375,18 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
         </div>
       )}
 
+      {/* Generate with AI — a first-class toolbar action, not buried in a menu. */}
+      <Tip label="Generate a README with AI">
+        <Button size="sm" className="h-8 gap-1.5 shadow-sm" onClick={onGenerateClick} aria-label="Generate with AI">
+          <Sparkles className="size-4" />
+          <span className="hidden md:inline">Generate</span>
+        </Button>
+      </Tip>
+
       <DropdownMenu>
-        <Tip label={currentDocId != null ? "Cloud, AI & brand" : "Save to cloud, AI & brand"}>
+        <Tip label={currentDocId != null ? "Cloud & brand" : "Save to cloud & brand"}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" aria-label="Cloud, AI & brand">
+            <Button variant="outline" size="sm" className="h-8 gap-1.5" aria-label="Cloud & brand">
               <Cloud className="size-4" />
               <span className="hidden lg:inline">Cloud</span>
               <ChevronDown className="size-3.5 opacity-60" />
@@ -389,15 +407,6 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
           )}
           <DropdownMenuItem onSelect={onOpenClick}>
             <FolderOpen className="size-4" /> Open…
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="flex items-center justify-between">
-            AI
-            {!isPlus && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Plus</span>}
-          </DropdownMenuLabel>
-          <DropdownMenuItem onSelect={onGenerateClick}>
-            <Sparkles className="size-4" /> Generate with AI…
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -503,6 +512,23 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
             rows={6}
             placeholder="acme-cli — a fast task runner for monorepos. Install via npm i -g acme-cli. Run `acme run <task>`…"
           />
+          {/* Pro: style the generated badges with one of your brands. */}
+          {isPro && brands.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="ai-brand" className="text-xs text-muted-foreground">Badge style</label>
+              <select
+                id="ai-brand"
+                value={aiBrand}
+                onChange={(e) => setAiBrand(e.target.value)}
+                className="h-8 flex-1 rounded-md border border-border bg-transparent px-2 text-sm"
+              >
+                <option value="">Default</option>
+                {brands.map((b) => (
+                  <option key={b.slug} value={b.slug}>{b.name ?? b.slug} brand</option>
+                ))}
+              </select>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAiDialog(false)}>Cancel</Button>
             <Button onClick={runGenerate} disabled={aiBusy}>
