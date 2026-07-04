@@ -38,8 +38,11 @@ export function CheckoutButton({
     }
     setBusy(true)
     try {
-      // Redirects to the Polar-hosted checkout for the product slug.
-      await authClient.checkout({ slug })
+      // On success this redirects to the Polar-hosted checkout (navigates away,
+      // so `busy` is moot). On failure the client resolves with an error rather
+      // than throwing, so re-enable the button in both the error and catch paths.
+      const res = await authClient.checkout({ slug })
+      if (res?.error) setBusy(false)
     } catch {
       setBusy(false)
     }
@@ -62,7 +65,10 @@ export function PortalButton({
   async function onClick() {
     setBusy(true)
     try {
-      await authClient.customer.portal()
+      // Success redirects to the Polar portal (navigates away); failure resolves
+      // with an error instead of throwing, so re-enable in both paths.
+      const res = await authClient.customer.portal()
+      if (res?.error) setBusy(false)
     } catch {
       setBusy(false)
     }
