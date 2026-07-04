@@ -11,7 +11,7 @@
  */
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { authClient } from "@/lib/auth/client"
@@ -38,6 +38,8 @@ export function AuthForm({
   callbackURL?: string
 }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const resetOk = searchParams.get("reset") === "success"
   const isSignUp = mode === "sign-up"
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -92,6 +94,11 @@ export function AuthForm({
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
+        {resetOk && !isSignUp && (
+          <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
+            Password reset — sign in with your new password.
+          </p>
+        )}
         <div className="flex flex-col gap-2">
           <Button
             type="button"
@@ -137,7 +144,17 @@ export function AuthForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              {!isSignUp && (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <Input
               id="password"
               type="password"

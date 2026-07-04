@@ -25,6 +25,7 @@ import { organization } from "better-auth/plugins"
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
 import { Polar } from "@polar-sh/sdk"
 import { getPool, query } from "@shieldcn/core/db"
+import { sendEmail, resetPasswordEmail, verifyEmail } from "@/lib/email"
 import {
   syncSubscriptionFromPolar,
   syncCustomerStateFromPolar,
@@ -69,6 +70,26 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+    // Revoke other sessions when a password is reset (a reset often means the
+    // account was compromised or the user forgot it on a shared device).
+    revokeSessionsOnPasswordReset: true,
+    // "Forgot password" → email a reset link. Fire-and-forget: don't await the
+    // send (avoids timing attacks + a slow provider blocking the request).
+    sendResetPassword: async ({ user, url }) => {
+      const { subject, html, text } = resetPasswordEmail(url)
+      void sendEmail({ to: user.email, subject, html, text })
+    },
+  },
+
+  emailVerification: {
+    // Send a verification email on sign-up, but DON'T require it to use the app
+    // (requireEmailVerification stays off). Non-blocking — unverified users can
+    // still sign in; verification is encouraged, not enforced.
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      const { subject, html, text } = verifyEmail(url)
+      void sendEmail({ to: user.email, subject, html, text })
+    },
   },
 
   user: {

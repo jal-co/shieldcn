@@ -1,22 +1,19 @@
 import type { Metadata } from "next"
-import { Suspense } from "react"
 import { SiteShell } from "@/components/site-shell"
-import { AuthForm } from "@/components/auth/auth-form"
+import { ForgotPasswordForm } from "@/components/auth/forgot-password-form"
 import { pageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Sign in",
-  description: "Sign in to your shieldcn workspace.",
-  path: "/sign-in",
+  title: "Forgot password",
+  description: "Reset your shieldcn password.",
+  path: "/forgot-password",
 })
 
-export default function SignInPage() {
+export default function ForgotPasswordPage() {
   return (
     <SiteShell>
       <main className="flex min-w-0 flex-1 items-center justify-center px-6 py-20">
-        <Suspense fallback={null}>
-          <AuthForm mode="sign-in" />
-        </Suspense>
+        <ForgotPasswordForm />
       </main>
     </SiteShell>
   )
