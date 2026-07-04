@@ -176,3 +176,44 @@ export async function syncSubscriptionFromPolar(
   )
   invalidatePlan(ownerId)
 }
+
+/**
+ * A Polar customer-state payload (from onCustomerStateChanged): the customer
+ * plus their currently-active subscriptions. This is the most robust single
+ * source for "what should this customer have access to" — we reconcile the
+ * subscriptions row from the active subscription (or reset to inactive/free
+ * when there is none).
+ */
+export interface PolarCustomerStateLike {
+  id?: string | null
+  externalId?: string | null
+  activeSubscriptions?: Array<{
+    id?: string | null
+    status?: string | null
+    productId?: string | null
+    currentPeriodEnd?: string | Date | null
+  }> | null
+}
+
+/**
+ * Reconcile the `subscriptions` row from a Polar customer-state payload. Picks
+ * the active subscription (if any) and upserts; when the customer has no active
+ * subscription, writes an inactive/free row so getPlan() drops them to free.
+ * No-op when the owner (externalId) can't be resolved.
+ */
+export async function syncCustomerStateFromPolar(
+  runQuery: (text: string, params: unknown[]) => Promise<unknown>,
+  state: PolarCustomerStateLike,
+): Promise<void> {
+  const ownerId =
+    typeof state.externalId === "string" && state.externalId ? state.externalId : null
+  if (!ownerId) return
+  const active = state.activeSubscriptions?.find((s) => s.status === "active")
+  await syncSubscriptionFromPolar(runQuery, {
+    id: active?.id ?? null,
+    status: active?.status ?? "inactive",
+    productId: active?.productId ?? null,
+    currentPeriodEnd: active?.currentPeriodEnd ?? null,
+    customer: { id: state.id ?? null, externalId: ownerId },
+  })
+}

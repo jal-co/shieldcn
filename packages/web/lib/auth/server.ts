@@ -25,7 +25,10 @@ import { organization } from "better-auth/plugins"
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
 import { Polar } from "@polar-sh/sdk"
 import { getPool, query } from "@shieldcn/core/db"
-import { syncSubscriptionFromPolar } from "@shieldcn/core/entitlements"
+import {
+  syncSubscriptionFromPolar,
+  syncCustomerStateFromPolar,
+} from "@shieldcn/core/entitlements"
 
 // A ≥32-char secret is required by Better Auth. In a build environment that
 // lacks the real secret (e.g. a Vercel preview where it's Production-only),
@@ -52,6 +55,9 @@ const polarClient = new Polar({
 // The single paid product (Plus). Checkout is reachable at /checkout/plus.
 const polarProductId = process.env.POLAR_PRODUCT_PLUS
 
+// Public site URL, used for the checkout/portal back-button (returnUrl).
+const siteUrl = process.env.NEXT_PUBLIC_URL || "https://shieldcn.dev"
+
 export const auth = betterAuth({
   // Pass the shared pg Pool directly — Better Auth uses its built-in Kysely
   // adapter over Postgres. Its tables (user/session/account/verification +
@@ -62,6 +68,23 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+  },
+
+  user: {
+    // When a user deletes their account, delete their Polar customer too so we
+    // don't leave an orphaned billing record. externalId is the user id
+    // (createCustomerOnSignUp). Best-effort: a Polar hiccup must not block the
+    // account deletion itself.
+    deleteUser: {
+      enabled: true,
+      afterDelete: async (u) => {
+        try {
+          await polarClient.customers.deleteExternal({ externalId: u.id })
+        } catch {
+          // ignore — the customer may already be gone or billing unconfigured
+        }
+      },
+    },
   },
 
   socialProviders: {
@@ -89,9 +112,10 @@ export const auth = betterAuth({
             ? [{ productId: polarProductId, slug: "plus" }]
             : [],
           successUrl: "/dashboard?checkout=success",
+          returnUrl: siteUrl,
           authenticatedUsersOnly: true,
         }),
-        portal(),
+        portal({ returnUrl: siteUrl }),
         webhooks({
           secret: process.env.POLAR_WEBHOOK_SECRET || "",
           // Keep our subscriptions table authoritative for getPlan().
@@ -100,6 +124,9 @@ export const auth = betterAuth({
           onSubscriptionActive: (p) => syncSubscriptionFromPolar(query, p.data as never),
           onSubscriptionCanceled: (p) => syncSubscriptionFromPolar(query, p.data as never),
           onSubscriptionRevoked: (p) => syncSubscriptionFromPolar(query, p.data as never),
+          // Robust catch-all for access: whenever anything about a customer
+          // changes, reconcile our subscriptions row from their active subs.
+          onCustomerStateChanged: (p) => syncCustomerStateFromPolar(query, p.data as never),
         }),
       ],
     }),

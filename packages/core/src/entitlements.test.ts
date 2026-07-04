@@ -9,6 +9,7 @@ import {
   getPlan,
   ownerIdFromSubscription,
   syncSubscriptionFromPolar,
+  syncCustomerStateFromPolar,
 } from "./entitlements"
 
 describe("planForProduct", () => {
@@ -100,6 +101,43 @@ describe("syncSubscriptionFromPolar", () => {
   it("no-ops when the owner can't be resolved", async () => {
     let called = false
     await syncSubscriptionFromPolar(async () => { called = true }, {})
+    expect(called).toBe(false)
+  })
+})
+
+describe("syncCustomerStateFromPolar", () => {
+  const prev = process.env.POLAR_PRODUCT_PLUS
+  afterEach(() => { process.env.POLAR_PRODUCT_PLUS = prev })
+
+  it("upserts plus from the active subscription in the customer state", async () => {
+    process.env.POLAR_PRODUCT_PLUS = "prod_plus"
+    const calls: unknown[][] = []
+    await syncCustomerStateFromPolar(async (_t, p) => { calls.push(p) }, {
+      id: "cus_1",
+      externalId: "user_1",
+      activeSubscriptions: [{ id: "sub_1", status: "active", productId: "prod_plus" }],
+    })
+    expect(calls).toHaveLength(1)
+    expect(calls[0][0]).toBe("user_1") // owner
+    expect(calls[0][3]).toBe("plus")  // plan
+    expect(calls[0][4]).toBe("active")
+  })
+
+  it("drops to inactive/free when there is no active subscription", async () => {
+    process.env.POLAR_PRODUCT_PLUS = "prod_plus"
+    const calls: unknown[][] = []
+    await syncCustomerStateFromPolar(async (_t, p) => { calls.push(p) }, {
+      externalId: "user_2",
+      activeSubscriptions: [],
+    })
+    expect(calls).toHaveLength(1)
+    expect(calls[0][3]).toBe("free")
+    expect(calls[0][4]).toBe("inactive")
+  })
+
+  it("no-ops without an externalId", async () => {
+    let called = false
+    await syncCustomerStateFromPolar(async () => { called = true }, { id: "cus_x" })
     expect(called).toBe(false)
   })
 })

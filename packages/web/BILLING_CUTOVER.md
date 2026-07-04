@@ -16,6 +16,12 @@ everything under Better Auth's `/api/auth/*`:
   sign-up via `createCustomerOnSignUp: true`. The org-or-user `ownerId`
   indirection is gone from the billing path (teams are dormant; `ownerId` was
   already always `user.id`).
+- **Account deletion** removes the Polar customer (`deleteUser.afterDelete` →
+  `customers.deleteExternal`), so no orphaned billing records.
+- **`customer.state_changed`** reconciles the subscriptions row from the
+  customer's active subscriptions — a belt-and-suspenders access sync on top of
+  the per-subscription events.
+- Checkout + portal render a back-button to the site (`returnUrl`).
 - **The `subscriptions` table stays the source of truth** for entitlements. The
   plugin's webhooks call `syncSubscriptionFromPolar()` (core/entitlements) to
   upsert it, so `getPlan()` remains a fast cached DB read — no Polar API call on
@@ -27,6 +33,9 @@ everything under Better Auth's `/api/auth/*`:
    `https://shieldcn.dev/api/polar/webhook`
    to **`https://shieldcn.dev/api/auth/polar/webhooks`**.
    Keep the same `POLAR_WEBHOOK_SECRET` (already in Vercel).
+   Ensure the endpoint is subscribed to the subscription events
+   (`subscription.created/updated/active/canceled/revoked`) **and**
+   `customer.state_changed` (the robust access-reconciliation event).
 
 2. **Env vars** (already in prod from the auth cutover — verify present):
    - `POLAR_ACCESS_TOKEN`, `POLAR_SERVER` (`production`),
