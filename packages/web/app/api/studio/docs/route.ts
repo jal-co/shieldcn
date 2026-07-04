@@ -2,38 +2,33 @@
  * shieldcn
  * app/api/studio/docs/route.ts
  *
- * Saved Studio documents (Plus+). List and create. Creating enforces the
- * plan's document cap (Plus = 2 at launch).
+ * Saved Studio documents. List and create, keyed by the personal-first owner
+ * (a user or a team). Creating enforces the plan's document cap. Free gets a
+ * small cloud allowance so creating an account is worthwhile — it's the growth
+ * hook — while Plus/Pro raise the cap.
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOrg } from "@/lib/auth"
+import { requireOwner } from "@/lib/auth"
 import { getPlan } from "@shieldcn/core/entitlements"
-import { listDocs, createDoc, PLUS_DOC_LIMIT } from "@shieldcn/core/studio-docs"
-
-/** Per-plan saved-document caps. Free can't save to the cloud at all. */
-const DOC_LIMIT: Record<string, number> = {
-  free: 0,
-  plus: PLUS_DOC_LIMIT,
-  pro: 25,
-}
+import { listDocs, createDoc, docLimitForPlan } from "@shieldcn/core/studio-docs"
 
 export async function GET() {
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  const docs = await listDocs(auth.orgId)
+  const docs = await listDocs(auth.ownerId)
   return NextResponse.json({ docs })
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const plan = await getPlan(auth.orgId)
-  const limit = DOC_LIMIT[plan] ?? 0
+  const plan = await getPlan(auth.ownerId)
+  const limit = docLimitForPlan(plan)
   if (limit === 0) {
     return NextResponse.json(
-      { error: "saved READMEs require the Plus plan" },
+      { error: "sign in to save READMEs to the cloud" },
       { status: 402 },
     )
   }
@@ -50,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const doc = await createDoc(
-      auth.orgId,
+      auth.ownerId,
       auth.session.userId,
       body.name ?? "Untitled",
       body.doc,

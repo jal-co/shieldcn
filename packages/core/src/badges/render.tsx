@@ -26,7 +26,7 @@ import {
   getButtonSize,
   type ModeColors,
 } from "./button-tokens"
-import { getFonts, FONT_CONFIG, type BadgeFont } from "./satori-fonts"
+import { getFonts, getCustomFonts, FONT_CONFIG, type BadgeFont } from "./satori-fonts"
 
 export type { BadgeFont }
 
@@ -237,7 +237,8 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   // Dimensions (overridable)
   // Font
   const font = config.font ?? "inter"
-  const fontFamily = FONT_CONFIG[font]?.name ?? FONT_CONFIG.inter.name
+  // A brand's uploaded font wins over the built-in family when present.
+  const fontFamily = config.customFont?.name ?? FONT_CONFIG[font]?.name ?? FONT_CONFIG.inter.name
 
   // Clamped regardless of whether the value came from a caller override or
   // a size preset — presets are already in-bounds, so this is a no-op for
@@ -394,7 +395,7 @@ export async function renderBadge(config: BadgeConfig): Promise<string> {
   try {
     const r = resolve(config)
     const el = r.split ? renderSplit(r) : renderSingle(r)
-    const fonts = getFonts(config.font)
+    const fonts = config.customFont ? getCustomFonts(config.customFont) : getFonts(config.font)
     const raw = await satori(el, { height: r.height, fonts })
     const svg = rgbaToHexOpacity(inlineDataUriImages(raw))
     const optimized = optimizeSvg(svg)
@@ -423,7 +424,7 @@ export async function renderBadgeBase(
   try {
     const r = resolve(config)
     const el = r.split ? renderSplit(r) : renderSingle(r)
-    const fonts = getFonts(config.font)
+    const fonts = config.customFont ? getCustomFonts(config.customFont) : getFonts(config.font)
     const raw = await satori(el, { height: r.height, fonts })
     const svg = optimizeSvg(rgbaToHexOpacity(inlineDataUriImages(raw)))
     return { svg, dotColor: r.dotColor }

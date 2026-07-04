@@ -6,12 +6,12 @@
  */
 
 import { NextResponse } from "next/server"
-import { requireOrg } from "@/lib/auth"
-import { listBrandsByOrg } from "@shieldcn/core/brands"
+import { requireOwner } from "@/lib/auth"
+import { listBrandsByOwner } from "@shieldcn/core/brands"
 
 export async function GET() {
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  const brands = await listBrandsByOrg(auth.orgId)
+  const brands = await listBrandsByOwner(auth.ownerId)
   return NextResponse.json({ brands })
 }

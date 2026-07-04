@@ -41,6 +41,32 @@ export async function recordBadgeStat(event: BadgeStatEvent): Promise<void> {
   }
 }
 
+/**
+ * Total renders per brand over the last `days` days, for the analytics
+ * overview (one query for all of an owner's brands). Returns a map keyed by
+ * brand id; brands with no data are simply absent. Fail-open to an empty map.
+ */
+export async function getRenderTotals(
+  brandIds: number[],
+  days = 30,
+): Promise<Record<number, number>> {
+  if (brandIds.length === 0) return {}
+  try {
+    await initDB()
+    const { rows } = await query<{ brand_id: string; total: string }>(
+      `SELECT brand_id, SUM(count)::text AS total FROM badge_stats_daily
+        WHERE brand_id = ANY($1) AND day >= CURRENT_DATE - $2::interval
+        GROUP BY brand_id`,
+      [brandIds, `${days} days`],
+    )
+    const out: Record<number, number> = {}
+    for (const r of rows) out[Number(r.brand_id)] = Number(r.total)
+    return out
+  } catch {
+    return {}
+  }
+}
+
 export interface BrandStatsSummary {
   totalRenders: number
   bySubject: { subject: string; count: number }[]

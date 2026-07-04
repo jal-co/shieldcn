@@ -3,8 +3,9 @@
  * app/api/polar/webhook/route.ts
  *
  * Polar webhook — the single source of truth for billing entitlements. On any
- * subscription change we upsert the `subscriptions` row for the owning org and
- * invalidate its cached plan so getPlan() reflects the change immediately.
+ * subscription change we upsert the `subscriptions` row for the owning account
+ * (a personal user or a team) and invalidate its cached plan so getPlan()
+ * reflects the change immediately.
  */
 
 import { Webhooks } from "@polar-sh/nextjs"
@@ -13,13 +14,18 @@ import { planForProduct, invalidatePlan } from "@shieldcn/core/entitlements"
 
 const webhookSecret = process.env.POLAR_WEBHOOK_SECRET
 
-/** Extract the owning org id from a Polar subscription payload. */
-function orgIdFromSubscription(sub: {
+/**
+ * Extract the owning account id from a Polar subscription payload. This is the
+ * personal-first `ownerId` (a user id or a team id) we set as the checkout's
+ * customerExternalId / metadata.ownerId. Falls back to the legacy `orgId`
+ * metadata key for any in-flight checkout created before the rename.
+ */
+function ownerIdFromSubscription(sub: {
   customer?: { externalId?: string | null } | null
   metadata?: Record<string, unknown> | null
 }): string | null {
-  const metaOrg = sub.metadata?.orgId
-  if (typeof metaOrg === "string" && metaOrg) return metaOrg
+  const metaOwner = sub.metadata?.ownerId ?? sub.metadata?.orgId
+  if (typeof metaOwner === "string" && metaOwner) return metaOwner
   return sub.customer?.externalId ?? null
 }
 
@@ -31,15 +37,15 @@ async function upsertSubscription(sub: {
   customer?: { id?: string; externalId?: string | null } | null
   metadata?: Record<string, unknown> | null
 }) {
-  const orgId = orgIdFromSubscription(sub)
-  if (!orgId) return
+  const ownerId = ownerIdFromSubscription(sub)
+  if (!ownerId) return
 
   const plan = planForProduct(sub.productId)
   await query(
     `INSERT INTO subscriptions
-       (org_id, polar_customer_id, polar_subscription_id, plan, status, current_period_end, updated_at)
+       (owner_id, polar_customer_id, polar_subscription_id, plan, status, current_period_end, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, NOW())
-     ON CONFLICT (org_id) DO UPDATE SET
+     ON CONFLICT (owner_id) DO UPDATE SET
        polar_customer_id = EXCLUDED.polar_customer_id,
        polar_subscription_id = EXCLUDED.polar_subscription_id,
        plan = EXCLUDED.plan,
@@ -47,7 +53,7 @@ async function upsertSubscription(sub: {
        current_period_end = EXCLUDED.current_period_end,
        updated_at = NOW()`,
     [
-      orgId,
+      ownerId,
       sub.customer?.id ?? null,
       sub.id ?? null,
       plan,
@@ -55,7 +61,7 @@ async function upsertSubscription(sub: {
       sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null,
     ],
   )
-  invalidatePlan(orgId)
+  invalidatePlan(ownerId)
 }
 
 // When unconfigured, expose a 503 so misrouted webhooks fail loudly.

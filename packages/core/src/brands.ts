@@ -24,12 +24,32 @@ const BRAND_PARAM_KEYS = [
 
 export type BrandConfig = Partial<Record<(typeof BRAND_PARAM_KEYS)[number], string>>
 
+/** A single palette entry (hex without required name). */
+export interface BrandPaletteColor {
+  hex: string
+  name?: string
+}
+
+/**
+ * The human brand identity (imported from Context.dev / edited on-site).
+ * Distinct from `config`, which is the badge/header style tokens.
+ */
+export interface BrandProfile {
+  title?: string
+  description?: string
+  slogan?: string
+  domain?: string
+  palette?: BrandPaletteColor[]
+}
+
 export interface Brand {
   id: number
   slug: string
-  orgId: string
+  ownerId: string
   name: string | null
   config: BrandConfig
+  profile: BrandProfile
+  brandMd: string | null
 }
 
 /** Reserved slugs that can't be registered (route collisions / squatting). */
@@ -59,21 +79,50 @@ function sanitizeConfig(input: unknown): BrandConfig {
   return out
 }
 
+const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/
+
+function sanitizeProfile(input: unknown): BrandProfile {
+  const out: BrandProfile = {}
+  if (input && typeof input === "object") {
+    const o = input as Record<string, unknown>
+    for (const key of ["title", "description", "slogan", "domain"] as const) {
+      const v = o[key]
+      if (typeof v === "string" && v.length <= 2000) out[key] = v
+    }
+    if (Array.isArray(o.palette)) {
+      out.palette = o.palette
+        .filter((c): c is { hex: string; name?: string } =>
+          Boolean(c && typeof c === "object" && typeof (c as { hex?: unknown }).hex === "string" &&
+            HEX_RE.test((c as { hex: string }).hex)))
+        .slice(0, 12)
+        .map((c) => ({
+          hex: c.hex.startsWith("#") ? c.hex : `#${c.hex}`,
+          name: typeof c.name === "string" ? c.name.slice(0, 60) : undefined,
+        }))
+    }
+  }
+  return out
+}
+
 interface BrandRow {
   id: string | number
   slug: string
-  org_id: string
+  owner_id: string
   name: string | null
   config: unknown
+  profile: unknown
+  brand_md: string | null
 }
 
 function rowToBrand(row: BrandRow): Brand {
   return {
     id: Number(row.id),
     slug: row.slug,
-    orgId: row.org_id,
+    ownerId: row.owner_id,
     name: row.name,
     config: sanitizeConfig(row.config),
+    profile: sanitizeProfile(row.profile),
+    brandMd: row.brand_md ?? null,
   }
 }
 
@@ -92,7 +141,7 @@ export async function getBrand(slug: string): Promise<Brand | null> {
   try {
     await initDB()
     const { rows } = await query<BrandRow>(
-      `SELECT id, slug, org_id, name, config FROM brands WHERE slug = $1`,
+      `SELECT id, slug, owner_id, name, config, profile, brand_md FROM brands WHERE slug = $1`,
       [slug.toLowerCase()],
     )
     const brand = rows[0] ? rowToBrand(rows[0]) : null
@@ -121,34 +170,71 @@ export function applyBrandToParams(
 
 // ── CRUD (management side; the engine only ever reads via getBrand) ──────────
 
-export async function listBrandsByOrg(orgId: string): Promise<Brand[]> {
-  await initDB()
-  const { rows } = await query<BrandRow>(
-    `SELECT id, slug, org_id, name, config FROM brands
-      WHERE org_id = $1 ORDER BY updated_at DESC`,
-    [orgId],
-  )
-  return rows.map(rowToBrand)
+/** Per-plan brand cap. Brands are a Pro capability; a generous ceiling keeps
+ *  a multi-brand company covered while still giving the dashboard a meaningful
+ *  usage meter. */
+export const PRO_BRAND_LIMIT = 25
+export function brandLimitForPlan(plan: string): number {
+  return plan === "pro" ? PRO_BRAND_LIMIT : 0
+}
+
+export async function listBrandsByOwner(ownerId: string): Promise<Brand[]> {
+  // Fail-open: a DB blip on a dashboard read shows an empty list, not a crash.
+  try {
+    await initDB()
+    const { rows } = await query<BrandRow>(
+      `SELECT id, slug, owner_id, name, config, profile, brand_md FROM brands
+        WHERE owner_id = $1 ORDER BY updated_at DESC`,
+      [ownerId],
+    )
+    return rows.map(rowToBrand)
+  } catch {
+    return []
+  }
+}
+
+/** Count an owner's brands (for the create-time cap + dashboard usage meter). */
+export async function countBrandsByOwner(ownerId: string): Promise<number> {
+  try {
+    await initDB()
+    const { rows } = await query<{ n: string }>(
+      `SELECT COUNT(*)::text AS n FROM brands WHERE owner_id = $1`,
+      [ownerId],
+    )
+    return Number(rows[0]?.n ?? 0)
+  } catch {
+    return 0
+  }
+}
+
+export interface BrandUpsert {
+  name?: string | null
+  config?: BrandConfig
+  profile?: BrandProfile
+  brandMd?: string | null
 }
 
 export async function upsertBrand(
-  orgId: string,
+  ownerId: string,
   slug: string,
-  name: string | null,
-  config: BrandConfig,
+  input: BrandUpsert,
 ): Promise<Brand> {
   await initDB()
-  const clean = sanitizeConfig(config)
+  const clean = sanitizeConfig(input.config)
+  const profile = sanitizeProfile(input.profile)
   const { rows } = await query<BrandRow>(
-    `INSERT INTO brands (slug, org_id, name, config, updated_at)
-       VALUES ($1, $2, $3, $4::jsonb, NOW())
+    `INSERT INTO brands (slug, owner_id, name, config, profile, brand_md, updated_at)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, NOW())
      ON CONFLICT (slug) DO UPDATE
        SET name = EXCLUDED.name,
            config = EXCLUDED.config,
+           profile = EXCLUDED.profile,
+           brand_md = EXCLUDED.brand_md,
            updated_at = NOW()
-     WHERE brands.org_id = $2
-     RETURNING id, slug, org_id, name, config`,
-    [slug.toLowerCase(), orgId, name, JSON.stringify(clean)],
+     WHERE brands.owner_id = $2
+     RETURNING id, slug, owner_id, name, config, profile, brand_md`,
+    [slug.toLowerCase(), ownerId, input.name ?? null, JSON.stringify(clean),
+     JSON.stringify(profile), input.brandMd ?? null],
   )
   if (!rows[0]) {
     // ON CONFLICT WHERE guard failed → slug owned by another org.
@@ -158,11 +244,11 @@ export async function upsertBrand(
   return rowToBrand(rows[0])
 }
 
-export async function deleteBrand(orgId: string, slug: string): Promise<boolean> {
+export async function deleteBrand(ownerId: string, slug: string): Promise<boolean> {
   await initDB()
   const { rowCount } = await query(
-    `DELETE FROM brands WHERE slug = $1 AND org_id = $2`,
-    [slug.toLowerCase(), orgId],
+    `DELETE FROM brands WHERE slug = $1 AND owner_id = $2`,
+    [slug.toLowerCase(), ownerId],
   )
   await cacheSet(cacheKey(slug), MISS, CACHE_TTL_SECONDS)
   return (rowCount ?? 0) > 0
@@ -170,11 +256,17 @@ export async function deleteBrand(orgId: string, slug: string): Promise<boolean>
 
 // ── Hosted brand assets ──────────────────────────────────────────────────────
 
-export type BrandAssetKind = "logo" | "logo-mark" | "wordmark"
+export type BrandImageKind = "logo-light" | "logo-dark" | "mark" | "wordmark"
+export type BrandFontKind = "font-sans" | "font-mono" | "font-heading"
+export type BrandAssetKind = BrandImageKind | BrandFontKind
+
+export const BRAND_IMAGE_KINDS: BrandImageKind[] = ["logo-light", "logo-dark", "mark", "wordmark"]
+export const BRAND_FONT_KINDS: BrandFontKind[] = ["font-sans", "font-mono", "font-heading"]
 
 export interface BrandAsset {
   contentType: string
   data: Buffer
+  fileName?: string | null
 }
 
 const assetCacheKey = (slug: string, kind: string) => `brand-asset:${slug}:${kind}`
@@ -196,8 +288,8 @@ export async function getBrandAsset(
 
   try {
     await initDB()
-    const { rows } = await query<{ content_type: string; data: Buffer }>(
-      `SELECT a.content_type, a.data
+    const { rows } = await query<{ content_type: string; data: Buffer; file_name: string | null }>(
+      `SELECT a.content_type, a.data, a.file_name
          FROM brand_assets a JOIN brands b ON b.id = a.brand_id
         WHERE b.slug = $1 AND a.kind = $2`,
       [slug.toLowerCase(), kind],
@@ -209,13 +301,25 @@ export async function getBrandAsset(
     const data = rows[0].data
     await cacheSet(
       key,
-      { contentType: rows[0].content_type, base64: data.toString("base64") },
+      { contentType: rows[0].content_type, base64: data.toString("base64"), fileName: rows[0].file_name },
       CACHE_TTL_SECONDS,
     )
-    return { contentType: rows[0].content_type, data }
+    return { contentType: rows[0].content_type, data, fileName: rows[0].file_name }
   } catch {
     return null
   }
+}
+
+/**
+ * Fetch a brand's uploaded font bytes by kind, for the render pipeline. Same
+ * cache + fail-open behavior as getBrandAsset; returns raw bytes only.
+ */
+export async function getBrandFont(
+  slug: string,
+  kind: BrandFontKind,
+): Promise<Buffer | null> {
+  const asset = await getBrandAsset(slug, kind)
+  return asset?.data ?? null
 }
 
 /** Store (or replace) a brand asset. Ownership is checked by the caller. */
@@ -224,23 +328,27 @@ export async function putBrandAsset(
   kind: BrandAssetKind,
   contentType: string,
   data: Buffer,
+  fileName?: string | null,
 ): Promise<void> {
   await initDB()
   await query(
-    `INSERT INTO brand_assets (brand_id, kind, content_type, data, updated_at)
-       VALUES ($1, $2, $3, $4, NOW())
+    `INSERT INTO brand_assets (brand_id, kind, content_type, file_name, data, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
      ON CONFLICT (brand_id, kind) DO UPDATE
-       SET content_type = EXCLUDED.content_type, data = EXCLUDED.data, updated_at = NOW()`,
-    [brandId, kind, contentType, data],
+       SET content_type = EXCLUDED.content_type, file_name = EXCLUDED.file_name,
+           data = EXCLUDED.data, updated_at = NOW()`,
+    [brandId, kind, contentType, fileName ?? null, data],
   )
+  // The per-asset cache TTL (60s) bounds how long a stale copy can serve after
+  // a re-upload; no explicit bust needed (and we avoid caching a false MISS).
 }
 
 /** Look up a brand owned by an org (for asset-upload authorization). */
-export async function getOwnedBrand(orgId: string, slug: string): Promise<Brand | null> {
+export async function getOwnedBrand(ownerId: string, slug: string): Promise<Brand | null> {
   await initDB()
   const { rows } = await query<BrandRow>(
-    `SELECT id, slug, org_id, name, config FROM brands WHERE slug = $1 AND org_id = $2`,
-    [slug.toLowerCase(), orgId],
+    `SELECT id, slug, owner_id, name, config, profile, brand_md FROM brands WHERE slug = $1 AND owner_id = $2`,
+    [slug.toLowerCase(), ownerId],
   )
   return rows[0] ? rowToBrand(rows[0]) : null
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState, useCallback, useEffect } from "react"
 import {
   ArrowRight,
@@ -14,6 +15,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { UpgradeInline } from "@/components/upgrade-cta"
+import { useMe, planMeets } from "@/lib/use-me"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -80,7 +85,7 @@ function parseRepoUrl(input: string): { owner: string; repo: string } | null {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function MigrateClient() {
+function SingleMigrate() {
   const [input, setInput] = useState("")
   const [step, setStep] = useState<Step>("input")
   const [error, setError] = useState<string | null>(null)
@@ -528,5 +533,241 @@ export default function MigrateClient() {
         </div>
       )}
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Bulk migration (Plus) — scan many repos, open PRs across all of them
+// ---------------------------------------------------------------------------
+
+type BulkStatus = "pending" | "scanning" | "ready" | "skip" | "opening" | "done" | "error"
+
+interface BulkRow {
+  owner: string
+  repo: string
+  status: BulkStatus
+  message?: string
+  found?: number
+  willMigrate?: number
+  readmePath?: string
+  readmeSha?: string
+  transformed?: string
+  prUrl?: string
+  installUrl?: string
+}
+
+function BulkMigrate() {
+  const [input, setInput] = useState("")
+  const [rows, setRows] = useState<BulkRow[]>([])
+  const [scanning, setScanning] = useState(false)
+  const [opening, setOpening] = useState(false)
+
+  const parseRepos = (): { owner: string; repo: string }[] => {
+    const seen = new Set<string>()
+    const out: { owner: string; repo: string }[] = []
+    for (const line of input.split(/[\n,]/)) {
+      const parsed = parseRepoUrl(line)
+      if (!parsed) continue
+      const key = `${parsed.owner}/${parsed.repo}`.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      out.push(parsed)
+    }
+    return out
+  }
+
+  const patchRow = (owner: string, repo: string, patch: Partial<BulkRow>) => {
+    setRows((prev) =>
+      prev.map((r) => (r.owner === owner && r.repo === repo ? { ...r, ...patch } : r)),
+    )
+  }
+
+  const scanAll = async () => {
+    const repos = parseRepos()
+    if (repos.length === 0) return
+    setRows(repos.map((r) => ({ ...r, status: "pending" as BulkStatus })))
+    setScanning(true)
+
+    // Scan sequentially — keeps well under GitHub App rate limits and gives
+    // steady per-row progress rather than a thundering burst.
+    for (const { owner, repo } of repos) {
+      patchRow(owner, repo, { status: "scanning" })
+      try {
+        const res = await fetch("/api/migrate/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ owner, repo }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          patchRow(owner, repo, { status: "error", message: data.error ?? "Check failed" })
+        } else if (!data.installed) {
+          patchRow(owner, repo, { status: "skip", message: "App not installed", installUrl: data.installUrl })
+        } else if (!data.result || data.result.transformed_count === 0) {
+          patchRow(owner, repo, { status: "skip", message: data.result?.found ? "No mappable badges" : "No shields.io badges" })
+        } else {
+          patchRow(owner, repo, {
+            status: "ready",
+            found: data.result.found,
+            willMigrate: data.result.transformed_count,
+            readmePath: data.readme.path,
+            readmeSha: data.readme.sha,
+            transformed: data.result.transformed,
+          })
+        }
+      } catch {
+        patchRow(owner, repo, { status: "error", message: "Network error" })
+      }
+    }
+    setScanning(false)
+  }
+
+  const openAll = async () => {
+    setOpening(true)
+    // Snapshot the ready rows up front so state updates don't reshuffle the loop.
+    const ready = rows.filter((r) => r.status === "ready")
+    for (const row of ready) {
+      patchRow(row.owner, row.repo, { status: "opening" })
+      try {
+        const res = await fetch("/api/migrate/pr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            owner: row.owner,
+            repo: row.repo,
+            readmePath: row.readmePath,
+            readmeSha: row.readmeSha,
+            transformedContent: row.transformed,
+            badgeCount: row.willMigrate,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) patchRow(row.owner, row.repo, { status: "error", message: data.error ?? "PR failed" })
+        else patchRow(row.owner, row.repo, { status: "done", prUrl: data.prUrl })
+      } catch {
+        patchRow(row.owner, row.repo, { status: "error", message: "Network error" })
+      }
+    }
+    setOpening(false)
+  }
+
+  const readyCount = rows.filter((r) => r.status === "ready").length
+  const doneCount = rows.filter((r) => r.status === "done").length
+  const busy = scanning || opening
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <Textarea
+          placeholder={"vercel/next.js\nfacebook/react\nhttps://github.com/owner/repo"}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          rows={5}
+          disabled={busy}
+          className="font-mono text-sm"
+        />
+        <p className="text-xs text-muted-foreground">
+          One repo per line (or comma-separated). We scan each README, then you open every PR in one click.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button onClick={scanAll} disabled={busy || !input.trim()}>
+            {scanning ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+            {scanning ? "Scanning…" : "Scan all"}
+          </Button>
+          {readyCount > 0 && (
+            <Button onClick={openAll} disabled={busy} variant="default" className="gap-2">
+              {opening ? <Loader2 className="size-4 animate-spin" /> : <GitPullRequest className="size-4" />}
+              Open {readyCount} PR{readyCount === 1 ? "" : "s"}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {doneCount > 0 && (
+            <p className="text-sm text-emerald-500">
+              {doneCount} PR{doneCount === 1 ? "" : "s"} opened.
+            </p>
+          )}
+          <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
+            {rows.map((r) => (
+              <li key={`${r.owner}/${r.repo}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <span className="min-w-0 truncate font-mono text-xs">{r.owner}/{r.repo}</span>
+                <span className="flex shrink-0 items-center gap-2 text-xs">
+                  {r.status === "scanning" && <><Loader2 className="size-3.5 animate-spin" /> Scanning</>}
+                  {r.status === "opening" && <><Loader2 className="size-3.5 animate-spin" /> Opening PR</>}
+                  {r.status === "pending" && <span className="text-muted-foreground">Queued</span>}
+                  {r.status === "ready" && <Badge variant="secondary">{r.willMigrate} to migrate</Badge>}
+                  {r.status === "skip" && (
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      {r.message}
+                      {r.installUrl && (
+                        <a href={r.installUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline underline-offset-2 hover:text-foreground">
+                          Install <ExternalLink className="size-3" />
+                        </a>
+                      )}
+                    </span>
+                  )}
+                  {r.status === "error" && (
+                    <span className="flex items-center gap-1 text-destructive"><AlertTriangle className="size-3.5" /> {r.message}</span>
+                  )}
+                  {r.status === "done" && r.prUrl && (
+                    <a href={r.prUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-emerald-500 underline underline-offset-2">
+                      <Check className="size-3.5" /> PR opened <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Wrapper — single vs bulk. Bulk is a Plus feature; free users see an upsell.
+// ---------------------------------------------------------------------------
+
+export default function MigrateClient() {
+  const { me } = useMe()
+  const isPlus = planMeets(me.plan, "plus")
+
+  return (
+    <Tabs defaultValue="single" className="flex flex-col gap-6">
+      <TabsList>
+        <TabsTrigger value="single">Single repo</TabsTrigger>
+        <TabsTrigger value="bulk" className="gap-1.5">
+          Bulk
+          {!isPlus && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Plus</span>}
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="single">
+        <SingleMigrate />
+      </TabsContent>
+
+      <TabsContent value="bulk">
+        {isPlus ? (
+          <BulkMigrate />
+        ) : (
+          <div className="flex flex-col gap-4">
+            <UpgradeInline
+              tier="plus"
+              feature="Bulk migration"
+            />
+            <p className="text-sm text-muted-foreground">
+              Scanning and previewing is free for a single repo. Bulk migration
+              scans every repo you list and opens all the PRs in one click —
+              part of <strong>Plus</strong>. Companies standardizing badges across
+              many repos may prefer <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">Pro</Link>,
+              which adds managed brands so one edit restyles every embed.
+            </p>
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
   )
 }

@@ -8,15 +8,20 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOrg } from "@/lib/auth"
-import { hasPlan } from "@shieldcn/core/entitlements"
+import { requireOwner } from "@/lib/auth"
 import {
   upsertBrand,
   deleteBrand,
   getBrand,
+  getOwnedBrand,
+  countBrandsByOwner,
+  brandLimitForPlan,
   isValidBrandSlug,
   type BrandConfig,
+  type BrandProfile,
 } from "@shieldcn/core/brands"
+import { getPlan } from "@shieldcn/core/entitlements"
+
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -33,13 +38,32 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "invalid slug" }, { status: 400 })
   }
 
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.orgId, "pro"))) {
+  const plan = await getPlan(auth.ownerId)
+  if (plan !== "pro") {
     return NextResponse.json({ error: "brands require the Pro plan" }, { status: 402 })
   }
 
-  let body: { name?: string; config?: BrandConfig }
+  // Enforce the brand cap, but only for a genuinely new brand (editing an
+  // existing one must always succeed, even at the cap).
+  const existing = await getOwnedBrand(auth.ownerId, slug)
+  if (!existing) {
+    const [count, limit] = [await countBrandsByOwner(auth.ownerId), brandLimitForPlan(plan)]
+    if (count >= limit) {
+      return NextResponse.json(
+        { error: `brand limit reached (${limit}). Delete one or contact us for more.`, limit },
+        { status: 409 },
+      )
+    }
+  }
+
+  let body: {
+    name?: string
+    config?: BrandConfig
+    profile?: BrandProfile
+    brandMd?: string | null
+  }
   try {
     body = await req.json()
   } catch {
@@ -47,7 +71,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   try {
-    const brand = await upsertBrand(auth.orgId, slug, body.name ?? null, body.config ?? {})
+    const brand = await upsertBrand(auth.ownerId, slug, {
+      name: body.name ?? null,
+      config: body.config,
+      profile: body.profile,
+      brandMd: body.brandMd,
+    })
     return NextResponse.json(brand)
   } catch (err) {
     const msg = err instanceof Error ? err.message : "error"
@@ -58,10 +87,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const { slug } = await params
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const ok = await deleteBrand(auth.orgId, slug)
+  const ok = await deleteBrand(auth.ownerId, slug)
   if (!ok) return NextResponse.json({ error: "not found" }, { status: 404 })
   return NextResponse.json({ ok: true })
 }

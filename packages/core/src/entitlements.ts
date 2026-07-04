@@ -7,6 +7,9 @@
  * is cached briefly so hot paths (brand resolution, dashboard, API gates) don't
  * hit Postgres on every request.
  *
+ * Ownership is personal-first: an owner id is either a personal user id or an
+ * active organization id. A subscription entitles whichever owner bought it.
+ *
  * Plan hierarchy: free < plus < pro. `pro` implies every `plus` capability.
  */
 
@@ -32,10 +35,10 @@ const TTL_MS = 60_000
  * orgs, lapsed subscriptions, or when billing is not configured. Fail-open to
  * "free" on any error — a billing lookup must never break a request path.
  */
-export async function getPlan(orgId: string | null | undefined): Promise<Plan> {
-  if (!orgId) return "free"
+export async function getPlan(ownerId: string | null | undefined): Promise<Plan> {
+  if (!ownerId) return "free"
 
-  const cached = cache.get(orgId)
+  const cached = cache.get(ownerId)
   if (cached && cached.expires > Date.now()) return cached.plan
 
   let plan: Plan = "free"
@@ -47,8 +50,8 @@ export async function getPlan(orgId: string | null | undefined): Promise<Plan> {
     }>(
       `SELECT plan, status, current_period_end
          FROM subscriptions
-        WHERE org_id = $1`,
-      [orgId],
+        WHERE owner_id = $1`,
+      [ownerId],
     )
     const row = rows[0]
     if (row && ACTIVE_STATUSES.has(row.status)) {
@@ -64,22 +67,22 @@ export async function getPlan(orgId: string | null | undefined): Promise<Plan> {
     plan = "free"
   }
 
-  cache.set(orgId, { plan, expires: Date.now() + TTL_MS })
+  cache.set(ownerId, { plan, expires: Date.now() + TTL_MS })
   return plan
 }
 
 /** True when the org's plan is at least `min` in the free<plus<pro hierarchy. */
 export async function hasPlan(
-  orgId: string | null | undefined,
+  ownerId: string | null | undefined,
   min: Plan,
 ): Promise<boolean> {
-  const plan = await getPlan(orgId)
+  const plan = await getPlan(ownerId)
   return PLAN_RANK[plan] >= PLAN_RANK[min]
 }
 
 /** Drop a cached plan immediately (call from the Polar webhook on change). */
-export function invalidatePlan(orgId: string): void {
-  cache.delete(orgId)
+export function invalidatePlan(ownerId: string): void {
+  cache.delete(ownerId)
 }
 
 /**

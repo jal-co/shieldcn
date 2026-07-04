@@ -9,7 +9,7 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOrg } from "@/lib/auth"
+import { requireOwner } from "@/lib/auth"
 import { hasPlan } from "@shieldcn/core/entitlements"
 import {
   getBrandProfile,
@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "brand import not configured" }, { status: 503 })
   }
 
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.orgId, "pro"))) {
+  if (!(await hasPlan(auth.ownerId, "pro"))) {
     return NextResponse.json({ error: "brand import requires the Pro plan" }, { status: 402 })
   }
 

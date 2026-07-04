@@ -11,7 +11,7 @@
 
 import { Checkout } from "@polar-sh/nextjs"
 import { NextResponse, NextRequest } from "next/server"
-import { requireOrg } from "@/lib/auth"
+import { requireOwner } from "@/lib/auth"
 
 const accessToken = process.env.POLAR_ACCESS_TOKEN
 const server = (process.env.POLAR_SERVER as "sandbox" | "production") ?? "sandbox"
@@ -27,9 +27,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "billing not configured" }, { status: 503 })
   }
 
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) {
-    const login = new URL("/handler/sign-in", req.url)
+    const login = new URL("/sign-in", req.url)
     return NextResponse.redirect(login)
   }
 
@@ -50,9 +50,9 @@ export async function GET(req: NextRequest) {
   // Rewrite the request so Polar's handler sees the product + external ids.
   const url = new URL(req.url)
   url.searchParams.set("products", productId)
-  url.searchParams.set("customerExternalId", auth.orgId)
+  url.searchParams.set("customerExternalId", auth.ownerId)
   // The handler parses `metadata` as a single JSON object param.
-  url.searchParams.set("metadata", JSON.stringify({ orgId: auth.orgId, plan }))
+  url.searchParams.set("metadata", JSON.stringify({ ownerId: auth.ownerId, plan }))
 
   return handler(new NextRequest(url, req))
 }

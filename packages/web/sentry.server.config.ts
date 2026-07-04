@@ -8,10 +8,20 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { nodeProfilingIntegration } from "@sentry/profiling-node"
 import { setCacheMetricsCallback, setProviderAlertCallback } from "@shieldcn/core/cache"
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
+
+// Profiling loads a native binary whose ABI must match the running Node. Prod
+// (Vercel) ships a matching build; some local Node versions have no matching
+// prebuilt binary, and importing the module at all crashes the instrumentation
+// hook. Load it lazily and only in production, so prod profiling is unchanged
+// while local dev never fails to boot over a missing profiler binary.
+const profilingIntegrations: NonNullable<Parameters<typeof Sentry.init>[0]>["integrations"] = []
+if (dsn && process.env.NODE_ENV === "production") {
+  const { nodeProfilingIntegration } = await import("@sentry/profiling-node")
+  profilingIntegrations.push(nodeProfilingIntegration())
+}
 
 if (dsn) {
   Sentry.init({
@@ -20,7 +30,7 @@ if (dsn) {
     profilesSampleRate: 1,
     enableLogs: true,
     debug: false,
-    integrations: [nodeProfilingIntegration()],
+    integrations: profilingIntegrations,
     // Privacy: do not attach the visitor IP, cookies, or request body to
     // stored error events. IPs are processed transiently but never retained.
     sendDefaultPii: false,

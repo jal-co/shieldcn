@@ -24,7 +24,7 @@ import {
 } from "../github-app"
 import { trackEvent } from "@/lib/openpanel"
 import { checkRateLimit, getClientIdentifier } from "@shieldcn/core/rate-limit"
-import { requireOrg } from "@/lib/auth"
+import { requireOwner } from "@/lib/auth"
 import { hasPlan } from "@shieldcn/core/entitlements"
 import { meterEvent } from "@/lib/polar-meter"
 
@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
 
   // Scanning/preview is free (see /api/migrate/check). Opening a PR — single
   // or bulk — requires the Plus plan, so the free tool can't undercut it.
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) {
     return NextResponse.json(
       { error: "Sign in with Plus to open migration PRs." },
       { status: 401 },
     )
   }
-  if (!(await hasPlan(auth.orgId, "plus"))) {
+  if (!(await hasPlan(auth.ownerId, "plus"))) {
     return NextResponse.json(
       { error: "Opening migration PRs requires the Plus plan." },
       { status: 402 },
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Meter one migration event against the org's Polar balance.
-    void meterEvent(auth.orgId, "readme_migration", {
+    void meterEvent(auth.ownerId, "readme_migration", {
       owner,
       repo,
       badgeCount: badgeCount || 0,

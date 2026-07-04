@@ -77,6 +77,8 @@ export interface HeaderState {
   image: string
   /** Scrim strength over the photo, "0"–"1". Blank = default (0.45). */
   overlay: string
+  /** Optional brand slug — pulls colors, font, and logo from a stored brand. */
+  brand: string
 }
 
 // Curated Unsplash photos that read well as wide banners (sized via imgix).
@@ -119,6 +121,7 @@ export const HEADER_DEFAULTS: HeaderState = {
   watermark: false,
   image: "",
   overlay: "",
+  brand: "",
 }
 
 /** Build the `/header/{preset}.svg?...` URL from builder state. */
@@ -138,6 +141,9 @@ export function buildHeaderUrl(s: HeaderState, baseUrl: string): string {
   if (!s.border) params.set("border", "false")
   if (s.image) params.set("image", s.image)
   if (s.image && s.overlay) params.set("overlay", s.overlay)
+  // A brand overlays colors/font/logo server-side; explicit params above still
+  // win (precedence: query param > brand > default), so builder choices hold.
+  if (s.brand) params.set("brand", s.brand)
 
   const preset = s.preset || "surface"
   const qs = params.toString()

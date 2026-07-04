@@ -61,3 +61,6 @@ logo-dev-email.txt
 # interface-craft skill + local-only skills
 /interface-craft/
 .github/skills/
+
+# Cursor local files
+.cursor/

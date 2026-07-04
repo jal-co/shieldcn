@@ -8,12 +8,24 @@
 
 import { query, initDB } from "./db"
 
-/** Saved-document cap for the Plus plan at launch. */
-export const PLUS_DOC_LIMIT = 2
+/**
+ * Saved-document caps. Free gets a small cloud allowance so signing up is
+ * worthwhile (the account-creation hook); paid plans raise it.
+ */
+export const FREE_DOC_LIMIT = 2
+export const PLUS_DOC_LIMIT = 15
+export const PRO_DOC_LIMIT = 50
+
+/** Saved-README cap for a plan. Single source of truth for route + dashboard. */
+export function docLimitForPlan(plan: string): number {
+  if (plan === "pro") return PRO_DOC_LIMIT
+  if (plan === "plus") return PLUS_DOC_LIMIT
+  return FREE_DOC_LIMIT
+}
 
 export interface StudioDoc {
   id: number
-  orgId: string
+  ownerId: string
   userId: string | null
   name: string
   doc: unknown
@@ -22,7 +34,7 @@ export interface StudioDoc {
 
 interface DocRow {
   id: string | number
-  org_id: string
+  owner_id: string
   user_id: string | null
   name: string
   doc: unknown
@@ -32,7 +44,7 @@ interface DocRow {
 function rowToDoc(row: DocRow): StudioDoc {
   return {
     id: Number(row.id),
-    orgId: row.org_id,
+    ownerId: row.owner_id,
     userId: row.user_id,
     name: row.name,
     doc: row.doc,
@@ -40,31 +52,37 @@ function rowToDoc(row: DocRow): StudioDoc {
   }
 }
 
-export async function listDocs(orgId: string): Promise<StudioDoc[]> {
-  await initDB()
-  const { rows } = await query<DocRow>(
-    `SELECT id, org_id, user_id, name, doc, updated_at
-       FROM studio_documents WHERE org_id = $1 ORDER BY updated_at DESC`,
-    [orgId],
-  )
-  return rows.map(rowToDoc)
+export async function listDocs(ownerId: string): Promise<StudioDoc[]> {
+  // Fail-open: a DB blip on a dashboard read shows an empty list, never a
+  // crashed page (the write paths still surface real errors).
+  try {
+    await initDB()
+    const { rows } = await query<DocRow>(
+      `SELECT id, owner_id, user_id, name, doc, updated_at
+         FROM studio_documents WHERE owner_id = $1 ORDER BY updated_at DESC`,
+      [ownerId],
+    )
+    return rows.map(rowToDoc)
+  } catch {
+    return []
+  }
 }
 
-export async function getDoc(orgId: string, id: number): Promise<StudioDoc | null> {
+export async function getDoc(ownerId: string, id: number): Promise<StudioDoc | null> {
   await initDB()
   const { rows } = await query<DocRow>(
-    `SELECT id, org_id, user_id, name, doc, updated_at
-       FROM studio_documents WHERE id = $1 AND org_id = $2`,
-    [id, orgId],
+    `SELECT id, owner_id, user_id, name, doc, updated_at
+       FROM studio_documents WHERE id = $1 AND owner_id = $2`,
+    [id, ownerId],
   )
   return rows[0] ? rowToDoc(rows[0]) : null
 }
 
-export async function countDocs(orgId: string): Promise<number> {
+export async function countDocs(ownerId: string): Promise<number> {
   await initDB()
   const { rows } = await query<{ n: string }>(
-    `SELECT COUNT(*)::text AS n FROM studio_documents WHERE org_id = $1`,
-    [orgId],
+    `SELECT COUNT(*)::text AS n FROM studio_documents WHERE owner_id = $1`,
+    [ownerId],
   )
   return Number(rows[0]?.n ?? 0)
 }
@@ -74,43 +92,43 @@ export async function countDocs(orgId: string): Promise<number> {
  * "doc limit reached" when the org is already at the cap.
  */
 export async function createDoc(
-  orgId: string,
+  ownerId: string,
   userId: string | null,
   name: string,
   doc: unknown,
   limit: number,
 ): Promise<StudioDoc> {
-  if ((await countDocs(orgId)) >= limit) {
+  if ((await countDocs(ownerId)) >= limit) {
     throw new Error("doc limit reached")
   }
   const { rows } = await query<DocRow>(
-    `INSERT INTO studio_documents (org_id, user_id, name, doc)
+    `INSERT INTO studio_documents (owner_id, user_id, name, doc)
        VALUES ($1, $2, $3, $4::jsonb)
-     RETURNING id, org_id, user_id, name, doc, updated_at`,
-    [orgId, userId, name.slice(0, 200), JSON.stringify(doc)],
+     RETURNING id, owner_id, user_id, name, doc, updated_at`,
+    [ownerId, userId, name.slice(0, 200), JSON.stringify(doc)],
   )
   return rowToDoc(rows[0])
 }
 
 export async function updateDoc(
-  orgId: string,
+  ownerId: string,
   id: number,
   name: string,
   doc: unknown,
 ): Promise<StudioDoc | null> {
   const { rows } = await query<DocRow>(
     `UPDATE studio_documents SET name = $3, doc = $4::jsonb, updated_at = NOW()
-      WHERE id = $1 AND org_id = $2
-     RETURNING id, org_id, user_id, name, doc, updated_at`,
-    [id, orgId, name.slice(0, 200), JSON.stringify(doc)],
+      WHERE id = $1 AND owner_id = $2
+     RETURNING id, owner_id, user_id, name, doc, updated_at`,
+    [id, ownerId, name.slice(0, 200), JSON.stringify(doc)],
   )
   return rows[0] ? rowToDoc(rows[0]) : null
 }
 
-export async function deleteDoc(orgId: string, id: number): Promise<boolean> {
+export async function deleteDoc(ownerId: string, id: number): Promise<boolean> {
   const { rowCount } = await query(
-    `DELETE FROM studio_documents WHERE id = $1 AND org_id = $2`,
-    [id, orgId],
+    `DELETE FROM studio_documents WHERE id = $1 AND owner_id = $2`,
+    [id, ownerId],
   )
   return (rowCount ?? 0) > 0
 }

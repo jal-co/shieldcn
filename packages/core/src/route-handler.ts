@@ -25,7 +25,7 @@ import { isTwemojiLogo, resolveTwemojiSvg } from "./badges/twemoji"
 import { getProviderBrandColor } from "./badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "./badges/svg-parser"
 import { normalizeSearchParams } from "./normalize-params"
-import { getBrand, applyBrandToParams } from "./brands"
+import { getBrand, applyBrandToParams, getBrandFont, getBrandAsset, type BrandFontKind, type BrandImageKind } from "./brands"
 import { recordBadgeStat } from "./badge-stats"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/types"
 import { resolveVariant } from "./badges/validate"
@@ -3252,6 +3252,7 @@ async function handleBadgeGETInner(
   // an unknown/deleted brand renders defaults and is tracked as brand_miss.
   // ---------------------------------------------------------------------------
   let brandId: number | null = null
+  let brandCustomFont: { name: string; data: Uint8Array } | null = null
   {
     let brandSlug: string | null = null
     if (cleanSegments[0] === "b" && cleanSegments[1]) {
@@ -3265,6 +3266,45 @@ async function handleBadgeGETInner(
       if (brand) {
         brandId = brand.id
         searchParams = applyBrandToParams(searchParams, brand.config)
+        // A brand can ship its own uploaded font: font=brand[-mono|-heading]
+        // renders badges in the brand's typeface (loaded from brand_assets).
+        const fontParam = searchParams.get("font")
+        if (fontParam && fontParam.startsWith("brand")) {
+          const kind: BrandFontKind =
+            fontParam === "brand-mono" ? "font-mono"
+            : fontParam === "brand-heading" ? "font-heading"
+            : "font-sans"
+          const data = await getBrandFont(brandSlug, kind)
+          if (data) {
+            brandCustomFont = { name: `Brand ${brandSlug}`, data: new Uint8Array(data) }
+          }
+          // Drop the non-standard value so downstream font parsing falls back
+          // to Inter for glyph coverage; customFont overrides the family.
+          searchParams.delete("font")
+        }
+        // logo=brand renders the brand's own hosted logo instead of a provider
+        // icon. Resolve the mode-appropriate SVG (dark badge bg → light-ink
+        // logo) and rewrite `logo` to a data URI so it flows uniformly through
+        // the badge, header, and group logo paths downstream.
+        if (searchParams.get("logo") === "brand") {
+          const light = searchParams.get("mode") === "light"
+          const primary: BrandImageKind = light ? "logo-light" : "logo-dark"
+          const secondary: BrandImageKind = light ? "logo-dark" : "logo-light"
+          const asset =
+            (await getBrandAsset(brandSlug, primary)) ??
+            (await getBrandAsset(brandSlug, "mark")) ??
+            (await getBrandAsset(brandSlug, secondary))
+          if (asset && asset.contentType.includes("svg")) {
+            searchParams.set(
+              "logo",
+              `data:image/svg+xml;base64,${asset.data.toString("base64")}`,
+            )
+          } else {
+            // No usable SVG logo — fall back to the default icon rather than
+            // attempting a bogus "brand" SimpleIcons slug lookup.
+            searchParams.delete("logo")
+          }
+        }
       } else if (options?.onTrack) {
         void options.onTrack({ name: "brand_miss", data: { brand: brandSlug.slice(0, 40) } })
       }
@@ -3287,7 +3327,11 @@ async function handleBadgeGETInner(
       ...options,
       onTrack: (event) => {
         const data = brandId != null ? { ...event.data, brandId } : event.data
-        if (event.name === "badge_rendered") {
+        // The daily rollup feeds the Pro per-brand analytics dashboard, which
+        // only ever queries by a specific brand_id. Recording the entire public
+        // badge firehose under brand_id=0 would be pure write amplification for
+        // rows nothing reads — so only branded renders are rolled up.
+        if (event.name === "badge_rendered" && brandId != null) {
           void recordBadgeStat({
             brandId,
             provider: String(data.provider ?? cleanSegments[0] ?? "unknown"),
@@ -3712,6 +3756,7 @@ async function handleBadgeGETInner(
     hasThemeOverride,
     brandColor,
     font,
+    customFont: brandCustomFont ?? undefined,
     gradient,
     flagSvg,
     emojiSvg,

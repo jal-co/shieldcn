@@ -44,6 +44,7 @@ import { SponsorButton } from "@/components/sponsor-button"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { MobileNav } from "@/components/mobile-nav"
 import { ShieldcnLogo } from "@/components/shieldcn-logo"
+import { UserMenu } from "@/components/auth/user-menu"
 
 // ---------------------------------------------------------------------------
 // TIMING — entrance stage delays (ms after mount). Single source of truth.
@@ -108,7 +109,7 @@ const NAV = {
         { href: "/contributors", label: "Contributors" },
       ],
     },
-    { href: "/migrate", label: "Migrate" },
+    { href: "/pricing", label: "Pricing" },
   ] as NavItem[],
 }
 
@@ -288,6 +289,7 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
         <SponsorButton className="hidden sm:inline-flex" />
         {githubButton}
         <ThemeSwitcher />
+        <UserMenu />
       </motion.div>
     </motion.header>
   )

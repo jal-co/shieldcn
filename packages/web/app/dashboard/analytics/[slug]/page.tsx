@@ -1,10 +1,31 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { SiteShell } from "@/components/site-shell"
+
 import { getSession } from "@/lib/auth"
 import { getOwnedBrand } from "@shieldcn/core/brands"
 import { getBrandStats } from "@shieldcn/core/badge-stats"
+
+/**
+ * Zero-fill the sparse rollup trend into a dense day-by-day series so the chart
+ * shows quiet days as gaps, not as a compressed timeline. `days` matches the
+ * getBrandStats window.
+ */
+function denseTrend(
+  trend: { day: string; count: number }[],
+  days: number,
+): { day: string; count: number }[] {
+  const byDay = new Map(trend.map((t) => [t.day.slice(0, 10), t.count]))
+  const out: { day: string; count: number }[] = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today)
+    d.setUTCDate(today.getUTCDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    out.push({ day: key, count: byDay.get(key) ?? 0 })
+  }
+  return out
+}
 
 export default async function BrandAnalyticsPage({
   params,
@@ -13,17 +34,19 @@ export default async function BrandAnalyticsPage({
 }) {
   const { slug } = await params
   const session = await getSession()
-  if (!session?.orgId) notFound()
+  if (!session) notFound()
 
-  const brand = await getOwnedBrand(session.orgId, slug)
+  const ownerId = session.orgId ?? session.userId
+  const brand = await getOwnedBrand(ownerId, slug)
   if (!brand) notFound()
 
-  const stats = await getBrandStats(brand.id, 30)
+  const DAYS = 30
+  const stats = await getBrandStats(brand.id, DAYS)
+  const trend = denseTrend(stats.trend, DAYS)
+  const peak = Math.max(1, ...trend.map((t) => t.count))
 
   return (
-    <SiteShell>
-      <main className="min-w-0 flex-1">
-        <div className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-14 md:px-10">
+    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-14 md:px-10">
           <div className="flex flex-col gap-2">
             <Link
               href="/dashboard"
@@ -40,6 +63,37 @@ export default async function BrandAnalyticsPage({
               counts are a floor, not a total.
             </p>
           </div>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Last {DAYS} days
+            </h2>
+            {stats.totalRenders === 0 ? (
+              <p className="text-sm text-muted-foreground">No renders yet.</p>
+            ) : (
+              <div className="rounded-lg border border-border p-4">
+                <div className="flex h-28 items-end gap-[3px]">
+                  {trend.map((t) => (
+                    <div
+                      key={t.day}
+                      className="group relative flex h-full flex-1 items-end"
+                      title={`${t.day}: ${t.count.toLocaleString()} renders`}
+                    >
+                      <div
+                        className="w-full rounded-sm bg-foreground/70 transition-colors group-hover:bg-foreground"
+                        style={{ height: `${Math.max(2, (t.count / peak) * 100)}%` }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                  <span>{trend[0]?.day}</span>
+                  <span>peak {peak.toLocaleString()}/day</span>
+                  <span>{trend[trend.length - 1]?.day}</span>
+                </div>
+              </div>
+            )}
+          </section>
 
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -80,8 +134,6 @@ export default async function BrandAnalyticsPage({
               </ul>
             )}
           </section>
-        </div>
-      </main>
-    </SiteShell>
+    </div>
   )
 }

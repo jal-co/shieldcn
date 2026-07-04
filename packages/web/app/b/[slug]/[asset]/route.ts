@@ -18,10 +18,12 @@ type Params = { params: Promise<{ slug: string; asset: string }> }
 
 /** Map a request filename to a stored asset kind + response content type. */
 const ASSET_MAP: Record<string, { kind: BrandAssetKind }> = {
-  "logo.svg": { kind: "logo" },
-  "logo.png": { kind: "logo" },
-  "logo-mark.svg": { kind: "logo-mark" },
-  "logo-mark.png": { kind: "logo-mark" },
+  "logo-light.svg": { kind: "logo-light" },
+  "logo-light.png": { kind: "logo-light" },
+  "logo-dark.svg": { kind: "logo-dark" },
+  "logo-dark.png": { kind: "logo-dark" },
+  "mark.svg": { kind: "mark" },
+  "mark.png": { kind: "mark" },
   "wordmark.svg": { kind: "wordmark" },
   "wordmark.png": { kind: "wordmark" },
 }

@@ -107,6 +107,12 @@ export interface BadgeConfig {
   brandColor?: string
   /** Font family for badge text. */
   font?: "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
+  /**
+   * A brand's uploaded font, used when the effective font is the brand font.
+   * Takes precedence over `font` for the rendered family. Bytes are a TTF/OTF/
+   * WOFF buffer loaded by the route handler from brand_assets.
+   */
+  customFont?: { name: string; data: Uint8Array }
   /** CSS linear-gradient value for badge background. */
   gradient?: string
   /**

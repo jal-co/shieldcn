@@ -11,7 +11,7 @@
 
 import { NextResponse, type NextRequest } from "next/server"
 import { generateText } from "ai"
-import { requireOrg } from "@/lib/auth"
+import { requireOwner } from "@/lib/auth"
 import { hasPlan } from "@shieldcn/core/entitlements"
 import { meteredModel, aiConfigured } from "@/lib/ai"
 
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
   if (!aiConfigured) {
     return NextResponse.json({ error: "AI not configured" }, { status: 503 })
   }
-  const auth = await requireOrg()
+  const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.orgId, "plus"))) {
+  if (!(await hasPlan(auth.ownerId, "plus"))) {
     return NextResponse.json({ error: "AI requires the Plus plan" }, { status: 402 })
   }
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { text } = await generateText({
-      model: meteredModel(auth.orgId),
+      model: meteredModel(auth.ownerId),
       system: SYSTEM,
       prompt: `Write a README for this project:\n\n${context}`,
     })

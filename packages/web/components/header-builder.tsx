@@ -11,6 +11,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
+import Link from "next/link"
 import { Shuffle } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
@@ -171,6 +172,23 @@ export function HeaderBuilder() {
             <ColorSwatch label="Logo color" value={s.logoColor} onChange={(v) => set("logoColor", v)} />
           </div>
           <SvgIconUpload allowRaster value={s.logo} onChange={(v) => set("logo", v)} className="w-full" />
+        </div>
+
+        {/* Brand */}
+        <div className="space-y-1.5">
+          <FieldLabel htmlFor="header-brand">Brand</FieldLabel>
+          <Input
+            id="header-brand"
+            value={s.brand}
+            onChange={(e) => set("brand", e.target.value)}
+            placeholder="acme"
+            className="h-9 text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            Applies a stored brand&apos;s colors, font &amp; logo. Add <code>logo=brand</code> or{" "}
+            <code>font=brand</code> in the URL to use hosted assets.{" "}
+            <Link href="/docs/pro/brands" className="underline underline-offset-4 hover:text-foreground">Learn more</Link>
+          </p>
         </div>
 
         {/* Background image */}

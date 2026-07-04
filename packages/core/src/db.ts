@@ -147,19 +147,20 @@ export async function initDB() {
       ON gen_users (last_used_at DESC);
 
     -- ─────────────────────────────────────────────────────────────────────
-    -- Pro/Plus tier tables. Ownership keys are Neon Auth (Better Auth)
-    -- identifiers: org_id is a Better Auth organization (a company/team),
-    -- user_id mirrors neon_auth.users_sync.id. We keep these as plain TEXT
-    -- FKs-by-convention rather than hard FKs, because users_sync is populated
-    -- asynchronously by Neon Auth and the self-hosted engine may run without
-    -- the auth schema present (it only ever reads brands, never writes them).
+    -- Pro/Plus tier tables. Ownership is personal-first: owner_id is either a
+    -- personal user id (neon_auth.users_sync.id) OR a Better Auth organization
+    -- id (a company/team) when one is active. Free & Plus live on the personal
+    -- account and never need an org; Pro brands can be owned by a person or an
+    -- org. owner_id is plain TEXT (FK-by-convention, no hard FK) because
+    -- users_sync is populated asynchronously by Neon Auth and the self-hosted
+    -- engine may run without the auth schema (it only reads brands).
     -- ─────────────────────────────────────────────────────────────────────
 
-    -- Billing entitlements. One row per paying organization. The Polar
-    -- webhook is the source of truth; plan is derived from the purchased
+    -- Billing entitlements. One row per paying owner (person or org). The
+    -- Polar webhook is the source of truth; plan is derived from the purchased
     -- product and read by getPlan().
     CREATE TABLE IF NOT EXISTS subscriptions (
-      org_id TEXT PRIMARY KEY,
+      owner_id TEXT PRIMARY KEY,
       polar_customer_id TEXT,
       polar_subscription_id TEXT,
       plan TEXT NOT NULL DEFAULT 'free',        -- 'free' | 'plus' | 'pro'
@@ -167,48 +168,82 @@ export async function initDB() {
       current_period_end TIMESTAMPTZ,
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    -- Personal-first migration: rename a legacy org_id owner column to owner_id
+    -- once (guarded so re-running initDB on an already-migrated DB is a no-op).
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_name = 'subscriptions' AND column_name = 'org_id') THEN
+        ALTER TABLE subscriptions RENAME COLUMN org_id TO owner_id;
+      END IF;
+    END $$;
     CREATE INDEX IF NOT EXISTS idx_subscriptions_customer
       ON subscriptions (polar_customer_id);
 
     -- Stored brands. A brand is a named, reusable set of badge/header style
     -- tokens referenced by URL (?brand=slug or /b/{slug}/...). Editing the
     -- config re-styles every embed that references it on next fetch.
+    -- A brand is DB-canonical: config holds the style tokens applied to
+    -- badges/headers, profile holds the human brand identity (title,
+    -- description, palette) imported from Context.dev / edited on-site, and
+    -- brand_md is the portable import/export view of the same record.
     CREATE TABLE IF NOT EXISTS brands (
       id BIGSERIAL PRIMARY KEY,
       slug TEXT NOT NULL UNIQUE,
-      org_id TEXT NOT NULL,
+      owner_id TEXT NOT NULL,
       name TEXT,
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+      brand_md TEXT,
       updated_at TIMESTAMPTZ DEFAULT NOW(),
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
-    CREATE INDEX IF NOT EXISTS idx_brands_org ON brands (org_id);
+    -- Add the newer columns to any pre-existing table, and rename a legacy
+    -- org_id owner column to owner_id (guarded so re-runs are no-ops).
+    ALTER TABLE brands ADD COLUMN IF NOT EXISTS profile JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE brands ADD COLUMN IF NOT EXISTS brand_md TEXT;
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_name = 'brands' AND column_name = 'org_id') THEN
+        ALTER TABLE brands RENAME COLUMN org_id TO owner_id;
+      END IF;
+    END $$;
+    CREATE INDEX IF NOT EXISTS idx_brands_owner ON brands (owner_id);
 
-    -- Hosted brand assets (logos/wordmarks). Served from stable URLs
-    -- (/b/{slug}/logo.svg) so a rebrand propagates everywhere on next fetch.
+    -- Hosted brand assets. Served from stable URLs (/b/{slug}/logo-light.svg)
+    -- so a rebrand propagates everywhere on next fetch. kind is free-form:
+    --   logo-light | logo-dark | mark | wordmark          (images)
+    --   font-sans | font-mono | font-heading               (uploaded fonts)
     CREATE TABLE IF NOT EXISTS brand_assets (
       id BIGSERIAL PRIMARY KEY,
       brand_id BIGINT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
-      kind TEXT NOT NULL,               -- 'logo' | 'logo-mark' | 'wordmark'
-      content_type TEXT NOT NULL,       -- e.g. 'image/svg+xml'
+      kind TEXT NOT NULL,
+      content_type TEXT NOT NULL,       -- e.g. 'image/svg+xml', 'font/ttf'
+      file_name TEXT,                   -- original upload name (fonts)
       data BYTEA NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (brand_id, kind)
     );
+    ALTER TABLE brand_assets ADD COLUMN IF NOT EXISTS file_name TEXT;
 
     -- Saved Studio documents (Plus+). Lifts the Studio's local session
     -- snapshot into Postgres so work syncs across devices.
     CREATE TABLE IF NOT EXISTS studio_documents (
       id BIGSERIAL PRIMARY KEY,
-      org_id TEXT NOT NULL,
+      owner_id TEXT NOT NULL,
       user_id TEXT,
       name TEXT NOT NULL DEFAULT 'Untitled',
       doc JSONB NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT NOW(),
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
-    CREATE INDEX IF NOT EXISTS idx_studio_documents_org
-      ON studio_documents (org_id, updated_at DESC);
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_name = 'studio_documents' AND column_name = 'org_id') THEN
+        ALTER TABLE studio_documents RENAME COLUMN org_id TO owner_id;
+      END IF;
+    END $$;
+    CREATE INDEX IF NOT EXISTS idx_studio_documents_owner
+      ON studio_documents (owner_id, updated_at DESC);
 
     -- Per-day badge render rollup that feeds the Pro analytics dashboard.
     -- Written fire-and-forget from the badge track path; queried per brand.

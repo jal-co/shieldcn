@@ -61,3 +61,15 @@ export function getFonts(font: BadgeFont = "inter") {
   const f = FONT_CONFIG[font] ?? FONT_CONFIG.inter
   return [{ name: f.name, data: f.data, weight: 500 as const, style: "normal" as const }]
 }
+
+/**
+ * Satori `fonts` for a brand's uploaded custom font. The custom font is listed
+ * first (so its family is used) with Inter kept as a fallback for glyphs the
+ * brand font doesn't cover (Satori throws on a missing glyph otherwise).
+ */
+export function getCustomFonts(custom: { name: string; data: Uint8Array }) {
+  return [
+    { name: custom.name, data: Buffer.from(custom.data), weight: 500 as const, style: "normal" as const },
+    { name: FONT_CONFIG.inter.name, data: FONT_CONFIG.inter.data, weight: 500 as const, style: "normal" as const },
+  ]
+}
