@@ -19,6 +19,8 @@ import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { ColorInput } from "@/components/color-input"
 import { SearchablePicker, type SearchablePickerSection } from "@/components/searchable-picker"
+import { SaveBadgeButton } from "@/components/save-badge-button"
+import { InsertSavedBadge } from "@/components/studio/insert-saved-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -687,11 +689,24 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
     <div className="rounded-md border border-border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-foreground">Badge {index + 1}</span>
-        <Tip label="Remove badge">
-          <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={onRemove} aria-label={`Remove badge ${index + 1}`}>
-            <Trash2 className="size-3.5" />
-          </Button>
-        </Tip>
+        <div className="flex items-center gap-0.5">
+          <Tip label="Save to your badge library">
+            <span>
+              <SaveBadgeButton
+                state={s}
+                defaultName={item.alt}
+                size="icon"
+                variant="ghost"
+                className="size-6 text-muted-foreground hover:text-foreground"
+              />
+            </span>
+          </Tip>
+          <Tip label="Remove badge">
+            <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={onRemove} aria-label={`Remove badge ${index + 1}`}>
+              <Trash2 className="size-3.5" />
+            </Button>
+          </Tip>
+        </div>
       </div>
 
       <Field label="Type">
@@ -819,6 +834,10 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
     onChange({ ...block, badges: [...block.badges, makeBadgeItem({ path: "/badge/label-value-22c55e.svg" })] })
   }, [block, onChange])
 
+  const insertSaved = useCallback((state: BuilderState) => {
+    onChange({ ...block, badges: [...block.badges, makeBadgeItem({ ...state })] })
+  }, [block, onChange])
+
   const sharedSize = block.badges.length > 0 && block.badges.every(b => b.state.size === block.badges[0].state.size)
     ? block.badges[0].state.size
     : ""
@@ -853,6 +872,7 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
       <Button variant="outline" size="sm" className="w-full" onClick={addItem}>
         <Plus className="size-3.5" /> Add badge
       </Button>
+      <InsertSavedBadge onInsert={insertSaved} />
     </div>
   )
 }

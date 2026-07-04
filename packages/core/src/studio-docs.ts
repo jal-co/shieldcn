@@ -13,12 +13,10 @@ import { query, initDB } from "./db"
  * worthwhile (the account-creation hook); paid plans raise it.
  */
 export const FREE_DOC_LIMIT = 2
-export const PLUS_DOC_LIMIT = 15
-export const PRO_DOC_LIMIT = 50
+export const PLUS_DOC_LIMIT = 50
 
 /** Saved-README cap for a plan. Single source of truth for route + dashboard. */
 export function docLimitForPlan(plan: string): number {
-  if (plan === "pro") return PRO_DOC_LIMIT
   if (plan === "plus") return PLUS_DOC_LIMIT
   return FREE_DOC_LIMIT
 }

@@ -2,9 +2,9 @@
  * @shieldcn/core
  * src/badge-stats.ts
  *
- * Per-day badge render rollup that feeds the Pro analytics dashboard. Written
- * fire-and-forget from the badge track path (never in the request's critical
- * path) and queried per brand by the dashboard.
+ * Per-day badge render rollup for per-brand insight. Written fire-and-forget
+ * from the badge track path (never in the request's critical path). Retained
+ * as infrastructure; not currently surfaced in a dashboard UI.
  */
 
 import { query, initDB } from "./db"

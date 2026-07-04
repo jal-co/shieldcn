@@ -5,26 +5,18 @@
  * components/auth/user-menu.tsx
  *
  * Header auth cluster. Signed out: Sign in + Sign up buttons. Signed in: an
- * avatar dropdown with the workspace switcher (Personal + Teams), create-team
- * action, dashboard/billing links, and sign out. All state comes from the Neon
- * Auth client hooks; switching calls organization.setActive (null = personal).
- *
- * "Organization" is Better Auth's term; the UI calls it a Team so the concept
- * reads as opt-in collaboration, never a required org.
+ * avatar dropdown with dashboard/brands/billing links and sign out. All state
+ * comes from the Neon Auth client hooks.
  */
 
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  BarChart3,
-  Check,
+  BadgeCheck,
   CreditCard,
   LayoutDashboard,
   LogOut,
-  Plus,
-  User,
-  Users,
+  Palette,
 } from "lucide-react"
 import { authClient } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
@@ -32,13 +24,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CreateOrgDialog } from "@/components/auth/create-org-dialog"
 
 function initials(nameOrEmail: string): string {
   const base = nameOrEmail.trim()
@@ -51,10 +41,6 @@ function initials(nameOrEmail: string): string {
 export function UserMenu() {
   const router = useRouter()
   const { data: session, isPending } = authClient.useSession()
-  const { data: orgs } = authClient.useListOrganizations()
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [switching, setSwitching] = useState(false)
 
   if (isPending) {
     return <div className="size-8 animate-pulse rounded-full bg-muted" aria-hidden="true" />
@@ -76,18 +62,6 @@ export function UserMenu() {
   const user = session.user
   const label = user.name || user.email
 
-  // Pass null to switch back to the personal account (no active team).
-  async function selectWorkspace(id: string | null) {
-    if ((id ?? null) === (activeOrg?.id ?? null)) return
-    setSwitching(true)
-    try {
-      await authClient.organization.setActive({ organizationId: id })
-      router.refresh()
-    } finally {
-      setSwitching(false)
-    }
-  }
-
   async function onSignOut() {
     await authClient.signOut()
     router.push("/")
@@ -95,7 +69,6 @@ export function UserMenu() {
   }
 
   return (
-    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -117,58 +90,21 @@ export function UserMenu() {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuLabel className="text-xs text-muted-foreground">
-            Workspace
-          </DropdownMenuLabel>
-          <DropdownMenuGroup>
-            {/* Personal account — the default, always available. */}
-            <DropdownMenuItem
-              disabled={switching}
-              onSelect={(e) => { e.preventDefault(); void selectWorkspace(null) }}
-            >
-              <User className="size-4" />
-              <span className="truncate">Personal</span>
-              {!activeOrg && <Check className="ml-auto size-4" />}
-            </DropdownMenuItem>
-            {orgs?.map((org) => (
-              <DropdownMenuItem
-                key={org.id}
-                disabled={switching}
-                onSelect={(e) => {
-                  e.preventDefault()
-                  void selectWorkspace(org.id)
-                }}
-              >
-                <Users className="size-4" />
-                <span className="truncate">{org.name}</span>
-                {org.id === activeOrg?.id && <Check className="ml-auto size-4" />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCreateOpen(true) }}>
-            <Plus className="size-4" /> New team
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem asChild>
             <Link href="/dashboard">
               <LayoutDashboard className="size-4" /> Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/brands">
-              <BarChart3 className="size-4" /> Brands & analytics
+            <Link href="/dashboard/badges">
+              <BadgeCheck className="size-4" /> Saved badges
             </Link>
           </DropdownMenuItem>
-          {activeOrg && (
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/members">
-                <Users className="size-4" /> Members
-              </Link>
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/brands">
+              <Palette className="size-4" /> Brands
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/api/portal">
               <CreditCard className="size-4" /> Billing
@@ -185,8 +121,5 @@ export function UserMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <CreateOrgDialog open={createOpen} onOpenChange={setCreateOpen} />
-    </>
   )
 }

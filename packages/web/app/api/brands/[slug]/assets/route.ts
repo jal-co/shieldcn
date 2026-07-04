@@ -2,7 +2,7 @@
  * shieldcn
  * app/api/brands/[slug]/assets/route.ts
  *
- * Upload a brand asset (logo or font) via multipart form. Pro-gated and
+ * Upload a brand asset (logo or font) via multipart form. Plus-gated and
  * org-owned. Body: FormData with `kind` (logo-light | logo-dark | mark |
  * wordmark | font-sans | font-mono | font-heading) and `file`.
  */
@@ -24,8 +24,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { slug } = await params
   const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.ownerId, "pro"))) {
-    return NextResponse.json({ error: "brand assets require the Pro plan" }, { status: 402 })
+  if (!(await hasPlan(auth.ownerId, "plus"))) {
+    return NextResponse.json({ error: "brand assets require the Plus plan" }, { status: 402 })
   }
 
   const brand = await getOwnedBrand(auth.ownerId, slug)

@@ -86,7 +86,7 @@ export function useMe(): { me: Me; loading: boolean } {
 }
 
 /** Plan ranking helper: does `plan` meet or exceed `required`? */
-const RANK: Record<Plan, number> = { free: 0, plus: 1, pro: 2 }
+const RANK: Record<Plan, number> = { free: 0, plus: 1 }
 export function planMeets(plan: Plan, required: Plan): boolean {
   return RANK[plan] >= RANK[required]
 }

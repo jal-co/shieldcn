@@ -2,7 +2,7 @@
  * @shieldcn/core
  * src/entitlements.ts
  *
- * Plan resolution for the Plus/Pro tiers. The Polar webhook writes the
+ * Plan resolution for the single paid Plus tier. The Polar webhook writes the
  * `subscriptions` row; everything else reads the plan through getPlan(), which
  * is cached briefly so hot paths (brand resolution, dashboard, API gates) don't
  * hit Postgres on every request.
@@ -10,14 +10,14 @@
  * Ownership is personal-first: an owner id is either a personal user id or an
  * active organization id. A subscription entitles whichever owner bought it.
  *
- * Plan hierarchy: free < plus < pro. `pro` implies every `plus` capability.
+ * Plan hierarchy: free < plus.
  */
 
 import { query } from "./db"
 
-export type Plan = "free" | "plus" | "pro"
+export type Plan = "free" | "plus"
 
-const PLAN_RANK: Record<Plan, number> = { free: 0, plus: 1, pro: 2 }
+const PLAN_RANK: Record<Plan, number> = { free: 0, plus: 1 }
 
 /** A subscription is entitled only while active/trialing and unexpired. */
 const ACTIVE_STATUSES = new Set(["active", "trialing"])
@@ -58,8 +58,8 @@ export async function getPlan(ownerId: string | null | undefined): Promise<Plan>
       const unexpired =
         !row.current_period_end ||
         new Date(row.current_period_end).getTime() > Date.now()
-      if (unexpired && (row.plan === "plus" || row.plan === "pro")) {
-        plan = row.plan
+      if (unexpired && row.plan === "plus") {
+        plan = "plus"
       }
     }
   } catch {
@@ -71,7 +71,7 @@ export async function getPlan(ownerId: string | null | undefined): Promise<Plan>
   return plan
 }
 
-/** True when the org's plan is at least `min` in the free<plus<pro hierarchy. */
+/** True when the org's plan is at least `min` in the free<plus hierarchy. */
 export async function hasPlan(
   ownerId: string | null | undefined,
   min: Plan,
@@ -91,7 +91,6 @@ export function invalidatePlan(ownerId: string): void {
  */
 export function planForProduct(productId: string | null | undefined): Plan {
   if (!productId) return "free"
-  if (productId === process.env.POLAR_PRODUCT_PRO) return "pro"
   if (productId === process.env.POLAR_PRODUCT_PLUS) return "plus"
   return "free"
 }

@@ -1,0 +1,47 @@
+---
+title: Saved badges
+description: Build a reusable library of your favorite badges — save one once, drop it into any README with a click.
+badge: "/badge/saved-badges.svg?variant=branded&logo=github"
+---
+
+Your **saved badges library** is a personal, cloud-synced collection of single
+badges. Configure a badge once, save it, and reuse it anywhere — no
+re-configuring the same badge across a dozen repos.
+
+## Saving a badge
+
+Two entry points, both one click:
+
+- **Badge builder** (landing page) — configure a badge, then hit **Save badge**
+  under the copy output.
+- **Studio** — in a badge row's inspector, click the **bookmark** on any badge
+  to save it, or **Insert saved badge** to drop one from your library into the
+  current row.
+
+Each saved badge stores its full configuration (path + every style param) plus a
+rendered snapshot, so the library thumbnails without re-hitting the badge
+engine.
+
+## Reusing a badge
+
+From the [dashboard library](/dashboard/badges) you can:
+
+- **Copy** the Markdown for any saved badge.
+- **Insert** it into a README from the Studio's badges inspector — it lands as a
+  fully editable badge, not a frozen image.
+- **Delete** it (READMEs that already embed its URL keep working).
+
+## Limits
+
+| Plan | Saved badges |
+|---|:---:|
+| Free | 2 |
+| Plus | 50 |
+
+Deleting a saved badge only removes it from your library — any README that
+already references its URL is unaffected.
+
+## Data source
+
+Saved badges live in your shieldcn account (Postgres), scoped to you. On a
+lapsed subscription they go read-only but keep serving — nothing is lost.

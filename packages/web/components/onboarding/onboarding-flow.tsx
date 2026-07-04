@@ -7,7 +7,7 @@
  * Tiered onboarding — a stepped checklist shown after sign-up (and re-openable
  * from the dashboard) that adapts to the viewer's plan. Every tier gets an
  * onboarding: Free is guided to save their first README (the account hook),
- * Plus adds migration + AI, Pro adds brands + team. Progress is tracked in
+ * Plus adds migration, AI, and a managed brand. Progress is tracked in
  * localStorage per user so it survives reloads and doesn't nag once done.
  *
  * Pattern adapted from blocks.so onboarding-02 (stepped cards), rebuilt on the
@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
   ArrowRight, BadgeCheck, CircleCheck, FileText, GitPullRequest,
-  Palette, Sparkles, Users, type LucideIcon,
+  Palette, Sparkles, type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -35,7 +35,7 @@ interface Step {
   minPlan: Plan
 }
 
-const RANK: Record<Plan, number> = { free: 0, plus: 1, pro: 2 }
+const RANK: Record<Plan, number> = { free: 0, plus: 1 }
 
 const ALL_STEPS: Step[] = [
   {
@@ -76,17 +76,7 @@ const ALL_STEPS: Step[] = [
     icon: Palette,
     href: "/dashboard/brands/new",
     actionLabel: "Create a brand",
-    minPlan: "pro",
-  },
-  {
-    id: "team",
-    title: "Invite your team",
-    description:
-      "Add teammates to your workspace so everyone can manage brands and READMEs together.",
-    icon: Users,
-    href: "/dashboard/members",
-    actionLabel: "Manage members",
-    minPlan: "pro",
+    minPlan: "plus",
   },
 ]
 
@@ -236,18 +226,14 @@ export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
         })}
       </ol>
 
-      {/* Upsell to the next tier when the current tier's checklist is done */}
-      {allDone && plan !== "pro" && (
+      {/* Upsell to Plus when the free checklist is done */}
+      {allDone && plan === "free" && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3">
           <p className="text-sm text-muted-foreground">
-            {plan === "free"
-              ? "Ready for more? Plus adds mass migration and AI."
-              : "Managing a brand across repos? Pro adds hosted assets and analytics."}
+            Ready for more? Plus adds mass migration, AI, and a managed brand.
           </p>
           <Button asChild size="sm">
-            <Link href={plan === "free" ? "/api/checkout?plan=plus" : "/api/checkout?plan=pro"}>
-              {plan === "free" ? "Get Plus" : "Get Pro"}
-            </Link>
+            <Link href="/api/checkout?plan=plus">Get Plus</Link>
           </Button>
         </div>
       )}

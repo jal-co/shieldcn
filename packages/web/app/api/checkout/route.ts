@@ -3,10 +3,10 @@
  * app/api/checkout/route.ts
  *
  * Polar checkout entry point. Redirects to a hosted Polar checkout for the
- * Plus or Pro product. The active organization id is passed through so the
- * webhook can attribute the resulting subscription to the right tenant.
+ * Plus product. The owner id is passed through so the webhook can attribute
+ * the resulting subscription to the right tenant.
  *
- * Usage: /api/checkout?plan=plus  or  /api/checkout?plan=pro
+ * Usage: /api/checkout?plan=plus
  */
 
 import { Checkout } from "@polar-sh/nextjs"
@@ -17,7 +17,6 @@ const accessToken = process.env.POLAR_ACCESS_TOKEN
 const server = (process.env.POLAR_SERVER as "sandbox" | "production") ?? "sandbox"
 const PRODUCTS: Record<string, string | undefined> = {
   plus: process.env.POLAR_PRODUCT_PLUS,
-  pro: process.env.POLAR_PRODUCT_PRO,
 }
 
 const successUrl = `${process.env.NEXT_PUBLIC_URL ?? "https://shieldcn.dev"}/dashboard?checkout=success`
@@ -33,7 +32,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(login)
   }
 
-  const plan = req.nextUrl.searchParams.get("plan") ?? "pro"
+  const plan = req.nextUrl.searchParams.get("plan") ?? "plus"
   const productId = PRODUCTS[plan]
   if (!productId) {
     return NextResponse.json({ error: `unknown plan: ${plan}` }, { status: 400 })

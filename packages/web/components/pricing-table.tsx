@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
  * shieldcn
  * components/pricing-table.tsx
  *
- * The shared Free / Plus / Pro tier grid, used on both /pricing and the
+ * The shared Free / Plus tier grid, used on both /pricing and the
  * homepage. Single source of truth for tier copy, prices, and CTAs.
  */
 
@@ -30,45 +30,33 @@ export const TIERS: Tier[] = [
       "All badge providers, variants & themes",
       "Charts, headers, sponsor & contributor walls",
       "Query-param styling on every badge",
-      "Save 2 READMEs to the cloud",
+      "Save 2 READMEs + 2 badges to the cloud",
       "Single-repo shields.io migration preview",
     ],
   },
   {
     name: "Plus",
-    price: "$8",
+    price: "$10",
     cadence: "/mo",
     tagline: "For maintainers who live in their READMEs.",
     featured: true,
     cta: { label: "Get Plus", href: "/api/checkout?plan=plus" },
     features: [
       "Everything in Free",
-      "Save 15 READMEs (sync across devices)",
+      "Save 50 READMEs (sync across devices)",
+      "Saved badges library — reuse a badge anywhere",
       "Mass migration — open PRs across all your repos",
       "AI: generate & polish READMEs",
-      "Priority rendering",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "$30",
-    cadence: "/mo",
-    tagline: "For teams managing a brand across many repos.",
-    cta: { label: "Get Pro", href: "/api/checkout?plan=pro" },
-    features: [
-      "Everything in Plus",
-      "Save 50 READMEs",
-      "Managed brands — restyle every embed by editing once",
+      "One managed brand — restyle every embed by editing once",
       "Hosted brand assets (logos + fonts) at stable URLs",
-      "Badge analytics dashboard",
-      "Team members & roles",
+      "Priority rendering",
     ],
   },
 ]
 
 export function PricingTable() {
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="mx-auto grid max-w-3xl gap-6 md:grid-cols-2">
       {TIERS.map((tier) => (
         <div
           key={tier.name}

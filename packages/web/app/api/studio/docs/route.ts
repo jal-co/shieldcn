@@ -5,7 +5,7 @@
  * Saved Studio documents. List and create, keyed by the personal-first owner
  * (a user or a team). Creating enforces the plan's document cap. Free gets a
  * small cloud allowance so creating an account is worthwhile — it's the growth
- * hook — while Plus/Pro raise the cap.
+ * hook — while Plus raises the cap.
  */
 
 import { NextResponse, type NextRequest } from "next/server"

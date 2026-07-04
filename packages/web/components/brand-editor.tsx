@@ -4,7 +4,7 @@
  * shieldcn
  * components/brand-editor.tsx
  *
- * Pro brand editor. Import a brand from a domain via Context.dev, review and
+ * Plus brand editor. Import a brand from a domain via Context.dev, review and
  * edit the profile / palette / style tokens, host the light+dark logos, and
  * upload custom fonts. The DB record is canonical; brand.md is generated from
  * it and shown for reference/export.

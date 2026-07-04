@@ -12,9 +12,9 @@
  *   (debounced), so the doc is never stale and there's nothing to remember.
  * - ⌘S / Ctrl+S saves on demand (creates the doc on first save).
  * - Rename + delete saved documents inline.
- * - AI README generation (Plus) and "Save as brand" (Pro).
+ * - AI README generation and "Save as brand" (both Plus).
  *
- * Free syncs 2 documents (the account hook); Plus/Pro raise the cap, enforced
+ * Free syncs 2 documents (the account hook); Plus raises the cap, enforced
  * server-side. Below-tier AI/brand actions open an UpgradeDialog instead of
  * hitting a 402.
  *
@@ -78,19 +78,14 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   const { me } = useMe()
   const signedIn = me.signedIn
   const isPlus = planMeets(me.plan, "plus")
-  const isPro = planMeets(me.plan, "pro")
 
-  const [upgradeTier, setUpgradeTier] = useState<null | "plus" | "pro">(null)
+  const [upgradeTier, setUpgradeTier] = useState<null | "plus">(null)
   const [upgradeFeature, setUpgradeFeature] = useState("this feature")
 
   const gatePlus = useCallback((feature: string): boolean => {
     if (isPlus) return true
     setUpgradeFeature(feature); setUpgradeTier("plus"); return false
   }, [isPlus])
-  const gatePro = useCallback((feature: string): boolean => {
-    if (isPro) return true
-    setUpgradeFeature(feature); setUpgradeTier("pro"); return false
-  }, [isPro])
 
   // -- Cloud doc state --
   const [docs, setDocs] = useState<SavedDoc[]>([])
@@ -107,7 +102,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   const [aiDialog, setAiDialog] = useState(false)
   const [aiPrompt, setAiPrompt] = useState("")
   const [aiBusy, setAiBusy] = useState(false)
-  // Pro: pick one of your brands to style the generated badges.
+  // Plus: pick one of your brands to style the generated badges.
   const [brands, setBrands] = useState<{ slug: string; name: string | null }[]>([])
   const [aiBrand, setAiBrand] = useState("")
 
@@ -164,7 +159,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
       if (!res.ok) {
         if (res.status === 401) router.push("/sign-up")
         else if (res.status === 402) { setUpgradeFeature("Saved READMEs"); setUpgradeTier("plus") }
-        else if (res.status === 409) { setUpgradeFeature("more saved READMEs"); setUpgradeTier(me.plan === "free" ? "plus" : "pro") }
+        else if (res.status === 409) { setUpgradeFeature("more saved READMEs"); setUpgradeTier("plus") }
         else if (!opts.silent) toast.error(json.error ?? "Couldn't save")
         if (opts.silent) setSaveState("error")
         return null
@@ -190,7 +185,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
     } finally {
       if (!opts.silent) setBusy(false)
     }
-  }, [blocks, themeAware, currentDocId, router, me.plan, markSynced, refreshDocs])
+  }, [blocks, themeAware, currentDocId, router, markSynced, refreshDocs])
 
   // -- Dirty-tracking + auto-save (cloud docs only) --
   useEffect(() => {
@@ -293,14 +288,14 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   const onGenerateClick = useCallback(() => {
     if (!gatePlus("AI README generation")) return
     setAiDialog(true)
-    // Pro: load the owner's brands so generated badges can be styled with one.
-    if (isPro) {
+    // Plus: load the owner's brands so generated badges can be styled with one.
+    if (isPlus) {
       void fetch("/api/brands", { credentials: "include" })
         .then((r) => (r.ok ? r.json() : { brands: [] }))
         .then((j) => setBrands(Array.isArray(j.brands) ? j.brands : []))
         .catch(() => {})
     }
-  }, [gatePlus, isPro])
+  }, [gatePlus, isPlus])
 
   const runGenerate = useCallback(async () => {
     const summary = aiPrompt.trim() || getMarkdown().slice(0, 4000)
@@ -330,7 +325,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   }, [aiPrompt, aiBrand, getMarkdown, applyMarkdown])
 
   const onSaveAsBrand = useCallback(() => {
-    if (!gatePro("Managed brands")) return
+    if (!gatePlus("Managed brands")) return
     // Capture the README's dominant look so the brand editor opens pre-filled
     // instead of blank — the whole point of "save as brand".
     try {
@@ -342,7 +337,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
       /* seeding is best-effort; the editor still opens */
     }
     router.push("/dashboard/brands/new")
-  }, [gatePro, router, blocks])
+  }, [gatePlus, router, blocks])
 
   return (
     <>
@@ -412,7 +407,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="flex items-center justify-between">
             Brand
-            {!isPro && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Pro</span>}
+            {!isPlus && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Plus</span>}
           </DropdownMenuLabel>
           <DropdownMenuItem onSelect={onSaveAsBrand}>
             <Palette className="size-4" /> Save as brand…
@@ -512,8 +507,8 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
             rows={6}
             placeholder="acme-cli — a fast task runner for monorepos. Install via npm i -g acme-cli. Run `acme run <task>`…"
           />
-          {/* Pro: style the generated badges with one of your brands. */}
-          {isPro && brands.length > 0 && (
+          {/* Plus: style the generated badges with one of your brands. */}
+          {isPlus && brands.length > 0 && (
             <div className="flex items-center gap-2">
               <label htmlFor="ai-brand" className="text-xs text-muted-foreground">Badge style</label>
               <select

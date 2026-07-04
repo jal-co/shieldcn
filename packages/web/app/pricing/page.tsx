@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/metadata"
 export const metadata: Metadata = pageMetadata({
   title: "Pricing",
   description:
-    "shieldcn pricing. Public badges are free forever. Plus adds saved READMEs, mass migration, and AI. Pro adds managed brand assets and analytics for companies.",
+    "shieldcn pricing. Public badges are free forever. Plus adds saved READMEs, mass migration, AI, and a managed brand with hosted assets.",
   path: "/pricing",
 })
 
@@ -21,9 +21,8 @@ export default function PricingPage() {
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Pricing</h1>
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
               Public badges are free forever — that&apos;s the part that never
-              changes. Paid plans add identity, control, and insight around your
-              badges, and keep shieldcn sustainable. And shieldcn is, and always
-              will be,{" "}
+              changes. Plus adds identity and control around your badges, and
+              keeps shieldcn sustainable. And shieldcn is, and always will be,{" "}
               <Link href="/docs/self-hosting" className="underline underline-offset-4 hover:text-foreground">
                 self-hostable
               </Link>{" "}
@@ -46,16 +45,12 @@ export default function PricingPage() {
             </div>
             <p className="px-1 text-sm text-muted-foreground">
               Want the details? Read about{" "}
-              <Link href="/docs/pro/brands" className="underline underline-offset-4 hover:text-foreground">
+              <Link href="/docs/plus/brands" className="underline underline-offset-4 hover:text-foreground">
                 managed brands
               </Link>
-              ,{" "}
-              <Link href="/docs/pro/assets" className="underline underline-offset-4 hover:text-foreground">
+              {" "}and{" "}
+              <Link href="/docs/plus/assets" className="underline underline-offset-4 hover:text-foreground">
                 hosted assets
-              </Link>
-              , and{" "}
-              <Link href="/docs/pro/analytics" className="underline underline-offset-4 hover:text-foreground">
-                analytics
               </Link>
               .
             </p>

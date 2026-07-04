@@ -187,7 +187,7 @@ export function HeaderBuilder() {
           <p className="text-xs text-muted-foreground">
             Applies a stored brand&apos;s colors, font &amp; logo. Add <code>logo=brand</code> or{" "}
             <code>font=brand</code> in the URL to use hosted assets.{" "}
-            <Link href="/docs/pro/brands" className="underline underline-offset-4 hover:text-foreground">Learn more</Link>
+            <Link href="/docs/plus/brands" className="underline underline-offset-4 hover:text-foreground">Learn more</Link>
           </p>
         </div>
 

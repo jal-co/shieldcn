@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { FileText, Palette, BarChart3, CreditCard, Users } from "lucide-react"
+import { BadgeCheck, FileText, Palette, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
@@ -12,10 +12,11 @@ import { getSession } from "@/lib/auth"
 import { getPlan } from "@shieldcn/core/entitlements"
 import { listBrandsByOwner } from "@shieldcn/core/brands"
 import { listDocs } from "@shieldcn/core/studio-docs"
+import { listSavedBadges } from "@shieldcn/core/saved-badges"
 
 export const metadata: Metadata = pageMetadata({
   title: "Dashboard",
-  description: "Manage your brands, saved READMEs, analytics, and billing.",
+  description: "Manage your brands, saved READMEs, and billing.",
   path: "/dashboard",
 })
 
@@ -23,13 +24,12 @@ export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect("/sign-in")
 
-  // Personal-first: resources are keyed by the active team if one is selected,
-  // otherwise the personal user account. A solo user never needs a team.
   const ownerId = session.orgId ?? session.userId
   const plan = await getPlan(ownerId)
-  const [brands, docs] = await Promise.all([
+  const [brands, docs, savedBadges] = await Promise.all([
     listBrandsByOwner(ownerId),
     listDocs(ownerId),
+    listSavedBadges(ownerId),
   ])
 
   return (
@@ -46,12 +46,6 @@ export default async function DashboardPage() {
               <Badge variant={plan === "free" ? "outline" : "default"}>
                 {plan.toUpperCase()}
               </Badge>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/members">
-                  <Users className="mr-1.5 size-4" />
-                  {session.orgId ? "Members" : "Create team"}
-                </Link>
-              </Button>
               {plan === "free" && (
                 <Button asChild size="sm">
                   <Link href="/pricing">Upgrade</Link>
@@ -87,7 +81,7 @@ export default async function DashboardPage() {
                   Open the Studio
                 </Link>{" "}
                 and save your work — your plan syncs{" "}
-                {plan === "free" ? "2" : plan === "plus" ? "15" : "50"} to the cloud.
+                {plan === "free" ? "2" : "50"} to the cloud.
               </p>
             ) : (
               <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
@@ -110,8 +104,43 @@ export default async function DashboardPage() {
                 <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
                   Plus
                 </Link>{" "}
-                raises it to 15, Pro to 50.
+                raises it to 50.
               </p>
+            )}
+          </section>
+
+          {/* Saved badges */}
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <BadgeCheck className="size-4 text-muted-foreground" />
+              <h2 className="text-lg font-semibold">Saved badges</h2>
+              <span className="text-sm text-muted-foreground">({savedBadges.length})</span>
+              <Button asChild size="sm" variant="outline" className="ml-auto">
+                <Link href="/dashboard/badges">Manage</Link>
+              </Button>
+            </div>
+            {savedBadges.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No saved badges yet. Configure a badge in the{" "}
+                <Link href="/studio" className="underline underline-offset-4 hover:text-foreground">
+                  Studio
+                </Link>{" "}
+                and hit <strong>Save badge</strong> to reuse it anywhere.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
+                {savedBadges.slice(0, 5).map((b) => (
+                  <li key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                    <span className="truncate">{b.name}</span>
+                    <Link
+                      href="/dashboard/badges"
+                      className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                    >
+                      Open
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 
@@ -121,15 +150,15 @@ export default async function DashboardPage() {
               <Palette className="size-4 text-muted-foreground" />
               <h2 className="text-lg font-semibold">Brands</h2>
               <span className="text-sm text-muted-foreground">({brands.length})</span>
-              {plan !== "pro" && <Badge variant="outline">Pro</Badge>}
-              {plan === "pro" && (
+              {plan !== "plus" && <Badge variant="outline">Plus</Badge>}
+              {plan === "plus" && (
                 <Button asChild size="sm" variant="outline" className="ml-auto">
                   <Link href="/dashboard/brands/new">Add brand</Link>
                 </Button>
               )}
             </div>
-            {plan !== "pro" ? (
-              <UpgradeInline tier="pro" feature="Managed brands" />
+            {plan !== "plus" ? (
+              <UpgradeInline tier="plus" feature="Managed brands" />
             ) : brands.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No brands yet. A brand restyles every badge and header that
@@ -151,12 +180,6 @@ export default async function DashboardPage() {
                         className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
                       >
                         Edit
-                      </Link>
-                      <Link
-                        href={`/dashboard/analytics/${b.slug}`}
-                        className="inline-flex items-center gap-1 text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                      >
-                        <BarChart3 className="size-3.5" /> Analytics
                       </Link>
                     </div>
                   </li>

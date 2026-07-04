@@ -4,14 +4,14 @@
  * shieldcn
  * components/dashboard/brands-list.tsx
  *
- * Brand manager: list, edit, analytics, delete (with confirmation), create
- * new, and a usage meter against the Pro brand cap. Server passes the initial
- * brands + limit; delete refetches from /api/brands so the meter stays live.
+ * Brand manager: list, edit, delete (with confirmation), create new, and a
+ * usage meter against the Plus brand cap. Server passes the initial brands +
+ * limit; delete refetches from /api/brands so the meter stays live.
  */
 
 import { useState } from "react"
 import Link from "next/link"
-import { BarChart3, Loader2, Palette, Plus, Trash2 } from "lucide-react"
+import { Loader2, Palette, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UsageMeter } from "@/components/dashboard/usage-meter"
 import {
@@ -117,11 +117,6 @@ export function BrandsList({
               <div className="flex shrink-0 items-center gap-1">
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/dashboard/brands/${b.slug}`}>Edit</Link>
-                </Button>
-                <Button asChild size="icon" variant="ghost" className="size-8 text-muted-foreground">
-                  <Link href={`/dashboard/analytics/${b.slug}`} aria-label="Analytics">
-                    <BarChart3 className="size-4" />
-                  </Link>
                 </Button>
                 <Button
                   size="icon"

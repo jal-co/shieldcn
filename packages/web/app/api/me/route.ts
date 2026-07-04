@@ -5,7 +5,7 @@
  * Lightweight "who am I" endpoint for client-side plan gating. Returns the
  * caller's session summary plus the plan of their active owner (personal
  * account or selected team) so the browser can show the right upgrade CTAs
- * (Plus / Pro) without duplicating server logic.
+ * (Plus) without duplicating server logic.
  *
  * Fail-open: an auth or DB hiccup resolves to a signed-out, free-plan shape
  * rather than a 500 — the UI just shows upgrade prompts.

@@ -20,11 +20,10 @@ export default async function BrandsPage() {
   const session = await getSession()
   if (!session) redirect("/sign-in")
 
-  // Personal-first: brands belong to the active team if one is selected, else
-  // the personal account. Brands are a Pro capability for either owner type.
+  // Brands belong to the personal account. Managed brands are a Plus capability.
   const ownerId = session.orgId ?? session.userId
   const plan = await getPlan(ownerId)
-  const brands = plan === "pro" ? await listBrandsByOwner(ownerId) : []
+  const brands = plan === "plus" ? await listBrandsByOwner(ownerId) : []
   const limit = brandLimitForPlan(plan)
 
   const initialBrands = brands.map((b) => ({ id: b.id, slug: b.slug, name: b.name }))
@@ -34,20 +33,20 @@ export default async function BrandsPage() {
       <div className="flex items-center gap-2">
         <Palette className="size-5 text-muted-foreground" />
         <h1 className="text-2xl font-bold tracking-tight">Brands</h1>
-        {plan !== "pro" && <Badge variant="outline">Pro</Badge>}
+        {plan !== "plus" && <Badge variant="outline">Plus</Badge>}
       </div>
 
       <p className="text-sm text-muted-foreground">
         A brand is a reusable set of colors, logos, and fonts. Reference it from
         any badge or header with <code className="font-mono">?brand=slug</code>{" "}
         and edit it once to update every embed.{" "}
-        <Link href="/docs/pro/brands" className="underline underline-offset-4 hover:text-foreground">
+        <Link href="/docs/plus/brands" className="underline underline-offset-4 hover:text-foreground">
           Learn more
         </Link>
       </p>
 
-      {plan !== "pro" ? (
-        <UpgradeInline tier="pro" feature="Managed brands" />
+      {plan !== "plus" ? (
+        <UpgradeInline tier="plus" feature="Managed brands" />
       ) : (
         <BrandsList initialBrands={initialBrands} limit={limit} />
       )}

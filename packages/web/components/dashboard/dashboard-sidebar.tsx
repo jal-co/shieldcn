@@ -4,26 +4,21 @@
  * shieldcn
  * components/dashboard/dashboard-sidebar.tsx
  *
- * The dashboard's left rail: a workspace switcher (Personal + Teams), primary
- * navigation, and a user footer. Built on the shadcn sidebar primitive. Nav
- * highlights the active route; the Members item only appears for team
- * workspaces (a personal account has no members). "Team" is the UI name for a
- * Better Auth organization.
+ * The dashboard's left rail: primary navigation and a user footer. Built on the
+ * shadcn sidebar primitive. Nav highlights the active route.
  */
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  BarChart3, ChevronsUpDown, CreditCard, FileText, LayoutDashboard,
-  LogOut, Palette, Plus, User, Users, Check,
+  BadgeCheck, BarChart3, ChevronsUpDown, CreditCard, FileText, LayoutDashboard,
+  LogOut, Palette,
 } from "lucide-react"
 import { authClient } from "@/lib/auth/client"
-import { CreateOrgDialog } from "@/components/auth/create-org-dialog"
 import { ShieldcnLogo } from "@/components/shieldcn-logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -42,8 +37,8 @@ function initials(s: string): string {
 const NAV = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/readmes", label: "READMEs", icon: FileText },
+  { href: "/dashboard/badges", label: "Saved badges", icon: BadgeCheck },
   { href: "/dashboard/brands", label: "Brands", icon: Palette },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
 ]
 
 export function DashboardSidebar() {
@@ -51,25 +46,8 @@ export function DashboardSidebar() {
   const router = useRouter()
   const { isMobile } = useSidebar()
   const { data: session } = authClient.useSession()
-  const { data: orgs } = authClient.useListOrganizations()
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [switching, setSwitching] = useState(false)
 
   const user = session?.user
-  const wsName = activeOrg?.name ?? "Personal"
-  const wsIcon = activeOrg ? Users : User
-
-  async function selectWorkspace(id: string | null) {
-    if ((id ?? null) === (activeOrg?.id ?? null)) return
-    setSwitching(true)
-    try {
-      await authClient.organization.setActive({ organizationId: id })
-      router.refresh()
-    } finally {
-      setSwitching(false)
-    }
-  }
 
   async function onSignOut() {
     await authClient.signOut()
@@ -80,59 +58,20 @@ export function DashboardSidebar() {
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
 
-  const nav = activeOrg
-    ? [...NAV, { href: "/dashboard/members", label: "Members", icon: Users }]
-    : NAV
-
   return (
     <>
       <Sidebar collapsible="icon">
-        {/* Workspace switcher */}
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton
-                    size="lg"
-                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                  >
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                      {(() => { const I = wsIcon; return <I className="size-4" /> })()}
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{wsName}</span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {activeOrg ? "Team" : "Personal account"}
-                      </span>
-                    </div>
-                    <ChevronsUpDown className="ml-auto size-4" />
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
-                  align="start"
-                  side={isMobile ? "bottom" : "right"}
-                >
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Workspace</DropdownMenuLabel>
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem disabled={switching} onSelect={(e) => { e.preventDefault(); void selectWorkspace(null) }}>
-                      <User className="size-4" /> Personal
-                      {!activeOrg && <Check className="ml-auto size-4" />}
-                    </DropdownMenuItem>
-                    {orgs?.map((org) => (
-                      <DropdownMenuItem key={org.id} disabled={switching} onSelect={(e) => { e.preventDefault(); void selectWorkspace(org.id) }}>
-                        <Users className="size-4" /> <span className="truncate">{org.name}</span>
-                        {org.id === activeOrg?.id && <Check className="ml-auto size-4" />}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCreateOpen(true) }}>
-                    <Plus className="size-4" /> New team
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <SidebarMenuButton asChild size="lg">
+                <Link href="/">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <ShieldcnLogo className="size-4" />
+                  </div>
+                  <span className="truncate font-semibold">shieldcn</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
@@ -142,7 +81,7 @@ export function DashboardSidebar() {
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {nav.map((item) => {
+                {NAV.map((item) => {
                   const Icon = item.icon
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -228,12 +167,6 @@ export function DashboardSidebar() {
         </SidebarFooter>
       </Sidebar>
 
-      {/* Brand link — collapses out of the way; kept in the header area */}
-      <span className="sr-only">
-        <Link href="/"><ShieldcnLogo className="h-6 w-auto" /></Link>
-      </span>
-
-      <CreateOrgDialog open={createOpen} onOpenChange={setCreateOpen} />
     </>
   )
 }

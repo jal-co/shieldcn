@@ -4,8 +4,8 @@
  *
  * Import a brand from Context.dev. Given a domain / name / email / ticker, we
  * fetch the brand intelligence, normalize it, and return a draft profile plus a
- * brand.md document for the user to review and edit before saving. Pro-gated
- * (brands are a Pro feature); the actual persist happens via /api/brands/[slug].
+ * brand.md document for the user to review and edit before saving. Plus-gated
+ * (brands are a Plus feature); the actual persist happens via /api/brands/[slug].
  */
 
 import { NextResponse, type NextRequest } from "next/server"
@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
 
   const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.ownerId, "pro"))) {
-    return NextResponse.json({ error: "brand import requires the Pro plan" }, { status: 402 })
+  if (!(await hasPlan(auth.ownerId, "plus"))) {
+    return NextResponse.json({ error: "brand import requires the Plus plan" }, { status: 402 })
   }
 
   let body: BrandLookup & { url?: string }

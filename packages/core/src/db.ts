@@ -147,11 +147,11 @@ export async function initDB() {
       ON gen_users (last_used_at DESC);
 
     -- ─────────────────────────────────────────────────────────────────────
-    -- Pro/Plus tier tables. Ownership is personal-first: owner_id is either a
+    -- Plus tier tables. Ownership is personal-first: owner_id is either a
     -- personal user id (neon_auth.users_sync.id) OR a Better Auth organization
-    -- id (a company/team) when one is active. Free & Plus live on the personal
-    -- account and never need an org; Pro brands can be owned by a person or an
-    -- org. owner_id is plain TEXT (FK-by-convention, no hard FK) because
+    -- id when one is active. Free & Plus live on the personal account and never
+    -- need an org; brands can be owned by a person or an org.
+    -- owner_id is plain TEXT (FK-by-convention, no hard FK) because
     -- users_sync is populated asynchronously by Neon Auth and the self-hosted
     -- engine may run without the auth schema (it only reads brands).
     -- ─────────────────────────────────────────────────────────────────────
@@ -245,7 +245,26 @@ export async function initDB() {
     CREATE INDEX IF NOT EXISTS idx_studio_documents_owner
       ON studio_documents (owner_id, updated_at DESC);
 
-    -- Per-day badge render rollup that feeds the Pro analytics dashboard.
+    -- Saved badges library (Plus). A personal, reusable collection of single
+    -- badges: config holds the badge's BuilderState (path + style params), and
+    -- svg caches a rendered snapshot so the library thumbnails without hitting
+    -- the badge engine. Owner-scoped (personal-first).
+    CREATE TABLE IF NOT EXISTS saved_badges (
+      id BIGSERIAL PRIMARY KEY,
+      owner_id TEXT NOT NULL,
+      user_id TEXT,
+      name TEXT NOT NULL DEFAULT 'Badge',
+      alt TEXT NOT NULL DEFAULT '',
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      svg BYTEA,
+      updated_at TIMESTAMPTZ DEFAULT NOW(),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_saved_badges_owner
+      ON saved_badges (owner_id, updated_at DESC);
+
+    -- Per-day badge render rollup (retained for brand-level insight; not
+    -- currently surfaced in a dashboard UI).
     -- Written fire-and-forget from the badge track path; queried per brand.
     CREATE TABLE IF NOT EXISTS badge_stats_daily (
       day DATE NOT NULL,

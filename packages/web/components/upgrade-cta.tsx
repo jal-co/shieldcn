@@ -4,19 +4,18 @@
  * shieldcn
  * components/upgrade-cta.tsx
  *
- * Reusable upgrade prompts that steer viewers toward the right paid tier:
- * Plus ($8/mo, individuals) or Pro ($30/mo, companies). Two shapes:
+ * Reusable upgrade prompts that steer viewers toward the paid Plus tier
+ * ($10/mo). Two shapes:
  *
  *  - <UpgradeInline>  a compact banner for empty/locked panels
  *  - <UpgradeDialog>  a modal shown when a gated action is attempted
  *
- * Both link to the Polar checkout (/api/checkout?plan=…) for signed-in users
- * with an org, and to /sign-in / /pricing otherwise. Copy is plan-aware so a
- * Plus feature nudges to Plus while a company feature nudges to Pro.
+ * Both link to the Polar checkout (/api/checkout?plan=…) for signed-in users,
+ * and to /sign-in / /pricing otherwise.
  */
 
 import Link from "next/link"
-import { Sparkles, Building2, ArrowRight } from "lucide-react"
+import { Sparkles, ArrowRight } from "lucide-react"
 import type { Plan } from "@shieldcn/core/entitlements"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,15 +33,9 @@ type Tier = Exclude<Plan, "free">
 const TIER_META: Record<Tier, { name: string; price: string; icon: typeof Sparkles; blurb: string }> = {
   plus: {
     name: "Plus",
-    price: "$8/mo",
+    price: "$10/mo",
     icon: Sparkles,
-    blurb: "For maintainers who live in their READMEs — saved documents, AI, and mass migration.",
-  },
-  pro: {
-    name: "Pro",
-    price: "$30/mo",
-    icon: Building2,
-    blurb: "For companies — managed brands, hosted logos, brand-aware badges, and analytics.",
+    blurb: "For maintainers who live in their READMEs — saved documents, AI, mass migration, and a managed brand.",
   },
 }
 

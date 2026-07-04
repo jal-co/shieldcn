@@ -3,7 +3,7 @@
  * lib/auth.ts
  *
  * App-facing session helpers, backed by the Neon Auth server SDK. Every
- * Pro/Plus resource is scoped to the caller's active organization (a
+ * Plus resource is scoped to the caller's active organization (a
  * company/team), so requireOrg() is the common gate.
  *
  * Kept as a thin wrapper so route handlers depend on a small, stable surface
@@ -48,7 +48,7 @@ export async function requireSession(): Promise<Session | null> {
 /**
  * Require a session with an active organization. Returns the org id or null.
  * Use only for genuinely org-only surfaces (e.g. team management). Most
- * Plus/Pro resources are personal-first — use requireOwner instead.
+ * Plus resources are personal-first — use requireOwner instead.
  */
 export async function requireOrg(): Promise<{ session: Session; orgId: string } | null> {
   const session = await getSession()

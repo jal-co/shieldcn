@@ -7,7 +7,7 @@
  * rebrand propagate: distributed embeds reference /b/{slug}/logo-light.svg,
  * and swapping the stored bytes re-serves everywhere.
  *
- * Pro-gated, org-owned. Body: { lightLogoUrl?, darkLogoUrl?, markUrl? }.
+ * Plus-gated, org-owned. Body: { lightLogoUrl?, darkLogoUrl?, markUrl? }.
  */
 
 import { NextResponse, type NextRequest } from "next/server"
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { slug } = await params
   const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.ownerId, "pro"))) {
-    return NextResponse.json({ error: "brand assets require the Pro plan" }, { status: 402 })
+  if (!(await hasPlan(auth.ownerId, "plus"))) {
+    return NextResponse.json({ error: "brand assets require the Plus plan" }, { status: 402 })
   }
 
   const brand = await getOwnedBrand(auth.ownerId, slug)

@@ -37,7 +37,7 @@ export default async function ReadmesPage() {
       <p className="text-sm text-muted-foreground">
         Your cloud-synced README documents. Open one to edit in the Studio —
         changes auto-save. Free syncs {docLimitForPlan("free")}; Plus{" "}
-        {docLimitForPlan("plus")}; Pro {docLimitForPlan("pro")}.
+        {docLimitForPlan("plus")}.
       </p>
 
       <ReadmesList initialDocs={initialDocs} limit={limit} plan={plan} />

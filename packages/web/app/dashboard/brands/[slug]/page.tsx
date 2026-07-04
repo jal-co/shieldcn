@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { ArrowLeft, BarChart3 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 import { BrandEditor } from "@/components/brand-editor"
 import { pageMetadata } from "@/lib/metadata"
@@ -23,11 +22,10 @@ export default async function EditBrandPage({ params }: Params) {
   const session = await getSession()
   if (!session) redirect("/dashboard")
 
-  // Personal-first: brands belong to the active team if one is selected, else
-  // the personal account. Brands are a Pro capability for either owner type.
+  // Brands belong to the personal account. Managed brands are a Plus capability.
   const ownerId = session.orgId ?? session.userId
   const plan = await getPlan(ownerId)
-  if (plan !== "pro") redirect("/pricing")
+  if (plan !== "plus") redirect("/pricing")
 
   const brand = await getOwnedBrand(ownerId, slug)
   if (!brand) notFound()
@@ -40,18 +38,11 @@ export default async function EditBrandPage({ params }: Params) {
           >
             <ArrowLeft className="size-4" /> Dashboard
           </Link>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {brand.name ?? brand.slug}
-              </h1>
-              <p className="font-mono text-sm text-muted-foreground">?brand={brand.slug}</p>
-            </div>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/dashboard/analytics/${brand.slug}`}>
-                <BarChart3 className="mr-1.5 size-4" /> Analytics
-              </Link>
-            </Button>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {brand.name ?? brand.slug}
+            </h1>
+            <p className="font-mono text-sm text-muted-foreground">?brand={brand.slug}</p>
           </div>
 
           <BrandEditor brand={brand} />

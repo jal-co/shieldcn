@@ -391,8 +391,8 @@ export default async function SponsorPage() {
               </p>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
                 For individuals, sponsoring is the easy way to support the
-                project. Companies who want managed brands, saved READMEs, and
-                analytics can go a step further with a paid plan &mdash; but
+                project. Maintainers who want saved READMEs, mass migration, AI,
+                and a managed brand can go a step further with Plus &mdash; but
                 shieldcn still costs real time to build and keep running, and
                 every bit of support tells me that time is worth spending. It&apos;s
                 what lets me treat this like a real project instead of something I

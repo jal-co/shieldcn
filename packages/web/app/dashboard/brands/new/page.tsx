@@ -36,13 +36,13 @@ export default async function NewBrandPage() {
             </p>
           </div>
 
-          {plan !== "pro" ? (
+          {plan !== "plus" ? (
             <div className="rounded-lg border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
-              Brands are a Pro feature.{" "}
+              Brands are a Plus feature.{" "}
               <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
-                Upgrade to Pro
+                Upgrade to Plus
               </Link>{" "}
-              to create managed brands.
+              to create a managed brand.
             </div>
           ) : (
             <BrandEditor create />

@@ -34,7 +34,7 @@ export function ReadmesList({
 }: {
   initialDocs: Doc[]
   limit: number
-  plan: "free" | "plus" | "pro"
+  plan: "free" | "plus"
 }) {
   const [docs, setDocs] = useState<Doc[]>(initialDocs)
   const [pendingDelete, setPendingDelete] = useState<Doc | null>(null)
@@ -79,8 +79,8 @@ export function ReadmesList({
           used={docs.length}
           limit={limit}
           label="saved"
-          upsellHref={plan !== "pro" ? "/pricing" : undefined}
-          upsellLabel={plan === "free" ? "Upgrade for more" : "Get Pro for 50"}
+          upsellHref={plan === "free" ? "/pricing" : undefined}
+          upsellLabel="Upgrade for more"
         />
         <Button asChild size="sm" disabled={atLimit}>
           <Link href={atLimit ? "/pricing" : "/studio"}>

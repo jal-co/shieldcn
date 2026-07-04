@@ -604,7 +604,7 @@ export function Studio() {
     reader.readAsText(file)
   }, [])
 
-  // --- cloud / AI / brand (Plus + Pro) accessors --------------------------
+  // --- cloud / AI / brand (Plus) accessors --------------------------------
   // Small state accessors handed to the cloud menu so it can save/open/replace
   // the document without reaching into Studio's internals.
   const loadProject = useCallback((nextBlocks: Block[], nextThemeAware: boolean) => {
@@ -760,7 +760,7 @@ export function Studio() {
 
           <Separator orientation="vertical" className="mx-0.5 hidden h-5 sm:block" />
 
-          {/* CLOUD / AI / BRAND — Plus + Pro features (save, open, generate) */}
+          {/* CLOUD / AI / BRAND — Plus features (save, open, generate) */}
           <StudioCloudMenu
             blocks={blocks}
             themeAware={themeAware}

@@ -3327,8 +3327,8 @@ async function handleBadgeGETInner(
       ...options,
       onTrack: (event) => {
         const data = brandId != null ? { ...event.data, brandId } : event.data
-        // The daily rollup feeds the Pro per-brand analytics dashboard, which
-        // only ever queries by a specific brand_id. Recording the entire public
+        // The daily rollup is queried per-brand for brand-level insight, keyed
+        // by a specific brand_id. Recording the entire public
         // badge firehose under brand_id=0 would be pure write amplification for
         // rows nothing reads — so only branded renders are rolled up.
         if (event.name === "badge_rendered" && brandId != null) {

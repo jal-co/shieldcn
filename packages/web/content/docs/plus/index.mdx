@@ -1,0 +1,61 @@
+---
+title: Plus
+description: The paid plan for shieldcn. Public badges are free forever; Plus adds saved READMEs, mass migration, AI, and a managed brand with hosted assets.
+---
+
+Public badges are free forever — that part never changes. Plus adds identity
+and control around your badges, and keeps shieldcn sustainable.
+
+There is one paid tier:
+
+- **Plus — $10/mo**, for maintainers who live in their READMEs.
+
+<InlineHint variant="tip">Compare everything on the <a href="/pricing">pricing page</a>, or jump straight to <a href="/api/checkout?plan=plus">Get Plus</a>.</InlineHint>
+
+## What each plan includes
+
+| Capability | Free | Plus |
+|---|:---:|:---:|
+| All badge providers, variants, themes, icons | ✅ | ✅ |
+| Charts, headers, sponsor & contributor walls | ✅ | ✅ |
+| Query-param styling on every badge | ✅ | ✅ |
+| Single-repo shields.io migration preview | ✅ | ✅ |
+| Saved READMEs in the Studio (cloud sync) | ✅ (2) | ✅ (50) |
+| [Saved badges library](/docs/plus/badges) (reusable, cloud sync) | ✅ (2) | ✅ (50) |
+| Mass migration — open PRs across all repos | — | ✅ |
+| AI — generate & polish READMEs | — | ✅ |
+| [Managed brand](/docs/plus/brands) | — | ✅ (1) |
+| [Hosted brand assets](/docs/plus/assets) (logos + fonts) | — | ✅ |
+| Brand-aware badges & README headers | — | ✅ |
+
+## The core Plus promise
+
+**Change your brand once, every distributed asset updates.** A Plus *brand* is a
+named set of style tokens plus hosted logos and fonts. Reference it by URL from
+your READMEs, npm pages, and docs sites. Edit the brand in the dashboard and
+every embed that references it re-renders on the next fetch — no PRs across 40
+repos when you rebrand.
+
+```md
+![build](https://shieldcn.dev/github/acme/app/ci.svg?brand=acme)
+```
+
+Change `acme`'s color, logo, or font in the dashboard, and that badge — and
+every other `?brand=acme` embed anywhere — follows.
+
+## How billing works
+
+Billing runs through [Polar](https://polar.sh) as the merchant of record (it
+handles global tax). Checkout and cancellation happen in the Polar customer
+portal, linked from your [dashboard](/dashboard).
+
+Your subscription entitles your personal account, and every saved README and
+brand belongs to it.
+
+<InlineHint variant="note">Grace handling: if a subscription lapses, your brand and saved READMEs go **read-only but keep serving** — shipped badges never break, and you can still open and export everything. Editing resumes when you re-subscribe.</InlineHint>
+
+## Next steps
+
+- [Saved badges](/docs/plus/badges) — build a reusable library of your favorite badges.
+- [Managed brand](/docs/plus/brands) — create a brand and reference it by URL.
+- [Hosted assets](/docs/plus/assets) — host logos and fonts at stable URLs.

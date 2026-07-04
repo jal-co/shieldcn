@@ -28,7 +28,8 @@
     "./entitlements": "./src/entitlements.ts",
     "./brands": "./src/brands.ts",
     "./badge-stats": "./src/badge-stats.ts",
-    "./studio-docs": "./src/studio-docs.ts"
+    "./studio-docs": "./src/studio-docs.ts",
+    "./saved-badges": "./src/saved-badges.ts"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",

@@ -2,9 +2,9 @@
  * shieldcn
  * app/api/brands/[slug]/route.ts
  *
- * Brand CRUD. Creating/editing a brand requires an active organization on the
- * Pro plan; the brand is owned by that org. Reads happen through the badge
- * handler (core getBrand), not here.
+ * Brand CRUD. Creating/editing a brand requires the Plus plan; the brand is
+ * owned by that account. Reads happen through the badge handler (core
+ * getBrand), not here.
  */
 
 import { NextResponse, type NextRequest } from "next/server"
@@ -41,8 +41,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   const plan = await getPlan(auth.ownerId)
-  if (plan !== "pro") {
-    return NextResponse.json({ error: "brands require the Pro plan" }, { status: 402 })
+  if (plan !== "plus") {
+    return NextResponse.json({ error: "brands require the Plus plan" }, { status: 402 })
   }
 
   // Enforce the brand cap, but only for a genuinely new brand (editing an

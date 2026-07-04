@@ -12,6 +12,7 @@ import { useState, useEffect, useMemo, useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { BadgeBuilderCore } from "@/components/badge-builder-core"
 import { CopyOutputSection } from "@/components/copy-output-section"
+import { SaveBadgeButton } from "@/components/save-badge-button"
 import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import {
   BUILDER_DEFAULTS,
@@ -94,15 +95,20 @@ export function BadgeBuilder() {
     <BadgeBuilderCore state={s} onChange={setS} badgeUrl={url}>
       {/* ── Copy output ── */}
       {url && (
-        <CopyOutputSection
-          formats={COPY_FORMATS}
-          format={copyFormat}
-          onFormatChange={setCopyFormat}
-          output={output}
-          copied={copied}
-          copyError={copyError}
-          onCopy={() => copy(output)}
-        />
+        <>
+          <CopyOutputSection
+            formats={COPY_FORMATS}
+            format={copyFormat}
+            onFormatChange={setCopyFormat}
+            output={output}
+            copied={copied}
+            copyError={copyError}
+            onCopy={() => copy(output)}
+          />
+          <div className="flex justify-end">
+            <SaveBadgeButton state={s} />
+          </div>
+        </>
       )}
     </BadgeBuilderCore>
   )

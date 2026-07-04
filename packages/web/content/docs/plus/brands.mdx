@@ -3,12 +3,12 @@ title: Managed brands
 description: Create a reusable brand — colors, theme, font, and logo — and reference it from any badge or README header by URL. Edit once, update everywhere.
 ---
 
-A **brand** is a named, reusable set of style tokens owned by your organization.
+A **brand** is a named, reusable set of style tokens owned by your account.
 Reference it from any badge or header URL and it applies the brand's colors,
 theme, font, and logo. Edit the brand in the dashboard and every embed that
 references it re-renders on the next fetch.
 
-Brands are a [Pro](/docs/pro) feature.
+Managed brands are a [Plus](/docs/plus) feature — one brand per account.
 
 ## Creating a brand
 
@@ -52,7 +52,7 @@ Precedence is **explicit query param > brand value > default**.
 
 ## Brand logos and fonts
 
-Once a brand has [hosted assets](/docs/pro/assets), opt into them per badge:
+Once a brand has [hosted assets](/docs/plus/assets), opt into them per badge:
 
 ```md
 <!-- Use the brand's hosted logo (mode-aware light/dark) -->
@@ -63,7 +63,7 @@ Once a brand has [hosted assets](/docs/pro/assets), opt into them per badge:
 ```
 
 `font=brand-mono` and `font=brand-heading` select the brand's other uploaded
-typefaces. See [Hosted assets](/docs/pro/assets) for the full list.
+typefaces. See [Hosted assets](/docs/plus/assets) for the full list.
 
 ## README headers
 
@@ -84,7 +84,6 @@ rebrand shows up across GitHub's Camo proxy within minutes.
 
 ## Data & ownership
 
-Brands belong to your organization, not an individual user. Anyone in the org
-can create and edit them; billing is org-scoped. Public visitors can *consume*
-your brand URLs (that's the point — they're on third-party READMEs) but cannot
-create or edit brands.
+Brands belong to your account. Public visitors can *consume* your brand URLs
+(that's the point — they're on third-party READMEs) but cannot create or edit
+brands.

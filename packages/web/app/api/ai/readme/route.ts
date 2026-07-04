@@ -5,7 +5,7 @@
  * Generate a README (as GitHub-flavored Markdown) from a repo summary or
  * pasted package metadata. The Studio imports the markdown into typed blocks
  * via lib/studio-import, so the model emits clean Markdown — including a real
- * shieldcn badge row (not a placeholder). Pro callers may pass a brand slug to
+ * shieldcn badge row (not a placeholder). Plus callers may pass a brand slug to
  * style every generated badge with their brand.
  *
  * Plus+ only. Usage is metered through Polar (see lib/ai).
@@ -97,10 +97,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "provide a summary or repo" }, { status: 400 })
   }
 
-  // A brand is a Pro capability — accept it only when the caller is Pro and
+  // A brand is a Plus capability — accept it only when the caller is Plus and
   // actually owns that brand; otherwise generate unbranded.
   let brandSlug: string | null = null
-  if (body.brand && (await getPlan(auth.ownerId)) === "pro") {
+  if (body.brand && (await getPlan(auth.ownerId)) === "plus") {
     const owned = await getOwnedBrand(auth.ownerId, body.brand)
     if (owned) brandSlug = owned.slug
   }

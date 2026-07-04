@@ -761,9 +761,9 @@ export default function MigrateClient() {
             <p className="text-sm text-muted-foreground">
               Scanning and previewing is free for a single repo. Bulk migration
               scans every repo you list and opens all the PRs in one click —
-              part of <strong>Plus</strong>. Companies standardizing badges across
-              many repos may prefer <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">Pro</Link>,
-              which adds managed brands so one edit restyles every embed.
+              part of <strong>Plus</strong>, which also adds{" "}
+              <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">a managed brand</Link>{" "}
+              so one edit restyles every embed.
             </p>
           </div>
         )}
