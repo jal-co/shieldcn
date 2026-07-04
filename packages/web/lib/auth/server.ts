@@ -26,5 +26,11 @@ export const auth = createNeonAuth({
   baseUrl,
   cookies: {
     secret: cookieSecret,
+    // OAuth returns are a cross-site top-level navigation (github.com → neon
+    // auth → our domain). A SameSite=Strict cookie is NOT sent on that, so the
+    // PKCE challenge cookie would be missing and the verifier exchange would
+    // fail — bouncing the user back to sign-in still signed out. Lax is sent on
+    // top-level cross-site GET navigations, which is exactly the OAuth return.
+    sameSite: "lax",
   },
 })
