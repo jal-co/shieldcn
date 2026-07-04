@@ -31,12 +31,31 @@ const cache = new Map<string, CacheEntry>()
 const TTL_MS = 60_000
 
 /**
+ * Dev-only plan override. Returns the forced plan ONLY when both hold:
+ *   1. NODE_ENV is not "production" (never active in a prod build), and
+ *   2. DEV_PLAN is set to a valid plan ("free" | "plus").
+ * This lets local development exercise Plus-gated features (caps, gates)
+ * without a real Polar subscription. Both guards must pass, so it is
+ * impossible to trigger on a deployed production server.
+ */
+function devPlanOverride(): Plan | null {
+  if (process.env.NODE_ENV === "production") return null
+  const forced = process.env.DEV_PLAN
+  if (forced === "plus" || forced === "free") return forced
+  return null
+}
+
+/**
  * Resolve the effective plan for an organization. Returns "free" for unknown
  * orgs, lapsed subscriptions, or when billing is not configured. Fail-open to
  * "free" on any error — a billing lookup must never break a request path.
  */
 export async function getPlan(ownerId: string | null | undefined): Promise<Plan> {
   if (!ownerId) return "free"
+
+  // Local dev escape hatch (guarded to non-production + explicit opt-in).
+  const forced = devPlanOverride()
+  if (forced) return forced
 
   const cached = cache.get(ownerId)
   if (cached && cached.expires > Date.now()) return cached.plan
