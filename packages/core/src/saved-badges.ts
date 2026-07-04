@@ -164,6 +164,7 @@ export async function updateSavedBadge(
   id: number,
   input: SavedBadgeInput,
 ): Promise<SavedBadge | null> {
+  await initDB()
   const setSvg = input.svg !== undefined
   const { rows } = await query<BadgeRow>(
     `UPDATE saved_badges
@@ -186,6 +187,7 @@ export async function updateSavedBadge(
 }
 
 export async function deleteSavedBadge(ownerId: string, id: number): Promise<boolean> {
+  await initDB()
   const { rowCount } = await query(
     `DELETE FROM saved_badges WHERE id = $1 AND owner_id = $2`,
     [id, ownerId],

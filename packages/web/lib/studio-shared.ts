@@ -332,10 +332,10 @@ export function makeHeaderBlock(): HeaderBlock {
   }
 }
 
-export function makeBadgeItem(state?: Partial<BuilderState>): BadgeItem {
+export function makeBadgeItem(state?: Partial<BuilderState>, alt?: string): BadgeItem {
   return {
     id: newId("badge"),
-    alt: "badge",
+    alt: alt?.trim() || "badge",
     state: { ...BUILDER_DEFAULTS, ...state },
   }
 }

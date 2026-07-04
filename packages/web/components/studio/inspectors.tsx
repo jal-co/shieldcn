@@ -834,8 +834,8 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
     onChange({ ...block, badges: [...block.badges, makeBadgeItem({ path: "/badge/label-value-22c55e.svg" })] })
   }, [block, onChange])
 
-  const insertSaved = useCallback((state: BuilderState) => {
-    onChange({ ...block, badges: [...block.badges, makeBadgeItem({ ...state })] })
+  const insertSaved = useCallback((state: BuilderState, alt: string) => {
+    onChange({ ...block, badges: [...block.badges, makeBadgeItem({ ...state }, alt)] })
   }, [block, onChange])
 
   const sharedSize = block.badges.length > 0 && block.badges.every(b => b.state.size === block.badges[0].state.size)
