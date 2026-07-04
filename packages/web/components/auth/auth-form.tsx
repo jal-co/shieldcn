@@ -4,10 +4,10 @@
  * shieldcn
  * components/auth/auth-form.tsx
  *
- * Sign-in / sign-up form built from shadcn primitives, calling the Neon Auth
- * client directly (no third-party auth UI). Social buttons (GitHub, Google)
- * redirect through the same-origin /api/auth proxy; email/password resolves
- * inline and pushes to the callback URL on success.
+ * Sign-in / sign-up form built from shadcn primitives, calling the Better Auth
+ * client directly (no third-party auth UI). The GitHub social button redirects
+ * through the same-origin /api/auth handler; email/password resolves inline and
+ * pushes to the callback URL on success.
  */
 
 import { useState } from "react"
@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { GitHubMark, GoogleMark } from "@/components/auth/provider-marks"
+import { GitHubMark } from "@/components/auth/provider-marks"
 
 type Mode = "sign-in" | "sign-up"
 
@@ -43,7 +43,7 @@ export function AuthForm({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [pending, setPending] = useState(false)
-  const [social, setSocial] = useState<"github" | "google" | null>(null)
+  const [social, setSocial] = useState<"github" | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
@@ -67,7 +67,7 @@ export function AuthForm({
     }
   }
 
-  async function onSocial(provider: "github" | "google") {
+  async function onSocial(provider: "github") {
     setError(null)
     setSocial(provider)
     try {
@@ -86,7 +86,7 @@ export function AuthForm({
         <CardTitle>{isSignUp ? "Create your account" : "Welcome back"}</CardTitle>
         <CardDescription>
           {isSignUp
-            ? "Start saving READMEs, brands, and analytics."
+            ? "Start saving READMEs, badges, and brands."
             : "Sign in to your shieldcn workspace."}
         </CardDescription>
       </CardHeader>
@@ -102,16 +102,6 @@ export function AuthForm({
           >
             {social === "github" ? <Loader2 className="size-4 animate-spin" /> : <GitHubMark className="size-4" />}
             Continue with GitHub
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={busy}
-            onClick={() => onSocial("google")}
-          >
-            {social === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleMark className="size-4" />}
-            Continue with Google
           </Button>
         </div>
 
