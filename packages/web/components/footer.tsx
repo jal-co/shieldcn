@@ -55,7 +55,8 @@ const footerLinks = {
     { label: "Stats", href: "/stats", external: false },
     { label: "llms.txt", href: "/llms.txt", external: false },
     { label: "Privacy", href: "/privacy", external: false },
-    { label: "Contact", href: "mailto:justin@justinlevine.me", external: true },
+    { label: "Terms", href: "/terms", external: false },
+    { label: "Contact", href: "mailto:shieldcn@fwdtojustin.com", external: true },
   ],
   product: [
     { label: "Documentation", href: "/docs", external: false },
