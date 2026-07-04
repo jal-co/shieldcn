@@ -13,7 +13,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { generateText } from "ai"
 import { requireOwner } from "@/lib/auth"
 import { hasPlan } from "@shieldcn/core/entitlements"
-import { meteredModel, aiConfigured } from "@/lib/ai"
+import { aiModel, meterAiUsage, aiErrorResponse, aiConfigured } from "@/lib/ai"
 
 const SYSTEM = `You are a technical writer generating a project README.
 Output GitHub-flavored Markdown only — no preamble, no code fence around the
@@ -43,21 +43,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { text } = await generateText({
-      model: meteredModel(auth.ownerId),
+    const { text, usage } = await generateText({
+      model: aiModel(),
       system: SYSTEM,
       prompt: `Write a README for this project:\n\n${context}`,
     })
+    meterAiUsage(auth.ownerId, usage)
     return NextResponse.json({ markdown: text })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "generation failed"
-    // Polar returns a 402/403 when the org is out of credits.
-    if (/credit|quota|limit|402|403/i.test(msg)) {
-      return NextResponse.json(
-        { error: "out of AI credits — upgrade or wait for the next cycle" },
-        { status: 402 },
-      )
-    }
-    return NextResponse.json({ error: msg }, { status: 500 })
+    const { error, status } = aiErrorResponse(err)
+    return NextResponse.json({ error }, { status })
   }
 }

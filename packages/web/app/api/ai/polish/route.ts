@@ -9,7 +9,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { generateText } from "ai"
 import { requireOwner } from "@/lib/auth"
 import { hasPlan } from "@shieldcn/core/entitlements"
-import { meteredModel, aiConfigured } from "@/lib/ai"
+import { aiModel, meterAiUsage, aiErrorResponse, aiConfigured } from "@/lib/ai"
 
 const SYSTEM = `You improve README prose. Return only the rewritten text with no
 commentary, preserving the author's meaning and any Markdown formatting. Make it
@@ -35,22 +35,17 @@ export async function POST(req: NextRequest) {
   if (!text.trim()) return NextResponse.json({ error: "missing text" }, { status: 400 })
 
   try {
-    const { text: out } = await generateText({
-      model: meteredModel(auth.ownerId),
+    const { text: out, usage } = await generateText({
+      model: aiModel(),
       system: SYSTEM,
       prompt: body.instruction
         ? `${body.instruction}\n\n---\n${text}`
         : `Polish this:\n\n---\n${text}`,
     })
+    meterAiUsage(auth.ownerId, usage)
     return NextResponse.json({ text: out })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "generation failed"
-    if (/credit|quota|limit|402|403/i.test(msg)) {
-      return NextResponse.json(
-        { error: "out of AI credits — upgrade or wait for the next cycle" },
-        { status: 402 },
-      )
-    }
-    return NextResponse.json({ error: msg }, { status: 500 })
+    const { error, status } = aiErrorResponse(err)
+    return NextResponse.json({ error }, { status })
   }
 }
