@@ -99,7 +99,7 @@ export default async function DashboardPage() {
             )}
             {plan === "free" && (
               <p className="text-xs text-muted-foreground">
-                Free syncs 2 READMEs.{" "}
+                Free syncs 5 READMEs.{" "}
                 <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
                   Plus
                 </Link>{" "}

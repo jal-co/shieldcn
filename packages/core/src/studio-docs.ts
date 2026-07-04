@@ -12,8 +12,8 @@ import { query, initDB } from "./db"
  * Saved-document caps. Free gets a small cloud allowance so signing up is
  * worthwhile (the account-creation hook); paid plans raise it.
  */
-export const FREE_DOC_LIMIT = 2
-export const PLUS_DOC_LIMIT = 50
+export const FREE_DOC_LIMIT = 5
+export const PLUS_DOC_LIMIT = 75
 
 /** Saved-README cap for a plan. Single source of truth for route + dashboard. */
 export function docLimitForPlan(plan: string): number {

@@ -32,7 +32,7 @@ export const TIERS: Tier[] = [
       "All badge providers, variants & themes",
       "Charts, headers, sponsor & contributor walls",
       "Query-param styling on every badge",
-      "Save 2 READMEs + 2 badges to the cloud",
+      "Save 5 READMEs + 5 badges to the cloud",
       "Single-repo shields.io migration preview",
     ],
   },
@@ -45,7 +45,7 @@ export const TIERS: Tier[] = [
     cta: { label: "Get Plus", checkout: "plus" },
     features: [
       "Everything in Free",
-      "Save 50 READMEs (sync across devices)",
+      "Save 75 READMEs (sync across devices)",
       "Saved badges library — reuse a badge anywhere",
       "Mass migration — open PRs across all your repos",
       "AI: generate & polish READMEs",

@@ -105,8 +105,11 @@ export function BadgeBuilder() {
             copyError={copyError}
             onCopy={() => copy(output)}
           />
-          <div className="flex justify-end">
-            <SaveBadgeButton state={s} />
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
+            <p className="text-xs text-muted-foreground">
+              Save this badge to reuse it in any README.
+            </p>
+            <SaveBadgeButton state={s} className="shrink-0" />
           </div>
         </>
       )}

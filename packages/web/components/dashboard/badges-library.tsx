@@ -19,6 +19,7 @@ import Link from "next/link"
 import { BadgeCheck, Copy, Loader2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UsageMeter } from "@/components/dashboard/usage-meter"
+import { NewBadgeDialog } from "@/components/dashboard/new-badge-dialog"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { useHydrated } from "@/lib/use-hydrated"
 import { buildBadgeUrl, BUILDER_DEFAULTS, type BuilderState } from "@/lib/badge-builder-shared"
@@ -107,9 +108,20 @@ export function BadgesLibrary({
           upsellHref={plan === "free" ? "/pricing" : undefined}
           upsellLabel="Upgrade for more"
         />
-        <Button asChild size="sm" disabled={atLimit}>
-          <Link href={atLimit ? "/pricing" : "/studio"}>Save from Studio</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {atLimit ? (
+            <Button asChild size="sm" variant="outline">
+              <Link href="/pricing">Upgrade for more</Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/studio">From Studio</Link>
+              </Button>
+              <NewBadgeDialog onSaved={refresh} disabled={atLimit} />
+            </>
+          )}
+        </div>
       </div>
 
       {badges.length === 0 ? (
@@ -120,14 +132,17 @@ export function BadgesLibrary({
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold">No saved badges yet</h2>
             <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-              Configure a badge in the Studio or the builder, hit{" "}
+              Configure a badge here or in the Studio, hit{" "}
               <strong>Save badge</strong>, and it lands here — ready to reuse
               anywhere with one click.
             </p>
           </div>
-          <Button asChild>
-            <Link href="/studio">Open the Studio</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <NewBadgeDialog onSaved={refresh} />
+            <Button asChild variant="outline">
+              <Link href="/studio">Open the Studio</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">

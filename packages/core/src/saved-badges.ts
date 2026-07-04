@@ -19,8 +19,8 @@ import { query, initDB } from "./db"
  * (the account-creation hook); Plus raises it. Kept in step with the saved-
  * README caps so the two libraries feel consistent.
  */
-export const FREE_BADGE_LIMIT = 2
-export const PLUS_BADGE_LIMIT = 50
+export const FREE_BADGE_LIMIT = 5
+export const PLUS_BADGE_LIMIT = 75
 
 /** Saved-badge cap for a plan. Single source of truth for route + dashboard. */
 export function badgeLimitForPlan(plan: string): number {

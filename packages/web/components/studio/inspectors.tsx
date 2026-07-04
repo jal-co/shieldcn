@@ -689,24 +689,11 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
     <div className="rounded-md border border-border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-foreground">Badge {index + 1}</span>
-        <div className="flex items-center gap-0.5">
-          <Tip label="Save to your badge library">
-            <span>
-              <SaveBadgeButton
-                state={s}
-                defaultName={item.alt}
-                size="icon"
-                variant="ghost"
-                className="size-6 text-muted-foreground hover:text-foreground"
-              />
-            </span>
-          </Tip>
-          <Tip label="Remove badge">
-            <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={onRemove} aria-label={`Remove badge ${index + 1}`}>
-              <Trash2 className="size-3.5" />
-            </Button>
-          </Tip>
-        </div>
+        <Tip label="Remove badge">
+          <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={onRemove} aria-label={`Remove badge ${index + 1}`}>
+            <Trash2 className="size-3.5" />
+          </Button>
+        </Tip>
       </div>
 
       <Field label="Type">
@@ -817,6 +804,16 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
       <Field label="Link URL">
         <Input value={s.linkUrl} onChange={e => set({ linkUrl: e.target.value })} placeholder="https://…" className="text-xs" />
       </Field>
+
+      <div className="border-t border-border pt-3">
+        <SaveBadgeButton
+          state={s}
+          defaultName={item.alt}
+          size="sm"
+          variant="outline"
+          className="w-full"
+        />
+      </div>
     </div>
   )
 }

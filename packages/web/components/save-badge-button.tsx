@@ -43,6 +43,7 @@ export function SaveBadgeButton({
   size = "sm",
   variant = "outline",
   className,
+  onSaved,
 }: {
   state: BuilderState
   /** Suggested library name (falls back to the badge label / path). */
@@ -50,6 +51,8 @@ export function SaveBadgeButton({
   size?: "sm" | "default" | "lg" | "icon"
   variant?: "outline" | "default" | "ghost" | "secondary"
   className?: string
+  /** Fired after a successful save (e.g. to close a dialog + refresh a list). */
+  onSaved?: () => void
 }) {
   const router = useRouter()
   const { me } = useMe()
@@ -84,6 +87,7 @@ export function SaveBadgeButton({
           action: { label: "View", onClick: () => router.push("/dashboard/badges") },
         })
         setTimeout(() => setSaved(false), 2500)
+        onSaved?.()
         return
       }
       const json = await res.json().catch(() => ({}))
@@ -100,7 +104,7 @@ export function SaveBadgeButton({
     } finally {
       setBusy(false)
     }
-  }, [me.signedIn, state, defaultName, router])
+  }, [me.signedIn, state, defaultName, router, onSaved])
 
   return (
     <Button size={size} variant={variant} className={className} onClick={onSave} disabled={busy}>
