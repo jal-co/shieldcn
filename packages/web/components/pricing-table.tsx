@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { CheckoutButton } from "@/components/billing-buttons"
 
 /**
  * shieldcn
@@ -15,7 +16,8 @@ interface Tier {
   price: string
   cadence?: string
   tagline: string
-  cta: { label: string; href: string }
+  /** Either a plain link CTA, or the Polar checkout for a product slug. */
+  cta: { label: string; href: string } | { label: string; checkout: string }
   featured?: boolean
   features: string[]
 }
@@ -40,7 +42,7 @@ export const TIERS: Tier[] = [
     cadence: "/mo",
     tagline: "For maintainers who live in their READMEs.",
     featured: true,
-    cta: { label: "Get Plus", href: "/api/checkout?plan=plus" },
+    cta: { label: "Get Plus", checkout: "plus" },
     features: [
       "Everything in Free",
       "Save 50 READMEs (sync across devices)",
@@ -84,13 +86,23 @@ export function PricingTable() {
             <p className="text-sm text-muted-foreground">{tier.tagline}</p>
           </div>
 
-          <Button
-            asChild
-            variant={tier.featured ? "default" : "outline"}
-            className="w-full"
-          >
-            <Link href={tier.cta.href}>{tier.cta.label}</Link>
-          </Button>
+          {"checkout" in tier.cta ? (
+            <CheckoutButton
+              slug={tier.cta.checkout}
+              variant={tier.featured ? "default" : "outline"}
+              className="w-full"
+            >
+              {tier.cta.label}
+            </CheckoutButton>
+          ) : (
+            <Button
+              asChild
+              variant={tier.featured ? "default" : "outline"}
+              className="w-full"
+            >
+              <Link href={tier.cta.href}>{tier.cta.label}</Link>
+            </Button>
+          )}
 
           <ul className="flex flex-col gap-2.5 text-sm">
             {tier.features.map((f) => (

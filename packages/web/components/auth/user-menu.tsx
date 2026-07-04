@@ -6,7 +6,7 @@
  *
  * Header auth cluster. Signed out: Sign in + Sign up buttons. Signed in: an
  * avatar dropdown with dashboard/brands/billing links and sign out. All state
- * comes from the Neon Auth client hooks.
+ * comes from the Better Auth client hooks; Billing opens the Polar portal.
  */
 
 import Link from "next/link"
@@ -105,10 +105,8 @@ export function UserMenu() {
               <Palette className="size-4" /> Brands
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/api/portal">
-              <CreditCard className="size-4" /> Billing
-            </Link>
+          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); void authClient.customer.portal() }}>
+            <CreditCard className="size-4" /> Billing
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

@@ -10,14 +10,15 @@
  *  - <UpgradeInline>  a compact banner for empty/locked panels
  *  - <UpgradeDialog>  a modal shown when a gated action is attempted
  *
- * Both link to the Polar checkout (/api/checkout?plan=…) for signed-in users,
- * and to /sign-in / /pricing otherwise.
+ * Both drive the Polar checkout (authClient.checkout) for signed-in users, and
+ * route to /sign-in otherwise (handled by <CheckoutButton>).
  */
 
 import Link from "next/link"
 import { Sparkles, ArrowRight } from "lucide-react"
 import type { Plan } from "@shieldcn/core/entitlements"
 import { Button } from "@/components/ui/button"
+import { CheckoutButton } from "@/components/billing-buttons"
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useMe } from "@/lib/use-me"
 
 type Tier = Exclude<Plan, "free">
 
@@ -37,14 +37,6 @@ const TIER_META: Record<Tier, { name: string; price: string; icon: typeof Sparkl
     icon: Sparkles,
     blurb: "For maintainers who live in their READMEs — saved documents, AI, mass migration, and a managed brand.",
   },
-}
-
-/** Resolve the best CTA href given the viewer's auth state. */
-function useCheckoutHref(tier: Tier): { href: string; label: string } {
-  const { me } = useMe()
-  if (!me.signedIn) return { href: "/sign-in?next=/pricing", label: `Sign in to get ${TIER_META[tier].name}` }
-  if (!me.orgId) return { href: "/pricing", label: "Create an org to upgrade" }
-  return { href: `/api/checkout?plan=${tier}`, label: `Upgrade to ${TIER_META[tier].name}` }
 }
 
 /**
@@ -61,7 +53,6 @@ export function UpgradeInline({
 }) {
   const meta = TIER_META[tier]
   const Icon = meta.icon
-  const { href, label } = useCheckoutHref(tier)
   return (
     <div
       className={
@@ -81,11 +72,9 @@ export function UpgradeInline({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <Button asChild size="sm">
-          <Link href={href}>
-            {label} <span className="text-xs opacity-70">· {meta.price}</span>
-          </Link>
-        </Button>
+        <CheckoutButton slug={tier} size="sm">
+          Upgrade to {meta.name} <span className="text-xs opacity-70">· {meta.price}</span>
+        </CheckoutButton>
         <Button asChild size="sm" variant="ghost">
           <Link href="/pricing">Compare</Link>
         </Button>
@@ -113,7 +102,6 @@ export function UpgradeDialog({
 }) {
   const meta = TIER_META[tier]
   const Icon = meta.icon
-  const { href, label } = useCheckoutHref(tier)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -125,11 +113,9 @@ export function UpgradeDialog({
           <DialogDescription>{description ?? meta.blurb}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-start">
-          <Button asChild>
-            <Link href={href}>
-              {label} <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+          <CheckoutButton slug={tier}>
+            Upgrade to {meta.name} <ArrowRight className="size-4" />
+          </CheckoutButton>
           <Button asChild variant="ghost">
             <Link href="/pricing">See all plans</Link>
           </Button>

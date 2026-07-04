@@ -103,11 +103,9 @@ export function DashboardSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Billing">
-                    <Link href="/api/portal">
-                      <CreditCard />
-                      <span>Billing</span>
-                    </Link>
+                  <SidebarMenuButton tooltip="Billing" onClick={() => { void authClient.customer.portal() }}>
+                    <CreditCard />
+                    <span>Billing</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>

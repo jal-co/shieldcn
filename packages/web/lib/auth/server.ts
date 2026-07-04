@@ -10,13 +10,22 @@
  * the opt-in teams/workspaces (activeOrganizationId on the session drives the
  * personal-first ownerId resolution used across the app).
  *
+ * Billing: the Polar plugin (@polar-sh/better-auth) owns checkout, the customer
+ * portal, and webhook ingestion. Customers are created on sign-up keyed by the
+ * user id (externalId). The webhook keeps our own `subscriptions` table as the
+ * source of truth for entitlements (read by getPlan()), so gating stays a fast
+ * cached DB read rather than a Polar API call on every request.
+ *
  * Exposes `auth` with `.handler` (for the /api/auth catch-all) and `.api`
  * (server-side session reads via auth.api.getSession).
  */
 
 import { betterAuth } from "better-auth"
 import { organization } from "better-auth/plugins"
-import { getPool } from "@shieldcn/core/db"
+import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
+import { Polar } from "@polar-sh/sdk"
+import { getPool, query } from "@shieldcn/core/db"
+import { syncSubscriptionFromPolar } from "@shieldcn/core/entitlements"
 
 // A ≥32-char secret is required by Better Auth. In a build environment that
 // lacks the real secret (e.g. a Vercel preview where it's Production-only),
@@ -32,6 +41,16 @@ const baseURL =
   process.env.BETTER_AUTH_URL ||
   process.env.NEXT_PUBLIC_URL ||
   "http://localhost:3000"
+
+// Polar billing client. Sandbox vs production is env-driven so the same code
+// runs against both (tokens/products are fully separated per environment).
+const polarClient = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN || "",
+  server: (process.env.POLAR_SERVER as "sandbox" | "production") || "sandbox",
+})
+
+// The single paid product (Plus). Checkout is reachable at /checkout/plus.
+const polarProductId = process.env.POLAR_PRODUCT_PLUS
 
 export const auth = betterAuth({
   // Pass the shared pg Pool directly — Better Auth uses its built-in Kysely
@@ -57,6 +76,33 @@ export const auth = betterAuth({
     // personal-first ownerId resolution keys off (org id when active, else the
     // personal user id).
     organization(),
+
+    // Billing. Checkout + portal + webhooks via Polar. createCustomerOnSignUp
+    // keys the Polar customer by the user id (externalId), which is exactly the
+    // owner key our subscriptions table + getPlan() use.
+    polar({
+      client: polarClient,
+      createCustomerOnSignUp: true,
+      use: [
+        checkout({
+          products: polarProductId
+            ? [{ productId: polarProductId, slug: "plus" }]
+            : [],
+          successUrl: "/dashboard?checkout=success",
+          authenticatedUsersOnly: true,
+        }),
+        portal(),
+        webhooks({
+          secret: process.env.POLAR_WEBHOOK_SECRET || "",
+          // Keep our subscriptions table authoritative for getPlan().
+          onSubscriptionCreated: (p) => syncSubscriptionFromPolar(query, p.data as never),
+          onSubscriptionUpdated: (p) => syncSubscriptionFromPolar(query, p.data as never),
+          onSubscriptionActive: (p) => syncSubscriptionFromPolar(query, p.data as never),
+          onSubscriptionCanceled: (p) => syncSubscriptionFromPolar(query, p.data as never),
+          onSubscriptionRevoked: (p) => syncSubscriptionFromPolar(query, p.data as never),
+        }),
+      ],
+    }),
   ],
 
   advanced: {

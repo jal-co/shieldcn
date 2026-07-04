@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, afterEach } from "vitest"
-import { planForProduct, getPlan } from "./entitlements"
+import {
+  planForProduct,
+  getPlan,
+  ownerIdFromSubscription,
+  syncSubscriptionFromPolar,
+} from "./entitlements"
 
 describe("planForProduct", () => {
   const prev = { plus: process.env.POLAR_PRODUCT_PLUS }
@@ -52,5 +57,49 @@ describe("getPlan dev override", () => {
     ;(process.env as Record<string, string | undefined>).NODE_ENV = "development"
     process.env.DEV_PLAN = "pro"
     expect(await getPlan("dev-owner-" + Date.now())).toBe("free")
+  })
+})
+
+describe("ownerIdFromSubscription", () => {
+  it("prefers the customer externalId (the user id)", () => {
+    expect(ownerIdFromSubscription({ customer: { externalId: "user_123" } })).toBe("user_123")
+  })
+
+  it("falls back to metadata ownerId/orgId for legacy checkouts", () => {
+    expect(ownerIdFromSubscription({ metadata: { ownerId: "legacy_1" } })).toBe("legacy_1")
+    expect(ownerIdFromSubscription({ metadata: { orgId: "legacy_2" } })).toBe("legacy_2")
+  })
+
+  it("returns null when no owner can be resolved", () => {
+    expect(ownerIdFromSubscription({})).toBeNull()
+    expect(ownerIdFromSubscription({ customer: { externalId: null } })).toBeNull()
+  })
+})
+
+describe("syncSubscriptionFromPolar", () => {
+  const prev = process.env.POLAR_PRODUCT_PLUS
+  afterEach(() => { process.env.POLAR_PRODUCT_PLUS = prev })
+
+  it("upserts by owner with the plan mapped from the product", async () => {
+    process.env.POLAR_PRODUCT_PLUS = "prod_plus"
+    const calls: { text: string; params: unknown[] }[] = []
+    const fakeQuery = async (text: string, params: unknown[]) => { calls.push({ text, params }) }
+    await syncSubscriptionFromPolar(fakeQuery, {
+      id: "sub_1",
+      status: "active",
+      productId: "prod_plus",
+      customer: { id: "cus_1", externalId: "user_1" },
+    })
+    expect(calls).toHaveLength(1)
+    // params: [owner, customerId, subId, plan, status, periodEnd]
+    expect(calls[0].params[0]).toBe("user_1")
+    expect(calls[0].params[3]).toBe("plus")
+    expect(calls[0].params[4]).toBe("active")
+  })
+
+  it("no-ops when the owner can't be resolved", async () => {
+    let called = false
+    await syncSubscriptionFromPolar(async () => { called = true }, {})
+    expect(called).toBe(false)
   })
 })

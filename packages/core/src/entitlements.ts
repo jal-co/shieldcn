@@ -113,3 +113,66 @@ export function planForProduct(productId: string | null | undefined): Plan {
   if (productId === process.env.POLAR_PRODUCT_PLUS) return "plus"
   return "free"
 }
+
+/**
+ * A normalized Polar subscription, as much as we read from a webhook payload.
+ * Customers are keyed by `externalId` = the Better Auth user id
+ * (createCustomerOnSignUp sets this), so the owner is the customer's externalId.
+ */
+export interface PolarSubscriptionLike {
+  id?: string | null
+  status?: string | null
+  productId?: string | null
+  currentPeriodEnd?: string | Date | null
+  customer?: { id?: string | null; externalId?: string | null } | null
+  metadata?: Record<string, unknown> | null
+}
+
+/**
+ * Resolve the owning account id from a Polar subscription. Customers are keyed
+ * by `externalId` (the user id). Falls back to a metadata ownerId for any
+ * legacy in-flight checkout created before the user-keyed model.
+ */
+export function ownerIdFromSubscription(sub: PolarSubscriptionLike): string | null {
+  const ext = sub.customer?.externalId
+  if (typeof ext === "string" && ext) return ext
+  const meta = sub.metadata?.ownerId ?? sub.metadata?.orgId
+  return typeof meta === "string" && meta ? meta : null
+}
+
+/**
+ * Upsert the `subscriptions` row from a Polar subscription payload and drop the
+ * plan cache so getPlan() reflects the change immediately. The `subscriptions`
+ * table stays the single source of truth for entitlements (read by getPlan);
+ * the Polar plugin's webhooks call this. No-op when the owner can't be
+ * resolved. Uses the caller-provided `query` fn to avoid a hard db import cycle.
+ */
+export async function syncSubscriptionFromPolar(
+  runQuery: (text: string, params: unknown[]) => Promise<unknown>,
+  sub: PolarSubscriptionLike,
+): Promise<void> {
+  const ownerId = ownerIdFromSubscription(sub)
+  if (!ownerId) return
+  const plan = planForProduct(sub.productId)
+  await runQuery(
+    `INSERT INTO subscriptions
+       (owner_id, polar_customer_id, polar_subscription_id, plan, status, current_period_end, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())
+     ON CONFLICT (owner_id) DO UPDATE SET
+       polar_customer_id = EXCLUDED.polar_customer_id,
+       polar_subscription_id = EXCLUDED.polar_subscription_id,
+       plan = EXCLUDED.plan,
+       status = EXCLUDED.status,
+       current_period_end = EXCLUDED.current_period_end,
+       updated_at = NOW()`,
+    [
+      ownerId,
+      sub.customer?.id ?? null,
+      sub.id ?? null,
+      plan,
+      sub.status ?? "inactive",
+      sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null,
+    ],
+  )
+  invalidatePlan(ownerId)
+}

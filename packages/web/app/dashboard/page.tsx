@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { BadgeCheck, FileText, Palette, CreditCard } from "lucide-react"
+import { PortalButton } from "@/components/billing-buttons"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
@@ -52,11 +53,9 @@ export default async function DashboardPage() {
                 </Button>
               )}
               {plan !== "free" && (
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/api/portal">
-                    <CreditCard className="mr-1.5 size-4" /> Billing
-                  </Link>
-                </Button>
+                <PortalButton size="sm" variant="outline">
+                  <CreditCard className="mr-1.5 size-4" /> Billing
+                </PortalButton>
               )}
             </div>
           </div>

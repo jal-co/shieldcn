@@ -21,6 +21,7 @@ import {
   Palette, Sparkles, type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { CheckoutButton } from "@/components/billing-buttons"
 import { cn } from "@/lib/utils"
 import { useMe, type Plan } from "@/lib/use-me"
 
@@ -232,9 +233,7 @@ export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
           <p className="text-sm text-muted-foreground">
             Ready for more? Plus adds mass migration, AI, and a managed brand.
           </p>
-          <Button asChild size="sm">
-            <Link href="/api/checkout?plan=plus">Get Plus</Link>
-          </Button>
+          <CheckoutButton slug="plus" size="sm">Get Plus</CheckoutButton>
         </div>
       )}
     </div>
