@@ -2,13 +2,16 @@
  * shieldcn
  * lib/auth/client.ts
  *
- * Browser-side Neon Auth client. Talks to our own same-origin /api/auth proxy
- * (no cross-domain cookies). Exposes Better Auth methods plus the organization
- * plugin (companies/teams).
+ * Browser-side Better Auth client. Talks to our same-origin /api/auth handler.
+ * Exposes email/social sign-in, sessions, and the organization plugin
+ * (opt-in teams/workspaces).
  */
 
 "use client"
 
-import { createAuthClient } from "@neondatabase/auth/next"
+import { createAuthClient } from "better-auth/react"
+import { organizationClient } from "better-auth/client/plugins"
 
-export const authClient = createAuthClient()
+export const authClient = createAuthClient({
+  plugins: [organizationClient()],
+})

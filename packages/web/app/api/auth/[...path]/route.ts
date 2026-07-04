@@ -2,11 +2,11 @@
  * shieldcn
  * app/api/auth/[...path]/route.ts
  *
- * Neon Auth API proxy. All client auth calls (sign-in, sign-up, social,
- * session, organization) route through here and are proxied to the hosted
- * Neon Auth service, with session cookies signed for our own domain.
+ * Better Auth API handler. All client auth calls (sign-in, sign-up, social,
+ * session, organization) route through this same-origin catch-all.
  */
 
 import { auth } from "@/lib/auth/server"
+import { toNextJsHandler } from "better-auth/next-js"
 
-export const { GET, POST } = auth.handler()
+export const { GET, POST } = toNextJsHandler(auth)

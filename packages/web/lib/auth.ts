@@ -2,7 +2,7 @@
  * shieldcn
  * lib/auth.ts
  *
- * App-facing session helpers, backed by the Neon Auth server SDK. Every
+ * App-facing session helpers, backed by the Better Auth server API. Every
  * Plus resource is scoped to the caller's active organization (a
  * company/team), so requireOrg() is the common gate.
  *
@@ -10,6 +10,7 @@
  * (getSession / requireOrg) rather than the SDK's full shape.
  */
 
+import { headers } from "next/headers"
 import { auth } from "@/lib/auth/server"
 
 export interface Session {
@@ -26,7 +27,7 @@ export interface Session {
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    const { data } = await auth.getSession()
+    const data = await auth.api.getSession({ headers: await headers() })
     const user = data?.user
     if (!user?.id) return null
     return {
@@ -87,4 +88,4 @@ export async function requireOwner(): Promise<Owner | null> {
   }
 }
 
-export const authConfigured = Boolean(process.env.NEON_AUTH_BASE_URL)
+export const authConfigured = Boolean(process.env.BETTER_AUTH_SECRET)

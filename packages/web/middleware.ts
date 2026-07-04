@@ -2,34 +2,20 @@
  * shieldcn
  * middleware.ts
  *
- * Adds agent discovery headers, handles markdown content negotiation, and
- * completes the OAuth login round-trip.
+ * Adds agent discovery headers and handles markdown content negotiation.
  *
- * 1. OAuth verifier exchange — when a provider redirects back with the Neon
- *    Auth session verifier, hand off to the Neon Auth middleware so it can
- *    swap the verifier for a session cookie and strip the param. Gated to only
- *    those requests so the rest of the public site keeps zero blanket auth
- *    protection and no per-request upstream call.
- * 2. Link headers (RFC 8288 / RFC 9727 §3) — on every response
- * 3. Markdown negotiation — when Accept: text/markdown, redirects to /llms.txt
+ * 1. Link headers (RFC 8288 / RFC 9727 §3) — on every response
+ * 2. Markdown negotiation — when Accept: text/markdown, redirects to /llms.txt
+ *
+ * OAuth is handled entirely inside Better Auth's /api/auth/* handler (the
+ * provider redirects to /api/auth/callback/github), so the middleware no longer
+ * touches auth — keeping the Edge runtime free of the DB-backed auth server.
  */
 
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { auth } from "@/lib/auth/server"
 
 const SITE = "https://shieldcn.dev"
-
-/** Query param a provider redirect carries on the OAuth return leg. */
-const OAUTH_VERIFIER_PARAM = "neon_auth_session_verifier"
-
-/**
- * The Neon Auth middleware. We only invoke it for the OAuth return (to exchange
- * the verifier for a session cookie); `loginUrl` is where a failed exchange
- * falls back to. It is never run for ordinary requests, so it adds no latency
- * and imposes no route protection on the public site.
- */
-const neonAuthMiddleware = auth.middleware({ loginUrl: "/sign-in" })
 
 /** Link headers for agent discovery (RFC 8288). */
 const LINK_HEADER = [
@@ -42,13 +28,6 @@ const LINK_HEADER = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const accept = request.headers.get("accept") || ""
-
-  // OAuth return: exchange the verifier for a session cookie and redirect to
-  // the clean URL. Without this, social sign-in lands the user back on the app
-  // still signed out (the cookie is never set).
-  if (request.nextUrl.searchParams.has(OAUTH_VERIFIER_PARAM)) {
-    return neonAuthMiddleware(request)
-  }
 
   // Markdown content negotiation:
   // When an agent requests text/markdown on HTML pages, serve the LLM-friendly version
