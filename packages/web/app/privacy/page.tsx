@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = pageMetadata({
   title: "Privacy",
-  description: "How shieldcn handles your data — anonymous analytics, no cookies, no tracking, no stored personal data.",
+  description: "How shieldcn handles your data — anonymous analytics, strictly-necessary cookies only, no tracking, minimal account data.",
   path: "/privacy",
 })
 
@@ -25,10 +25,13 @@ export default function PrivacyPage() {
               <p>
                 shieldcn is a free, open-source badge service. We collect minimal,
                 anonymous analytics to understand how the site is used and anonymous
-                diagnostic data to keep the service reliable. We do not store personal
-                information, set cookies, or sell your data. We rely on a small number
-                of privacy-respecting subprocessors (listed below), and configure each
-                so that no identifying data is retained.
+                diagnostic data to keep the service reliable. We never sell your data
+                or use tracking cookies. Anonymous browsing stores nothing about you;
+                the only personal data we hold is the account details of signed-in
+                users (name and email), and the only cookies we set are strictly
+                necessary ones (see “Cookies”). We rely on a small number of
+                privacy-respecting subprocessors (listed below), and configure each so
+                that no identifying data is retained.
               </p>
             </section>
 
@@ -76,10 +79,16 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-semibold text-foreground">No cookies</h2>
+              <h2 className="text-base font-semibold text-foreground">Cookies</h2>
               <p>
-                shieldcn does not set any cookies. We do not use fingerprinting
-                or any other cross-session tracking mechanism.
+                We use cookies only where they&apos;re strictly necessary for the
+                site to work — never for advertising, tracking, or profiling. If
+                you sign in, we set a secure, httpOnly session cookie to keep you
+                logged in, a small cookie recording which method you last signed
+                in with (to show a “last used” hint), and, when bot protection is
+                enabled, a short-lived Cloudflare Turnstile cookie on the auth
+                pages. Browsing the site signed-out sets no cookies. We do not
+                use fingerprinting or any cross-session tracking mechanism.
               </p>
             </section>
 

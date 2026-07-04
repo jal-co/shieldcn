@@ -21,7 +21,7 @@
  */
 
 import { betterAuth } from "better-auth"
-import { organization } from "better-auth/plugins"
+import { organization, lastLoginMethod, captcha } from "better-auth/plugins"
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
 import { Polar } from "@polar-sh/sdk"
 import { getPool, query } from "@shieldcn/core/db"
@@ -157,6 +157,24 @@ export const auth = betterAuth({
     // personal-first ownerId resolution keys off (org id when active, else the
     // personal user id).
     organization(),
+
+    // Track the last auth method a user used (email vs github) so the sign-in
+    // UI can show a "Last used" hint. Cookie-based (httpOnly:false so the client
+    // can read it) — no DB column, no PII.
+    lastLoginMethod(),
+
+    // Cloudflare Turnstile bot protection on the default sensitive endpoints
+    // (/sign-up/email, /sign-in/email, /request-password-reset). Only enabled
+    // when the secret is configured, so local dev + builds without a key aren't
+    // gated (the client widget also no-ops without a site key).
+    ...(process.env.TURNSTILE_SECRET_KEY
+      ? [
+          captcha({
+            provider: "cloudflare-turnstile",
+            secretKey: process.env.TURNSTILE_SECRET_KEY,
+          }),
+        ]
+      : []),
 
     // Billing. Checkout + portal + webhooks via Polar. Customers are keyed by
     // the user id (externalId) — the same owner key our subscriptions table +

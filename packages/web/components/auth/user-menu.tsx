@@ -19,6 +19,7 @@ import {
   Palette,
 } from "lucide-react"
 import { authClient } from "@/lib/auth/client"
+import { AuthModal } from "@/components/auth/auth-modal"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -49,9 +50,14 @@ export function UserMenu() {
   if (!session?.user) {
     return (
       <div className="flex items-center gap-1.5">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/sign-in">Sign in</Link>
-        </Button>
+        <AuthModal
+          mode="sign-in"
+          trigger={
+            <Button variant="ghost" size="sm">
+              Sign in
+            </Button>
+          }
+        />
         <Button size="sm" asChild>
           <Link href="/sign-up">Sign up</Link>
         </Button>
