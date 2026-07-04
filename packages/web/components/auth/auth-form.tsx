@@ -20,7 +20,8 @@
  * (AuthModal) — the layout is self-contained so it works in either shell.
  */
 
-import { useState, useSyncExternalStore } from "react"
+import { useRef, useState, useSyncExternalStore } from "react"
+import type { TurnstileInstance } from "@marsidev/react-turnstile"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
@@ -67,6 +68,13 @@ export function AuthForm({
   const [social, setSocial] = useState<"github" | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance | undefined>(undefined)
+
+  /** Clear the token and reset the widget so it issues a fresh, usable one. */
+  function resetCaptcha() {
+    setCaptchaToken(null)
+    turnstileRef.current?.reset()
+  }
 
   // Last-used method is cookie-backed and client-only. useSyncExternalStore
   // reads it after hydration (server snapshot is null) with no effect churn.
@@ -103,7 +111,7 @@ export function AuthForm({
         : await authClient.signIn.email({ email, password, callbackURL, fetchOptions: opts })
       if (res.error) {
         setError(res.error.message ?? "Something went wrong")
-        setCaptchaToken(null) // force a fresh challenge on retry
+        resetCaptcha() // token is single-use — re-challenge so retry works
         return
       }
       onSuccess?.()
@@ -111,7 +119,7 @@ export function AuthForm({
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
-      setCaptchaToken(null)
+      resetCaptcha()
     } finally {
       setPending(false)
     }
@@ -228,7 +236,7 @@ export function AuthForm({
           {/* Turnstile challenge (renders only when configured) */}
           {turnstileEnabled && (
             <div className="flex justify-center">
-              <TurnstileWidget onToken={setCaptchaToken} />
+              <TurnstileWidget widgetRef={turnstileRef} onToken={setCaptchaToken} />
             </div>
           )}
 

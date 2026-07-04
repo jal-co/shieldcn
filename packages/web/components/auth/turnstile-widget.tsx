@@ -15,7 +15,7 @@
  */
 
 import { useTheme } from "next-themes"
-import { Turnstile } from "@marsidev/react-turnstile"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
@@ -24,15 +24,23 @@ export const turnstileEnabled = Boolean(SITE_KEY)
 
 export function TurnstileWidget({
   onToken,
+  widgetRef,
 }: {
   /** Fired with the solved token, or null when it expires / errors. */
   onToken: (token: string | null) => void
+  /**
+   * Ref to the widget instance so the form can reset() it after a failed
+   * submit. Turnstile tokens are single-use — without a reset the widget won't
+   * issue a new one and the user is stuck until it naturally expires.
+   */
+  widgetRef?: React.Ref<TurnstileInstance | undefined>
 }) {
   const { resolvedTheme } = useTheme()
   if (!SITE_KEY) return null
 
   return (
     <Turnstile
+      ref={widgetRef}
       siteKey={SITE_KEY}
       options={{
         theme: resolvedTheme === "light" ? "light" : "dark",
