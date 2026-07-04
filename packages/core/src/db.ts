@@ -258,5 +258,17 @@ export async function initDB() {
     );
     CREATE INDEX IF NOT EXISTS idx_badge_stats_brand
       ON badge_stats_daily (brand_id, day DESC);
+
+    -- Team-creation ledger. Team/member data lives in the hosted Neon Auth
+    -- store; we record each team a user *creates* here so the create cap can
+    -- be enforced (a user gets one created team; more only via invitation).
+    -- Keyed by the created org id so a double-submit can't double-count.
+    CREATE TABLE IF NOT EXISTS team_creations (
+      org_id TEXT PRIMARY KEY,
+      creator_user_id TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_team_creations_creator
+      ON team_creations (creator_user_id);
   `)
 }
