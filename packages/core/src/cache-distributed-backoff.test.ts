@@ -4,7 +4,7 @@
  *
  * Backoff state used to live only in a per-instance in-memory Map, so under
  * N concurrent serverless instances a 429 recorded on one did nothing to
- * protect the others (see IMPROVEMENTS.md item B18). These tests simulate
+ * protect the others. These tests simulate
  * two separate instances — via vi.resetModules() + a fresh dynamic import of
  * ./cache for each, so each gets its own private module-level backoff Map —
  * sharing one mocked Redis backing store, and verify state written by one
