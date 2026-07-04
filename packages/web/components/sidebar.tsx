@@ -62,12 +62,12 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
-    title: "Plus & Pro",
+    title: "Plus",
     items: [
-      { title: "Overview", href: "/docs/pro" },
-      { title: "Managed brands", href: "/docs/pro/brands" },
-      { title: "Hosted assets", href: "/docs/pro/assets" },
-      { title: "Analytics", href: "/docs/pro/analytics" },
+      { title: "Overview", href: "/docs/plus" },
+      { title: "Saved badges", href: "/docs/plus/badges" },
+      { title: "Managed brands", href: "/docs/plus/brands" },
+      { title: "Hosted assets", href: "/docs/plus/assets" },
     ],
   },
   {
