@@ -28,6 +28,7 @@ import { getPool, query } from "@shieldcn/core/db"
 import {
   syncSubscriptionFromPolar,
   syncCustomerStateFromPolar,
+  deleteSubscriptionForCustomer,
 } from "@shieldcn/core/entitlements"
 
 // A ≥32-char secret is required by Better Auth. In a build environment that
@@ -72,9 +73,8 @@ export const auth = betterAuth({
 
   user: {
     // When a user deletes their account, delete their Polar customer too so we
-    // don't leave an orphaned billing record. externalId is the user id
-    // (createCustomerOnSignUp). Best-effort: a Polar hiccup must not block the
-    // account deletion itself.
+    // don't leave an orphaned billing record. externalId is the user id.
+    // Best-effort: a Polar hiccup must not block the account deletion itself.
     deleteUser: {
       enabled: true,
       afterDelete: async (u) => {
@@ -83,6 +83,43 @@ export const auth = betterAuth({
         } catch {
           // ignore — the customer may already be gone or billing unconfigured
         }
+      },
+    },
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        // Create a Polar customer for EVERY new user (free included), keyed by
+        // externalId = user.id, so the whole user base is visible in Polar.
+        //
+        // This is a create.after hook (runs after the user row is committed and
+        // outside the signup transaction), and it's fully wrapped in try/catch,
+        // so a Polar failure — downtime, a rejected email, a rate limit — can
+        // NEVER block signup. (The plugin's own createCustomerOnSignUp uses a
+        // throwing before-hook, which is why it's disabled below.) Checkout also
+        // auto-creates the customer from externalCustomerId as a backstop.
+        after: async (u) => {
+          if (!process.env.POLAR_ACCESS_TOKEN) return
+          try {
+            const { result } = await polarClient.customers.list({ email: u.email })
+            const existing = result.items[0]
+            if (!existing) {
+              await polarClient.customers.create({
+                email: u.email,
+                name: u.name || undefined,
+                externalId: u.id,
+              })
+            } else if (existing.externalId !== u.id) {
+              await polarClient.customers.update({
+                id: existing.id,
+                customerUpdate: { externalId: u.id },
+              })
+            }
+          } catch {
+            // best-effort — checkout will create the customer if this missed
+          }
+        },
       },
     },
   },
@@ -100,12 +137,14 @@ export const auth = betterAuth({
     // personal user id).
     organization(),
 
-    // Billing. Checkout + portal + webhooks via Polar. createCustomerOnSignUp
-    // keys the Polar customer by the user id (externalId), which is exactly the
-    // owner key our subscriptions table + getPlan() use.
+    // Billing. Checkout + portal + webhooks via Polar. Customers are keyed by
+    // the user id (externalId) — the same owner key our subscriptions table +
+    // getPlan() use. The plugin's createCustomerOnSignUp is disabled because its
+    // throwing before-hook would block signup on any Polar failure; we create
+    // the customer via a non-blocking create.after hook instead (above).
     polar({
       client: polarClient,
-      createCustomerOnSignUp: true,
+      createCustomerOnSignUp: false,
       use: [
         checkout({
           products: polarProductId
@@ -125,8 +164,14 @@ export const auth = betterAuth({
           onSubscriptionCanceled: (p) => syncSubscriptionFromPolar(query, p.data as never),
           onSubscriptionRevoked: (p) => syncSubscriptionFromPolar(query, p.data as never),
           // Robust catch-all for access: whenever anything about a customer
-          // changes, reconcile our subscriptions row from their active subs.
+          // changes (incl. their subscriptions), reconcile our subscriptions
+          // row from their active subs. This is the event that carries
+          // activeSubscriptions, so it's the authoritative access sync.
           onCustomerStateChanged: (p) => syncCustomerStateFromPolar(query, p.data as never),
+          // Deleting a Polar customer drops their subscriptions row so getPlan()
+          // falls back to free. (customer.updated carries only profile fields,
+          // not subscriptions, so it doesn't touch entitlements.)
+          onCustomerDeleted: (p) => deleteSubscriptionForCustomer(query, p.data as never),
         }),
       ],
     }),

@@ -10,6 +10,7 @@ import {
   ownerIdFromSubscription,
   syncSubscriptionFromPolar,
   syncCustomerStateFromPolar,
+  deleteSubscriptionForCustomer,
 } from "./entitlements"
 
 describe("planForProduct", () => {
@@ -138,6 +139,25 @@ describe("syncCustomerStateFromPolar", () => {
   it("no-ops without an externalId", async () => {
     let called = false
     await syncCustomerStateFromPolar(async () => { called = true }, { id: "cus_x" })
+    expect(called).toBe(false)
+  })
+})
+
+describe("deleteSubscriptionForCustomer", () => {
+  it("deletes the owner's subscriptions row", async () => {
+    const calls: { text: string; params: unknown[] }[] = []
+    await deleteSubscriptionForCustomer(async (text, params) => { calls.push({ text, params }) }, {
+      id: "cus_1",
+      externalId: "user_1",
+    })
+    expect(calls).toHaveLength(1)
+    expect(calls[0].text).toContain("DELETE FROM subscriptions")
+    expect(calls[0].params[0]).toBe("user_1")
+  })
+
+  it("no-ops without an externalId", async () => {
+    let called = false
+    await deleteSubscriptionForCustomer(async () => { called = true }, { id: "cus_x" })
     expect(called).toBe(false)
   })
 })

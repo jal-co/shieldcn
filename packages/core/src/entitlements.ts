@@ -217,3 +217,25 @@ export async function syncCustomerStateFromPolar(
     customer: { id: state.id ?? null, externalId: ownerId },
   })
 }
+
+/** A Polar customer payload (from onCustomerUpdated / onCustomerDeleted). */
+export interface PolarCustomerLike {
+  id?: string | null
+  externalId?: string | null
+}
+
+/**
+ * Handle a deleted Polar customer: drop the owner's subscriptions row so
+ * getPlan() falls back to free. Keyed by externalId (the user id). No-op when
+ * the owner can't be resolved.
+ */
+export async function deleteSubscriptionForCustomer(
+  runQuery: (text: string, params: unknown[]) => Promise<unknown>,
+  customer: PolarCustomerLike,
+): Promise<void> {
+  const ownerId =
+    typeof customer.externalId === "string" && customer.externalId ? customer.externalId : null
+  if (!ownerId) return
+  await runQuery(`DELETE FROM subscriptions WHERE owner_id = $1`, [ownerId])
+  invalidatePlan(ownerId)
+}
