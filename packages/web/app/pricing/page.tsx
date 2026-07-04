@@ -22,7 +22,12 @@ export default function PricingPage() {
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
               Public badges are free forever — that&apos;s the part that never
               changes. Paid plans add identity, control, and insight around your
-              badges, and keep shieldcn sustainable.
+              badges, and keep shieldcn sustainable. And shieldcn is, and always
+              will be,{" "}
+              <Link href="/docs/self-hosting" className="underline underline-offset-4 hover:text-foreground">
+                self-hostable
+              </Link>{" "}
+              — run the whole engine yourself, no plan required.
             </p>
           </div>
 
