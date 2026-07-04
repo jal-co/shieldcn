@@ -272,6 +272,10 @@ export function AuthForm({
       {/* Legal footnote */}
       <p className="mt-4 px-6 text-center text-xs text-muted-foreground">
         By continuing, you agree to our{" "}
+        <Link href="/terms" className="underline underline-offset-4 hover:text-foreground">
+          Terms
+        </Link>{" "}
+        and{" "}
         <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">
           Privacy Policy
         </Link>
