@@ -14,7 +14,13 @@ export const metadata: Metadata = pageMetadata({
 export default async function BrandsPage() {
   const brands = await listAllBrands()
 
-  const initialBrands = brands.map((b) => ({ id: b.id, slug: b.slug, name: b.name }))
+  const initialBrands = brands.map((b) => ({
+    id: b.id,
+    slug: b.slug,
+    name: b.name,
+    color: b.config?.color ?? null,
+    color2: b.config?.color2 ?? null,
+  }))
 
   return (
     <DashboardPage>

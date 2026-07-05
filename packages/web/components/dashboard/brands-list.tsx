@@ -16,18 +16,53 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useBadgeMode } from "@/lib/use-badge-mode"
+import { useHydrated } from "@/lib/use-hydrated"
 import { toast } from "sonner"
 
 interface BrandRow {
   id: number
   slug: string
   name: string | null
+  /** Primary brand color (hex, no #), for the row tint. */
+  color?: string | null
+  /** Secondary color, used for the tint when the primary is too dark. */
+  color2?: string | null
+}
+
+/** Parse a 3/6-digit hex (with or without #) to [r,g,b], or null. */
+function hexToRgb(hex?: string | null): [number, number, number] | null {
+  if (!hex) return null
+  let h = hex.replace(/^#/, "").trim()
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("")
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+/** Relative luminance (0–1) via the sRGB coefficients. */
+function luminance(rgb: [number, number, number]): number {
+  return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255
+}
+
+/**
+ * A faint tint for a brand row: the primary color at low alpha, or the
+ * secondary color when the primary is too dark to read on a dark surface.
+ * Returns undefined when neither color is usable (no tint).
+ */
+function rowTint(color?: string | null, color2?: string | null): string | undefined {
+  const primary = hexToRgb(color)
+  const secondary = hexToRgb(color2)
+  const chosen = primary && luminance(primary) >= 0.12 ? primary : (secondary ?? primary)
+  if (!chosen) return undefined
+  return `rgba(${chosen[0]}, ${chosen[1]}, ${chosen[2]}, 0.10)`
 }
 
 export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
   const [brands, setBrands] = useState<BrandRow[]>(initialBrands)
   const [pendingDelete, setPendingDelete] = useState<BrandRow | null>(null)
   const [busy, setBusy] = useState(false)
+  const mounted = useHydrated()
+  const { adaptUrl } = useBadgeMode()
 
   async function refresh() {
     try {
@@ -35,8 +70,9 @@ export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
       if (!res.ok) return
       const json = await res.json()
       const list = Array.isArray(json.brands) ? json.brands : []
-      setBrands(list.map((b: { id: number; slug: string; name: string | null }) => ({
+      setBrands(list.map((b: { id: number; slug: string; name: string | null; config?: { color?: string; color2?: string } }) => ({
         id: b.id, slug: b.slug, name: b.name,
+        color: b.config?.color ?? null, color2: b.config?.color2 ?? null,
       })))
     } catch {
       /* best-effort */
@@ -95,12 +131,23 @@ export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
           {brands.map((b) => (
             <li
               key={b.id}
+              style={{ backgroundColor: rowTint(b.color, b.color2) }}
               className="group flex items-center justify-between gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-accent/50"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
-                  <Palette className="size-4" />
-                </span>
+                {mounted ? (
+                  // The brand's own logo on its brand color — a live icon chip.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={adaptUrl(`/badge/-.svg?brand=${b.slug}&variant=branded`)}
+                    alt=""
+                    className="size-8 shrink-0 rounded-lg border border-border object-cover"
+                  />
+                ) : (
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
+                    <Palette className="size-4" />
+                  </span>
+                )}
                 <div className="flex min-w-0 flex-col">
                   <Link
                     href={`/dashboard/brands/${b.slug}`}
