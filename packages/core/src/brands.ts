@@ -99,6 +99,15 @@ function sanitizeConfig(input: unknown): BrandConfig {
 
 const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/
 
+/** Remove any `brand=` query param from a badge path (the showcase adds it). */
+export function stripBrandParam(path: string): string {
+  const q = path.indexOf("?")
+  if (q === -1) return path
+  const base = path.slice(0, q)
+  const params = path.slice(q + 1).split("&").filter((p) => p && !p.startsWith("brand="))
+  return params.length ? `${base}?${params.join("&")}` : base
+}
+
 function sanitizeProfile(input: unknown): BrandProfile {
   const out: BrandProfile = {}
   if (input && typeof input === "object") {
@@ -129,7 +138,9 @@ function sanitizeProfile(input: unknown): BrandProfile {
         .filter((b) => /^\/[a-zA-Z0-9]/.test(b.path) && !b.path.includes("://"))
         .slice(0, MAX_BRAND_SHOWCASE)
         .map((b) => ({
-          path: b.path.slice(0, 600),
+          // Never store a `brand=` param: the showcase applies the brand by
+          // context, so a baked-in one would duplicate (?brand=x&brand=x).
+          path: stripBrandParam(b.path).slice(0, 600),
           alt: typeof b.alt === "string" ? b.alt.slice(0, 120) : undefined,
         }))
     }

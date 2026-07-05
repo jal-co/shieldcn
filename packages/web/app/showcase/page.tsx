@@ -3,7 +3,7 @@ import { SiteShell } from "@/components/site-shell"
 import ShowcaseClient from "./showcase-client"
 import { pageMetadata } from "@/lib/metadata"
 import { getBoolSetting } from "@shieldcn/core/settings"
-import { listAllBrands } from "@shieldcn/core/brands"
+import { listAllBrands, stripBrandParam } from "@shieldcn/core/brands"
 
 // The showcase reflects an admin-controlled setting; revalidate periodically so
 // a toggle propagates without a deploy (and never serves a permanently-cached
@@ -49,7 +49,12 @@ export default async function ShowcasePage() {
         entry.icons.push({
           title: sb.alt || `${label} badge`,
           subtitle: "brand badge",
-          badgePath: `${sb.path}${sb.path.includes("?") ? "&" : "?"}brand=${b.slug}`,
+          badgePath: (() => {
+            // Strip any baked-in brand= (older saved paths) so we never emit
+            // ?brand=x&brand=x, then apply this brand.
+            const p = stripBrandParam(sb.path)
+            return `${p}${p.includes("?") ? "&" : "?"}brand=${b.slug}`
+          })(),
         })
       }
     }

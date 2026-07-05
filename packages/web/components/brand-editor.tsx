@@ -319,6 +319,13 @@ export function BrandEditor({
       setStoredAssets((prev) => ({ ...prev, [kind]: file.name }))
       // Bust the <img> cache for logos so the preview reflects the new file.
       setLogoRev((r) => r + 1)
+      // Uploading a mark means "use this as the logo": point config.logo at the
+      // hosted mark so badges render it. Otherwise a seeded slug (e.g.
+      // logo=react) keeps overriding the freshly uploaded SVG. Skip only if the
+      // logo is already a hosted mark. Save to persist.
+      if (kind === "mark" && !(config.logo ?? "").startsWith("brand")) {
+        setConfig((c) => ({ ...c, logo: "brand" }))
+      }
       toast.success(`Uploaded ${file.name}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "upload failed")
