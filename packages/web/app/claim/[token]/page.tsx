@@ -94,19 +94,23 @@ export default async function ClaimPage({ params }: Params) {
     )
   }
 
-  // Signed in: complete the claim atomically, then provision Plus + the brand.
+  // Signed in: provision FIRST, then mark the token claimed LAST. Both grants
+  // are idempotent upserts (grantPlan, claimBrandForOwner), so if provisioning
+  // throws, the token stays open and the user simply retries — we never burn a
+  // token without granting the benefits. Marking-claimed is the final,
+  // single-use gate (atomic; only the first opener with an open claim wins).
   const ownerId = session.orgId ?? session.userId
-  const claimed = await markClaimClaimed(token, ownerId)
-  if (!claimed) {
-    // Lost the race (claimed a moment ago) — treat as already claimed.
-    redirect("/dashboard")
-  }
 
   await grantPlan(query, ownerId, "plus", { reason: `brand-claim:${brand.brandSlug}` })
   await claimBrandForOwner(brand.brandSlug, ownerId, {
     name: brand.brandName,
     config: brand.config,
   })
+
+  // Consume the token now that the account is fully provisioned. A null result
+  // means a concurrent opener consumed it first — this user was still granted
+  // Plus + the brand above, so land them on the editor regardless.
+  await markClaimClaimed(token, ownerId)
 
   // Land them on the brand editor to finish setup.
   redirect(`/dashboard/brands/${brand.brandSlug}`)
