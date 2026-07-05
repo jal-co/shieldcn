@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { Check, Loader2, Save, Upload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ContextDevLogo } from "@/components/context-dev-logo"
+import { LogoPicker } from "@/components/logo-picker"
 import { BrandDemoBadges } from "@/components/brand-demo-badges"
 import { BrandShowcaseEditor } from "@/components/brand-showcase-editor"
 import { Button } from "@/components/ui/button"
@@ -550,6 +551,24 @@ export function BrandEditor({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <Label>Logo icon</Label>
+          <LogoPicker
+            // A hosted mark (logo=brand / data URI) is managed via the logo
+            // slots below; this field picks a SimpleIcons/React-Icons glyph.
+            value={
+              !config.logo || config.logo.startsWith("data:") || config.logo.startsWith("brand")
+                ? ""
+                : config.logo
+            }
+            onChange={(v) => setConfig((c) => ({ ...c, logo: v || undefined }))}
+            ariaLabel="Brand logo icon"
+          />
+          <p className="text-xs text-muted-foreground">
+            Pick an icon from Simple Icons / React Icons. Leave on Auto to use
+            your uploaded mark below (if any), else the provider default.
+          </p>
         </div>
       </section>
 
