@@ -1,0 +1,68 @@
+---
+title: Brands
+description: Reference a curated brand — colors, theme, font, and logo — from any badge or README header by URL. Edit once, update everywhere.
+---
+
+A **brand** is a named, reusable set of style tokens. Reference it from any
+badge or header URL and it applies the brand's colors, theme, font, and logo.
+Brands are curated by the shieldcn maintainers; anyone can reference an
+existing brand by its slug.
+
+## Referencing a brand
+
+Two equivalent forms:
+
+```md
+<!-- Query param -->
+![build](https://shieldcn.dev/github/acme/app/ci.svg?brand=acme)
+
+<!-- Pretty path -->
+![build](https://shieldcn.dev/b/acme/github/acme/app/ci.svg)
+```
+
+The brand supplies `theme`, `color`, `labelColor`, `valueColor`, `font`,
+`variant`, `radius`, `logo`, `logoColor`, `gradient`, and `mode` when you don't
+set them explicitly.
+
+### Precedence
+
+Explicit query params always win, so you can reference a brand and still
+override one value per badge:
+
+```md
+![v](https://shieldcn.dev/npm/acme-ui.svg?brand=acme&variant=outline)
+```
+
+Precedence is **explicit query param > brand value > default**.
+
+## Brand logos and fonts
+
+When a brand has hosted assets, opt into them per badge:
+
+```md
+<!-- Use the brand's hosted logo (mode-aware light/dark) -->
+![build](https://shieldcn.dev/github/acme/app/ci.svg?brand=acme&logo=brand)
+
+<!-- Render in the brand's uploaded font -->
+![v](https://shieldcn.dev/npm/acme-ui.svg?brand=acme&font=brand)
+```
+
+`font=brand-mono` and `font=brand-heading` select the brand's other uploaded
+typefaces.
+
+## README headers
+
+README header banners accept `?brand=` too, so your header logo, colors, and
+font all follow the brand:
+
+```md
+![header](https://shieldcn.dev/header/banner/Acme.svg?brand=acme&logo=brand)
+```
+
+## Editing propagates everywhere
+
+Because every embed references the brand by URL, editing the brand updates all
+of them. Propagation is bounded by a short cache TTL, so a rebrand shows up
+across GitHub's Camo proxy within minutes.
+
+<InlineHint variant="note">Unknown or deleted brands fail open: the badge renders with defaults instead of breaking. A shipped README badge is never a broken image.</InlineHint>

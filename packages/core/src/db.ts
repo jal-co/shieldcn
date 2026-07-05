@@ -147,37 +147,11 @@ export async function initDB() {
       ON gen_users (last_used_at DESC);
 
     -- ─────────────────────────────────────────────────────────────────────
-    -- Plus tier tables. Ownership is personal-first: owner_id is either a
-    -- personal user id (Better Auth "user".id) OR a Better Auth organization
-    -- id when one is active. Free & Plus live on the personal account and never
-    -- need an org; brands can be owned by a person or an org.
-    -- owner_id is plain TEXT (FK-by-convention, no hard FK) because the
-    -- self-hosted engine may run without the Better Auth tables (it only reads
-    -- brands), so a hard FK to "user"/"organization" would break that split.
+    -- Brand tables. Brands are admin-managed: owner_id is the admin user id
+    -- (Better Auth "user".id). Plain TEXT (FK-by-convention, no hard FK)
+    -- because the self-hosted engine may run without the auth tables (it only
+    -- reads brands), so a hard FK to "user" would break that split.
     -- ─────────────────────────────────────────────────────────────────────
-
-    -- Billing entitlements. One row per paying owner (person or org). The
-    -- Polar webhook is the source of truth; plan is derived from the purchased
-    -- product and read by getPlan().
-    CREATE TABLE IF NOT EXISTS subscriptions (
-      owner_id TEXT PRIMARY KEY,
-      polar_customer_id TEXT,
-      polar_subscription_id TEXT,
-      plan TEXT NOT NULL DEFAULT 'free',        -- 'free' | 'plus' | 'pro'
-      status TEXT NOT NULL DEFAULT 'inactive',  -- Polar subscription status
-      current_period_end TIMESTAMPTZ,
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-    -- Personal-first migration: rename a legacy org_id owner column to owner_id
-    -- once (guarded so re-running initDB on an already-migrated DB is a no-op).
-    DO $$ BEGIN
-      IF EXISTS (SELECT 1 FROM information_schema.columns
-                  WHERE table_name = 'subscriptions' AND column_name = 'org_id') THEN
-        ALTER TABLE subscriptions RENAME COLUMN org_id TO owner_id;
-      END IF;
-    END $$;
-    CREATE INDEX IF NOT EXISTS idx_subscriptions_customer
-      ON subscriptions (polar_customer_id);
 
     -- Stored brands. A brand is a named, reusable set of badge/header style
     -- tokens referenced by URL (?brand=slug or /b/{slug}/...). Editing the
@@ -225,44 +199,6 @@ export async function initDB() {
     );
     ALTER TABLE brand_assets ADD COLUMN IF NOT EXISTS file_name TEXT;
 
-    -- Saved Studio documents (Plus+). Lifts the Studio's local session
-    -- snapshot into Postgres so work syncs across devices.
-    CREATE TABLE IF NOT EXISTS studio_documents (
-      id BIGSERIAL PRIMARY KEY,
-      owner_id TEXT NOT NULL,
-      user_id TEXT,
-      name TEXT NOT NULL DEFAULT 'Untitled',
-      doc JSONB NOT NULL,
-      updated_at TIMESTAMPTZ DEFAULT NOW(),
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-    DO $$ BEGIN
-      IF EXISTS (SELECT 1 FROM information_schema.columns
-                  WHERE table_name = 'studio_documents' AND column_name = 'org_id') THEN
-        ALTER TABLE studio_documents RENAME COLUMN org_id TO owner_id;
-      END IF;
-    END $$;
-    CREATE INDEX IF NOT EXISTS idx_studio_documents_owner
-      ON studio_documents (owner_id, updated_at DESC);
-
-    -- Saved badges library (Plus). A personal, reusable collection of single
-    -- badges: config holds the badge's BuilderState (path + style params), and
-    -- svg caches a rendered snapshot so the library thumbnails without hitting
-    -- the badge engine. Owner-scoped (personal-first).
-    CREATE TABLE IF NOT EXISTS saved_badges (
-      id BIGSERIAL PRIMARY KEY,
-      owner_id TEXT NOT NULL,
-      user_id TEXT,
-      name TEXT NOT NULL DEFAULT 'Badge',
-      alt TEXT NOT NULL DEFAULT '',
-      config JSONB NOT NULL DEFAULT '{}'::jsonb,
-      svg BYTEA,
-      updated_at TIMESTAMPTZ DEFAULT NOW(),
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS idx_saved_badges_owner
-      ON saved_badges (owner_id, updated_at DESC);
-
     -- Per-day badge render rollup (retained for brand-level insight; not
     -- currently surfaced in a dashboard UI).
     -- Written fire-and-forget from the badge track path; queried per brand.
@@ -286,33 +222,17 @@ export async function initDB() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
-    -- Per-owner, per-metric, per-period usage counters (e.g. brand scrapes per
-    -- calendar month). The period column is a text bucket like 2026-07 so
-    -- counting is a single upsert and resets naturally when the bucket changes.
-    CREATE TABLE IF NOT EXISTS usage_counters (
-      owner_id TEXT NOT NULL,
-      metric TEXT NOT NULL,
-      period TEXT NOT NULL,
-      count INT NOT NULL DEFAULT 0,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY (owner_id, metric, period)
-    );
-
-    -- Admin-issued "claim your brand" invites. An admin generates a token tied
-    -- to a brand slug (and optional pre-seeded config); opening the link and
-    -- signing in grants the claimant Plus + ownership of that brand.
-    CREATE TABLE IF NOT EXISTS brand_claims (
-      token TEXT PRIMARY KEY,
-      brand_slug TEXT NOT NULL,
-      brand_name TEXT,
-      config JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_by TEXT NOT NULL,
-      claimed_by TEXT,
-      claimed_at TIMESTAMPTZ,
-      expires_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS idx_brand_claims_created
-      ON brand_claims (created_at DESC);
+    -- Cleanup: accounts + the paid tier were removed. Drop the tables that
+    -- backed them (billing entitlements, saved badges, cloud Studio docs,
+    -- usage metering, brand claims, and Better Auth's org/billing extras).
+    -- Guarded IF EXISTS so fresh databases are a no-op.
+    DROP TABLE IF EXISTS subscriptions;
+    DROP TABLE IF EXISTS saved_badges;
+    DROP TABLE IF EXISTS studio_documents;
+    DROP TABLE IF EXISTS usage_counters;
+    DROP TABLE IF EXISTS brand_claims;
+    DROP TABLE IF EXISTS invitation;
+    DROP TABLE IF EXISTS member;
+    DROP TABLE IF EXISTS organization;
   `)
 }

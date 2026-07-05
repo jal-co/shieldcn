@@ -62,15 +62,6 @@ const docsNav: NavGroup[] = [
     ],
   },
   {
-    title: "Plus",
-    items: [
-      { title: "Overview", href: "/docs/plus" },
-      { title: "Saved badges", href: "/docs/plus/badges" },
-      { title: "Managed brands", href: "/docs/plus/brands" },
-      { title: "Hosted assets", href: "/docs/plus/assets" },
-    ],
-  },
-  {
     title: "Customization",
     items: [
       { title: "Themes", href: "/docs/customization/themes" },
@@ -78,6 +69,7 @@ const docsNav: NavGroup[] = [
       { title: "Logos & Icons", href: "/docs/customization/logos" },
       { title: "Fonts", href: "/docs/customization/fonts" },
       { title: "Light & Dark Mode", href: "/docs/customization/light-dark-mode" },
+      { title: "Brands", href: "/docs/customization/brands" },
     ],
   },
   {

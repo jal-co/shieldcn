@@ -4,9 +4,9 @@
  * shieldcn
  * components/app-sidebar.tsx
  *
- * The dashboard's left rail (dashboard-01 composition): shieldcn workspace
- * identity, primary navigation, account links, support links, and the
- * signed-in user footer. Built on the shadcn sidebar primitive and styled with
+ * The admin dashboard's left rail (dashboard-01 composition): shieldcn
+ * identity, brand-management navigation, support links, and the signed-in
+ * admin footer. Built on the shadcn sidebar primitive and styled with
  * semantic tokens only. Rendered by the dashboard layout as `<AppSidebar />`.
  *
  * Motion: the active nav row is marked by a single shared-layout pill
@@ -19,19 +19,13 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion, useReducedMotion, type Transition } from "motion/react"
 import {
-  ArrowRightLeft,
-  BadgeCheck,
-  BarChart3,
   ChevronsUpDown,
   CircleHelp,
-  CreditCard,
-  FileText,
   LayoutDashboard,
   LogOut,
   type LucideIcon,
   MessageCircle,
   Palette,
-  Settings,
   ShieldAlert,
 } from "lucide-react"
 import { authClient } from "@/lib/auth/client"
@@ -59,7 +53,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { Plan } from "@shieldcn/core/entitlements"
 
 /* ─────────────────────────────────────────────────────────
  * MOTION
@@ -77,20 +70,12 @@ type NavItem = {
   label: string
   icon: LucideIcon
   exact?: boolean
-  plus?: boolean
 }
 
 const WORKSPACE_NAV: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/readmes", label: "READMEs", icon: FileText },
-  { href: "/dashboard/badges", label: "Components", icon: BadgeCheck, plus: true },
-  { href: "/dashboard/brands", label: "Brands", icon: Palette, plus: true },
-  { href: "/migrate", label: "Migrate", icon: ArrowRightLeft },
-]
-
-const ACCOUNT_NAV: NavItem[] = [
-  { href: "/pricing", label: "Plans", icon: BarChart3 },
-  { href: "/welcome", label: "Settings", icon: Settings },
+  { href: "/dashboard/brands", label: "Brands", icon: Palette },
+  { href: "/dashboard/admin", label: "Admin", icon: ShieldAlert },
 ]
 
 function initials(s: string): string {
@@ -104,16 +89,13 @@ function initials(s: string): string {
 function NavRow({
   item,
   active,
-  plan,
   reduce,
 }: {
   item: NavItem
   active: boolean
-  plan: Plan
   reduce: boolean
 }) {
   const Icon = item.icon
-  const locked = item.plus && plan !== "plus"
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -132,25 +114,13 @@ function NavRow({
           )}
           <Icon className="relative z-10 size-4" />
           <span className="relative z-10">{item.label}</span>
-          {locked && (
-            <Badge
-              variant="outline"
-              className="relative z-10 ml-auto h-5 rounded-full border-sidebar-border px-2 text-[11px] font-medium text-sidebar-foreground/60"
-            >
-              Plus
-            </Badge>
-          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
 }
 
-export function AppSidebar({
-  plan,
-  isAdmin = false,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & { plan: Plan; isAdmin?: boolean }) {
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
   const { isMobile } = useSidebar()
@@ -204,47 +174,9 @@ export function AppSidebar({
                   key={item.href}
                   item={item}
                   active={isActive(item.href, item.exact)}
-                  plan={plan}
                   reduce={reduce}
                 />
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="py-0">
-          <SidebarGroupLabel className="px-2 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/45">
-            Account
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Billing"
-                  onClick={() => { void authClient.customer.portal() }}
-                  className="h-9 rounded-lg font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
-                >
-                  <CreditCard className="size-4" />
-                  <span>Billing</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {ACCOUNT_NAV.map((item) => (
-                <NavRow
-                  key={item.href}
-                  item={item}
-                  active={isActive(item.href)}
-                  plan={plan}
-                  reduce={reduce}
-                />
-              ))}
-              {isAdmin && (
-                <NavRow
-                  item={{ href: "/dashboard/admin", label: "Admin", icon: ShieldAlert }}
-                  active={isActive("/dashboard/admin")}
-                  plan={plan}
-                  reduce={reduce}
-                />
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -300,12 +232,9 @@ export function AppSidebar({
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">
-                      <span className="truncate">{user?.name || "Account"}</span>
-                      <Badge
-                        variant={plan === "plus" ? "default" : "outline"}
-                        className="h-4 rounded-full px-1.5 text-[10px] font-medium"
-                      >
-                        {plan === "plus" ? "Plus" : "Free"}
+                      <span className="truncate">{user?.name || "Admin"}</span>
+                      <Badge variant="outline" className="h-4 rounded-full px-1.5 text-[10px] font-medium">
+                        Admin
                       </Badge>
                     </span>
                     <span className="truncate text-xs text-sidebar-foreground/55">{user?.email}</span>
@@ -320,16 +249,9 @@ export function AppSidebar({
                 sideOffset={8}
               >
                 <DropdownMenuLabel className="flex flex-col">
-                  <span className="truncate text-sm font-medium">{user?.name || "Account"}</span>
+                  <span className="truncate text-sm font-medium">{user?.name || "Admin"}</span>
                   <span className="truncate text-xs font-normal text-muted-foreground">{user?.email}</span>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/welcome"><LayoutDashboard className="size-4" /> Getting started</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/pricing"><BarChart3 className="size-4" /> Manage plan</Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"

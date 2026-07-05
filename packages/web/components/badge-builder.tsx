@@ -12,8 +12,6 @@ import { useState, useEffect, useMemo, useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { BadgeBuilderCore } from "@/components/badge-builder-core"
 import { CopyOutputSection } from "@/components/copy-output-section"
-import { SaveBadgeButton } from "@/components/save-badge-button"
-import { LoadSavedComponent } from "@/components/load-saved-component"
 import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import {
   BUILDER_DEFAULTS,
@@ -106,15 +104,6 @@ export function BadgeBuilder() {
             copyError={copyError}
             onCopy={() => copy(output)}
           />
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-            <p className="text-xs text-muted-foreground">
-              Save this component, or load one you saved earlier.
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <LoadSavedComponent onLoad={setS} />
-              <SaveBadgeButton state={s} />
-            </div>
-          </div>
         </>
       )}
     </BadgeBuilderCore>

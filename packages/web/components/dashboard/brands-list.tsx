@@ -4,16 +4,14 @@
  * shieldcn
  * components/dashboard/brands-list.tsx
  *
- * Brand manager: list, edit, delete (with confirmation), create new, and a
- * usage meter against the Plus brand cap. Server passes the initial brands +
- * limit; delete refetches from /api/brands so the meter stays live.
+ * Brand manager: list, edit, delete (with confirmation), and create new.
+ * Server passes the initial brands; delete refetches from /api/brands.
  */
 
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2, Palette, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UsageMeter } from "@/components/dashboard/usage-meter"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -26,18 +24,10 @@ interface BrandRow {
   name: string | null
 }
 
-export function BrandsList({
-  initialBrands,
-  limit,
-}: {
-  initialBrands: BrandRow[]
-  limit: number
-}) {
+export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
   const [brands, setBrands] = useState<BrandRow[]>(initialBrands)
   const [pendingDelete, setPendingDelete] = useState<BrandRow | null>(null)
   const [busy, setBusy] = useState(false)
-
-  const atLimit = brands.length >= limit
 
   async function refresh() {
     try {
@@ -74,9 +64,8 @@ export function BrandsList({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-4">
-        <UsageMeter used={brands.length} limit={limit} label="brands" />
-        <Button asChild size="sm" disabled={atLimit}>
+      <div className="flex items-center justify-end gap-4">
+        <Button asChild size="sm">
           <Link href="/dashboard/brands/new">
             <Plus className="size-4" /> New brand
           </Link>

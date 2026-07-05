@@ -7,14 +7,12 @@
  * rebrand propagate: distributed embeds reference /b/{slug}/logo-light.svg,
  * and swapping the stored bytes re-serves everywhere.
  *
- * Plus-gated, org-owned. Body: { lightLogoUrl?, darkLogoUrl?, markUrl? }.
+ * Admin only. Body: { lightLogoUrl?, darkLogoUrl?, markUrl? }.
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOwner } from "@/lib/auth"
-import { isAdminSession } from "@/lib/admin"
-import { hasPlan } from "@shieldcn/core/entitlements"
-import { getOwnedBrand, getAnyBrand, putBrandAsset, type BrandImageKind } from "@shieldcn/core/brands"
+import { getAdmin } from "@/lib/admin"
+import { getAnyBrand, putBrandAsset, type BrandImageKind } from "@shieldcn/core/brands"
 import {
   assetTypeError,
   contentTypeFromExt,
@@ -64,14 +62,10 @@ async function hostLogo(
 
 export async function POST(req: NextRequest, { params }: Params) {
   const { slug } = await params
-  const auth = await requireOwner()
-  if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  const admin = isAdminSession(auth.session)
-  if (!admin && !(await hasPlan(auth.ownerId, "plus"))) {
-    return NextResponse.json({ error: "brand assets require the Plus plan" }, { status: 402 })
-  }
+  const admin = await getAdmin()
+  if (!admin) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const brand = admin ? await getAnyBrand(slug) : await getOwnedBrand(auth.ownerId, slug)
+  const brand = await getAnyBrand(slug)
   if (!brand) return NextResponse.json({ error: "not found" }, { status: 404 })
 
   // Back-compat: still accept legacy light/dark URLs, but we only keep a single

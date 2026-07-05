@@ -25,14 +25,9 @@
     "./github": "./src/github.ts",
     "./route-handler": "./src/route-handler.ts",
     "./migrate": "./src/migrate/index.ts",
-    "./entitlements": "./src/entitlements.ts",
     "./brands": "./src/brands.ts",
     "./badge-stats": "./src/badge-stats.ts",
-    "./studio-docs": "./src/studio-docs.ts",
-    "./saved-badges": "./src/saved-badges.ts",
-    "./settings": "./src/settings.ts",
-    "./usage": "./src/usage.ts",
-    "./brand-claims": "./src/brand-claims.ts"
+    "./settings": "./src/settings.ts"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",

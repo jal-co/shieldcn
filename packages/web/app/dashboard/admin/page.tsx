@@ -4,12 +4,10 @@ import { ShieldAlert } from "lucide-react"
 import { DashboardPage, DashboardPageHeader, DashboardPanel } from "@/components/dashboard/dashboard-page"
 import { AdminSettings } from "@/components/dashboard/admin-settings"
 import { AdminBrands } from "@/components/dashboard/admin-brands"
-import { AdminClaims } from "@/components/dashboard/admin-claims"
 import { pageMetadata } from "@/lib/metadata"
 import { getAdmin } from "@/lib/admin"
 import { getBoolSetting } from "@shieldcn/core/settings"
 import { listAllBrands } from "@shieldcn/core/brands"
-import { listBrandClaims } from "@shieldcn/core/brand-claims"
 
 export const metadata: Metadata = pageMetadata({
   title: "Admin",
@@ -26,19 +24,6 @@ export default async function AdminPage() {
   const allBrands = await listAllBrands()
   const initialBrands = allBrands.map((b) => ({ id: b.id, slug: b.slug, name: b.name, ownerId: b.ownerId }))
 
-  const SITE = process.env.NEXT_PUBLIC_URL ?? "https://shieldcn.dev"
-  const claims = await listBrandClaims()
-  const initialClaims = claims.map((c) => ({
-    token: c.token,
-    brandSlug: c.brandSlug,
-    brandName: c.brandName,
-    claimedBy: c.claimedBy,
-    claimedAt: c.claimedAt,
-    expiresAt: c.expiresAt,
-    createdAt: c.createdAt,
-    url: `${SITE}/claim/${c.token}`,
-  }))
-
   return (
     <DashboardPage>
       <DashboardPageHeader
@@ -48,9 +33,6 @@ export default async function AdminPage() {
       />
       <DashboardPanel>
         <AdminSettings initial={{ showcaseBrandBadges }} />
-      </DashboardPanel>
-      <DashboardPanel>
-        <AdminClaims initialClaims={initialClaims} />
       </DashboardPanel>
       <DashboardPanel>
         <AdminBrands initialBrands={initialBrands} />

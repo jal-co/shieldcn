@@ -235,12 +235,7 @@ export function BrandEditor({
         theme: undefined,
         variant: c.variant ?? "branded",
       }))
-      const remaining = json.scrapesRemaining
-      toast.success(
-        typeof remaining === "number"
-          ? `Brand imported — review and save. ${remaining} scrape${remaining === 1 ? "" : "s"} left this month.`
-          : "Brand imported — review and save",
-      )
+      toast.success("Brand imported — review and save")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "import failed")
     } finally {

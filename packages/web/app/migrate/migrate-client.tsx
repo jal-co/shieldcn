@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useState, useCallback, useEffect } from "react"
 import {
   ArrowRight,
@@ -17,8 +16,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { UpgradeInline } from "@/components/upgrade-cta"
-import { useMe, planMeets } from "@/lib/use-me"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -728,21 +725,15 @@ function BulkMigrate() {
 }
 
 // ---------------------------------------------------------------------------
-// Wrapper — single vs bulk. Bulk is a Plus feature; free users see an upsell.
+// Wrapper — single vs bulk repo migration.
 // ---------------------------------------------------------------------------
 
 export default function MigrateClient() {
-  const { me } = useMe()
-  const isPlus = planMeets(me.plan, "plus")
-
   return (
     <Tabs defaultValue="single" className="flex flex-col gap-6">
       <TabsList>
         <TabsTrigger value="single">Single repo</TabsTrigger>
-        <TabsTrigger value="bulk" className="gap-1.5">
-          Bulk
-          {!isPlus && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Plus</span>}
-        </TabsTrigger>
+        <TabsTrigger value="bulk">Bulk</TabsTrigger>
       </TabsList>
 
       <TabsContent value="single">
@@ -750,23 +741,7 @@ export default function MigrateClient() {
       </TabsContent>
 
       <TabsContent value="bulk">
-        {isPlus ? (
-          <BulkMigrate />
-        ) : (
-          <div className="flex flex-col gap-4">
-            <UpgradeInline
-              tier="plus"
-              feature="Bulk migration"
-            />
-            <p className="text-sm text-muted-foreground">
-              Scanning and previewing is free for a single repo. Bulk migration
-              scans every repo you list and opens all the PRs in one click —
-              part of <strong>Plus</strong>, which also adds{" "}
-              <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">a managed brand</Link>{" "}
-              so one edit restyles every embed.
-            </p>
-          </div>
-        )}
+        <BulkMigrate />
       </TabsContent>
     </Tabs>
   )

@@ -14,7 +14,6 @@ import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { getSession } from "@/lib/auth"
 import { isAdminSession } from "@/lib/admin"
-import { getPlan } from "@shieldcn/core/entitlements"
 
 // Every dashboard route reads the session cookie (getSession), so the whole
 // subtree is dynamic — declare it up front instead of letting Next discover it
@@ -26,12 +25,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Admin-only surface: an unauthenticated or non-admin visitor is bounced to
+  // the (unlinked) admin sign-in.
   const session = await getSession()
-  if (!session) redirect("/sign-in")
-
-  const ownerId = session.orgId ?? session.userId
-  const plan = await getPlan(ownerId)
-  const admin = isAdminSession(session)
+  if (!session || !isAdminSession(session)) redirect("/brandmgmt")
 
   return (
     <SidebarProvider
@@ -42,9 +39,9 @@ export default async function DashboardLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar plan={plan} isAdmin={admin} />
+      <AppSidebar />
       <SidebarInset>
-        <DashboardTopbar plan={plan} />
+        <DashboardTopbar />
         <div className="@container/main flex min-w-0 flex-1 flex-col">
           {children}
         </div>

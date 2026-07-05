@@ -5,7 +5,6 @@ import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
 import { BadgeBuilder } from "@/components/badge-builder"
 import { HomeCharts } from "@/components/home-charts"
-import { PricingTable } from "@/components/pricing-table"
 import { GenHeroInput } from "@/components/gen-hero-input"
 import { HeroShowcase } from "@/components/hero-showcase"
 import { HeroGlow } from "@/components/hero-glow"
@@ -82,25 +81,6 @@ export default async function Home() {
           <Separator />
 
           <HomeCharts />
-
-          <Separator />
-
-          {/* Pricing */}
-          <section id="pricing" className="py-16 scroll-mt-16">
-            <div className="mb-8 max-w-lg">
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Simple pricing</h2>
-              <p className="mt-3 text-pretty text-muted-foreground">
-                Public badges are free forever. Paid plans add saved READMEs,
-                mass migration, AI, and managed brands — and keep shieldcn
-                sustainable. See the{" "}
-                <Link href="/pricing" className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80">
-                  full comparison
-                </Link>
-                .
-              </p>
-            </div>
-            <PricingTable />
-          </section>
         </div>
       </main>
     </SiteShell>

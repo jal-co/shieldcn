@@ -17,14 +17,12 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import type { Plan } from "@shieldcn/core/entitlements"
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard": "Overview",
-  "/dashboard/readmes": "READMEs",
-  "/dashboard/badges": "Components",
   "/dashboard/brands": "Brands",
   "/dashboard/brands/new": "New brand",
+  "/dashboard/admin": "Admin",
 }
 
 function titleFromSegment(segment: string) {
@@ -41,7 +39,7 @@ function breadcrumbs(pathname: string) {
   return ["Workspace", ...segments.map(titleFromSegment)]
 }
 
-export function DashboardTopbar({ plan }: { plan: Plan }) {
+export function DashboardTopbar() {
   const pathname = usePathname()
   const router = useRouter()
   const items = useMemo(() => breadcrumbs(pathname), [pathname])
@@ -75,9 +73,6 @@ export function DashboardTopbar({ plan }: { plan: Plan }) {
         </ol>
       </nav>
       <div className="ml-auto flex items-center gap-2">
-        <span className="hidden items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-flex">
-          {plan === "plus" ? "Plus" : "Free"}
-        </span>
         <ThemeSwitcher />
         <Button size="sm" variant="outline" onClick={onSignOut} className="gap-1.5">
           <LogOut className="size-3.5" />

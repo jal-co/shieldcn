@@ -4,21 +4,12 @@
  *
  * Import a brand from Context.dev. Given a domain / name / email / ticker, we
  * fetch the brand intelligence, normalize it, and return a draft profile plus a
- * brand.md document for the user to review and edit before saving. Plus-gated
- * (brands are a Plus feature); the actual persist happens via /api/brands/[slug].
+ * brand.md document for the admin to review and edit before saving. Admin only;
+ * the actual persist happens via /api/brands/[slug].
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOwner } from "@/lib/auth"
-import { isAdminSession } from "@/lib/admin"
-import { hasPlan } from "@shieldcn/core/entitlements"
-import {
-  getMonthlyUsage,
-  incrementMonthlyUsage,
-  nextMonthResetDate,
-  BRAND_SCRAPE_METRIC,
-  BRAND_SCRAPES_PER_MONTH,
-} from "@shieldcn/core/usage"
+import { getAdmin } from "@/lib/admin"
 import {
   getBrandProfile,
   brandProfileToMarkdown,
@@ -31,29 +22,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "brand import not configured" }, { status: 503 })
   }
 
-  const auth = await requireOwner()
-  if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  const admin = isAdminSession(auth.session)
-  if (!admin && !(await hasPlan(auth.ownerId, "plus"))) {
-    return NextResponse.json({ error: "brand import requires the Plus plan" }, { status: 402 })
-  }
-
-  // Rate limit: 5 brand scrapes per owner per calendar month (admins exempt).
-  // Checked before the (paid) Context.dev call; incremented only on success.
-  if (!admin) {
-    const used = await getMonthlyUsage(auth.ownerId, BRAND_SCRAPE_METRIC)
-    if (used >= BRAND_SCRAPES_PER_MONTH) {
-      return NextResponse.json(
-        {
-          error: `You've used all ${BRAND_SCRAPES_PER_MONTH} brand scrapes this month. Resets on ${nextMonthResetDate()}.`,
-          limit: BRAND_SCRAPES_PER_MONTH,
-          used,
-          resetsOn: nextMonthResetDate(),
-        },
-        { status: 429 },
-      )
-    }
-  }
+  const admin = await getAdmin()
+  if (!admin) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   let body: BrandLookup & { url?: string }
   try {
@@ -91,16 +61,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "brand not found" }, { status: 404 })
   }
 
-  // Count only successful scrapes against the monthly quota (admins exempt).
-  let remaining: number | undefined
-  if (!admin) {
-    const used = await incrementMonthlyUsage(auth.ownerId, BRAND_SCRAPE_METRIC)
-    remaining = Math.max(0, BRAND_SCRAPES_PER_MONTH - used)
-  }
-
   return NextResponse.json({
     profile,
     markdown: brandProfileToMarkdown(profile),
-    ...(remaining !== undefined ? { scrapesRemaining: remaining } : {}),
   })
 }

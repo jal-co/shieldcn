@@ -1,7 +1,7 @@
 # Local dev environment
 
-A dev setup for testing DB-backed features (saved badges, saved READMEs, brands,
-billing gates) **without touching production**.
+A dev setup for the DB-backed brand-management surface (admin-only) **without
+touching production**.
 
 ## What's configured
 
@@ -9,45 +9,42 @@ Everything lives in `packages/web/.env.local` (gitignored — never committed):
 
 | Var | Purpose |
 |-----|---------|
-| `DATABASE_URL` | A **Neon dev branch** — isolated from prod writes, seeded with prod-like data. Tables auto-create on first request via `initDB()`. |
-| `DEV_PLAN` | Dev-only plan override (`plus` or `free`). Lets you exercise Plus-gated features without a real Polar subscription. |
+| `DATABASE_URL` | A **Neon dev branch** — isolated from prod writes. Tables auto-create on first request via `initDB()`. |
 | `BETTER_AUTH_SECRET` | ≥32-char secret for Better Auth (session encryption). Generate with `openssl rand -base64 32`. |
 | `BETTER_AUTH_URL` | Base URL Better Auth builds callback URLs from (`http://localhost:3000` in dev). |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth app creds for social sign-in. Distinct from the token-pool's `GITHUB_OAUTH_*` / `GITHUB_TOKEN`. |
+| `ADMIN_EMAILS` / `ADMIN_USER_IDS` | Comma-separated allowlist. Only these accounts can reach `/dashboard` and manage brands. |
+| `CONTEXT_DEV_API_KEY` | Optional — enables brand import from a domain. |
 
-## Authentication (self-hosted Better Auth)
+## Authentication (minimal, admin-only)
 
-Auth is **self-hosted Better Auth** running inside this Next.js app against the
-same Postgres — there is no separate auth service to deploy. Its tables
-(`user`, `session`, `account`, `verification`, `organization`, `member`,
-`invitation`) live in `public` alongside the app tables.
+shieldcn has **no user accounts or paid tiers**. Auth exists solely so the site
+admin can sign in and manage brands. It's a **minimal self-hosted Better Auth**
+(email/password only — no OAuth, organizations, or billing) running inside this
+Next.js app against the same Postgres. Its tables (`user`, `session`,
+`account`, `verification`) live in `public` alongside the app tables.
 
-- Server instance: `lib/auth/server.ts` (`betterAuth({ database: getPool() })`).
-- Client: `lib/auth/client.ts` (`better-auth/react` + `organizationClient`).
+- Server instance: `lib/auth/server.ts` (`betterAuth({ database: getPool() })`, `disableSignUp: true`).
+- Client: `lib/auth/client.ts` (`better-auth/react`).
 - Route: `app/api/auth/[...path]/route.ts` (`toNextJsHandler`).
-- Session reads: `lib/auth.ts` `getSession()` → `auth.api.getSession({ headers })`.
+- Session reads: `lib/auth.ts` `getSession()`.
+- Admin gate: `lib/admin.ts` (`ADMIN_EMAILS` / `ADMIN_USER_IDS` allowlist).
 
-Sign-in options: **email/password + GitHub OAuth**. Email/password works with no
-OAuth creds; add `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` to enable social.
+Sign-in lives at the **unlinked** `/brandmgmt` route (excluded from the sitemap,
+`noindex`). There is no public registration.
 
-### Creating / updating the auth schema
+### Creating the auth schema + the admin account
 
-Better Auth manages its own tables. To (re)create them on a fresh database:
+Better Auth manages its own tables. On a fresh database:
 
 ```bash
 cd packages/web
 npx @better-auth/cli@latest migrate --config lib/auth/server.ts --yes
 ```
 
-(Needs `DATABASE_URL` + `BETTER_AUTH_SECRET` in the environment. `migrate`
-applies directly via the built-in Kysely adapter; use `generate` for SQL only.)
-
-### GitHub OAuth callback URL
-
-Register these in the GitHub OAuth app:
-
-- Dev: `http://localhost:3000/api/auth/callback/github`
-- Prod: `https://shieldcn.dev/api/auth/callback/github`
+Because public sign-up is disabled, create the single admin user out-of-band —
+either temporarily flip `disableSignUp` off, register once at `/brandmgmt`, then
+turn it back on; or insert the `user` + `account` rows directly. Add that user's
+email to `ADMIN_EMAILS`.
 
 ## Running it
 
@@ -58,37 +55,12 @@ pnpm dev:web            # https (experimental)
 cd packages/web && pnpm dev:http
 ```
 
-Then open http://localhost:3000 and sign in.
-
-## The `DEV_PLAN` override
-
-`getPlan()` in `packages/core/src/entitlements.ts` returns `DEV_PLAN` **only
-when both** hold:
-
-1. `NODE_ENV !== "production"`, and
-2. `DEV_PLAN` is a valid plan (`"free"` | `"plus"`).
-
-Both guards must pass, so it **cannot fire on a deployed production build** — a
-prod server always runs `NODE_ENV=production`. Covered by tests in
-`entitlements.test.ts` (including the "never fires in production" guarantee).
-
-- `DEV_PLAN=plus` → test the 50-badge cap, brand editing, AI, mass migration.
-- `DEV_PLAN=free` (or unset) → test the free path (2-badge cap) + upgrade nudges.
-
-## Testing saved badges
-
-1. `DEV_PLAN=plus`, sign in.
-2. Landing badge builder → configure a badge → **Save badge**.
-3. Studio → a badge row's inspector → **bookmark** to save, or **Insert saved
-   badge** to drop one in.
-4. Manage them at `/dashboard/badges`.
+Then open http://localhost:3000. Manage brands at `/brandmgmt` → `/dashboard`.
 
 ## ⚠️ Before sharing this branch / going live
 
-- The Neon dev-branch password AND the GitHub OAuth client secret were shared in
-  plaintext during setup — **rotate both** (Neon console + GitHub OAuth app).
-- `DATABASE_URL` and `DEV_PLAN` must **never** be set on the production
-  deployment (Vercel). They belong only in local `.env.local`.
+- Rotate any credentials shared in plaintext during setup (Neon console, etc.).
+- `DATABASE_URL` must never point at production from local `.env.local`.
 - Production needs its own `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
-  (`https://shieldcn.dev`), and GitHub OAuth creds set in Vercel, plus the
-  Better Auth schema created on the prod database. See the cutover handoff.
+  (`https://shieldcn.dev`), and `ADMIN_EMAILS` set in Vercel, plus the Better
+  Auth schema created on the prod database.

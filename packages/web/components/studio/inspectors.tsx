@@ -19,8 +19,6 @@ import { LogoPicker } from "@/components/logo-picker"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
 import { ColorInput } from "@/components/color-input"
 import { SearchablePicker, type SearchablePickerSection } from "@/components/searchable-picker"
-import { SaveBadgeButton } from "@/components/save-badge-button"
-import { InsertSavedBadge } from "@/components/studio/insert-saved-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -805,15 +803,6 @@ function BadgeItemEditor({ item, onChange, onRemove, index }: {
         <Input value={s.linkUrl} onChange={e => set({ linkUrl: e.target.value })} placeholder="https://…" className="text-xs" />
       </Field>
 
-      <div className="border-t border-border pt-3">
-        <SaveBadgeButton
-          state={s}
-          defaultName={item.alt}
-          size="sm"
-          variant="outline"
-          className="w-full"
-        />
-      </div>
     </div>
   )
 }
@@ -829,10 +818,6 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
 
   const addItem = useCallback(() => {
     onChange({ ...block, badges: [...block.badges, makeBadgeItem({ path: "/badge/label-value-22c55e.svg" })] })
-  }, [block, onChange])
-
-  const insertSaved = useCallback((state: BuilderState, alt: string) => {
-    onChange({ ...block, badges: [...block.badges, makeBadgeItem({ ...state }, alt)] })
   }, [block, onChange])
 
   const sharedSize = block.badges.length > 0 && block.badges.every(b => b.state.size === block.badges[0].state.size)
@@ -869,7 +854,6 @@ export function BadgesInspector({ block, onChange }: { block: BadgesBlock; onCha
       <Button variant="outline" size="sm" className="w-full" onClick={addItem}>
         <Plus className="size-3.5" /> Add badge
       </Button>
-      <InsertSavedBadge onInsert={insertSaved} />
     </div>
   )
 }

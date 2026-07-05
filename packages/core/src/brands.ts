@@ -194,14 +194,6 @@ export function applyBrandToParams(
 
 // ── CRUD (management side; the engine only ever reads via getBrand) ──────────
 
-/** Per-plan brand cap. Managed brands are a Plus capability, capped at a single
- *  brand — enough to restyle every embed from one place while keeping the
- *  dashboard usage meter meaningful. */
-export const PLUS_BRAND_LIMIT = 1
-export function brandLimitForPlan(plan: string): number {
-  return plan === "plus" ? PLUS_BRAND_LIMIT : 0
-}
-
 export async function listBrandsByOwner(ownerId: string): Promise<Brand[]> {
   // Fail-open: a DB blip on a dashboard read shows an empty list, not a crash.
   try {
