@@ -589,6 +589,21 @@ export function BrandEditor({
       </section>
 
       {/* Showcase badges — curated badges shown for this brand in /showcase */}
+      <section className="flex flex-col gap-1.5">
+        <Label htmlFor="brand-showcase-category">Showcase category</Label>
+        <Input
+          id="brand-showcase-category"
+          value={profile.showcaseCategory ?? ""}
+          onChange={(e) => setProfile((p) => ({ ...p, showcaseCategory: e.target.value || undefined }))}
+          placeholder={name || slug || "Brand name"}
+        />
+        <p className="text-xs text-muted-foreground">
+          The heading this brand&apos;s showcase badges appear under on{" "}
+          <code>/showcase</code>. Defaults to the brand name; brands that share a
+          category are grouped together.
+        </p>
+      </section>
+
       <BrandShowcaseEditor
         badges={profile.showcaseBadges ?? []}
         onChange={(next) => setProfile((p) => ({ ...p, showcaseBadges: next }))}

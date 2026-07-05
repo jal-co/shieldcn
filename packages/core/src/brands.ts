@@ -52,6 +52,12 @@ export interface BrandProfile {
   palette?: BrandPaletteColor[]
   /** Up to 5 curated badges shown for this brand in the global showcase. */
   showcaseBadges?: BrandShowcaseBadge[]
+  /**
+   * Category heading this brand's showcase badges appear under on /showcase.
+   * Defaults to the brand name when unset. Lets several brands share a category,
+   * or a brand pick a friendlier label than its slug.
+   */
+  showcaseCategory?: string
 }
 
 export interface Brand {
@@ -100,6 +106,9 @@ function sanitizeProfile(input: unknown): BrandProfile {
     for (const key of ["title", "description", "slogan", "domain"] as const) {
       const v = o[key]
       if (typeof v === "string" && v.length <= 2000) out[key] = v
+    }
+    if (typeof o.showcaseCategory === "string" && o.showcaseCategory.trim()) {
+      out.showcaseCategory = o.showcaseCategory.trim().slice(0, 80)
     }
     if (Array.isArray(o.palette)) {
       out.palette = o.palette

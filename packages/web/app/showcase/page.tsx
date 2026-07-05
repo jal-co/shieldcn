@@ -27,18 +27,33 @@ export default async function ShowcasePage() {
   let brandCategories: { name: string; description: string; icons: { title: string; subtitle: string; badgePath: string }[]; brand: true }[] = []
   if (showBrandBadges) {
     const brands = await listAllBrands()
-    brandCategories = brands
-      .filter((b) => (b.profile.showcaseBadges?.length ?? 0) > 0)
-      .map((b) => ({
-        name: b.name ?? b.slug,
-        description: `Showcase badges for the ${b.name ?? b.slug} brand.`,
-        brand: true as const,
-        icons: (b.profile.showcaseBadges ?? []).map((sb) => ({
-          title: sb.alt || `${b.name ?? b.slug} badge`,
+    // Group brands by their chosen showcase category (default: the brand name),
+    // so several brands can share one category heading. Preserves first-seen
+    // order of categories.
+    const byCategory = new Map<string, (typeof brandCategories)[number]>()
+    for (const b of brands) {
+      if ((b.profile.showcaseBadges?.length ?? 0) === 0) continue
+      const label = b.name ?? b.slug
+      const category = b.profile.showcaseCategory?.trim() || label
+      let entry = byCategory.get(category)
+      if (!entry) {
+        entry = {
+          name: category,
+          description: `Showcase badges for ${category}.`,
+          brand: true as const,
+          icons: [],
+        }
+        byCategory.set(category, entry)
+      }
+      for (const sb of b.profile.showcaseBadges ?? []) {
+        entry.icons.push({
+          title: sb.alt || `${label} badge`,
           subtitle: "brand badge",
           badgePath: `${sb.path}${sb.path.includes("?") ? "&" : "?"}brand=${b.slug}`,
-        })),
-      }))
+        })
+      }
+    }
+    brandCategories = Array.from(byCategory.values())
   }
 
   return (
