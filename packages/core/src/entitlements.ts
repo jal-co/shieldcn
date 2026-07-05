@@ -105,6 +105,34 @@ export function invalidatePlan(ownerId: string): void {
 }
 
 /**
+ * Grant a plan to an owner outside of Polar (e.g. an admin comp, or a claimed
+ * "claim your brand" invite). Writes an active subscription row with a manual
+ * marker so getPlan() reflects it immediately. Preserves any existing Polar
+ * ids. `runQuery` is caller-provided to avoid a db import cycle (mirrors
+ * syncSubscriptionFromPolar).
+ */
+export async function grantPlan(
+  runQuery: (text: string, params: unknown[]) => Promise<unknown>,
+  ownerId: string,
+  plan: Plan,
+  opts?: { periodEnd?: Date | null; reason?: string },
+): Promise<void> {
+  if (!ownerId) return
+  await runQuery(
+    `INSERT INTO subscriptions
+       (owner_id, plan, status, current_period_end, updated_at)
+     VALUES ($1, $2, 'active', $3, NOW())
+     ON CONFLICT (owner_id) DO UPDATE SET
+       plan = EXCLUDED.plan,
+       status = 'active',
+       current_period_end = EXCLUDED.current_period_end,
+       updated_at = NOW()`,
+    [ownerId, plan, opts?.periodEnd ?? null],
+  )
+  invalidatePlan(ownerId)
+}
+
+/**
  * Map a Polar product id to a plan. Configured via env so the same code runs
  * against sandbox and production products.
  */

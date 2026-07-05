@@ -277,5 +277,42 @@ export async function initDB() {
     );
     CREATE INDEX IF NOT EXISTS idx_badge_stats_brand
       ON badge_stats_daily (brand_id, day DESC);
+
+    -- Global key/value site settings (admin-controlled feature flags, e.g.
+    -- whether brand badges show in the showcase). Tiny; one row per key.
+    CREATE TABLE IF NOT EXISTS site_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Per-owner, per-metric, per-period usage counters (e.g. brand scrapes per
+    -- calendar month). The period column is a text bucket like 2026-07 so
+    -- counting is a single upsert and resets naturally when the bucket changes.
+    CREATE TABLE IF NOT EXISTS usage_counters (
+      owner_id TEXT NOT NULL,
+      metric TEXT NOT NULL,
+      period TEXT NOT NULL,
+      count INT NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (owner_id, metric, period)
+    );
+
+    -- Admin-issued "claim your brand" invites. An admin generates a token tied
+    -- to a brand slug (and optional pre-seeded config); opening the link and
+    -- signing in grants the claimant Plus + ownership of that brand.
+    CREATE TABLE IF NOT EXISTS brand_claims (
+      token TEXT PRIMARY KEY,
+      brand_slug TEXT NOT NULL,
+      brand_name TEXT,
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_by TEXT NOT NULL,
+      claimed_by TEXT,
+      claimed_at TIMESTAMPTZ,
+      expires_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_brand_claims_created
+      ON brand_claims (created_at DESC);
   `)
 }
