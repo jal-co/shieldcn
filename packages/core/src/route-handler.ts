@@ -3261,6 +3261,16 @@ async function handleBadgeGETInner(
     } else {
       brandSlug = searchParams.get("brand")
     }
+    // Bridge `variant=branded` to managed brands: a branded badge with no
+    // explicit brand adopts a managed brand whose slug matches its provider
+    // (e.g. /github/...?variant=branded uses the "github" brand if one exists),
+    // so editing that brand restyles every branded badge for the provider
+    // site-wide. Explicit ?brand= / /b/ still win; unmatched providers fall
+    // through to the built-in SimpleIcons/providerBrandColors defaults.
+    // getBrand caches misses, so the per-render lookup is cheap.
+    if (!brandSlug && searchParams.get("variant") === "branded" && cleanSegments[0]) {
+      if (await getBrand(cleanSegments[0])) brandSlug = cleanSegments[0]
+    }
     if (brandSlug) {
       const brand = await getBrand(brandSlug)
       if (brand) {

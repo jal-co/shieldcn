@@ -35,6 +35,24 @@ override one value per badge:
 
 Precedence is **explicit query param > brand value > default**.
 
+## Branded badges use a matching brand automatically
+
+Any badge rendered with `variant=branded` looks for a managed brand whose slug
+**matches the provider** and applies it automatically — no `?brand=` needed. So
+if you create a brand named `github`, every `variant=branded` GitHub badge on
+your site (and in anyone's README) adopts that brand's color, logo, font,
+radius, and gradient:
+
+```md
+<!-- Uses the "github" brand if one exists, else the built-in GitHub color -->
+![stars](https://shieldcn.dev/github/stars/vercel/next.js.svg?variant=branded)
+```
+
+Edit the `github` brand once and every branded GitHub badge restyles on the next
+fetch. This only applies to `variant=branded`; other variants are unaffected.
+An explicit `?brand=` or `?color=` still wins, and a provider with no matching
+brand falls back to its built-in brand color.
+
 ## Brand logos and fonts
 
 When a brand has hosted assets, opt into them per badge:
