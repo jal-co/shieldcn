@@ -53,7 +53,9 @@ export function BrandShowcaseEditor({
   const { adaptUrl } = useBadgeMode()
   const mounted = useHydrated()
   const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState<BuilderState>({ ...BUILDER_DEFAULTS })
+  // Showcase badges are always rendered with ?brand=slug, so default them to
+  // the branded variant — the brand supplies the color/logo.
+  const [draft, setDraft] = useState<BuilderState>({ ...BUILDER_DEFAULTS, variant: "branded" })
   const [alt, setAlt] = useState("")
 
   const atLimit = badges.length >= MAX_BRAND_SHOWCASE
@@ -62,7 +64,7 @@ export function BrandShowcaseEditor({
   function addBadge() {
     if (!draftPath) return
     onChange([...badges, { path: draftPath, alt: alt.trim() || undefined }])
-    setDraft({ ...BUILDER_DEFAULTS })
+    setDraft({ ...BUILDER_DEFAULTS, variant: "branded" })
     setAlt("")
     setOpen(false)
   }
@@ -132,7 +134,7 @@ export function BrandShowcaseEditor({
             </DialogDescription>
           </DialogHeader>
 
-          <BadgeBuilderCore state={draft} onChange={setDraft} badgeUrl={draftPath} showHeader={false} />
+          <BadgeBuilderCore state={draft} onChange={setDraft} badgeUrl={draftPath} showHeader={false} brandStyled />
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="showcase-alt">Caption (optional)</Label>

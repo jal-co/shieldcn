@@ -87,11 +87,11 @@ function brandedEligible(path: string): boolean {
  * variant the selected badge doesn't support. Mirrors the dropdown's rule:
  * registry-allowed AND (not `branded`, or branded-eligible).
  */
-function clampVariant(next: BuilderState): BuilderState {
+function clampVariant(next: BuilderState, brandStyled = false): BuilderState {
   const allowed = allowedVariantsForPath(next.path)
   const ok =
     allowed.includes(next.variant as never) &&
-    (next.variant !== "branded" || brandedEligible(next.path))
+    (next.variant !== "branded" || brandStyled || brandedEligible(next.path))
   return ok ? next : { ...next, variant: "default" }
 }
 
@@ -110,6 +110,13 @@ interface BadgeBuilderCoreProps {
   showHeader?: boolean
   /** Whether to show format (SVG/PNG) selector. Default: true */
   showFormat?: boolean
+  /**
+   * Brand-showcase context: the badge is always rendered with `?brand=slug`, so
+   * the brand supplies the color/logo. Makes the `branded` variant always
+   * selectable (not just for provider badges) so a brand's showcase badges can
+   * default to and use branded. Default: false.
+   */
+  brandStyled?: boolean
   /** Additional content rendered below the preview area. */
   children?: React.ReactNode
 }
@@ -124,6 +131,7 @@ export function BadgeBuilderCore({
   badgeUrl,
   showHeader = true,
   showFormat = true,
+  brandStyled = false,
   children,
 }: BadgeBuilderCoreProps) {
   const [showRawPath, setShowRawPath] = useState(false)
@@ -178,9 +186,9 @@ export function BadgeBuilderCore({
 
   const updatePath = useCallback((preset: BadgePreset, values: Record<string, string>, extraState?: Partial<BuilderState>) => {
     const path = resolveTemplate(preset, values)
-    onChange(clampVariant({ ...s, ...extraState, path }))
+    onChange(clampVariant({ ...s, ...extraState, path }, brandStyled))
     setImgError(false)
-  }, [s, onChange])
+  }, [s, onChange, brandStyled])
 
   const handlePresetChange = useCallback((indexStr: string) => {
     const idx = parseInt(indexStr, 10)
@@ -219,10 +227,10 @@ export function BadgeBuilderCore({
     setRawPathInput(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      onChange(clampVariant({ ...s, path: val }))
+      onChange(clampVariant({ ...s, path: val }, brandStyled))
       setImgError(false)
     }, URL_DEBOUNCE_MS)
-  }, [s, onChange])
+  }, [s, onChange, brandStyled])
 
   const prevPath = useRef(s.path)
   useEffect(() => {
@@ -237,7 +245,7 @@ export function BadgeBuilderCore({
   const currentProvider = useMemo(() => s.path.split("/").filter(Boolean)[0] || "", [s.path])
   const brandedIcon = PROVIDER_ICON[currentProvider] || ""
   // Shared with clampVariant so the dropdown and the selected state never drift.
-  const hasBranded = brandedEligible(s.path)
+  const hasBranded = brandStyled || brandedEligible(s.path)
 
   // Variants the SELECTED badge actually supports, per the core registry
   // (source of truth). Combined with the branded-icon check below so the
