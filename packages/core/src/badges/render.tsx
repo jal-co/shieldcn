@@ -231,7 +231,7 @@ export function clampBadgeDim(key: string, value: number): number {
 
 function resolve(config: BadgeConfig): ResolvedBadge {
   const mode = config.mode === "light" ? lightMode : darkMode
-  const bs = getButtonStyle(config.style, mode, config.brandColor)
+  const bs = getButtonStyle(config.style, mode, config.brandColor, config.secondaryColor)
   const bz = getButtonSize(config.size ?? "sm")
 
   // Dimensions (overridable)
@@ -262,7 +262,12 @@ function resolve(config: BadgeConfig): ResolvedBadge {
   let labelFgBase: string
   let border: string | undefined = bs.border
 
-  if (isFilled && hasTheme) {
+  // The secondary variant with a brand's second color (color2) uses that color
+  // as bg directly, even when a primary color override (color) is also present
+  // — otherwise the primary would win via the themed-bg branch below.
+  const secondaryColorWins = config.style === "secondary" && !!config.secondaryColor
+
+  if (isFilled && hasTheme && !secondaryColorWins) {
     bg = config.colors.labelBg
     fg = config.colors.valueFg
     labelFgBase = config.colors.labelFg

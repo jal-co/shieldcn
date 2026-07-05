@@ -25,7 +25,7 @@ import { isTwemojiLogo, resolveTwemojiSvg } from "./badges/twemoji"
 import { getProviderBrandColor } from "./badges/brand-colors"
 import { parseSvg, decodeSvgDataUri } from "./badges/svg-parser"
 import { normalizeSearchParams } from "./normalize-params"
-import { getBrand, applyBrandToParams, getBrandFont, getBrandAsset, type BrandFontKind, type BrandImageKind } from "./brands"
+import { getBrand, applyBrandToParams, getBrandFont, getBrandAsset, type BrandFontKind } from "./brands"
 import { recordBadgeStat } from "./badge-stats"
 import type { BadgeData, BadgeConfig, BadgeStyle, BadgeSize } from "./badges/types"
 import { resolveVariant } from "./badges/validate"
@@ -3266,6 +3266,26 @@ async function handleBadgeGETInner(
       if (brand) {
         brandId = brand.id
         searchParams = applyBrandToParams(searchParams, brand.config)
+        // Auto-add the brand's logo: if the caller didn't set a logo (and the
+        // brand's own config didn't provide one) but the brand has an uploaded
+        // mark, default to logo=brand so applying a brand also applies its logo.
+        // `logo=false`/`none` still opts out; an explicit logo still wins.
+        if (!searchParams.has("logo")) {
+          const hasMark =
+            (await getBrandAsset(brandSlug, "mark")) ??
+            (await getBrandAsset(brandSlug, "mark-alt")) ??
+            (await getBrandAsset(brandSlug, "logo-dark")) ??
+            (await getBrandAsset(brandSlug, "logo-light"))
+          if (hasMark) searchParams.set("logo", "brand")
+        }
+        // Auto-add the brand's font: if the caller didn't set a font (and the
+        // brand config didn't provide one) but the brand has an uploaded sans
+        // font, default to font=brand so applying a brand also applies its
+        // typeface. An explicit font param still wins.
+        if (!searchParams.has("font")) {
+          const hasFont = await getBrandFont(brandSlug, "font-sans")
+          if (hasFont) searchParams.set("font", "brand")
+        }
         // A brand can ship its own uploaded font: font=brand[-mono|-heading]
         // renders badges in the brand's typeface (loaded from brand_assets).
         const fontParam = searchParams.get("font")
@@ -3286,14 +3306,22 @@ async function handleBadgeGETInner(
         // icon. Resolve the mode-appropriate SVG (dark badge bg → light-ink
         // logo) and rewrite `logo` to a data URI so it flows uniformly through
         // the badge, header, and group logo paths downstream.
-        if (searchParams.get("logo") === "brand") {
-          const light = searchParams.get("mode") === "light"
-          const primary: BrandImageKind = light ? "logo-light" : "logo-dark"
-          const secondary: BrandImageKind = light ? "logo-dark" : "logo-light"
-          const asset =
-            (await getBrandAsset(brandSlug, primary)) ??
-            (await getBrandAsset(brandSlug, "mark")) ??
-            (await getBrandAsset(brandSlug, secondary))
+        const logoParam = searchParams.get("logo")
+        if (logoParam === "brand" || logoParam === "brand-alt") {
+          // Brands ship a square mark (+ optional alt). `logo=brand` uses the
+          // primary mark; `logo=brand-alt` uses the alternate. Legacy light/dark
+          // wordmark logos remain as fallbacks for older brands.
+          const asset = logoParam === "brand-alt"
+            ? (
+                (await getBrandAsset(brandSlug, "mark-alt")) ??
+                (await getBrandAsset(brandSlug, "mark"))
+              )
+            : (
+                (await getBrandAsset(brandSlug, "mark")) ??
+                (await getBrandAsset(brandSlug, "mark-alt")) ??
+                (await getBrandAsset(brandSlug, "logo-dark")) ??
+                (await getBrandAsset(brandSlug, "logo-light"))
+              )
           if (asset && asset.contentType.includes("svg")) {
             searchParams.set(
               "logo",
@@ -3528,6 +3556,7 @@ async function handleBadgeGETInner(
   // 3. For provider badges, data.color is a status keyword — handled by statusColor
   const colorOverride = resolveColor(searchParams.get("color"))
     ?? (isStaticBadge ? resolveColor(data.color) : undefined)
+  const secondaryColorOverride = resolveColor(searchParams.get("color2"))
   const labelColorOverride = resolveColor(searchParams.get("labelColor"))
 
   const hasThemeOverride = !!(theme || colorOverride || labelColorOverride)
@@ -3755,6 +3784,7 @@ async function handleBadgeGETInner(
     split,
     hasThemeOverride,
     brandColor,
+    secondaryColor: secondaryColorOverride,
     font,
     customFont: brandCustomFont ?? undefined,
     gradient,

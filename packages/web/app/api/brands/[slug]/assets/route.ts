@@ -8,9 +8,10 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server"
-import { requireOwner } from "@/lib/auth"
+import { requireOwner, type Owner } from "@/lib/auth"
+import { isAdminSession } from "@/lib/admin"
 import { hasPlan } from "@shieldcn/core/entitlements"
-import { getOwnedBrand, putBrandAsset } from "@shieldcn/core/brands"
+import { getOwnedBrand, getAnyBrand, putBrandAsset, deleteBrandAsset, listBrandAssetKinds, type Brand, type BrandAssetKind } from "@shieldcn/core/brands"
 import {
   isValidAssetKind,
   assetTypeError,
@@ -20,15 +21,57 @@ import {
 
 type Params = { params: Promise<{ slug: string }> }
 
+/** Resolve the brand for this caller: any brand for admins, else owned only. */
+async function resolveBrand(auth: Owner, slug: string): Promise<Brand | null> {
+  return isAdminSession(auth.session)
+    ? await getAnyBrand(slug)
+    : await getOwnedBrand(auth.ownerId, slug)
+}
+
+/** List which asset kinds (fonts + logos) this brand has stored. */
+export async function GET(_req: NextRequest, { params }: Params) {
+  const { slug } = await params
+  const auth = await requireOwner()
+  if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const brand = await resolveBrand(auth, slug)
+  if (!brand) return NextResponse.json({ error: "not found" }, { status: 404 })
+  const assets = await listBrandAssetKinds(brand.id)
+  return NextResponse.json({ assets })
+}
+
+/** Remove a stored asset (logo/mark or font) by kind (?kind=mark). */
+export async function DELETE(req: NextRequest, { params }: Params) {
+  const { slug } = await params
+  const auth = await requireOwner()
+  if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const admin = isAdminSession(auth.session)
+  if (!admin && !(await hasPlan(auth.ownerId, "plus"))) {
+    return NextResponse.json({ error: "brand assets require the Plus plan" }, { status: 402 })
+  }
+
+  const kind = new URL(req.url).searchParams.get("kind") ?? ""
+  if (!isValidAssetKind(kind)) {
+    return NextResponse.json({ error: "invalid asset kind" }, { status: 400 })
+  }
+
+  const brand = await resolveBrand(auth, slug)
+  if (!brand) return NextResponse.json({ error: "not found" }, { status: 404 })
+
+  const removed = await deleteBrandAsset(brand.id, kind as BrandAssetKind)
+  if (!removed) return NextResponse.json({ error: "asset not found" }, { status: 404 })
+  return NextResponse.json({ ok: true, kind })
+}
+
 export async function POST(req: NextRequest, { params }: Params) {
   const { slug } = await params
   const auth = await requireOwner()
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  if (!(await hasPlan(auth.ownerId, "plus"))) {
+  const admin = isAdminSession(auth.session)
+  if (!admin && !(await hasPlan(auth.ownerId, "plus"))) {
     return NextResponse.json({ error: "brand assets require the Plus plan" }, { status: 402 })
   }
 
-  const brand = await getOwnedBrand(auth.ownerId, slug)
+  const brand = await resolveBrand(auth, slug)
   if (!brand) return NextResponse.json({ error: "not found" }, { status: 404 })
 
   let form: FormData

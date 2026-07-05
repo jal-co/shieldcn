@@ -112,7 +112,8 @@ function isLightHex(hex: string): boolean {
 export function getButtonStyle(
   variant: string,
   mode: ModeColors,
-  brandColor?: string
+  brandColor?: string,
+  secondaryColor?: string
 ): ButtonStyle {
   const r = 6 // rounded-md = 0.375rem ≈ 6px
   const isLightMode = mode.background === lightMode.background
@@ -120,8 +121,18 @@ export function getButtonStyle(
   switch (variant) {
     case "default":
       return { bg: mode.primary, fg: mode.primaryForeground, borderRadius: r }
-    case "secondary":
+    case "secondary": {
+      // A brand's second palette color (color2) overrides the neutral secondary
+      // background, with contrast-aware text — same treatment as branded.
+      if (secondaryColor) {
+        return {
+          bg: `#${secondaryColor}`,
+          fg: isLightHex(secondaryColor) ? "#18181b" : "#ffffff",
+          borderRadius: r,
+        }
+      }
       return { bg: mode.secondary, fg: mode.secondaryForeground, borderRadius: r }
+    }
     case "destructive":
       return { bg: mode.destructive, fg: mode.destructiveForeground, borderRadius: r }
     case "outline":

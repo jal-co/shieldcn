@@ -17,7 +17,7 @@ import { cacheGet, cacheSet } from "./cache"
 
 /** Style keys a brand may carry. Kept in sync with the badge/header params. */
 const BRAND_PARAM_KEYS = [
-  "theme", "color", "labelColor", "valueColor", "labelTextColor",
+  "theme", "color", "color2", "labelColor", "valueColor", "labelTextColor",
   "font", "variant", "radius", "logo", "logoColor", "gradient", "mode",
   "labelOpacity", "size",
 ] as const
@@ -34,12 +34,24 @@ export interface BrandPaletteColor {
  * The human brand identity (imported from Context.dev / edited on-site).
  * Distinct from `config`, which is the badge/header style tokens.
  */
+/** A curated showcase badge attached to a brand (up to MAX_BRAND_SHOWCASE). */
+export interface BrandShowcaseBadge {
+  /** Relative badge path incl. its own params, e.g. /badge/build-passing.svg?variant=branded */
+  path: string
+  /** Alt text / caption. */
+  alt?: string
+}
+
+export const MAX_BRAND_SHOWCASE = 5
+
 export interface BrandProfile {
   title?: string
   description?: string
   slogan?: string
   domain?: string
   palette?: BrandPaletteColor[]
+  /** Up to 5 curated badges shown for this brand in the global showcase. */
+  showcaseBadges?: BrandShowcaseBadge[]
 }
 
 export interface Brand {
@@ -98,6 +110,18 @@ function sanitizeProfile(input: unknown): BrandProfile {
         .map((c) => ({
           hex: c.hex.startsWith("#") ? c.hex : `#${c.hex}`,
           name: typeof c.name === "string" ? c.name.slice(0, 60) : undefined,
+        }))
+    }
+    if (Array.isArray(o.showcaseBadges)) {
+      out.showcaseBadges = o.showcaseBadges
+        .filter((b): b is { path: string; alt?: unknown } =>
+          Boolean(b && typeof b === "object" && typeof (b as { path?: unknown }).path === "string"))
+        // Only allow same-origin relative badge paths (no protocol/host).
+        .filter((b) => /^\/[a-zA-Z0-9]/.test(b.path) && !b.path.includes("://"))
+        .slice(0, MAX_BRAND_SHOWCASE)
+        .map((b) => ({
+          path: b.path.slice(0, 600),
+          alt: typeof b.alt === "string" ? b.alt.slice(0, 120) : undefined,
         }))
     }
   }
@@ -254,13 +278,135 @@ export async function deleteBrand(ownerId: string, slug: string): Promise<boolea
   return (rowCount ?? 0) > 0
 }
 
+// ── Admin (owner-agnostic) ───────────────────────────────────────────────────
+// These bypass the owner_id scope and MUST only be called behind an admin gate.
+// They let an allowlisted admin list and edit every brand from the admin panel.
+
+/** List every brand across all owners (admin only). */
+export async function listAllBrands(): Promise<Brand[]> {
+  try {
+    await initDB()
+    const { rows } = await query<BrandRow>(
+      `SELECT id, slug, owner_id, name, config, profile, brand_md FROM brands
+        ORDER BY updated_at DESC`,
+    )
+    return rows.map(rowToBrand)
+  } catch {
+    return []
+  }
+}
+
+/** Fetch any brand by slug regardless of owner (admin only). */
+export async function getAnyBrand(slug: string): Promise<Brand | null> {
+  await initDB()
+  const { rows } = await query<BrandRow>(
+    `SELECT id, slug, owner_id, name, config, profile, brand_md FROM brands WHERE slug = $1`,
+    [slug.toLowerCase()],
+  )
+  return rows[0] ? rowToBrand(rows[0]) : null
+}
+
+/** Upsert a brand without the owner_id guard (admin only). Preserves the
+ *  existing owner on update; assigns `fallbackOwnerId` when creating new. */
+export async function adminUpsertBrand(
+  slug: string,
+  input: BrandUpsert,
+  fallbackOwnerId: string,
+): Promise<Brand> {
+  await initDB()
+  const clean = sanitizeConfig(input.config)
+  const profile = sanitizeProfile(input.profile)
+  const { rows } = await query<BrandRow>(
+    `INSERT INTO brands (slug, owner_id, name, config, profile, brand_md, updated_at)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, NOW())
+     ON CONFLICT (slug) DO UPDATE
+       SET name = EXCLUDED.name,
+           config = EXCLUDED.config,
+           profile = EXCLUDED.profile,
+           brand_md = EXCLUDED.brand_md,
+           updated_at = NOW()
+     RETURNING id, slug, owner_id, name, config, profile, brand_md`,
+    [slug.toLowerCase(), fallbackOwnerId, input.name ?? null, JSON.stringify(clean),
+     JSON.stringify(profile), input.brandMd ?? null],
+  )
+  await cacheSet(cacheKey(slug), rowToBrand(rows[0]), CACHE_TTL_SECONDS)
+  return rowToBrand(rows[0])
+}
+
+/**
+ * Claim a brand for `ownerId`: upsert the brand and set its owner to the
+ * claimant (transferring it if a placeholder row already exists). Used by the
+ * "claim your brand" flow. Config/name only overwrite when provided.
+ */
+export async function claimBrandForOwner(
+  slug: string,
+  ownerId: string,
+  input: { name?: string | null; config?: BrandConfig },
+): Promise<Brand> {
+  await initDB()
+  const clean = sanitizeConfig(input.config)
+  const { rows } = await query<BrandRow>(
+    `INSERT INTO brands (slug, owner_id, name, config, profile, brand_md, updated_at)
+       VALUES ($1, $2, $3, $4::jsonb, '{}'::jsonb, NULL, NOW())
+     ON CONFLICT (slug) DO UPDATE
+       SET owner_id = EXCLUDED.owner_id,
+           name = COALESCE(EXCLUDED.name, brands.name),
+           config = CASE WHEN EXCLUDED.config = '{}'::jsonb THEN brands.config ELSE EXCLUDED.config END,
+           updated_at = NOW()
+     RETURNING id, slug, owner_id, name, config, profile, brand_md`,
+    [slug.toLowerCase(), ownerId, input.name ?? null, JSON.stringify(clean)],
+  )
+  await cacheSet(cacheKey(slug), rowToBrand(rows[0]), CACHE_TTL_SECONDS)
+  return rowToBrand(rows[0])
+}
+
+/**
+ * Rename a brand's slug (admin only). Moves the brands row; brand_assets follow
+ * via the brand_id FK (no data move needed). Busts both slug caches. Throws if
+ * the target slug is taken. Returns the renamed brand.
+ */
+export async function adminRenameBrand(fromSlug: string, toSlug: string): Promise<Brand> {
+  await initDB()
+  if (!isValidBrandSlug(toSlug)) throw new Error("invalid target slug")
+  const from = fromSlug.toLowerCase()
+  const to = toSlug.toLowerCase()
+  if (from === to) {
+    const b = await getAnyBrand(from)
+    if (!b) throw new Error("brand not found")
+    return b
+  }
+  const existing = await getAnyBrand(to)
+  if (existing) throw new Error("target slug is taken")
+  const { rows } = await query<BrandRow>(
+    `UPDATE brands SET slug = $2, updated_at = NOW() WHERE slug = $1
+     RETURNING id, slug, owner_id, name, config, profile, brand_md`,
+    [from, to],
+  )
+  if (!rows[0]) throw new Error("brand not found")
+  // Bust caches for both slugs (old becomes a miss, new gets the fresh brand).
+  await cacheSet(cacheKey(from), MISS, CACHE_TTL_SECONDS)
+  await cacheSet(cacheKey(to), rowToBrand(rows[0]), CACHE_TTL_SECONDS)
+  return rowToBrand(rows[0])
+}
+
+/** Delete any brand by slug regardless of owner (admin only). */
+export async function adminDeleteBrand(slug: string): Promise<boolean> {
+  await initDB()
+  const { rowCount } = await query(
+    `DELETE FROM brands WHERE slug = $1`,
+    [slug.toLowerCase()],
+  )
+  await cacheSet(cacheKey(slug), MISS, CACHE_TTL_SECONDS)
+  return (rowCount ?? 0) > 0
+}
+
 // ── Hosted brand assets ──────────────────────────────────────────────────────
 
-export type BrandImageKind = "logo-light" | "logo-dark" | "mark" | "wordmark"
+export type BrandImageKind = "logo-light" | "logo-dark" | "mark" | "mark-alt" | "wordmark"
 export type BrandFontKind = "font-sans" | "font-mono" | "font-heading"
 export type BrandAssetKind = BrandImageKind | BrandFontKind
 
-export const BRAND_IMAGE_KINDS: BrandImageKind[] = ["logo-light", "logo-dark", "mark", "wordmark"]
+export const BRAND_IMAGE_KINDS: BrandImageKind[] = ["logo-light", "logo-dark", "mark", "mark-alt", "wordmark"]
 export const BRAND_FONT_KINDS: BrandFontKind[] = ["font-sans", "font-mono", "font-heading"]
 
 export interface BrandAsset {
@@ -276,6 +422,26 @@ const assetCacheKey = (slug: string, kind: string) => `brand-asset:${slug}:${kin
  * rebrand propagates within minutes. Returns null when the brand or asset is
  * missing. Fail-open on DB error.
  */
+/**
+ * List the asset kinds a brand has stored (fonts + logos), with file names.
+ * Used by the editor to show which slots are already filled. Not cached — it's
+ * a management-side read behind auth, not a hot engine path.
+ */
+export async function listBrandAssetKinds(
+  brandId: number,
+): Promise<{ kind: string; fileName: string | null }[]> {
+  try {
+    await initDB()
+    const { rows } = await query<{ kind: string; file_name: string | null }>(
+      `SELECT kind, file_name FROM brand_assets WHERE brand_id = $1`,
+      [brandId],
+    )
+    return rows.map((r) => ({ kind: r.kind, fileName: r.file_name }))
+  } catch {
+    return []
+  }
+}
+
 export async function getBrandAsset(
   slug: string,
   kind: BrandAssetKind,
@@ -331,16 +497,48 @@ export async function putBrandAsset(
   fileName?: string | null,
 ): Promise<void> {
   await initDB()
-  await query(
+  const { rows } = await query<{ slug: string }>(
     `INSERT INTO brand_assets (brand_id, kind, content_type, file_name, data, updated_at)
        VALUES ($1, $2, $3, $4, $5, NOW())
      ON CONFLICT (brand_id, kind) DO UPDATE
        SET content_type = EXCLUDED.content_type, file_name = EXCLUDED.file_name,
-           data = EXCLUDED.data, updated_at = NOW()`,
+           data = EXCLUDED.data, updated_at = NOW()
+     RETURNING (SELECT slug FROM brands WHERE id = $1) AS slug`,
     [brandId, kind, contentType, fileName ?? null, data],
   )
-  // The per-asset cache TTL (60s) bounds how long a stale copy can serve after
-  // a re-upload; no explicit bust needed (and we avoid caching a false MISS).
+  // Refresh the per-asset cache with the fresh bytes. Critical because a prior
+  // read (e.g. an editor preview <img> before first upload) may have cached a
+  // MISS for up to the TTL, which would otherwise 404 the just-uploaded asset.
+  const slug = rows[0]?.slug
+  if (slug) {
+    await cacheSet(
+      assetCacheKey(slug, kind),
+      { contentType, base64: data.toString("base64"), fileName: fileName ?? null },
+      CACHE_TTL_SECONDS,
+    )
+  }
+}
+
+/**
+ * Delete a brand asset (a logo/mark or font). Busts the per-asset cache with a
+ * MISS so the hosted URL 404s immediately instead of serving a stale copy.
+ * Returns true when a row was removed.
+ */
+export async function deleteBrandAsset(
+  brandId: number,
+  kind: BrandAssetKind,
+): Promise<boolean> {
+  await initDB()
+  const { rows } = await query<{ slug: string }>(
+    `DELETE FROM brand_assets a
+       USING brands b
+      WHERE a.brand_id = b.id AND a.brand_id = $1 AND a.kind = $2
+      RETURNING b.slug AS slug`,
+    [brandId, kind],
+  )
+  const slug = rows[0]?.slug
+  if (slug) await cacheSet(assetCacheKey(slug, kind), MISS, CACHE_TTL_SECONDS)
+  return rows.length > 0
 }
 
 /** Look up a brand owned by an org (for asset-upload authorization). */

@@ -24,6 +24,8 @@ const ASSET_MAP: Record<string, { kind: BrandAssetKind }> = {
   "logo-dark.png": { kind: "logo-dark" },
   "mark.svg": { kind: "mark" },
   "mark.png": { kind: "mark" },
+  "mark-alt.svg": { kind: "mark-alt" },
+  "mark-alt.png": { kind: "mark-alt" },
   "wordmark.svg": { kind: "wordmark" },
   "wordmark.png": { kind: "wordmark" },
 }

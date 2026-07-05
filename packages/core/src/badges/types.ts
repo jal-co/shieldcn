@@ -105,6 +105,9 @@ export interface BadgeConfig {
   hasThemeOverride?: boolean
   /** Brand color for "branded" variant (hex without #). */
   brandColor?: string
+  /** Secondary brand color (hex without #). Used as the background for the
+   *  "secondary" variant so a brand's second palette color drives it. */
+  secondaryColor?: string
   /** Font family for badge text. */
   font?: "inter" | "geist" | "geist-mono" | "jetbrains-mono" | "fira-code" | "roboto" | "space-grotesk"
   /**
