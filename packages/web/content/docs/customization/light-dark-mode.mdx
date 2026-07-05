@@ -38,14 +38,14 @@ badge with an explicit color looks identical in both modes, so wrapping it in
 `<picture>` does nothing.
 
 | Variant | Adapts to mode? |
-|---------|-----------------|
-| `default` (no custom color) | ✅ Yes |
-| `secondary` | ✅ Yes |
-| `outline` | ✅ Yes |
-| `ghost` | ✅ Yes |
-| `branded` | ✅ Yes |
-| `destructive` | ❌ No (color-locked) |
-| any variant with `?color=...` | ❌ No (color-locked) |
+|---------|:---:|
+| `default` (no custom color) | <Yes /> |
+| `secondary` | <Yes /> |
+| `outline` | <Yes /> |
+| `ghost` | <Yes /> |
+| `branded` | <Yes /> |
+| `destructive` | <No note="color-locked" /> |
+| any variant with `?color=...` | <No note="color-locked" /> |
 
 If you're using a theme-derived variant, the `<picture>` pattern is worth it. If
 your badge has a fixed color, just leave it as a plain `![alt](url)`.

@@ -21,8 +21,9 @@ export default function PricingPage() {
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Pricing</h1>
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
               Public badges are free forever — that&apos;s the part that never
-              changes. Plus adds identity and control around your badges, and
-              keeps shieldcn sustainable. And shieldcn is, and always will be,{" "}
+              changes. Plus is mainly a way to support the project and keep it
+              independent; it happens to unlock identity and control around your
+              badges as a thank-you. And shieldcn is, and always will be,{" "}
               <Link href="/docs/self-hosting" className="underline underline-offset-4 hover:text-foreground">
                 self-hostable
               </Link>{" "}

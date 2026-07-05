@@ -8,6 +8,7 @@ import { CodeLine } from "@/components/code-line"
 import { ApiRefTable } from "@/components/api-ref-table"
 import { InstallBlock } from "@/components/install-block"
 import { InlineHint } from "@/components/shadcncraft/pro-application/inline-hint"
+import { Yes, No } from "@/components/matrix-mark"
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -33,6 +34,10 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     ApiRefTable,
     InstallBlock,
     InlineHint,
+
+    // Capability / compatibility matrix marks (icons, not emojis)
+    Yes,
+    No,
   }
 }
 

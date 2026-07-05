@@ -40,9 +40,9 @@ export const TIERS: Tier[] = [
     name: "Plus",
     price: "$10",
     cadence: "/mo",
-    tagline: "For maintainers who live in their READMEs.",
+    tagline: "Support shieldcn and keep it free for everyone — with a few perks for you.",
     featured: true,
-    cta: { label: "Get Plus", checkout: "plus" },
+    cta: { label: "Support with Plus", checkout: "plus" },
     features: [
       "Everything in Free",
       "Save 75 READMEs (sync across devices)",

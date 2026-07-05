@@ -35,7 +35,7 @@ const TIER_META: Record<Tier, { name: string; price: string; icon: typeof Sparkl
     name: "Plus",
     price: "$10/mo",
     icon: Sparkles,
-    blurb: "For maintainers who live in their READMEs — saved documents, AI, mass migration, and a managed brand.",
+    blurb: "Plus keeps shieldcn independent and free for everyone. It's the same open project — you're chipping in to sustain it, and you get saved documents, AI, mass migration, and a managed brand as a thank-you.",
   },
 }
 
