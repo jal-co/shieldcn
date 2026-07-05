@@ -21,21 +21,6 @@ interface Category {
   brand?: boolean
 }
 
-function makeLogoBadge(slug: string, title: string, hex: string, extra = ""): ShowcaseBadge {
-  // Use relative luminance for better contrast detection
-  const r = parseInt(hex.substring(0, 2), 16)
-  const g = parseInt(hex.substring(2, 4), 16)
-  const b = parseInt(hex.substring(4, 6), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  const logoColor = luminance > 0.6 ? "000" : "fff"
-  return {
-    title,
-    subtitle: "brand badge",
-    badgePath: `/badge/${encodeURIComponent(title)}-${hex}.svg?logo=${slug}&logoColor=${logoColor}${extra}`,
-    description: `Branded ${title} badge using Simple Icons. Best for stack rows, integration lists, and polished README sections.`,
-  }
-}
-
 function dynamicBadge(
   title: string,
   subtitle: string,
@@ -245,49 +230,11 @@ export const categories: Category[] = [
     ],
   },
   {
-    name: "Databases",
-    brand: true,
-    description: "Database and ORM brand badges for architecture sections and stack overviews.",
-    icons: [
-      makeLogoBadge("postgresql", "PostgreSQL", "4169E1", "&variant=branded"),
-      makeLogoBadge("mongodb", "MongoDB", "47A248", "&variant=branded"),
-      makeLogoBadge("redis", "Redis", "FF4438", "&variant=branded"),
-      makeLogoBadge("sqlite", "SQLite", "003B57", "&variant=branded"),
-      makeLogoBadge("mysql", "MySQL", "4479A1", "&variant=branded"),
-      makeLogoBadge("drizzle", "Drizzle", "C5F74F", "&variant=branded"),
-      makeLogoBadge("prisma", "Prisma", "2D3748", "&variant=branded"),
-      makeLogoBadge("supabase", "Supabase", "3FCF8E", "&variant=branded"),
-    ],
-  },
-  {
     name: "Package Managers",
     brand: true,
     description: "Show which package manager your project uses.",
     icons: [
-      makeLogoBadge("pnpm", "pnpm", "F69220", "&variant=branded"),
-      makeLogoBadge("bun", "Bun", "000000", "&variant=branded"),
-      makeLogoBadge("yarn", "Yarn", "2C8EBB", "&variant=branded"),
-      makeLogoBadge("npm", "npm", "CB3837", "&variant=branded"),
-      makeLogoBadge("uv", "uv", "DE5FE9", "&variant=branded"),
       dynamicBadge("Cargo", "brand badge", "/badge/Cargo-E64B11.svg?logo=rust&logoColor=fff&variant=branded", "Branded Cargo badge using the Rust logo. Best for stack rows and Rust project READMEs."),
-    ],
-  },
-  {
-    name: "Frameworks",
-    brand: true,
-    description: "Framework brand badges for tech stack sections — frontend, backend, and full-stack.",
-    icons: [
-      makeLogoBadge("react", "React", "61DAFB", "&variant=branded"),
-      makeLogoBadge("nextdotjs", "Next.js", "000000", "&variant=branded"),
-      makeLogoBadge("astro", "Astro", "BC52EE", "&variant=branded"),
-      makeLogoBadge("svelte", "Svelte", "FF3E00", "&variant=branded"),
-      makeLogoBadge("nuxt", "Nuxt", "00DC82", "&variant=branded"),
-      makeLogoBadge("remix", "Remix", "000000", "&variant=branded"),
-      makeLogoBadge("hono", "Hono", "E36002", "&variant=branded"),
-      makeLogoBadge("fastify", "Fastify", "000000", "&variant=branded"),
-      makeLogoBadge("django", "Django", "092E20", "&variant=branded"),
-      makeLogoBadge("fastapi", "FastAPI", "009688", "&variant=branded"),
-      makeLogoBadge("springboot", "Spring Boot", "6DB33F", "&variant=branded"),
     ],
   },
   {
@@ -331,13 +278,6 @@ export const categories: Category[] = [
     icons: [
       dynamicBadge("GitHub CI", "workflow status", "/github/ci/vercel/next.js.svg?variant=secondary", "Default recommendation for CI badges.", "/docs/badges/github"),
       dynamicBadge("Build Passing", "status", "/badge/build-passing-brightgreen.svg?theme=green", "Bright status badge for quality rows."),
-      makeLogoBadge("vitest", "Vitest", "6E9F18", "&variant=branded"),
-      makeLogoBadge("playwright", "Playwright", "2EAD33", "&variant=branded"),
-      makeLogoBadge("jest", "Jest", "C21325", "&variant=branded"),
-      makeLogoBadge("cypress", "Cypress", "69D3A7", "&variant=branded"),
-      makeLogoBadge("gradle", "Gradle", "02303A", "&variant=branded"),
-      makeLogoBadge("cmake", "CMake", "064F8C", "&variant=branded"),
-      makeLogoBadge("apachemaven", "Maven", "C71A36", "&variant=branded"),
       dynamicBadge("Compiled using CMake", "build system", "/badge/Compiled%20using-CMake-064F8C.svg?logo=cmake&logoColor=fff", "Build system badge indicating a project is compiled using CMake."),
       dynamicBadge("Compiled using Gradle", "build system", "/badge/Compiled%20using-Gradle-02303A.svg?logo=gradle&logoColor=fff", "Build system badge indicating a project is compiled using Gradle."),
       dynamicBadge("Compiled using Maven", "build system", "/badge/Compiled%20using-Maven-C71A36.svg?logo=apachemaven&logoColor=fff", "Build system badge indicating a project is compiled using Maven."),
@@ -348,25 +288,6 @@ export const categories: Category[] = [
     brand: true,
     description: "Logo-first badges for tech stack sections and integration grids.",
     icons: [
-      makeLogoBadge("typescript", "TypeScript", "3178C6", "&variant=branded"),
-      makeLogoBadge("react", "React", "61DAFB", "&variant=branded"),
-      makeLogoBadge("nextdotjs", "Next.js", "000000", "&variant=branded"),
-      makeLogoBadge("tailwindcss", "Tailwind CSS", "06B6D4", "&variant=branded"),
-      makeLogoBadge("docker", "Docker", "2496ED", "&variant=branded"),
-      makeLogoBadge("postgresql", "PostgreSQL", "4169E1", "&variant=branded"),
-      makeLogoBadge("vercel", "Vercel", "000000", "&variant=branded"),
-      makeLogoBadge("supabase", "Supabase", "3FCF8E", "&variant=branded"),
-      makeLogoBadge("rust", "Rust", "000000", "&variant=branded"),
-      makeLogoBadge("go", "Go", "00ADD8", "&variant=branded"),
-      makeLogoBadge("python", "Python", "3776AB", "&variant=branded"),
-      makeLogoBadge("svelte", "Svelte", "FF3E00", "&variant=branded"),
-      makeLogoBadge("vuedotjs", "Vue.js", "4FC08D", "&variant=branded"),
-      makeLogoBadge("graphql", "GraphQL", "E10098", "&variant=branded"),
-      makeLogoBadge("stripe", "Stripe", "635BFF", "&variant=branded"),
-      makeLogoBadge("turborepo", "Turborepo", "FF1E56", "&variant=branded"),
-      makeLogoBadge("biome", "Biome", "60A5FA", "&variant=branded"),
-      makeLogoBadge("eslint", "ESLint", "4B32C3", "&variant=branded"),
-      makeLogoBadge("cplusplus", "C++", "00599C", "&variant=branded"),
       dynamicBadge("Java", "brand badge", "/badge/Java-ED8B00.svg?logo=ri:FaJava&logoColor=fff&variant=branded", "Branded Java badge using the Java icon. Best for stack rows and JVM project READMEs."),
     ],
   },
@@ -389,11 +310,6 @@ export const categories: Category[] = [
       dynamicBadge("Powered by Ollama", "ai badge", "/badge/Powered%20by-Ollama-111111.svg?logo=ollama&variant=secondary", "Good for self-hosted or local-model experiences."),
       dynamicBadge("Fine Tuned", "ai badge", "/badge/fine-tuned-FF6F00.svg?variant=secondary", "Badge for fine-tuned model projects."),
       dynamicBadge("Tool Use Ready", "ai badge", "/badge/tool%20use-ready-D97757.svg?logo=anthropic&variant=outline", "Badge for projects that support AI tool use / function calling."),
-      makeLogoBadge("anthropic", "Anthropic", "D97757", "&variant=secondary"),
-      makeLogoBadge("openai", "OpenAI", "412991", "&variant=secondary"),
-      makeLogoBadge("huggingface", "Hugging Face", "FFD21E", "&variant=secondary"),
-      makeLogoBadge("googlegemini", "Google Gemini", "8E75B2", "&variant=secondary"),
-      makeLogoBadge("langchain", "LangChain", "7FC8FF", "&variant=secondary"),
     ],
   },
 
