@@ -120,9 +120,15 @@ interface LogoPickerProps {
   onChange: (value: string) => void
   /** Accessible name for the trigger button. @default "Logo icon" */
   ariaLabel?: string
+  /**
+   * Context-specific options prepended to the picker (e.g. a brand's uploaded
+   * marks as `brand` / `brand-alt`). Shown in a leading "Brand" group and used
+   * to resolve the trigger label for those values.
+   */
+  extraOptions?: { value: string; label: string }[]
 }
 
-export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPickerProps) {
+export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOptions = [] }: LogoPickerProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
   const [sourceFilter, setSourceFilter] = React.useState("all")
@@ -176,6 +182,8 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPic
   const displayLabel = React.useMemo(() => {
     if (!value) return "Auto"
     if (value === "false") return "None"
+    const extra = extraOptions.find(o => o.value === value)
+    if (extra) return extra.label
     const popular = POPULAR_ICONS.find(o => o.value === value)
     if (popular) return popular.label
     // Check if it's a lu: prefix
@@ -187,7 +195,7 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPic
       if (icon) return icon.title
     }
     return value
-  }, [value, allIcons])
+  }, [value, allIcons, extraOptions])
 
   // Search results
   const searchResults = React.useMemo(() => {
@@ -278,16 +286,31 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPic
     }
 
     if (showingPopular) {
-      return Array.from(popularGroups.entries()).map(([group, opts]) => ({
-        heading: group,
-        items: opts.map(opt => ({
-          value: opt.value,
-          commandValue: opt.value || opt.label,
-          label: opt.label,
-          tag: opt.source || undefined,
-          tagClassName: SOURCE_COLORS[opt.source] || "bg-muted text-muted-foreground",
+      const brandSection: SearchablePickerSection[] = extraOptions.length
+        ? [{
+            heading: "Brand",
+            items: extraOptions.map(opt => ({
+              value: opt.value,
+              commandValue: opt.value,
+              label: opt.label,
+              tag: "Brand",
+              tagClassName: SOURCE_COLORS["shieldcn"] || "bg-muted text-muted-foreground",
+            })),
+          }]
+        : []
+      return [
+        ...brandSection,
+        ...Array.from(popularGroups.entries()).map(([group, opts]) => ({
+          heading: group,
+          items: opts.map(opt => ({
+            value: opt.value,
+            commandValue: opt.value || opt.label,
+            label: opt.label,
+            tag: opt.source || undefined,
+            tagClassName: SOURCE_COLORS[opt.source] || "bg-muted text-muted-foreground",
+          })),
         })),
-      }))
+      ]
     }
 
     return []
@@ -300,6 +323,7 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon" }: LogoPic
     showingPopular,
     showingSearch,
     sourceFilter,
+    extraOptions,
   ])
 
   const emptyContent = showingSearch && !loading ? (

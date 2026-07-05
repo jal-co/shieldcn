@@ -555,19 +555,28 @@ export function BrandEditor({
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <Label>Logo icon</Label>
           <LogoPicker
-            // A hosted mark (logo=brand / data URI) is managed via the logo
-            // slots below; this field picks a SimpleIcons/React-Icons glyph.
+            // Picks a SimpleIcons/React-Icons glyph, OR the brand's own uploaded
+            // mark(s) surfaced as `brand` / `brand-alt` (extraOptions). Hosted
+            // data-URI logos are managed via the logo slots below.
             value={
-              !config.logo || config.logo.startsWith("data:") || config.logo.startsWith("brand")
+              !config.logo || config.logo.startsWith("data:")
                 ? ""
                 : config.logo
             }
             onChange={(v) => setConfig((c) => ({ ...c, logo: v || undefined }))}
+            extraOptions={[
+              ...(storedAssets["mark"] != null || logos.markUrl
+                ? [{ value: "brand", label: "Your mark" }]
+                : []),
+              ...(storedAssets["mark-alt"] != null
+                ? [{ value: "brand-alt", label: "Your alt mark" }]
+                : []),
+            ]}
             ariaLabel="Brand logo icon"
           />
           <p className="text-xs text-muted-foreground">
-            Pick an icon from Simple Icons / React Icons. Leave on Auto to use
-            your uploaded mark below (if any), else the provider default.
+            Pick a Simple Icons / React Icons glyph, or your uploaded mark. Leave
+            on Auto for your mark (if any), else the provider default.
           </p>
         </div>
       </section>
