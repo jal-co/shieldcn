@@ -15,7 +15,7 @@ export default function SignUpPage() {
     <SiteShell>
       <main className="flex min-w-0 flex-1 items-center justify-center px-6 py-20">
         <Suspense fallback={null}>
-          <AuthForm mode="sign-up" callbackURL="/welcome" />
+          <AuthForm mode="sign-up" callbackURL="/dashboard" />
         </Suspense>
       </main>
     </SiteShell>

@@ -79,10 +79,22 @@ export default function MigratePage() {
             {configured ? (
               <MigrateClient />
             ) : (
-              <div className="rounded-lg border border-border bg-muted/30 px-6 py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  The migration tool is not yet configured. Check back soon.
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-10 text-center">
+                <div className="flex size-11 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground">
+                  <ArrowRightLeft className="size-5" />
+                </div>
+                <h3 className="text-base font-semibold">Migration isn&apos;t enabled here</h3>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  Mass migration opens PRs on your repos through the shieldcn GitHub App,
+                  which requires the app credentials to be configured on this deployment.
+                  It&apos;s live on{" "}
+                  <Link href="https://shieldcn.dev/migrate" className="font-medium text-foreground underline underline-offset-4">
+                    shieldcn.dev/migrate
+                  </Link>.
                 </p>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/docs">Read the migration guide</Link>
+                </Button>
               </div>
             )}
           </div>

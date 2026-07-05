@@ -19,17 +19,25 @@ import {
   type ShowcaseBadge,
 } from "@/lib/showcase-data"
 
-type ShowcaseCategory = (typeof categories)[number]
+interface ShowcaseCategory {
+  name: string
+  description: string
+  icons: ShowcaseBadge[]
+  brand?: boolean
+}
 type ShowcaseItem =
   | { kind: "badge"; badge: ShowcaseBadge; weight: number }
   | { kind: "group"; group: GroupShowcaseItem; weight: number }
 
-const displayCategories = combineCategories(categories)
-const categoryNames = ["All", "Groups", ...displayCategories.map((category) => category.name)]
-const totalIconCount = uniqueBadges([
-  ...featuredBadges,
-  ...displayCategories.flatMap((category) => category.icons),
-]).length + groupShowcaseItems.length
+/**
+ * Working category set. Brand-owned categories (both the static logo lists and
+ * the dynamic per-brand showcase badges) hide behind the admin toggle.
+ */
+function displayCategoriesFor(showBrand: boolean, brandCategories: ShowcaseCategory[] = []): ShowcaseCategory[] {
+  const base = showBrand ? categories : categories.filter((c) => !c.brand)
+  const source = showBrand ? [...brandCategories, ...base] : base
+  return combineCategories(source)
+}
 
 const subscribeToHydration = () => () => {}
 const getHydratedSnapshot = () => true
@@ -73,7 +81,7 @@ function combineCategories(source: ShowcaseCategory[]) {
   }, [])
 }
 
-function allShowcaseItems() {
+function allShowcaseItems(displayCategories: ShowcaseCategory[]) {
   const badges = badgeItems([
     ...featuredBadges,
     ...displayCategories.flatMap((category) => category.icons),
@@ -91,18 +99,29 @@ function allShowcaseItems() {
   ]
 }
 
-const ALL_ITEMS = allShowcaseItems()
 const AUTO_CLOSE_THRESHOLD = 10
 
-function categoryCount(name: string) {
-  if (name === "All") return totalIconCount
+function totalIconCountFor(displayCategories: ShowcaseCategory[]) {
+  return uniqueBadges([
+    ...featuredBadges,
+    ...displayCategories.flatMap((category) => category.icons),
+  ]).length + groupShowcaseItems.length
+}
+
+function categoryCount(displayCategories: ShowcaseCategory[], name: string) {
+  if (name === "All") return totalIconCountFor(displayCategories)
   if (name === "Groups") return groupShowcaseItems.length
   return displayCategories.find((category) => category.name === name)?.icons.length ?? 0
 }
 
-function computeItems(category: string, query: string): ShowcaseItem[] {
+function computeItems(
+  displayCategories: ShowcaseCategory[],
+  allItems: ShowcaseItem[],
+  category: string,
+  query: string,
+): ShowcaseItem[] {
   const base = category === "All"
-    ? ALL_ITEMS
+    ? allItems
     : category === "Groups"
       ? groupItems()
       : badgeItems(displayCategories.find((c) => c.name === category)?.icons ?? [])
@@ -125,9 +144,10 @@ function groupMatches(group: GroupShowcaseItem, q: string) {
   return [group.title, group.description].some((value) => value.toLowerCase().includes(q))
 }
 
-function buildCategoryOptions(q: string): { name: string; count: number }[] {
+function buildCategoryOptions(displayCategories: ShowcaseCategory[], q: string): { name: string; count: number }[] {
+  const categoryNames = ["All", "Groups", ...displayCategories.map((category) => category.name)]
   if (!q) {
-    return categoryNames.map((name) => ({ name, count: categoryCount(name) }))
+    return categoryNames.map((name) => ({ name, count: categoryCount(displayCategories, name) }))
   }
 
   const groupCount = groupShowcaseItems.filter((group) => groupMatches(group, q)).length
@@ -150,18 +170,31 @@ function buildCategoryOptions(q: string): { name: string; count: number }[] {
   return options
 }
 
-export default function ShowcasePage() {
+export default function ShowcasePage({
+  showBrandBadges = true,
+  brandCategories = [],
+}: {
+  showBrandBadges?: boolean
+  brandCategories?: ShowcaseCategory[]
+}) {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
 
+  const displayCategories = useMemo(
+    () => displayCategoriesFor(showBrandBadges, brandCategories),
+    [showBrandBadges, brandCategories],
+  )
+  const allItems = useMemo(() => allShowcaseItems(displayCategories), [displayCategories])
+  const totalIconCount = useMemo(() => totalIconCountFor(displayCategories), [displayCategories])
+
   const filteredItems = useMemo(
-    () => computeItems(activeCategory, searchQuery),
-    [activeCategory, searchQuery]
+    () => computeItems(displayCategories, allItems, activeCategory, searchQuery),
+    [displayCategories, allItems, activeCategory, searchQuery]
   )
 
   const countFor = useCallback(
-    (query: string) => computeItems(activeCategory, query).length,
-    [activeCategory]
+    (query: string) => computeItems(displayCategories, allItems, activeCategory, query).length,
+    [displayCategories, allItems, activeCategory]
   )
 
   return (
@@ -184,6 +217,7 @@ export default function ShowcasePage() {
             <ShowcaseSubmitDialog />
           </div>
           <CategorySearch
+            displayCategories={displayCategories}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             activeCategory={activeCategory}
@@ -441,12 +475,14 @@ function ChartShowcase() {
 }
 
 function CategorySearch({
+  displayCategories,
   searchQuery,
   setSearchQuery,
   activeCategory,
   setActiveCategory,
   countFor,
 }: {
+  displayCategories: ShowcaseCategory[]
   searchQuery: string
   setSearchQuery: (query: string) => void
   activeCategory: string
@@ -477,7 +513,7 @@ function CategorySearch({
   }, [])
 
   const q = searchQuery.trim().toLowerCase()
-  const options = buildCategoryOptions(q)
+  const options = buildCategoryOptions(displayCategories, q)
   const currentIndex = Math.min(activeIndex, options.length - 1)
 
   function scrollOptionIntoView(index: number) {

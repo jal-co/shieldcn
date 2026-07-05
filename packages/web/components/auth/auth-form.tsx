@@ -61,6 +61,15 @@ export function AuthForm({
   const resetOk = searchParams.get("reset") === "success"
   const isSignUp = mode === "sign-up"
 
+  // A `?next=` param (used by claim links, gated CTAs) overrides the default
+  // callback, so the user returns exactly where they came from. Only same-site
+  // relative paths are honored, never an absolute URL (open-redirect guard).
+  const nextParam = searchParams.get("next")
+  const effectiveCallback =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : callbackURL
+
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -107,15 +116,15 @@ export function AuthForm({
     try {
       const opts = fetchOptions()
       const res = isSignUp
-        ? await authClient.signUp.email({ name, email, password, callbackURL, fetchOptions: opts })
-        : await authClient.signIn.email({ email, password, callbackURL, fetchOptions: opts })
+        ? await authClient.signUp.email({ name, email, password, callbackURL: effectiveCallback, fetchOptions: opts })
+        : await authClient.signIn.email({ email, password, callbackURL: effectiveCallback, fetchOptions: opts })
       if (res.error) {
         setError(res.error.message ?? "Something went wrong")
         resetCaptcha() // token is single-use — re-challenge so retry works
         return
       }
       onSuccess?.()
-      router.push(callbackURL)
+      router.push(effectiveCallback)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -129,7 +138,7 @@ export function AuthForm({
     setError(null)
     setSocial(provider)
     try {
-      await authClient.signIn.social({ provider, callbackURL })
+      await authClient.signIn.social({ provider, callbackURL: effectiveCallback })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
       setSocial(null)

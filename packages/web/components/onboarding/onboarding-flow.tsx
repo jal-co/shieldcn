@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { CheckoutButton } from "@/components/billing-buttons"
 import { cn } from "@/lib/utils"
 import { useMe, type Plan } from "@/lib/use-me"
+import { progressKey, markDismissed } from "@/lib/onboarding"
 
 interface Step {
   id: string
@@ -81,11 +82,14 @@ const ALL_STEPS: Step[] = [
   },
 ]
 
-function storageKey(userId: string | null) {
-  return `shieldcn:onboarding:${userId ?? "anon"}`
-}
 
-export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
+export function OnboardingFlow({
+  compact = false,
+  hideWhenDone = false,
+}: {
+  compact?: boolean
+  hideWhenDone?: boolean
+}) {
   const { me } = useMe()
   const plan: Plan = me.plan
   const userId = me.userId ?? null
@@ -103,7 +107,7 @@ export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
     // user change — not a render-cascade concern.
     /* eslint-disable react-hooks/set-state-in-effect */
     try {
-      const raw = localStorage.getItem(storageKey(userId))
+      const raw = localStorage.getItem(progressKey(userId))
       const ids: string[] = raw ? JSON.parse(raw) : []
       setDone(new Set(ids))
     } catch {
@@ -119,7 +123,7 @@ export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
         const next = new Set(prev)
         next.add(id)
         try {
-          localStorage.setItem(storageKey(userId), JSON.stringify([...next]))
+          localStorage.setItem(progressKey(userId), JSON.stringify([...next]))
         } catch {
           /* ignore */
         }
@@ -132,9 +136,16 @@ export function OnboardingFlow({ compact = false }: { compact?: boolean }) {
   const completed = steps.filter((s) => done.has(s.id)).length
   const total = steps.length
   const activeIdx = steps.findIndex((s) => !done.has(s.id))
-  const allDone = completed === total
+  const allDone = total > 0 && completed === total
+
+  // Persist a durable "onboarding finished" flag so the /welcome gate and the
+  // dashboard know not to nag on the next visit.
+  useEffect(() => {
+    if (hydrated && allDone) markDismissed(userId)
+  }, [hydrated, allDone, userId])
 
   if (!hydrated) return null
+  if (allDone && hideWhenDone) return null
 
   return (
     <div className={cn("flex flex-col gap-4", compact ? "" : "gap-6")}>

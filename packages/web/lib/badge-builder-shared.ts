@@ -166,6 +166,9 @@ export interface BuilderState {
   valueColor: string
   labelTextColor: string
   labelOpacity: string
+  /** Optional brand slug — overlays colors, font, theme, and logo from a stored
+   *  brand server-side. Explicit builder params still win (query > brand). */
+  brand: string
   /** Target URL when the badge is clicked (wraps in a link) */
   linkUrl: string
 }
@@ -188,6 +191,7 @@ export const BUILDER_DEFAULTS: BuilderState = {
   valueColor: "",
   labelTextColor: "",
   labelOpacity: "",
+  brand: "",
   linkUrl: "",
 }
 
@@ -221,6 +225,9 @@ export function buildBadgeUrl(s: BuilderState, baseUrl: string): string {
   if (s.labelTextColor) p.set("labelTextColor", s.labelTextColor)
   if (s.labelOpacity) p.set("labelOpacity", s.labelOpacity)
   if (s.gradient) p.set("gradient", s.gradient)
+  // A brand overlays colors/theme/font/logo server-side; the explicit params
+  // above still win (precedence: query param > brand > default).
+  if (s.brand.trim()) p.set("brand", s.brand.trim())
 
   const q = p.toString()
   return `${baseUrl}${path}${q ? `?${q}` : ""}`

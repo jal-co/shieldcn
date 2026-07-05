@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { SiteShell } from "@/components/site-shell"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
+import { WelcomeGate } from "@/components/onboarding/welcome-gate"
 import { pageMetadata } from "@/lib/metadata"
 import { getSession } from "@/lib/auth"
 
@@ -22,6 +23,7 @@ export default async function WelcomePage() {
 
   return (
     <SiteShell>
+      <WelcomeGate>
       <main className="min-w-0 flex-1">
         <div className="mx-auto flex max-w-xl flex-col gap-8 px-6 py-16 md:px-10">
           <div className="flex flex-col gap-2">
@@ -43,6 +45,7 @@ export default async function WelcomePage() {
           </div>
         </div>
       </main>
+      </WelcomeGate>
     </SiteShell>
   )
 }

@@ -105,6 +105,9 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
   // Plus: pick one of your brands to style the generated badges.
   const [brands, setBrands] = useState<{ slug: string; name: string | null }[]>([])
   const [aiBrand, setAiBrand] = useState("")
+  // Optional project links the model uses for badges + a Links section.
+  const [aiGithub, setAiGithub] = useState("")
+  const [aiWebsite, setAiWebsite] = useState("")
 
   // Baseline = the exact blocks/themeAware references at the last save or open.
   // Reference identity is cheap and exact: Studio makes a new array on every
@@ -304,7 +307,12 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
     try {
       const res = await fetch("/api/ai/readme", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary, brand: aiBrand || undefined }),
+        body: JSON.stringify({
+          summary,
+          brand: aiBrand || undefined,
+          githubUrl: aiGithub.trim() || undefined,
+          websiteUrl: aiWebsite.trim() || undefined,
+        }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -322,7 +330,7 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
     } finally {
       setAiBusy(false)
     }
-  }, [aiPrompt, aiBrand, getMarkdown, applyMarkdown])
+  }, [aiPrompt, aiBrand, aiGithub, aiWebsite, getMarkdown, applyMarkdown])
 
   const onSaveAsBrand = useCallback(() => {
     if (!gatePlus("Managed brands")) return
@@ -497,8 +505,10 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
           <DialogHeader>
             <DialogTitle>Generate a README with AI</DialogTitle>
             <DialogDescription>
-              Describe your project — name, what it does, install & usage. We&apos;ll draft
-              clean Markdown you can refine. Leave blank to use the current document as context.
+              Describe your project — name, what it does, install & usage. Add your GitHub
+              repo and website for accurate links. We&apos;ll draft clean Markdown with compact
+              XS badges plus star-history and contributor graphs. Leave the description blank
+              to use the current document as context.
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -507,6 +517,29 @@ export function StudioCloudMenu(props: StudioCloudMenuProps) {
             rows={6}
             placeholder="acme-cli — a fast task runner for monorepos. Install via npm i -g acme-cli. Run `acme run <task>`…"
           />
+          {/* Optional links — the model uses these for badges + a Links section. */}
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="ai-github" className="text-xs text-muted-foreground">GitHub repo</label>
+              <input
+                id="ai-github"
+                value={aiGithub}
+                onChange={(e) => setAiGithub(e.target.value)}
+                placeholder="github.com/owner/repo"
+                className="h-8 rounded-md border border-border bg-transparent px-2 text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="ai-website" className="text-xs text-muted-foreground">Website</label>
+              <input
+                id="ai-website"
+                value={aiWebsite}
+                onChange={(e) => setAiWebsite(e.target.value)}
+                placeholder="example.com"
+                className="h-8 rounded-md border border-border bg-transparent px-2 text-sm"
+              />
+            </div>
+          </div>
           {/* Plus: style the generated badges with one of your brands. */}
           {isPlus && brands.length > 0 && (
             <div className="flex items-center gap-2">

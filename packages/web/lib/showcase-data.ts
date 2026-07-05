@@ -17,6 +17,8 @@ interface Category {
   name: string
   description: string
   icons: ShowcaseBadge[]
+  /** True for logo/brand-badge collections that the admin showcase toggle hides. */
+  brand?: boolean
 }
 
 function makeLogoBadge(slug: string, title: string, hex: string, extra = ""): ShowcaseBadge {
@@ -230,6 +232,7 @@ export const categories: Category[] = [
   },
   {
     name: "Deploy & Hosting",
+    brand: true,
     description: "Platform badges for where your project is deployed or hosted.",
     icons: [
       dynamicBadge("Deployed on Vercel", "hosting", "/badge/Deployed%20on-Vercel-000000.svg?logo=vercel&logoColor=fff&variant=branded", "Vercel deployment badge — great for Next.js projects."),
@@ -243,6 +246,7 @@ export const categories: Category[] = [
   },
   {
     name: "Databases",
+    brand: true,
     description: "Database and ORM brand badges for architecture sections and stack overviews.",
     icons: [
       makeLogoBadge("postgresql", "PostgreSQL", "4169E1", "&variant=branded"),
@@ -257,6 +261,7 @@ export const categories: Category[] = [
   },
   {
     name: "Package Managers",
+    brand: true,
     description: "Show which package manager your project uses.",
     icons: [
       makeLogoBadge("pnpm", "pnpm", "F69220", "&variant=branded"),
@@ -269,6 +274,7 @@ export const categories: Category[] = [
   },
   {
     name: "Frameworks",
+    brand: true,
     description: "Framework brand badges for tech stack sections — frontend, backend, and full-stack.",
     icons: [
       makeLogoBadge("react", "React", "61DAFB", "&variant=branded"),
@@ -339,6 +345,7 @@ export const categories: Category[] = [
   },
   {
     name: "Brand Badges",
+    brand: true,
     description: "Logo-first badges for tech stack sections and integration grids.",
     icons: [
       makeLogoBadge("typescript", "TypeScript", "3178C6", "&variant=branded"),
@@ -365,6 +372,7 @@ export const categories: Category[] = [
   },
   {
     name: "AI",
+    brand: true,
     description: "Polished AI-flavored badges for product marketing, demos, and agent-powered tools.",
     icons: [
       dynamicBadge("Built with Claude", "ai badge", "/badge/Built%20with-Claude-D97757.svg?logo=anthropic&variant=secondary", "AI product badge styled with Anthropic / Claude brand color."),

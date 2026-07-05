@@ -505,6 +505,10 @@ export function BadgeBuilderCore({
                 <Label className="text-xs text-muted-foreground">Gradient</Label>
                 <Input value={s.gradient} onChange={e => set("gradient", e.target.value)} placeholder="ff6b6b,4ecdc4" className="h-8 text-xs" />
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Brand</Label>
+                <Input value={s.brand} onChange={e => set("brand", e.target.value)} placeholder="acme" className="h-8 text-xs" />
+              </div>
               <div className="flex items-end h-full pb-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <ShadcnCheckbox checked={s.split} onCheckedChange={v => set("split", v === true)} />
@@ -512,6 +516,10 @@ export function BadgeBuilderCore({
                 </label>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Brand</span> overlays a stored brand&apos;s colors, theme, font &amp; logo. Add
+              {" "}<code className="font-mono">logo=brand</code> or <code className="font-mono">font=brand</code> in the URL to use hosted assets.
+            </p>
           </div>
 
           {/* ── Raw path ── */}

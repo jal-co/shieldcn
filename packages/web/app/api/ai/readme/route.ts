@@ -35,14 +35,32 @@ the project's real identifiers (never leave literal placeholders):
 - GitHub license:   ![license](${SITE}/github/license/OWNER/REPO.svg${q})
 - GitHub CI:        ![build](${SITE}/github/OWNER/REPO/ci.svg${q})
 - PyPI version:     ![pypi](${SITE}/pypi/v/PACKAGE.svg${q})
-- Static badge:     ![label](${SITE}/badge/LABEL-MESSAGE-COLOR.svg${q})`
+- Static badge:     ![label](${SITE}/badge/LABEL-MESSAGE-COLOR.svg${q})
 
-function buildSystem(brandSlug: string | null): string {
-  const q = brandSlug ? `?brand=${brandSlug}` : ""
+Graphs (full-width images, not in the badge row — give each its own section):
+- Star history chart:  ![stars over time](${SITE}/chart/github/stars/OWNER/REPO.svg${q})
+- Contributor wall:    ![contributors](${SITE}/contributors/OWNER/REPO.svg${q})`
+
+function buildSystem(brandSlug: string | null, links: { github?: string; website?: string }): string {
+  // Badges default to the compact XS size; a brand overlays its style.
+  const params = ["size=xs"]
+  if (brandSlug) params.push(`brand=${brandSlug}`)
+  const q = `?${params.join("&")}`
   const styleNote = brandSlug
-    ? `IMPORTANT: append "${q}" to EVERY shieldcn badge URL so they render in the
-"${brandSlug}" brand style.`
-    : `Optionally append "?variant=branded" to badge URLs for a colored look.`
+    ? `IMPORTANT: append "${q}" to EVERY shieldcn badge URL so they render compact
+(XS) and in the "${brandSlug}" brand style.`
+    : `IMPORTANT: append "${q}" to every shieldcn badge URL so badges render at the
+compact XS size. You may also add "&variant=branded" for a colored look.`
+
+  const linkNote = [
+    links.github ? `- GitHub repository: ${links.github}` : "",
+    links.website ? `- Website: ${links.website}` : "",
+  ].filter(Boolean).join("\n")
+  const linksSection = linkNote
+    ? `\nKnown project links (use these exact URLs; infer OWNER/REPO from the GitHub
+URL for badges):\n${linkNote}\nLink the title/description to the website when one
+is given, and include a short "Links" line pointing to the repo and site.`
+    : ""
 
   // Prefer the published shieldcn-badges skill as the authoritative badge
   // reference; fall back to the inline subset if the file isn't available.
@@ -66,10 +84,14 @@ Structure, in order:
 2. A one-line description.
 3. A centered badge row of 3–5 relevant shieldcn badges as Markdown images,
    wrapped in <p align="center"> … </p>. Infer the package name / GitHub
-   owner+repo from the context and use real values.
+   owner+repo from the context and use real values. Badges MUST use the XS size.
 4. Installation, Usage, and License sections.
+5. When a GitHub repo is known, add a "Stars" section with the shieldcn star
+   history chart and a "Contributors" section with the contributors graph/wall
+   (use the chart + contributors URL formats from the reference, with ${q}).
 
 ${reference}
+${linksSection}
 
 ${styleNote}
 Only include badges that make sense for the project. Keep prose tight and
@@ -86,15 +108,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "AI requires the Plus plan" }, { status: 402 })
   }
 
-  let body: { summary?: string; repo?: string; brand?: string }
+  let body: { summary?: string; repo?: string; brand?: string; githubUrl?: string; websiteUrl?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: "invalid body" }, { status: 400 })
   }
-  const context = (body.summary ?? body.repo ?? "").slice(0, 8000)
+  const github = (body.githubUrl ?? "").trim().slice(0, 300) || undefined
+  const website = (body.websiteUrl ?? "").trim().slice(0, 300) || undefined
+  // Fold the known links into the model context too, so it can infer OWNER/REPO.
+  const linkContext = [github ? `GitHub: ${github}` : "", website ? `Website: ${website}` : ""]
+    .filter(Boolean).join("\n")
+  const context = [(body.summary ?? body.repo ?? "").slice(0, 8000), linkContext]
+    .filter(Boolean).join("\n\n")
   if (!context.trim()) {
-    return NextResponse.json({ error: "provide a summary or repo" }, { status: 400 })
+    return NextResponse.json({ error: "provide a summary, repo, or links" }, { status: 400 })
   }
 
   // A brand is a Plus capability — accept it only when the caller is Plus and
@@ -108,7 +136,7 @@ export async function POST(req: NextRequest) {
   try {
     const { text, usage } = await generateText({
       model: aiModel(),
-      system: buildSystem(brandSlug),
+      system: buildSystem(brandSlug, { github, website }),
       prompt: `Write a README for this project:\n\n${context}`,
     })
     meterAiUsage(auth.ownerId, usage)
