@@ -1,13 +1,19 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { BadgeCheck, FileText, Palette, CreditCard } from "lucide-react"
+import { ArrowRightLeft, BadgeCheck, CreditCard, FileText, Palette, Plus, WandSparkles } from "lucide-react"
 import { PortalButton } from "@/components/billing-buttons"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 import { CheckoutSuccess } from "@/components/checkout-success"
+import {
+  DashboardPage,
+  DashboardPageHeader,
+  DashboardPanel,
+  DashboardStat,
+} from "@/components/dashboard/dashboard-page"
+import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 import { UpgradeInline } from "@/components/upgrade-cta"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { pageMetadata } from "@/lib/metadata"
 import { getSession } from "@/lib/auth"
 import { getPlan } from "@shieldcn/core/entitlements"
@@ -21,7 +27,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/dashboard",
 })
 
-export default async function DashboardPage() {
+export default async function DashboardPageRoute() {
   const session = await getSession()
   if (!session) redirect("/sign-in")
 
@@ -33,159 +39,124 @@ export default async function DashboardPage() {
     listSavedBadges(ownerId),
   ])
 
+  const firstName = (session.name ?? "").trim().split(/\s+/)[0]
+
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 py-14 md:px-10">
+    <DashboardPage>
       <CheckoutSuccess />
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                {session.name ?? session.email ?? "Signed in"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={plan === "free" ? "outline" : "default"}>
-                {plan.toUpperCase()}
-              </Badge>
-              {plan === "free" && (
-                <Button asChild size="sm">
-                  <Link href="/pricing">Upgrade</Link>
-                </Button>
-              )}
-              {plan !== "free" && (
-                <PortalButton size="sm" variant="outline">
-                  <CreditCard className="mr-1.5 size-4" /> Billing
-                </PortalButton>
-              )}
-            </div>
-          </div>
+      <DashboardPageHeader
+        title={firstName ? `Welcome back, ${firstName}` : "Dashboard"}
+        description="Everything you've saved on shieldcn — READMEs, components, and brands — in one place."
+        actions={(
+          <>
+            <Badge variant={plan === "free" ? "outline" : "default"}>{plan.toUpperCase()}</Badge>
+            {plan === "free" ? (
+              <Button asChild size="sm">
+                <Link href="/pricing">Upgrade</Link>
+              </Button>
+            ) : (
+              <PortalButton size="sm" variant="outline">
+                <CreditCard className="size-4" /> Billing
+              </PortalButton>
+            )}
+          </>
+        )}
+      />
 
-          {/* Getting started — tiered onboarding checklist (dismisses itself
-              once every step for the current plan is done). */}
-          <section className="rounded-xl border border-border p-5">
-            <OnboardingFlow compact />
-          </section>
+      {/* Compact stat strip — secondary, quick jumps into each area */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <DashboardStat
+          label="Saved READMEs"
+          value={docs.length}
+          icon={<FileText className="size-4" />}
+          href="/dashboard/readmes"
+        />
+        <DashboardStat
+          label="Saved components"
+          value={savedBadges.length}
+          icon={<BadgeCheck className="size-4" />}
+          href="/dashboard/badges"
+        />
+        <DashboardStat
+          label="Managed brands"
+          value={plan === "plus" ? brands.length : 0}
+          icon={<Palette className="size-4" />}
+          href="/dashboard/brands"
+        />
+      </div>
 
-          {/* Saved READMEs */}
-          <section className="flex flex-col gap-3">
+      {/* Primary column leads; recent + actions are the quieter rail */}
+      <div className="grid gap-6 @4xl/main:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.85fr)]">
+        <div className="flex flex-col gap-6">
+          <DashboardPanel className="empty:hidden">
+            <OnboardingFlow compact hideWhenDone />
+          </DashboardPanel>
+
+          <DashboardPanel className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <FileText className="size-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Saved READMEs</h2>
-              <span className="text-sm text-muted-foreground">({docs.length})</span>
-            </div>
-            {docs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No saved READMEs yet.{" "}
-                <Link href="/studio" className="underline underline-offset-4 hover:text-foreground">
-                  Open the Studio
-                </Link>{" "}
-                and save your work — your plan syncs{" "}
-                {plan === "free" ? "2" : "50"} to the cloud.
-              </p>
-            ) : (
-              <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
-                {docs.map((d) => (
-                  <li key={d.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                    <span>{d.name}</span>
-                    <Link
-                      href={`/studio?doc=${d.id}`}
-                      className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                    >
-                      Open
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {plan === "free" && (
-              <p className="text-xs text-muted-foreground">
-                Free syncs 5 READMEs.{" "}
-                <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
-                  Plus
-                </Link>{" "}
-                raises it to 50.
-              </p>
-            )}
-          </section>
-
-          {/* Saved badges */}
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <BadgeCheck className="size-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Saved badges</h2>
-              <span className="text-sm text-muted-foreground">({savedBadges.length})</span>
-              <Button asChild size="sm" variant="outline" className="ml-auto">
-                <Link href="/dashboard/badges">Manage</Link>
+              <h2 className="text-base font-semibold">Recent READMEs</h2>
+              <Badge variant="secondary" className="h-5 rounded-full px-2 text-xs">
+                {docs.length}
+              </Badge>
+              <Button asChild size="sm" variant="ghost" className="ml-auto text-muted-foreground">
+                <Link href="/dashboard/readmes">View all</Link>
               </Button>
             </div>
-            {savedBadges.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No saved badges yet. Configure a badge in the{" "}
-                <Link href="/studio" className="underline underline-offset-4 hover:text-foreground">
-                  Studio
+            {docs.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                No saved READMEs yet.{" "}
+                <Link href="/studio" className="font-medium text-foreground underline-offset-4 hover:underline">
+                  Open the Studio
                 </Link>{" "}
-                and hit <strong>Save badge</strong> to reuse it anywhere.
-              </p>
+                to save your first.
+              </div>
             ) : (
-              <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
-                {savedBadges.slice(0, 5).map((b) => (
-                  <li key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                    <span className="truncate">{b.name}</span>
+              <ul className="flex flex-col gap-1">
+                {docs.slice(0, 5).map((d) => (
+                  <li key={d.id}>
                     <Link
-                      href="/dashboard/badges"
-                      className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                      href={`/studio?doc=${d.id}`}
+                      className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-accent/50"
                     >
-                      Open
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        <FileText className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate font-medium">{d.name}</span>
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">Open →</span>
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
-          </section>
+          </DashboardPanel>
+        </div>
 
-          {/* Brands */}
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Palette className="size-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Brands</h2>
-              <span className="text-sm text-muted-foreground">({brands.length})</span>
-              {plan !== "plus" && <Badge variant="outline">Plus</Badge>}
-              {plan === "plus" && (
-                <Button asChild size="sm" variant="outline" className="ml-auto">
-                  <Link href="/dashboard/brands/new">Add brand</Link>
-                </Button>
-              )}
-            </div>
-            {plan !== "plus" ? (
-              <UpgradeInline tier="plus" feature="Managed brands" />
-            ) : brands.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No brands yet. A brand restyles every badge and header that
-                references it — edit once, update everywhere.
-              </p>
+        <DashboardPanel className="flex h-fit flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <WandSparkles className="size-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold">Quick actions</h2>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button asChild variant="outline" className="justify-start">
+              <Link href="/studio"><Plus className="size-4" /> New README</Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <Link href="/dashboard/badges"><BadgeCheck className="size-4" /> Save a component</Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <Link href="/migrate"><ArrowRightLeft className="size-4" /> Migrate from shields.io</Link>
+            </Button>
+            {plan === "plus" ? (
+              <Button asChild variant="outline" className="justify-start">
+                <Link href="/dashboard/brands/new"><Palette className="size-4" /> Create a brand</Link>
+              </Button>
             ) : (
-              <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
-                {brands.map((b) => (
-                  <li key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                    <Link
-                      href={`/dashboard/brands/${b.slug}`}
-                      className="font-mono underline-offset-4 hover:underline"
-                    >
-                      ?brand={b.slug}
-                    </Link>
-                    <div className="flex items-center gap-4">
-                      <Link
-                        href={`/dashboard/brands/${b.slug}`}
-                        className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                      >
-                        Edit
-                      </Link>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <UpgradeInline tier="plus" feature="Managed brands" />
             )}
-          </section>
-    </div>
+          </div>
+        </DashboardPanel>
+      </div>
+    </DashboardPage>
   )
 }

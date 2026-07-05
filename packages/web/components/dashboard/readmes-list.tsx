@@ -90,8 +90,8 @@ export function ReadmesList({
       </div>
 
       {docs.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border px-6 py-12 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border px-6 py-14 text-center">
+          <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-muted">
             <FileText className="size-6 text-muted-foreground" />
           </div>
           <div className="flex flex-col gap-1">
@@ -108,14 +108,22 @@ export function ReadmesList({
           </Button>
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
+        <ul className="flex flex-col gap-1">
           {docs.map((d) => (
-            <li key={d.id} className="flex items-center justify-between gap-4 px-4 py-3">
-              <div className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-medium">{d.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  Updated {new Date(d.updatedAt).toLocaleDateString()}
+            <li
+              key={d.id}
+              className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-accent/50"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
+                  <FileText className="size-4" />
                 </span>
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-medium">{d.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Updated {new Date(d.updatedAt).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <Button asChild size="sm" variant="outline">

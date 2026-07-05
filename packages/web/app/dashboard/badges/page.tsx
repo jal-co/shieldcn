@@ -2,14 +2,15 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { BadgeCheck } from "lucide-react"
 import { BadgesLibrary } from "@/components/dashboard/badges-library"
+import { DashboardPage, DashboardPageHeader, DashboardPanel } from "@/components/dashboard/dashboard-page"
 import { pageMetadata } from "@/lib/metadata"
 import { getSession } from "@/lib/auth"
 import { getPlan, type Plan } from "@shieldcn/core/entitlements"
 import { listSavedBadges, badgeLimitForPlan } from "@shieldcn/core/saved-badges"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Saved badges",
-  description: "Your reusable badge library — save a badge once and drop it into any README.",
+  title: "Components",
+  description: "Your reusable badge component library — save a badge once and drop it into any README.",
   path: "/dashboard/badges",
 })
 
@@ -32,19 +33,20 @@ export default async function SavedBadgesPage() {
   }))
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-14 md:px-10">
-      <div className="flex items-center gap-2">
-        <BadgeCheck className="size-5 text-muted-foreground" />
-        <h1 className="text-2xl font-bold tracking-tight">Saved badges</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        A reusable library of your favorite badges. Save one from the Studio or
-        the builder, then drop it into any README — no re-configuring the same
-        badge twice. Free saves {badgeLimitForPlan("free")}; Plus{" "}
-        {badgeLimitForPlan("plus")}.
-      </p>
-
-      <BadgesLibrary initialBadges={initialBadges} limit={limit} plan={plan} />
-    </div>
+    <DashboardPage>
+      <DashboardPageHeader
+        title="Components"
+        icon={<BadgeCheck className="size-4" />}
+        description={(
+          <>
+            A reusable library of your favorite badges. Save one from the Studio or builder, then drop it into any README.
+            Free saves {badgeLimitForPlan("free")}; Plus saves {badgeLimitForPlan("plus")}.
+          </>
+        )}
+      />
+      <DashboardPanel>
+        <BadgesLibrary initialBadges={initialBadges} limit={limit} plan={plan} />
+      </DashboardPanel>
+    </DashboardPage>
   )
 }

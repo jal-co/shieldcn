@@ -125,8 +125,8 @@ export function BadgesLibrary({
       </div>
 
       {badges.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border px-6 py-12 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border px-6 py-14 text-center">
+          <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-muted">
             <BadgeCheck className="size-6 text-muted-foreground" />
           </div>
           <div className="flex flex-col gap-1">
@@ -145,13 +145,16 @@ export function BadgesLibrary({
           </div>
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
+        <ul className="flex flex-col gap-1">
           {badges.map((b) => {
             const url = buildBadgeUrl(toState(b.config), "")
             return (
-              <li key={b.id} className="flex items-center justify-between gap-4 px-4 py-3">
+              <li
+                key={b.id}
+                className="group flex items-center justify-between gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-accent/50"
+              >
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-6 min-w-16 items-center">
+                  <span className="flex h-8 min-w-16 items-center rounded-lg border border-border bg-muted/40 px-2">
                     {mounted && url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={adaptUrl(url)} alt={b.alt || b.name} className="h-6 w-auto" />

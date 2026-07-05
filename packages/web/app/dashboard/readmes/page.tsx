@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { FileText } from "lucide-react"
+import { DashboardPage, DashboardPageHeader, DashboardPanel } from "@/components/dashboard/dashboard-page"
 import { ReadmesList } from "@/components/dashboard/readmes-list"
 import { pageMetadata } from "@/lib/metadata"
 import { getSession } from "@/lib/auth"
@@ -29,18 +30,20 @@ export default async function ReadmesPage() {
   }))
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-14 md:px-10">
-      <div className="flex items-center gap-2">
-        <FileText className="size-5 text-muted-foreground" />
-        <h1 className="text-2xl font-bold tracking-tight">Saved READMEs</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Your cloud-synced README documents. Open one to edit in the Studio —
-        changes auto-save. Free syncs {docLimitForPlan("free")}; Plus{" "}
-        {docLimitForPlan("plus")}.
-      </p>
-
-      <ReadmesList initialDocs={initialDocs} limit={limit} plan={plan} />
-    </div>
+    <DashboardPage>
+      <DashboardPageHeader
+        title="READMEs"
+        icon={<FileText className="size-4" />}
+        description={(
+          <>
+            Cloud-synced README documents. Open one to edit in the Studio; changes auto-save.
+            Free syncs {docLimitForPlan("free")}; Plus syncs {docLimitForPlan("plus")}.
+          </>
+        )}
+      />
+      <DashboardPanel>
+        <ReadmesList initialDocs={initialDocs} limit={limit} plan={plan} />
+      </DashboardPanel>
+    </DashboardPage>
   )
 }
