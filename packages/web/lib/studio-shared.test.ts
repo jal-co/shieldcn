@@ -26,8 +26,10 @@ import {
   makeGroupBlock,
   makeTableBlock,
   makeStarterDocument,
+  normalizeBlocks,
   CHART_DEFAULTS,
   type Block,
+  type BadgesBlock,
   type TableBlock,
 } from "./studio-shared"
 
@@ -271,5 +273,48 @@ describe("serializeProject / deserializeProject round-trip", () => {
   it("defaults themeAware to false when absent or not literally true", () => {
     const json = JSON.stringify({ version: 1, blocks: [{ id: "x", type: "markdown" }] })
     expect(deserializeProject(json)?.themeAware).toBe(false)
+  })
+})
+
+describe("normalizeBlocks — backward-compat backfill", () => {
+  // A badge state persisted before the `brand` field existed. Rendering it
+  // used to crash Studio (`s.brand.trim()` on undefined) → "Something went
+  // wrong". normalizeBlocks must backfill it, and serialization must not throw.
+  const legacyBadges = {
+    id: "badges_legacy",
+    type: "badges",
+    align: "center",
+    badges: [
+      {
+        id: "badge_legacy",
+        alt: "GitHub stars",
+        state: {
+          path: "/github/stars/jal-co/shieldcn.svg",
+          variant: "default",
+          size: "sm",
+          theme: "_none",
+          mode: "dark",
+          font: "inter",
+          format: "svg",
+          split: false,
+          // no `brand` (and no linkUrl) — emulates a pre-schema-bump doc
+        },
+      },
+    ],
+  } as unknown as BadgesBlock
+
+  it("backfills badge states missing newer fields (e.g. `brand`)", () => {
+    const [b] = normalizeBlocks([legacyBadges]) as BadgesBlock[]
+    expect(b.badges[0].state.brand).toBe("")
+  })
+
+  it("serializes a legacy doc to Markdown without throwing", () => {
+    const normalized = normalizeBlocks([legacyBadges])
+    expect(() => documentToMarkdown(normalized, BASE)).not.toThrow()
+  })
+
+  it("leaves non-badge blocks untouched", () => {
+    const md = makeMarkdownBlock("hello")
+    expect(normalizeBlocks([md])[0]).toBe(md)
   })
 })

@@ -340,6 +340,30 @@ export function makeBadgeItem(state?: Partial<BuilderState>, alt?: string): Badg
   }
 }
 
+/**
+ * Backfill persisted blocks with any fields added to the schema since they were
+ * saved. Badge item states are the moving target: fields like `brand` were
+ * added after early docs were persisted, so a raw localStorage doc can carry
+ * badge states missing newer keys. Merging each state over BUILDER_DEFAULTS
+ * guarantees every current field is present, so downstream consumers
+ * (buildBadgeUrl, inspectors) never read `undefined`. Non-badge blocks pass
+ * through untouched.
+ */
+export function normalizeBlocks(blocks: Block[]): Block[] {
+  return blocks.map((block) => {
+    if (block.type === "badges" || block.type === "group") {
+      return {
+        ...block,
+        badges: block.badges.map((item) => ({
+          ...item,
+          state: { ...BUILDER_DEFAULTS, ...item.state },
+        })),
+      }
+    }
+    return block
+  })
+}
+
 export function makeBadgesBlock(): BadgesBlock {
   return {
     id: newId("badges"),

@@ -78,6 +78,7 @@ import {
 import {
   BLOCK_LABELS,
   documentToMarkdown,
+  normalizeBlocks,
   makeBlock,
   makeStarterDocument,
   newId,
@@ -121,7 +122,9 @@ function loadBlocks(): Block[] | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed as Block[]
+    // Backfill any schema fields added since this doc was persisted, so older
+    // saved docs (e.g. badge states without `brand`) don't crash on render.
+    if (Array.isArray(parsed) && parsed.length > 0) return normalizeBlocks(parsed as Block[])
     return null
   } catch {
     return null

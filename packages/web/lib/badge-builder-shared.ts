@@ -227,7 +227,8 @@ export function buildBadgeUrl(s: BuilderState, baseUrl: string): string {
   if (s.gradient) p.set("gradient", s.gradient)
   // A brand overlays colors/theme/font/logo server-side; the explicit params
   // above still win (precedence: query param > brand > default).
-  if (s.brand.trim()) p.set("brand", s.brand.trim())
+  // Optional-chain: docs persisted before `brand` existed omit the field.
+  if (s.brand?.trim()) p.set("brand", s.brand.trim())
 
   const q = p.toString()
   return `${baseUrl}${path}${q ? `?${q}` : ""}`
