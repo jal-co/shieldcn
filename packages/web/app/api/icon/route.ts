@@ -40,8 +40,13 @@ export async function GET(request: Request) {
   const { icon } = resolved
   const fill = `#${color || "a1a1aa"}`
   const paths = icon.paths?.length ? icon.paths : [icon.path]
+
+  // Rotation pivot must be the viewBox center, not a hardcoded 24x24 assumption
+  // — custom icons can have any viewBox (e.g. openpanel is 61×35). Mirrors the
+  // core renderer's rotTransform calc in badges/render.tsx.
+  const [, , vbW, vbH] = icon.viewBox.split(" ").map(Number)
   const rotation = icon.rotation
-    ? ` transform="rotate(${icon.rotation} 12 12)"`
+    ? ` transform="rotate(${icon.rotation} ${vbW / 2} ${vbH / 2})"`
     : ""
 
   const pathAttrs = icon.isStroke
