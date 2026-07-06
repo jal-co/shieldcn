@@ -12,8 +12,33 @@
  * badge with defaults and never breaks the image.
  */
 
+import { optimize as optimizeSvgo } from "svgo"
 import { query, initDB } from "./db"
 import { cacheGet, cacheSet } from "./cache"
+
+/**
+ * Optimize + sanitize an uploaded SVG with SVGO before it is stored and served.
+ * Shrinks payloads (faster asset serving) and strips metadata. `removeScripts`
+ * is added explicitly because SVGO v4's preset-default no longer strips <script>
+ * — and these assets are served as image/svg+xml, which can execute scripts when
+ * opened directly. preset-default keeps the viewBox, so downstream badge
+ * rendering and <img> scaling stay correct. Fail-open: returns the original
+ * bytes if the input isn't parseable, so an odd-but-valid upload is never
+ * rejected here.
+ */
+function optimizeSvgBuffer(data: Buffer): Buffer {
+  try {
+    const { data: out } = optimizeSvgo(data.toString("utf8"), {
+      multipass: true,
+      plugins: ["preset-default", "removeScripts"],
+    })
+    const optimized = Buffer.from(out, "utf8")
+    // Guard against pathological growth; keep whichever is smaller.
+    return optimized.length > 0 && optimized.length <= data.length ? optimized : data
+  } catch {
+    return data
+  }
+}
 
 /** Style keys a brand may carry. Kept in sync with the badge/header params. */
 const BRAND_PARAM_KEYS = [
@@ -544,6 +569,10 @@ export async function putBrandAsset(
   fileName?: string | null,
 ): Promise<void> {
   await initDB()
+  // Run every uploaded SVG through SVGO before storing (smaller + sanitized).
+  if (/\bsvg\b/i.test(contentType)) {
+    data = optimizeSvgBuffer(data)
+  }
   const { rows } = await query<{ slug: string }>(
     `INSERT INTO brand_assets (brand_id, kind, content_type, file_name, data, updated_at)
        VALUES ($1, $2, $3, $4, $5, NOW())

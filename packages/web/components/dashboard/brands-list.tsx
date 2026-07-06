@@ -18,7 +18,48 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { useHydrated } from "@/lib/use-hydrated"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+
+/**
+ * A brand's icon chip. Prefers the cheap hosted mark (/b/{slug}/mark.svg — a
+ * single stored-blob read) and only falls back to a full Satori badge render
+ * for brands without an uploaded mark, then to a Palette glyph. This avoids
+ * rendering a full badge just to show a 32px logo for every row.
+ */
+function BrandChip({ slug, adaptUrl }: { slug: string; adaptUrl: (url: string) => string }) {
+  // 0 = hosted mark asset, 1 = branded badge render, 2 = palette fallback.
+  const [stage, setStage] = useState<0 | 1 | 2>(0)
+
+  if (stage === 2) {
+    return (
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
+        <Palette className="size-4" />
+      </span>
+    )
+  }
+
+  const isMark = stage === 0
+  const src = isMark ? `/b/${slug}/mark.svg` : adaptUrl(`/badge/-.svg?brand=${slug}&variant=branded`)
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      key={stage}
+      src={src}
+      alt=""
+      width={32}
+      height={32}
+      loading="lazy"
+      decoding="async"
+      onError={() => setStage((s) => (s + 1) as 0 | 1 | 2)}
+      className={cn(
+        "size-8 shrink-0 rounded-lg border border-border",
+        isMark ? "bg-muted/40 object-contain p-1" : "object-cover",
+      )}
+    />
+  )
+}
 
 interface BrandRow {
   id: number
@@ -136,19 +177,7 @@ export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
             >
               <div className="flex min-w-0 items-center gap-3">
                 {mounted ? (
-                  // The brand's own logo on its brand color — a live icon chip.
-                  // Lazy + async-decoded so a long brand list doesn't fire every
-                  // badge render at once on page load (each is a live SVG render).
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={adaptUrl(`/badge/-.svg?brand=${b.slug}&variant=branded`)}
-                    alt=""
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                    decoding="async"
-                    className="size-8 shrink-0 rounded-lg border border-border object-cover"
-                  />
+                  <BrandChip slug={b.slug} adaptUrl={adaptUrl} />
                 ) : (
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
                     <Palette className="size-4" />
