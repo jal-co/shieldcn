@@ -7,12 +7,16 @@
 
 type BadgeOutputFormat = "markdown" | "html" | "url" | "rst" | "asciidoc"
 
+// Variants whose colors are derived from the light/dark theme, so the badge
+// genuinely changes between modes and benefits from a theme-adaptive <picture>.
+// `branded` is intentionally excluded: its background is the fixed brand color
+// (contrast-aware text), so it renders identically in dark and light — emitting
+// a <picture> would just duplicate the same badge and turn Markdown into HTML.
 const THEME_DERIVED_VARIANTS = new Set([
   "default",
   "secondary",
   "outline",
   "ghost",
-  "branded",
 ])
 
 const COLOR_LOCKING_PARAMS = [
