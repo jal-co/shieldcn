@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Copy, Check, ExternalLink, Plus, Trash2, GripVertical } from "lucide-react"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
-import { formatBadgeOutput } from "@/lib/badge-output"
+import { formatBadgeOutput, isThemeAdaptiveBadgeUrl } from "@/lib/badge-output"
 import {
   Dialog,
   DialogContent,
@@ -40,7 +40,17 @@ const SIZES = ["xs", "sm", "default", "lg"]
 const THEMES = ["_none", "zinc", "slate", "blue", "green", "rose", "orange", "violet", "purple", "cyan", "emerald"]
 const MODES = ["dark", "light"]
 
-type OutputFormat = "markdown" | "url" | "html" | "rst" | "asciidoc"
+type OutputFormat = "markdown" | "adaptive" | "url" | "html" | "rst" | "asciidoc"
+
+// Human labels for the copy-format tabs.
+const FORMAT_LABELS: Record<OutputFormat, string> = {
+  markdown: "markdown",
+  adaptive: "adaptive",
+  url: "url",
+  html: "html",
+  rst: "rst",
+  asciidoc: "asciidoc",
+}
 
 /** Parse a group badge path into individual segment paths. */
 function parseGroupPath(badgePath: string): { segments: string[]; variant: string; size: string; theme: string; mode: string } {
@@ -145,6 +155,8 @@ export function BadgeGroupModal({
   const formattedOutput = useMemo(() => {
     switch (outputFormat) {
       case "markdown":
+        return formatBadgeOutput(fullUrl, "markdown", { alt: title })
+      case "adaptive":
         return formatBadgeOutput(fullUrl, "markdown", {
           alt: title,
           preferPicture: true,
@@ -161,6 +173,15 @@ export function BadgeGroupModal({
       case "asciidoc": return formatBadgeOutput(fullUrl, "asciidoc", { alt: title })
     }
   }, [outputFormat, fullUrl, title])
+
+  // The <picture> "adaptive" tab only applies to theme-adaptive badges;
+  // for fixed-color badges it would just duplicate the plain markdown.
+  const copyFormats = useMemo<OutputFormat[]>(() => {
+    const base: OutputFormat[] = ["markdown"]
+    if (isThemeAdaptiveBadgeUrl(fullUrl, { ignoreMode: true })) base.push("adaptive")
+    base.push("url", "html", "rst", "asciidoc")
+    return base
+  }, [fullUrl])
 
   const handleCopy = useCallback(() => copy(formattedOutput), [copy, formattedOutput])
 
@@ -280,7 +301,7 @@ export function BadgeGroupModal({
         <div className="space-y-2">
           <Label className="text-xs font-medium">Copy badge group</Label>
           <div className="flex flex-wrap gap-1.5">
-            {(["markdown", "url", "html", "rst", "asciidoc"] as OutputFormat[]).map((format) => (
+            {copyFormats.map((format) => (
               <button
                 key={format}
                 onClick={() => setOutputFormat(format)}
@@ -290,7 +311,7 @@ export function BadgeGroupModal({
                     : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                {format}
+                {FORMAT_LABELS[format]}
               </button>
             ))}
           </div>

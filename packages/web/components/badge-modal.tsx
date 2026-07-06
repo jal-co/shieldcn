@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SvgIconUpload } from "@/components/svg-icon-upload"
-import { formatBadgeOutput } from "@/lib/badge-output"
+import { formatBadgeOutput, isThemeAdaptiveBadgeUrl } from "@/lib/badge-output"
 import { allowedVariantsForPath } from "@shieldcn/core/badges/registry"
 
 interface BadgeModalProps {
@@ -39,7 +39,17 @@ const SIZES = ["xs", "sm", "default", "lg"]
 const THEMES = ["_none", "zinc", "slate", "blue", "green", "rose", "orange", "violet", "purple", "cyan", "emerald"]
 const MODES = ["dark", "light"]
 
-type OutputFormat = "markdown" | "url" | "html" | "rst" | "asciidoc"
+type OutputFormat = "markdown" | "adaptive" | "url" | "html" | "rst" | "asciidoc"
+
+// Human labels for the copy-format tabs.
+const FORMAT_LABELS: Record<OutputFormat, string> = {
+  markdown: "markdown",
+  adaptive: "adaptive",
+  url: "url",
+  html: "html",
+  rst: "rst",
+  asciidoc: "asciidoc",
+}
 
 function withStyleParams(
   badgePath: string,
@@ -164,6 +174,8 @@ export function BadgeModal({
   const formattedOutput = useMemo(() => {
     switch (outputFormat) {
       case "markdown":
+        return formatBadgeOutput(fullUrl, "markdown", { alt: title })
+      case "adaptive":
         return formatBadgeOutput(fullUrl, "markdown", {
           alt: title,
           preferPicture: true,
@@ -183,6 +195,15 @@ export function BadgeModal({
         return formatBadgeOutput(fullUrl, "asciidoc", { alt: title })
     }
   }, [outputFormat, fullUrl, title])
+
+  // The <picture> "adaptive" tab only applies to theme-adaptive badges;
+  // for fixed-color badges it would just duplicate the plain markdown.
+  const copyFormats = useMemo<OutputFormat[]>(() => {
+    const base: OutputFormat[] = ["markdown"]
+    if (isThemeAdaptiveBadgeUrl(fullUrl, { ignoreMode: true })) base.push("adaptive")
+    base.push("url", "html", "rst", "asciidoc")
+    return base
+  }, [fullUrl])
 
   const handleCopy = useCallback(() => copy(formattedOutput), [copy, formattedOutput])
 
@@ -279,7 +300,7 @@ export function BadgeModal({
         <div className="space-y-2">
           <Label className="text-xs font-medium">Copy badge</Label>
           <div className="flex flex-wrap gap-1.5">
-            {(["markdown", "url", "html", "rst", "asciidoc"] as OutputFormat[]).map((format) => (
+            {copyFormats.map((format) => (
               <button
                 key={format}
                 onClick={() => setOutputFormat(format)}
@@ -289,7 +310,7 @@ export function BadgeModal({
                     : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                {format}
+                {FORMAT_LABELS[format]}
               </button>
             ))}
           </div>
