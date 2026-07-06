@@ -44,7 +44,7 @@ export interface BadgePreset {
 
 export const BADGE_PRESETS: BadgePreset[] = [
   // Custom — first so "make a badge" users see it immediately
-  { label: "Custom badge", service: "Custom", template: "/badge/{content}.svg", params: [{ key: "label", label: "Label", placeholder: "build", default: "build", optional: true }, { key: "value", label: "Value", placeholder: "passing", default: "passing" }, { key: "color", label: "Color (hex)", placeholder: "22c55e", default: "22c55e", optional: true }], group: "Custom", customResolver: "static" },
+  { label: "Custom badge", service: "Custom", template: "/badge/{content}.svg", params: [{ key: "label", label: "Label", placeholder: "whatever", default: "whatever", optional: true }, { key: "value", label: "Value", placeholder: "you want", default: "you want" }, { key: "color", label: "Color (hex)", placeholder: "abcde3", default: "abcde3", optional: true }], group: "Custom", customResolver: "static" },
 
   // Package
   { label: "version", service: "npm", template: "/npm/{package}.svg", params: [{ key: "package", label: "Package", placeholder: "react", default: "react" }], group: "Package", defaultLinkUrl: "https://www.npmjs.com/package/{package}" },
@@ -174,7 +174,7 @@ export interface BuilderState {
 }
 
 export const BUILDER_DEFAULTS: BuilderState = {
-  path: "/badge/build-passing-22c55e.svg",
+  path: "/badge/whatever-you%20want-abcde3.svg",
   variant: "default",
   size: "sm",
   theme: "_none",

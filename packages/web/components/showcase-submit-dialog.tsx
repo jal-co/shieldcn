@@ -3,7 +3,7 @@
  * components/showcase-submit-dialog
  *
  * Dialog for building and submitting a badge to the community showcase.
- * Uses the shared BadgeBuilderCore for the builder step.
+ * Uses the shared BuilderV2Core for the builder step.
  */
 
 "use client"
@@ -14,8 +14,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { BadgeBuilderCore } from "@/components/badge-builder-core"
+import { BuilderV2Core } from "@/components/builder-v2/core"
+import {
+  BUILDER_V2_DEFAULTS,
+  buildBadgeUrlV2,
+  buildBadgePathV2,
+  type BuilderV2State,
+} from "@/components/builder-v2/state"
 import {
   Dialog,
   DialogContent,
@@ -24,12 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  BUILDER_DEFAULTS,
-  buildBadgePath,
-  buildBadgeUrl,
-  type BuilderState,
-} from "@/lib/badge-builder-shared"
+
 
 // ---------------------------------------------------------------------------
 // Component
@@ -38,8 +38,8 @@ import {
 export function ShowcaseSubmitDialog() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<"build" | "submit">("build")
-  const [s, setS] = useState<BuilderState>({
-    ...BUILDER_DEFAULTS,
+  const [s, setS] = useState<BuilderV2State>({
+    ...BUILDER_V2_DEFAULTS,
     path: "/badge/my-badge-blue.svg",
   })
 
@@ -57,8 +57,8 @@ export function ShowcaseSubmitDialog() {
     () => "https://shieldcn.dev"
   )
 
-  const badgeUrl = useMemo(() => buildBadgeUrl(s, baseUrl), [s, baseUrl])
-  const badgePath = useMemo(() => buildBadgePath(s), [s])
+  const badgeUrl = useMemo(() => buildBadgeUrlV2(s, baseUrl), [s, baseUrl])
+  const badgePath = useMemo(() => buildBadgePathV2(s), [s])
 
   function handleNext() {
     setStep("submit")
@@ -107,7 +107,7 @@ export function ShowcaseSubmitDialog() {
     if (!open) {
       setTimeout(() => {
         setStep("build")
-        setS({ ...BUILDER_DEFAULTS, path: "/badge/my-badge-blue.svg" })
+        setS({ ...BUILDER_V2_DEFAULTS, path: "/badge/my-badge-blue.svg" })
         setTitle("")
         setDescription("")
         setGithubUser("")
@@ -138,23 +138,21 @@ export function ShowcaseSubmitDialog() {
         </DialogHeader>
 
         {step === "build" ? (
-          <div>
-            <BadgeBuilderCore
+          <div className="px-6 pb-6">
+            <BuilderV2Core
               state={s}
               onChange={setS}
               badgeUrl={badgeUrl}
-              showHeader={false}
+              layout="stacked"
               showFormat={false}
             >
-              <Separator />
-              {/* Actions */}
               <div className="flex items-center justify-end">
                 <Button onClick={handleNext} disabled={!badgePath} className="gap-2">
                   Next: Add details
                   <Send className="size-3.5" />
                 </Button>
               </div>
-            </BadgeBuilderCore>
+            </BuilderV2Core>
           </div>
         ) : submitStatus === "success" ? (
           <div className="flex flex-col items-center gap-4 py-10 px-6">

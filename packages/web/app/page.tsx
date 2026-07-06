@@ -3,7 +3,6 @@ import Link from "next/link"
 import { SiteAnnouncement } from "@/components/site-announcement"
 import { HeroSubtext } from "@/components/hero-subtext"
 import { Separator } from "@/components/ui/separator"
-import { BadgeBuilder } from "@/components/badge-builder"
 import { HomeCharts } from "@/components/home-charts"
 import { GenHeroInput } from "@/components/gen-hero-input"
 import { HeroShowcase } from "@/components/hero-showcase"
@@ -63,19 +62,22 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-6 md:px-10">
           <Separator />
 
-          {/* Badge Builder */}
+          {/* Badge Builder pointer */}
           <section id="builder" className="py-16 scroll-mt-16">
-            <div className="mb-8 max-w-lg">
+            <div className="max-w-lg">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Build your badge</h2>
               <p className="mt-3 text-pretty text-muted-foreground">
-                Pick a type, customize the look, copy the output. Or{" "}
+                Pick a type, customize every prop, copy the output in the{" "}
+                <Link href="/badge" className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80">
+                  badge builder
+                </Link>
+                . Or build your whole README in the{" "}
                 <Link href="/studio" className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80">
-                  build your whole README in the README Studio
+                  README Studio
                 </Link>{" "}
                 — a visual GitHub README builder for headers, badges, and charts.
               </p>
             </div>
-            <BadgeBuilder />
           </section>
 
           <Separator />

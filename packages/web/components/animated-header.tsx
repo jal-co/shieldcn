@@ -25,6 +25,11 @@
  *  420ms   nav links stagger in (NAV.stagger apart)
  *  560ms   right-side actions fade in
  *
+ *  MENU (Builder dropdown, on open):
+ *    0ms   panel pops from the trigger (scale 0.96, y -4, spring)
+ *    0ms+  items cascade in (MENU.stagger apart, slide from left)
+ *  close   panel fades + shrinks back quickly (no stagger)
+ *
  *  scroll  scrollY crosses BAR.threshold →
  *            height   BAR.topHeight     → BAR.condensedHeight
  *            backdrop BAR.topBlur/op    → BAR.condensedBlur/op
@@ -37,8 +42,8 @@
 import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronDown } from "lucide-react"
-import { motion, useScroll, useMotionValueEvent, useReducedMotion, type Transition } from "motion/react"
+import { ChevronDown, Shield, PanelTop, Heart, Users, FolderGit2, type LucideIcon } from "lucide-react"
+import { motion, AnimatePresence, useScroll, useMotionValueEvent, useReducedMotion, type Transition } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { SponsorButton } from "@/components/sponsor-button"
 import { ThemeSwitcher } from "@/components/theme-switcher"
@@ -88,7 +93,7 @@ const LOGO = {
 // NAV — primary links, staggered in. Items rendered with .map().
 // ---------------------------------------------------------------------------
 
-type NavLink = { href: string; label: string }
+type NavLink = { href: string; label: string; icon?: LucideIcon }
 type NavItem = NavLink | { label: string; children: NavLink[] }
 
 const NAV = {
@@ -100,33 +105,54 @@ const NAV = {
     { href: "/studio", label: "Studio" },
     { href: "/showcase", label: "Showcase" },
     {
-      label: "Generator",
+      label: "Builder",
       children: [
-        { href: "/gen", label: "All badges" },
-        { href: "/header", label: "Headers" },
-        { href: "/sponsors", label: "Sponsors" },
-        { href: "/contributors", label: "Contributors" },
+        { href: "/badge", label: "Badge Builder", icon: Shield },
+        { href: "/header", label: "Header Builder", icon: PanelTop },
+        { href: "/sponsors", label: "Sponsor List Builder", icon: Heart },
+        { href: "/contributors", label: "Contributor List Builder", icon: Users },
+        { href: "/gen", label: "Repo Badge Generator", icon: FolderGit2 },
       ],
     },
   ] as NavItem[],
 }
 
 // ---------------------------------------------------------------------------
-// NavDropdown — a hover/click menu for a nav item with children. Lightweight
-// (no Radix dependency) so it slots cleanly into the staggered motion items.
+// MENU — the Builder dropdown: open pop + item cascade. Lightweight (no Radix
+// dependency) so it slots cleanly into the staggered motion items.
 // ---------------------------------------------------------------------------
+
+const MENU = {
+  offsetY: -4, //         px the panel slides down from on open
+  initialScale: 0.96, //  panel scale before opening
+  spring: { type: "spring" as const, stiffness: 500, damping: 32 },
+
+  stagger: 0.025, //      seconds between each item
+  itemOffsetX: -6, //     px each item slides in from
+  itemSpring: { type: "spring" as const, stiffness: 450, damping: 30 },
+
+  exit: { duration: 0.12 }, // quick fade-out, no ceremony
+}
 
 function NavDropdown({ label, items }: { label: string; items: NavLink[] }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
 
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false)
+    }
     document.addEventListener("mousedown", onDoc)
-    return () => document.removeEventListener("mousedown", onDoc)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onDoc)
+      document.removeEventListener("keydown", onKey)
+    }
   }, [open])
 
   return (
@@ -149,30 +175,55 @@ function NavDropdown({ label, items }: { label: string; items: NavLink[] }) {
           aria-hidden="true"
         />
       </Button>
-      {open && (
-        // Positioned wrapper sits flush against the trigger (top-full) and uses
-        // top *padding* — not margin — as a hover-safe bridge: the visual gap is
-        // still part of the hoverable element, so the cursor can travel from the
-        // button to the menu without leaving the dropdown and closing it.
-        <div className="absolute left-0 top-full z-40 min-w-[180px] pt-1.5">
-          <div
-            role="menu"
-            className="rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md"
-          >
-            {items.map((it) => (
-              <Link
-                key={it.href}
-                href={it.href}
-                role="menuitem"
-                onClick={() => setOpen(false)}
-                className="flex items-center rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
-              >
-                {it.label}
-              </Link>
-            ))}
+      <AnimatePresence>
+        {open && (
+          // Positioned wrapper sits flush against the trigger (top-full) and uses
+          // top *padding* — not margin — as a hover-safe bridge: the visual gap is
+          // still part of the hoverable element, so the cursor can travel from the
+          // button to the menu without leaving the dropdown and closing it.
+          <div className="absolute left-0 top-full z-40 min-w-[224px] pt-1.5">
+            <motion.div
+              role="menu"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: MENU.offsetY, scale: MENU.initialScale }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, ...(reduce ? {} : { scale: MENU.initialScale }) }}
+              transition={reduce ? { duration: 0.1 } : (MENU.spring as Transition)}
+              style={{ originX: 0.15, originY: 0 }}
+              className="rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md"
+            >
+              {items.map((it, i) => {
+                const Icon = it.icon
+                return (
+                  <motion.div
+                    key={it.href}
+                    initial={reduce ? { opacity: 1 } : { opacity: 0, x: MENU.itemOffsetX }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, transition: MENU.exit }}
+                    transition={reduce
+                      ? { duration: 0 }
+                      : { ...(MENU.itemSpring as Transition), delay: i * MENU.stagger }}
+                  >
+                    <Link
+                      href={it.href}
+                      role="menuitem"
+                      onClick={() => setOpen(false)}
+                      className="group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
+                    >
+                      {Icon && (
+                        <Icon
+                          className="size-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-accent-foreground group-focus-visible:text-accent-foreground"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {it.label}
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   )
 }

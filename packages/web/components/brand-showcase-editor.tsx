@@ -18,10 +18,14 @@ import { Label } from "@/components/ui/label"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog"
-import { BadgeBuilderCore } from "@/components/badge-builder-core"
+import { BuilderV2Core } from "@/components/builder-v2/core"
 import { useBadgeMode } from "@/lib/use-badge-mode"
 import { useHydrated } from "@/lib/use-hydrated"
-import { BUILDER_DEFAULTS, buildBadgePath, type BuilderState } from "@/lib/badge-builder-shared"
+import {
+  BUILDER_V2_DEFAULTS,
+  buildBadgePathV2,
+  type BuilderV2State,
+} from "@/components/builder-v2/state"
 
 // Kept in sync with @shieldcn/core/brands (which is DB-backed and Node-only, so
 // we don't import it into this client component).
@@ -55,16 +59,16 @@ export function BrandShowcaseEditor({
   const [open, setOpen] = useState(false)
   // Showcase badges are always rendered with ?brand=slug, so default them to
   // the branded variant — the brand supplies the color/logo.
-  const [draft, setDraft] = useState<BuilderState>({ ...BUILDER_DEFAULTS, variant: "branded" })
+  const [draft, setDraft] = useState<BuilderV2State>({ ...BUILDER_V2_DEFAULTS, variant: "branded" })
   const [alt, setAlt] = useState("")
 
   const atLimit = badges.length >= MAX_BRAND_SHOWCASE
-  const draftPath = useMemo(() => buildBadgePath(draft), [draft])
+  const draftPath = useMemo(() => buildBadgePathV2(draft), [draft])
 
   function addBadge() {
     if (!draftPath) return
     onChange([...badges, { path: draftPath, alt: alt.trim() || undefined }])
-    setDraft({ ...BUILDER_DEFAULTS, variant: "branded" })
+    setDraft({ ...BUILDER_V2_DEFAULTS, variant: "branded" })
     setAlt("")
     setOpen(false)
   }
@@ -134,7 +138,7 @@ export function BrandShowcaseEditor({
             </DialogDescription>
           </DialogHeader>
 
-          <BadgeBuilderCore state={draft} onChange={setDraft} badgeUrl={draftPath} showHeader={false} brandStyled />
+          <BuilderV2Core state={draft} onChange={setDraft} badgeUrl={draftPath} layout="stacked" showFormat={false} brandStyled />
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="showcase-alt">Caption (optional)</Label>
