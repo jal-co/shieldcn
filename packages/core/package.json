@@ -39,7 +39,7 @@
     "pg": "^8.22.0",
     "react-icons": "^5.7.0",
     "satori": "^0.26.0",
-    "simple-icons": "^16.24.1",
+    "simple-icons": "^16.25.0",
     "svgo": "^4.0.1"
   },
   "devDependencies": {
