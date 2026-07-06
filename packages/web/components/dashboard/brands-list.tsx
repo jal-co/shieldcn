@@ -137,10 +137,16 @@ export function BrandsList({ initialBrands }: { initialBrands: BrandRow[] }) {
               <div className="flex min-w-0 items-center gap-3">
                 {mounted ? (
                   // The brand's own logo on its brand color — a live icon chip.
+                  // Lazy + async-decoded so a long brand list doesn't fire every
+                  // badge render at once on page load (each is a live SVG render).
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={adaptUrl(`/badge/-.svg?brand=${b.slug}&variant=branded`)}
                     alt=""
+                    width={32}
+                    height={32}
+                    loading="lazy"
+                    decoding="async"
                     className="size-8 shrink-0 rounded-lg border border-border object-cover"
                   />
                 ) : (

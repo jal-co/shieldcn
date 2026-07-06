@@ -308,6 +308,41 @@ export async function listAllBrands(): Promise<Brand[]> {
   }
 }
 
+/**
+ * Lightweight brand summaries for list views (admin only). Selects only the
+ * columns a list needs (id, slug, name, primary/secondary color) and skips the
+ * heavy `profile` and `brand_md` columns, so the brands dashboard doesn't pull
+ * (or serialize) every brand's full record just to render a row.
+ */
+export interface BrandSummary {
+  id: number
+  slug: string
+  name: string | null
+  color: string | null
+  color2: string | null
+}
+
+export async function listBrandSummaries(): Promise<BrandSummary[]> {
+  try {
+    await initDB()
+    const { rows } = await query<{ id: string | number; slug: string; name: string | null; config: unknown }>(
+      `SELECT id, slug, name, config FROM brands ORDER BY updated_at DESC`,
+    )
+    return rows.map((r) => {
+      const config = sanitizeConfig(r.config)
+      return {
+        id: Number(r.id),
+        slug: r.slug,
+        name: r.name,
+        color: config.color ?? null,
+        color2: config.color2 ?? null,
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
 /** Fetch any brand by slug regardless of owner (admin only). */
 export async function getAnyBrand(slug: string): Promise<Brand | null> {
   await initDB()
