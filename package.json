@@ -12,7 +12,8 @@
     "build:web": "turbo build --filter=@shieldcn/web",
     "build:engine": "turbo build --filter=@shieldcn/engine",
     "prepare": "husky",
-    "validate:icons": "cd packages/web && node_modules/.bin/tsx ../core/src/scripts/validate-icons.ts"
+    "validate:icons": "cd packages/web && node_modules/.bin/tsx ../core/src/scripts/validate-icons.ts",
+    "seed:friends": "cd packages/web && node_modules/.bin/tsx ../core/src/scripts/seed-friends-brands.ts"
   },
   "packageManager": "pnpm@10.30.3",
   "pnpm": {
