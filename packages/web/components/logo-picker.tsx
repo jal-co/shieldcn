@@ -83,6 +83,33 @@ const SOURCE_COLORS: Record<string, string> = {
   shieldcn: "bg-primary text-primary-foreground",
 }
 
+// ---------------------------------------------------------------------------
+// Brand logo preview — lazy <img> from the SimpleIcons CDN, hidden on error
+// ---------------------------------------------------------------------------
+
+function BrandIconPreview({ slug }: { slug: string }) {
+  // Track the slug that failed rather than a boolean, so a new slug resets
+  // during render without needing a setState-in-effect.
+  const [failedSlug, setFailedSlug] = React.useState<string | null>(null)
+  if (failedSlug === slug) return null
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`https://cdn.simpleicons.org/${encodeURIComponent(slug)}`}
+      alt=""
+      loading="lazy"
+      className="size-4 object-contain"
+      onError={() => setFailedSlug(slug)}
+    />
+  )
+}
+
+/** Return a preview node for SimpleIcons entries only (covers brand logos). */
+function brandPreview(slug: string, isSimpleIcon: boolean): React.ReactNode {
+  if (!isSimpleIcon || !slug || slug === "false") return undefined
+  return <BrandIconPreview slug={slug} />
+}
+
 const SOURCE_SHORT: Record<string, string> = {
   simple: "SI",
   lucide: "Lu",
@@ -131,6 +158,8 @@ interface LogoPickerProps {
 export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOptions = [] }: LogoPickerProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  // Defer the expensive 30k-icon filter so typing stays responsive.
+  const deferredSearch = React.useDeferredValue(search)
   const [sourceFilter, setSourceFilter] = React.useState("all")
   const [allIcons, setAllIcons] = React.useState<IconEntry[] | null>(null)
   const [loading, setLoading] = React.useState(false)
@@ -199,8 +228,8 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOpti
 
   // Search results
   const searchResults = React.useMemo(() => {
-    if (!allIcons || !search.trim() || search.length < 2) return []
-    const q = search.toLowerCase()
+    if (!allIcons || !deferredSearch.trim() || deferredSearch.length < 2) return []
+    const q = deferredSearch.toLowerCase()
     const filtered = allIcons.filter(i => {
       if (sourceFilter !== "all" && i.source !== sourceFilter) return false
       return i.title.toLowerCase().includes(q) || i.slug.toLowerCase().includes(q)
@@ -214,15 +243,13 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOpti
       if (aExact !== bExact) return aExact - bExact
       return at.localeCompare(bt)
     })
-    return filtered.slice(0, 50)
-  }, [allIcons, search, sourceFilter])
+    return filtered.slice(0, 500)
+  }, [allIcons, deferredSearch, sourceFilter])
 
   // Browse results (no search, just filtered by source)
   const browseResults = React.useMemo(() => {
     if (!allIcons || search.length >= 2 || sourceFilter === "all") return []
-    return allIcons
-      .filter(i => i.source === sourceFilter)
-      .slice(0, 50)
+    return allIcons.filter(i => i.source === sourceFilter)
   }, [allIcons, search, sourceFilter])
 
   // Group popular icons
@@ -257,11 +284,12 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOpti
           label: icon.title,
           tag: SOURCE_SHORT[icon.source] || icon.source,
           tagClassName: SOURCE_COLORS[icon.source] || "bg-muted text-muted-foreground",
+          icon: brandPreview(icon.slug, icon.source === "simple"),
           meta: icon.slug,
         })),
-        footer: resultCount >= 50 && (
+        footer: resultCount >= 500 && (
           <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
-            Showing first 50 results. Refine your search for more.
+            Showing first 500 results. Refine your search for more.
           </div>
         ),
       }]
@@ -269,19 +297,15 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOpti
 
     if (showingBrowse) {
       return [{
-        heading: `${ICON_SOURCES.find(s => s.value === sourceFilter)?.label} (${resultCount}${browseResults.length >= 50 ? "+" : ""})`,
+        heading: `${ICON_SOURCES.find(s => s.value === sourceFilter)?.label} (${resultCount})`,
         items: browseResults.map(icon => ({
           value: icon.slug,
           label: icon.title,
           tag: SOURCE_SHORT[icon.source] || icon.source,
           tagClassName: SOURCE_COLORS[icon.source] || "bg-muted text-muted-foreground",
+          icon: brandPreview(icon.slug, icon.source === "simple"),
           meta: icon.slug,
         })),
-        footer: browseResults.length >= 50 && (
-          <div className="px-3 py-1.5 text-[10px] text-muted-foreground">
-            Type to search within this source.
-          </div>
-        ),
       }]
     }
 
@@ -308,6 +332,7 @@ export function LogoPicker({ value, onChange, ariaLabel = "Logo icon", extraOpti
             label: opt.label,
             tag: opt.source || undefined,
             tagClassName: SOURCE_COLORS[opt.source] || "bg-muted text-muted-foreground",
+            icon: brandPreview(opt.value, opt.source === "Simple Icons"),
           })),
         })),
       ]
