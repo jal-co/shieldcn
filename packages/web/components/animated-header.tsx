@@ -251,7 +251,7 @@ export function AnimatedHeader({ githubButton }: { githubButton: ReactNode }) {
           className="flex items-center gap-2 rounded-md text-sm font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <motion.span animate={{ scale: logoScale }} transition={reduce ? { duration: 0 } : (BAR.stateSpring as Transition)}>
-            <ShieldcnLogo className="h-9 w-auto" />
+            <ShieldcnLogo className="h-7 w-auto" />
           </motion.span>
           <span className="hidden font-heading sm:inline">shieldcn</span>
         </Link>
