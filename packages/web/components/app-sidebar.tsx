@@ -153,7 +153,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <ShieldcnLogo className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-sm font-semibold tracking-tight">shieldcn</span>
+                  <span className="truncate font-heading text-sm font-semibold tracking-tight">shieldcn</span>
                   <span className="truncate text-xs text-sidebar-foreground/55">Badge workspace</span>
                 </div>
               </Link>
