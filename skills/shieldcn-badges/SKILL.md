@@ -1,6 +1,6 @@
 ---
 name: shieldcn-badges
-description: Create polished shieldcn README badges, badge groups, charts, headers, sponsors grids, and full README hero sections. Use when a user wants shadcn/ui-styled badges, Shields.io replacement, npm/GitHub/CI/status badges, star-history or download charts, README header banners, contributor/sponsor images, or README Studio guidance. Triggers include "add badges", "add shields", "README badges", "npm badge", "GitHub stars badge", "CI badge", "star history chart", "download chart", "README header", "README banner", "contributors grid", "sponsors grid", "build a README", "README Studio", "shieldcn", and requests to make a project README look better.
+description: Create polished shieldcn README badges, badge groups, charts, headers, sponsors grids, and full README hero sections. Use when a user wants shadcn/ui-styled badges, Shields.io replacement, npm/GitHub/CI/status badges, download charts, README header banners, contributor/sponsor images, or README Studio guidance. Triggers include "add badges", "add shields", "README badges", "npm badge", "GitHub stars badge", "CI badge", "download chart", "README header", "README banner", "contributors grid", "sponsors grid", "build a README", "README Studio", "shieldcn", and requests to make a project README look better.
 metadata:
   author: jal-co
   version: "1.0.0"
@@ -95,11 +95,6 @@ technical open-source project.
 ```
 
 ### Charts and visual proof
-
-```text
-Add a shieldcn star-history chart for [owner/repo] below the intro. Make it
-transparent so it blends into GitHub, and link it to the repository stargazers.
-```
 
 ```text
 Add a shieldcn npm download chart for [package] to the README. Use a concise
@@ -294,8 +289,12 @@ Style recommendations:
 
 Charts render as portable SVG/PNG images styled like shadcn cards.
 
+Star history charts are retired — GitHub restricted the stargazers API to repo
+admins/collaborators (June 2026). `/chart/github/stars/...` URLs render a
+100×1 transparent image; use an issues, commits, or npm downloads chart
+instead. Plain stars *count* badges still work.
+
 ```text
-/chart/github/stars/{owner}/{repo}.svg       star history
 /chart/github/issues/{owner}/{repo}.svg      issues over time
 /chart/github/commits/{user}.svg             lifetime contribution commits
 /chart/npm/{package}.svg                     npm download history
@@ -306,7 +305,7 @@ Charts render as portable SVG/PNG images styled like shadcn cards.
 Markdown example:
 
 ```md
-[![Star history](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg?bg=transparent&border=false)](https://github.com/vercel/next.js/stargazers)
+[![npm downloads](https://shieldcn.dev/chart/npm/zod.svg?bg=transparent&border=false)](https://www.npmjs.com/package/zod)
 ```
 
 Chart params: `theme`, `font`, `color`, `fill`, `area`, `width`, `height`,

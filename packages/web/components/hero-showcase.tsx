@@ -51,9 +51,9 @@ const CARDS = {
       z: 30,
     },
     {
-      key: "stars",
-      src: "/chart/github/stars/vercel/next.js.svg?theme=blue",
-      alt: "GitHub star history — vercel/next.js",
+      key: "npm-chart",
+      src: "/chart/npm/zod.svg?theme=blue",
+      alt: "npm weekly downloads — zod",
       top: "40%",
       left: "3%",
       width: 244,

@@ -11,7 +11,7 @@ function useHydrated() {
 }
 
 const CHARTS: { src: string; alt: string }[] = [
-  { src: "/chart/github/stars/vercel/next.js.svg?theme=blue", alt: "GitHub star history" },
+  { src: "/chart/npm/zod.svg?theme=blue", alt: "npm weekly downloads" },
   { src: "/chart/github/commits/torvalds.svg?theme=green", alt: "GitHub lifetime commit history" },
 ]
 

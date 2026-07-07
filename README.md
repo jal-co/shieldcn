@@ -47,12 +47,6 @@ npx skills add jal-co/shieldcn -a cursor # installs to Cursor
 See [`skills/shieldcn-badges/SKILL.md`](skills/shieldcn-badges/SKILL.md) for
 prompt examples and options.
 
-## Star History
-
-<p align="center">
-  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/chart/github/stars/jal-co/shieldcn.svg?theme=zinc&amp;bg=transparent&amp;border=false&amp;logo=false&amp;icon=Star" /><img alt="shieldcn star history" src="https://shieldcn.dev/chart/github/stars/jal-co/shieldcn.svg?mode=light&amp;theme=zinc&amp;bg=transparent&amp;border=false&amp;logo=false&amp;icon=Star" /></picture>
-</p>
-
 ## Sponsors
 
 <p align="center">

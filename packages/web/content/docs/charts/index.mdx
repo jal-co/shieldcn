@@ -1,30 +1,36 @@
 ---
 title: Charts
-description: Shadcn-styled graphs for GitHub stars, GitHub issues, lifetime commit history, npm downloads, and your own JSON data — rendered as portable SVGs.
+description: Shadcn-styled graphs for GitHub issues, lifetime commit history, npm downloads, and your own JSON data — rendered as portable SVGs.
 ---
 
 Shadcn-styled line/area charts you can drop in a README, docs site, or anywhere
-an image works — plain SVG, no JavaScript, no iframe. Five kinds: GitHub star
-history (like [starcharts](https://github.com/caarlos0/starcharts)), GitHub
+an image works — plain SVG, no JavaScript, no iframe. Four kinds: GitHub
 issues over time, lifetime commit history (a homage to
 [commit-history](https://github.com/peetzweg/commit-history)), npm downloads,
 and arbitrary JSON.
 
+> **Star history charts are retired.** GitHub
+> [restricted the stargazers API](https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/)
+> to repo admins and collaborators in June 2026, so timestamped star data can
+> no longer be fetched for arbitrary repos. Existing
+> `/chart/github/stars/...` URLs now render a 100×1 transparent image so they
+> don't break READMEs — swap them for an npm downloads or commit history
+> chart.
+
 <ChartPreview
-  src="/chart/github/stars/vercel/next.js.svg"
-  alt="vercel/next.js star history"
+  src="/chart/npm/zod.svg?theme=blue"
+  alt="zod npm downloads"
 />
 
 ## Builder
 
 Pick a chart kind, tweak the styling, and copy the URL or markdown.
 
-<ChartSandbox kind="stars" />
+<ChartSandbox kind="npm" />
 
 ## URL format
 
 ```
-/chart/github/stars/{owner}/{repo}.svg     → GitHub star history
 /chart/github/issues/{owner}/{repo}.svg    → GitHub issues over time
 /chart/github/commits/{user}.svg            → lifetime commit history
 /chart/github/commits/{user1},{user2}.svg   → compare users
@@ -38,28 +44,14 @@ Every endpoint also serves `.png` and `.json` (the raw time series).
 Use it in markdown:
 
 ```md
-![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)
+![npm downloads](https://shieldcn.dev/chart/npm/zod.svg)
 ```
 
-Or as a clickable image linking back to the repo:
+Or as a clickable image linking back to the package:
 
 ```md
-[![Star History](https://shieldcn.dev/chart/github/stars/vercel/next.js.svg)](https://github.com/vercel/next.js)
+[![npm downloads](https://shieldcn.dev/chart/npm/zod.svg)](https://www.npmjs.com/package/zod)
 ```
-
-## GitHub stars
-
-<ChartPreview
-  src="/chart/github/stars/shadcn-ui/ui.svg?theme=blue"
-  alt="shadcn-ui/ui star history"
-  description="Blue accent via theme"
-/>
-
-<ChartPreview
-  src="/chart/github/stars/withastro/astro.svg?bg=transparent&border=false&theme=orange"
-  alt="withastro/astro star history"
-  description="Transparent background, no border — drops onto any page"
-/>
 
 ## GitHub issues over time
 
@@ -194,21 +186,21 @@ selects the value array; optional `dateQuery` selects a parallel date array.
 > for the line paths), and a sandboxed `<img>` SVG can't load embedded fonts —
 > so the rendered typeface depends on what's available to the viewer.
 
-## How star history works
+## What happened to star history?
 
-GitHub has no "stars over time" API. shieldcn reconstructs the curve from the
-stargazers endpoint, which (with the `star+json` media type) returns a
-`starred_at` timestamp per stargazer:
+Star history charts reconstructed the curve from GitHub's stargazers endpoint
+(`/repos/{owner}/{repo}/stargazers` with the `star+json` media type), which
+returned a `starred_at` timestamp per stargazer. In June 2026 GitHub
+[restricted that endpoint](https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/)
+to repo admins and collaborators, so the data is no longer accessible for
+arbitrary repos.
 
-- **Small / medium repos** — every page is fetched and the full list is sampled
-  down to ~30 points for an exact curve.
-- **Large repos** — pages are sampled evenly and the first stargazer of each is
-  read, then the curve is anchored to the live star count, exactly like
-  starcharts.
-
-Requests are distributed across the donated [token pool](/token-pool) and
-cached with a 6-hour fresh window plus a 30-day last-known-good fallback, so a
-transient rate limit never collapses the chart.
+To keep existing READMEs from breaking, `/chart/github/stars/...` URLs now
+return a **100×1 transparent image** (and `.json` returns `410 Gone`). Replace
+them with an [issues](#github-issues-over-time),
+[commits](#github-commits-over-time), or [npm downloads](#npm-downloads)
+chart. The plain [stars count badge](/docs/badges/github) still works — it
+uses the repo metadata endpoint, which is unaffected.
 
 ## How commit history works
 
@@ -218,14 +210,13 @@ and works the same way it does. GitHub's GraphQL
 commit count for a window of at most a year, so a lifetime is sliced into
 **monthly windows** — batched a year at a time into aliased queries — then the
 counts are accumulated into the rising curve. Only public commits are counted.
-Like the star data, requests go through the donated [token pool](/token-pool)
+Requests go through the donated [token pool](/token-pool)
 with a 6-hour fresh window and a 30-day last-known-good fallback.
 
 ## Data sources
 
 | Chart | Source | Cache |
 |-------|--------|-------|
-| Stars | [GitHub Stargazers API](https://docs.github.com/en/rest/activity/starring) | 6h fresh · 30d last-known-good |
 | Issues | [GitHub Search API](https://docs.github.com/en/rest/search) (`type:issue`) | 6h fresh · 30d last-known-good |
 | Commits | [GitHub GraphQL API](https://docs.github.com/en/graphql) (`contributionsCollection`) | 6h fresh · 30d last-known-good |
 | npm | [npm downloads API](https://github.com/npm/registry/blob/main/docs/download-counts.md) | 1h |

@@ -1056,7 +1056,7 @@ export function ChartInspector({ block, onChange }: { block: ChartBlock; onChang
         <Select value={s.kind} onValueChange={v => set({ kind: v as ChartState["kind"] })}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="stars">GitHub stars</SelectItem>
+            <SelectItem value="stars" disabled>GitHub stars (retired by GitHub)</SelectItem>
             <SelectItem value="issues">GitHub issues</SelectItem>
             <SelectItem value="commits">GitHub commits</SelectItem>
             <SelectItem value="npm">npm downloads</SelectItem>
@@ -1064,6 +1064,14 @@ export function ChartInspector({ block, onChange }: { block: ChartBlock; onChang
           </SelectContent>
         </Select>
       </Field>
+
+      {s.kind === "stars" ? (
+        <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+          GitHub restricted the stargazers API to repo admins/collaborators, so
+          star history charts no longer work. This chart now renders as an
+          invisible 100×1 image — switch it to another chart kind.
+        </p>
+      ) : null}
 
       {(s.kind === "stars" || s.kind === "issues") ? (
         <Row>

@@ -55,30 +55,28 @@ describe("handleBadgeGET /chart", () => {
   beforeEach(() => { globalThis.fetch = ghStub() as unknown as typeof fetch })
   afterEach(() => { globalThis.fetch = realFetch })
 
-  it("renders a star-history SVG", async () => {
+  it("renders a 100x1 transparent SVG for retired star-history charts", async () => {
     const req = new Request("https://x.dev/chart/github/stars/vercel/next.js.svg?theme=blue")
     const res = await handleBadgeGET(req, ["chart", "github", "stars", "vercel", "next.js.svg"])
     expect(res.status).toBe(200)
     expect(res.headers.get("Content-Type")).toBe("image/svg+xml")
     const svg = await res.text()
-    expect(svg.startsWith("<svg")).toBe(true)
-    expect(svg).toContain("vercel/next.js")
-    expect(svg).not.toContain("NaN")
+    expect(svg).toContain('width="100"')
+    expect(svg).toContain('height="1"')
+    expect(svg).not.toContain("vercel/next.js")
   })
 
-  it("returns JSON time series for .json", async () => {
+  it("returns 410 JSON for retired star-history .json", async () => {
     const req = new Request("https://x.dev/chart/github/stars/vercel/next.js.json")
     const res = await handleBadgeGET(req, ["chart", "github", "stars", "vercel", "next.js.json"])
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(410)
     const data = await res.json()
-    expect(data.total).toBe(40)
-    expect(Array.isArray(data.points)).toBe(true)
-    expect(data.points.length).toBeGreaterThan(1)
+    expect(data.error).toContain("no longer available")
   })
 
-  it("shows a usage error for a malformed path", async () => {
-    const req = new Request("https://x.dev/chart/github/stars.svg")
-    const res = await handleBadgeGET(req, ["chart", "github", "stars.svg"])
+  it("shows a usage error for a malformed issues path", async () => {
+    const req = new Request("https://x.dev/chart/github/issues.svg")
+    const res = await handleBadgeGET(req, ["chart", "github", "issues.svg"])
     const svg = await res.text()
     expect(svg).toContain("usage:")
   })

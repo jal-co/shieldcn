@@ -406,12 +406,6 @@ function SponsorsShowcase() {
 
 const CHART_EXAMPLES: { title: string; description: string; src: string; href: string }[] = [
   {
-    title: "GitHub stars over time",
-    description: "Star history for any repo — like starcharts, shadcn-styled.",
-    src: "/chart/github/stars/shadcn-ui/ui.svg?theme=blue",
-    href: "/docs/charts",
-  },
-  {
     title: "GitHub issues over time",
     description: "Cumulative issues opened, sampled from the search API.",
     src: "/chart/github/issues/honojs/hono.svg?theme=rose",
@@ -445,7 +439,7 @@ function ChartShowcase() {
           Charts
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Shadcn-styled graphs for GitHub stars, issues, npm downloads, and your own JSON data.
+          Shadcn-styled graphs for GitHub issues, commits, npm downloads, and your own JSON data.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
