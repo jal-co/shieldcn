@@ -1,8 +1,6 @@
----
-packages: ["@shieldcn/action"]
----
+## @shieldcn/action@1.0.0
 
-# shieldcn starchart
+### shieldcn starchart
 
 Initial release of the shieldcn starchart GitHub Action.
 
