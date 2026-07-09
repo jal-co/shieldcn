@@ -50,7 +50,10 @@ jobs:
       - name: Check for existing tag
         id: tag
         run: |
-          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+          # 0.0.0 means the Version Packages PR hasn't merged yet — nothing to tag.
+          if [ "${{ steps.version.outputs.version }}" = "0.0.0" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -62,6 +65,8 @@ jobs:
 
       - name: Commit dist if changed
         if: steps.tag.outputs.exists == 'false'
+        env:
+          HUSKY: "0"
         run: |
           git add packages/action/dist
           if ! git diff --cached --quiet; then
@@ -75,6 +80,7 @@ jobs:
         if: steps.tag.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          HUSKY: "0"
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           MAJOR="v$(echo "$VERSION" | cut -d. -f1)"
