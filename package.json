@@ -12,6 +12,7 @@
     "build:web": "turbo build --filter=@shieldcn/web",
     "build:engine": "turbo build --filter=@shieldcn/engine",
     "prepare": "husky",
+    "tegami": "node scripts/tegami.mts",
     "validate:icons": "cd packages/web && node_modules/.bin/tsx ../core/src/scripts/validate-icons.ts",
     "seed:friends": "cd packages/web && node_modules/.bin/tsx ../core/src/scripts/seed-friends-brands.ts"
   },
@@ -34,6 +35,7 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
+    "tegami": "^1.2.4",
     "turbo": "^2"
   },
   "lint-staged": {

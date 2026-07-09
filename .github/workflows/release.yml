@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Versioning: reads pending .tegami/ changelogs and opens/updates the
+      # Version Packages PR. All packages are private, so no npm publishing.
+      - name: Version packages
+        run: pnpm tegami ci
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # Action release: when the version PR merges, packages/action's version
+      # changes. Rebuild the committed dist, tag vX.Y.Z, and move the floating
+      # v1 tag so `uses: jal-co/shieldcn@v1` picks up the release.
+      - name: Read action version
+        id: version
+        run: echo "version=$(node -p "require('./packages/action/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check for existing tag
+        id: tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build action bundle
+        if: steps.tag.outputs.exists == 'false'
+        run: pnpm --filter @shieldcn/action build
+
+      - name: Commit dist if changed
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          git add packages/action/dist
+          if ! git diff --cached --quiet; then
+            git -c user.name="shieldcn[bot]" \
+                -c user.email="shieldcn[bot]@users.noreply.github.com" \
+                commit -m "chore(action): build dist for v${{ steps.version.outputs.version }}"
+            git push
+          fi
+
+      - name: Tag and release
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MAJOR="v$(echo "$VERSION" | cut -d. -f1)"
+          git tag "v$VERSION"
+          git tag -f "$MAJOR"
+          git push origin "v$VERSION"
+          git push -f origin "$MAJOR"
+          gh release create "v$VERSION" \
+            --title "shieldcn starchart v$VERSION" \
+            --notes-file <(awk "/^## $VERSION\$/{f=1;next} /^## /{f=0} f" packages/action/CHANGELOG.md || echo "See CHANGELOG.md") \
+            --verify-tag
