@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 import Image from "next/image"
 import { pageMetadata } from "@/lib/metadata"
 import { Heart, ExternalLink, Star } from "lucide-react"
@@ -64,6 +64,33 @@ function SentryLogo({ className }: { className?: string }) {
         d="M29,2.26a4.67,4.67,0,0,0-8,0L14.42,13.53A32.21,32.21,0,0,1,32.17,40.19H27.55A27.68,27.68,0,0,0,12.09,17.47L6,28a15.92,15.92,0,0,1,9.23,12.17H4.62A.76.76,0,0,1,4,39.06l2.94-5a10.74,10.74,0,0,0-3.36-1.9l-2.91,5a4.54,4.54,0,0,0,1.69,6.24A4.66,4.66,0,0,0,4.62,44H19.15a19.4,19.4,0,0,0-8-17.31l2.31-4A23.87,23.87,0,0,1,23.76,44H36.07a35.88,35.88,0,0,0-16.41-31.8l4.67-8a.77.77,0,0,1,1.05-.27c.53.29,20.29,34.77,20.66,35.17a.76.76,0,0,1-.68,1.13H40.6q.09,1.91,0,3.81h4.78A4.59,4.59,0,0,0,50,39.43a4.49,4.49,0,0,0-.62-2.28Z M124.32,28.28,109.56,9.22h-3.68V34.77h3.73V15.19l15.18,19.58h3.26V9.22h-3.73ZM87.15,23.54h13.23V20.22H87.14V12.53h14.93V9.21H83.34V34.77h18.92V31.45H87.14ZM71.59,20.3h0C66.44,19.06,65,18.08,65,15.7c0-2.14,1.89-3.59,4.71-3.59a12.06,12.06,0,0,1,7.07,2.55l2-2.83a14.1,14.1,0,0,0-9-3c-5.06,0-8.59,3-8.59,7.27,0,4.6,3,6.19,8.46,7.52C74.51,24.74,76,25.78,76,28.11s-2,3.77-5.09,3.77a12.34,12.34,0,0,1-8.3-3.26l-2.25,2.69a15.94,15.94,0,0,0,10.42,3.85c5.48,0,9-2.95,9-7.51C79.75,23.79,77.47,21.72,71.59,20.3ZM195.7,9.22l-7.69,12-7.64-12h-4.46L186,24.67V34.78h3.84V24.55L200,9.22Zm-64.63,3.46h8.37v22.1h3.84V12.68h8.37V9.22H131.08ZM169.41,24.8c3.86-1.07,6-3.77,6-7.63,0-4.91-3.59-8-9.38-8H154.67V34.76h3.8V25.58h6.45l6.48,9.2h4.44l-7-9.82Zm-10.95-2.5V12.6h7.17c3.74,0,5.88,1.77,5.88,4.84s-2.29,4.86-5.84,4.86Z"
       />
     </svg>
+  )
+}
+
+function ShadcnStudioLogo({ className }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className ?? ""}`}>
+      <svg viewBox="0 0 328 329" fill="none" aria-hidden="true" className="size-7">
+        <rect y="0.5" width="328" height="328" rx="164" fill="black" className="dark:fill-white" />
+        <path
+          d="M165.018 72.3008V132.771C165.018 152.653 148.9 168.771 129.018 168.771H70.2288"
+          stroke="white"
+          strokeWidth="20"
+          className="dark:stroke-black"
+        />
+        <path
+          d="M166.627 265.241L166.627 204.771C166.627 184.889 182.744 168.771 202.627 168.771L261.416 168.771"
+          stroke="white"
+          strokeWidth="20"
+          className="dark:stroke-black"
+        />
+        <line x1="238.136" y1="98.8184" x2="196.76" y2="139.707" stroke="white" strokeWidth="20" className="dark:stroke-black" />
+        <line x1="135.688" y1="200.957" x2="94.3128" y2="241.845" stroke="white" strokeWidth="20" className="dark:stroke-black" />
+        <line x1="133.689" y1="137.524" x2="92.5566" y2="96.3914" stroke="white" strokeWidth="20" className="dark:stroke-black" />
+        <line x1="237.679" y1="241.803" x2="196.547" y2="200.671" stroke="white" strokeWidth="20" className="dark:stroke-black" />
+      </svg>
+      <span className="text-lg font-semibold tracking-tight">shadcn/studio</span>
+    </div>
   )
 }
 
@@ -144,117 +171,9 @@ interface GhSponsor {
   featured: boolean
 }
 
-// Hand-picked highlighted sponsors, rendered as named tier plaques. These are
-// hardcoded (not pulled from the GitHub Sponsors API) so their placement and
-// branding stay stable regardless of monthly amount.
-interface HighlightSponsor {
-  name: string
-  href: string
-  tier: "Silver" | "Bronze"
-  logo: ReactNode
-}
-
-const HIGHLIGHT_SPONSORS: HighlightSponsor[] = [
-  {
-    name: "TradingGoose",
-    href: "https://www.tradinggoose.ai",
-    tier: "Silver",
-    logo: (
-      <div className="flex items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/sponsors/trading-goose.png" alt="TradingGoose" className="size-11 w-auto drop-shadow-sm" />
-        <span
-          className="text-xl font-bold tracking-tight"
-          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
-        >
-          TradingGoose
-        </span>
-      </div>
-    ),
-  },
-  {
-    name: "Notra",
-    href: "https://usenotra.com",
-    tier: "Bronze",
-    logo: (
-      <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sponsors/notra-wordmark.svg"
-          alt="Notra"
-          className="h-11 w-auto"
-          style={{ filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.4))" }}
-        />
-      </>
-    ),
-  },
-  {
-    name: "context.dev",
-    href: "https://context.dev",
-    tier: "Bronze",
-    logo: (
-      <div className="flex items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sponsors/context-dev.svg"
-          alt="context.dev"
-          className="size-11 rounded-lg drop-shadow-sm"
-        />
-        <span
-          className="text-xl font-bold tracking-tight"
-          style={{ color: "#2b2b2b", textShadow: "0 1px 0 rgba(255,255,255,0.45)" }}
-        >
-          context.dev
-        </span>
-      </div>
-    ),
-  },
-]
-
-// GitHub logins covered by HIGHLIGHT_SPONSORS, so they aren't duplicated in the
-// dynamic supporters list below.
+// GitHub logins hand-picked into the fixed sponsor cards below, so they
+// aren't duplicated in the dynamic supporters list.
 const HIGHLIGHT_LOGINS = new Set(["usenotra"])
-
-// Literal metal-plaque finishes: a brushed metallic gradient, a beveled rim,
-// and an engraved tier label. Rendered the same in light and dark site themes
-// so the metal always reads as metal.
-const PLAQUE_STYLE: Record<
-  HighlightSponsor["tier"],
-  { plate: CSSProperties; rivet: CSSProperties; label: CSSProperties; brush: string }
-> = {
-  Silver: {
-    plate: {
-      background:
-        "linear-gradient(145deg, #f6f7f9 0%, #c6cad0 18%, #edeff2 38%, #a9adb5 56%, #dadde1 76%, #b4b8bf 100%)",
-      boxShadow:
-        "inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 7px rgba(0,0,0,0.32), 0 12px 28px -10px rgba(0,0,0,0.55)",
-    },
-    rivet: {
-      background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #c2c5cb 45%, #6f747c 100%)",
-      boxShadow: "inset 0 -1px 1px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.5)",
-    },
-    label: { color: "#3a3d42", textShadow: "0 1px 0 rgba(255,255,255,0.5)" },
-    brush: "rgba(255,255,255,0.07)",
-  },
-  Bronze: {
-    plate: {
-      background:
-        "linear-gradient(145deg, #e6c49a 0%, #b9763a 18%, #dc9d5d 38%, #8a4f24 56%, #cb874b 76%, #9d5f2d 100%)",
-      boxShadow:
-        "inset 0 2px 3px rgba(255,236,210,0.55), inset 0 -3px 7px rgba(60,30,0,0.4), 0 12px 28px -10px rgba(0,0,0,0.55)",
-    },
-    rivet: {
-      background: "radial-gradient(circle at 35% 30%, #ffe6c4 0%, #c88a4f 45%, #6f3f17 100%)",
-      boxShadow: "inset 0 -1px 1px rgba(40,20,0,0.45), 0 1px 1px rgba(255,230,196,0.5)",
-    },
-    label: { color: "#5a3517", textShadow: "0 1px 0 rgba(255,225,190,0.45)" },
-    brush: "rgba(255,255,255,0.06)",
-  },
-}
-
-function Rivet({ style, className }: { style: CSSProperties; className: string }) {
-  return <span aria-hidden className={`absolute size-2 rounded-full ${className}`} style={style} />
-}
 
 // Active GitHub Sponsors of the maintainer (the authenticated viewer), via
 // GraphQL. The query resolves against `viewer`, so the token MUST belong to the
@@ -328,14 +247,50 @@ const tiers = [
       { name: "Neon", href: "https://neon.com/?utm_source=shieldcn.dev", logoComponent: <NeonLogo /> },
     ] as Sponsor[],
   },
+]
+
+// The larger, standalone sponsor card — sized up from the rest to read as the
+// top tier, but styled identically (same card, just bigger).
+const FEATURED_SPONSOR: Sponsor = {
+  name: "TradingGoose",
+  href: "https://www.tradinggoose.ai",
+  logoComponent: (
+    <div className="flex items-center gap-3">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/sponsors/trading-goose.png" alt="TradingGoose" className="size-10 w-auto" />
+      <span className="text-2xl font-bold tracking-tight">TradingGoose</span>
+    </div>
+  ),
+}
+
+// Remaining sponsors, all rendered at the same (smaller) card size.
+const SPONSORS: Sponsor[] = [
   {
-    name: "Supporters",
-    prominent: false,
-    sponsors: [
-      { name: "shadcnblocks", href: "https://www.shadcnblocks.com?utm_source=shieldcn.dev", logoComponent: <ShadcnBlocksLogo className="h-7" /> },
-      { name: "shadcncraft", href: "https://shadcncraft.com?utm_source=shieldcn.dev", logoComponent: <ShadcnCraftLogo className="h-7 w-auto" /> },
-    ] as Sponsor[],
+    name: "context.dev",
+    href: "https://context.dev",
+    logoComponent: (
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/sponsors/context-dev.svg" alt="context.dev" className="size-7 rounded-md" />
+        <span className="text-base font-semibold tracking-tight">context.dev</span>
+      </div>
+    ),
   },
+  {
+    name: "Notra",
+    href: "https://usenotra.com",
+    logoComponent: (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/sponsors/notra-wordmark.svg" alt="Notra" className="h-7 w-auto dark:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/sponsors/notra-wordmark-dark.svg" alt="Notra" className="hidden h-7 w-auto dark:block" />
+      </>
+    ),
+  },
+  { name: "shadcnblocks", href: "https://www.shadcnblocks.com?utm_source=shieldcn.dev", logoComponent: <ShadcnBlocksLogo className="h-7" /> },
+  { name: "shadcncraft", href: "https://shadcncraft.com?utm_source=shieldcn.dev", logoComponent: <ShadcnCraftLogo className="h-7 w-auto" /> },
+  { name: "shadcn/studio", href: "https://shadcnstudio.com?utm_source=shieldcn.dev&utm_medium=banner&utm_campaign=sponsor", logoComponent: <ShadcnStudioLogo /> },
 ]
 
 /** One restyled tier: a quiet label rule + a row of dark logo cards. OSS
@@ -421,64 +376,23 @@ export default async function SponsorPage() {
           {/* OSS Programs — white logos on dark cards */}
           <TierBlock tier={tiers[0]} step={1} />
 
-          {/* Highlighted sponsors — hand-picked tier plaques (Silver, Bronze) */}
+          {/* Sponsors — one hand-picked featured card (bigger) + the rest at
+              uniform size, all sharing the same quiet card styling. */}
           <SponsorReveal step={2} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
             <div className="flex items-center gap-3">
               <h3 className="text-sm font-medium text-muted-foreground">Sponsors</h3>
               <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
             </div>
-            {HIGHLIGHT_SPONSORS.map((s) => {
-              const p = PLAQUE_STYLE[s.tier]
-              return (
-                <a
-                  key={s.name}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={s.name}
-                  className="group relative flex items-center justify-center overflow-hidden rounded-lg p-9 ring-1 ring-black/15 transition-transform duration-200 hover:-translate-y-0.5"
-                  style={p.plate}
-                >
-                  {/* brushed-metal grain */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                      backgroundImage: `repeating-linear-gradient(90deg, ${p.brush} 0 1px, transparent 1px 3px)`,
-                      mixBlendMode: "overlay",
-                    }}
-                  />
-                  {/* moving sheen on hover */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
-                  />
-                  {/* corner rivets */}
-                  <Rivet style={p.rivet} className="left-2.5 top-2.5" />
-                  <Rivet style={p.rivet} className="right-2.5 top-2.5" />
-                  <Rivet style={p.rivet} className="bottom-2.5 left-2.5" />
-                  <Rivet style={p.rivet} className="bottom-2.5 right-2.5" />
-                  {/* engraved tier label */}
-                  <span
-                    className="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-[0.08em]"
-                    style={p.label}
-                  >
-                    {s.tier} sponsor
-                  </span>
-                  <span className="relative">{s.logo}</span>
-                </a>
-              )
-            })}
-          </SponsorReveal>
-
-          {/* Supporters — partner tools + the rest of the GitHub sponsors */}
-          <SponsorReveal step={3} className="flex flex-col gap-4 px-6 py-6 sm:px-10">
-            <div className="flex items-center gap-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Supporters</h3>
-              <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
-            </div>
+            <a
+              href={FEATURED_SPONSOR.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center rounded-xl border border-border bg-card/40 p-9 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-accent/30"
+            >
+              <div className="text-foreground/50 transition-colors group-hover:text-foreground/90">{FEATURED_SPONSOR.logoComponent}</div>
+            </a>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {tiers[1].sponsors.map((sponsor) => (
+              {SPONSORS.map((sponsor) => (
                 <a
                   key={sponsor.name}
                   href={sponsor.href}
@@ -511,7 +425,7 @@ export default async function SponsorPage() {
 
           {/* Stargazers — two-row marquee carousel */}
           {stargazers.length > 0 && (
-            <SponsorReveal step={4} className="flex flex-col gap-3 px-6 py-6 sm:px-10">
+            <SponsorReveal step={3} className="flex flex-col gap-3 px-6 py-6 sm:px-10">
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-medium text-muted-foreground">Stargazers</h3>
                 <span className="text-xs tabular-nums text-muted-foreground">{stargazers.length}</span>
@@ -522,7 +436,7 @@ export default async function SponsorPage() {
           )}
 
           {/* CTA */}
-          <SponsorReveal step={5} className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
+          <SponsorReveal step={4} className="flex flex-col items-center gap-5 px-6 py-14 sm:px-10">
             <div className="flex flex-col items-center gap-2 text-center">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Want to support the project?
