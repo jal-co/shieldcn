@@ -1,6 +1,6 @@
 {
   "name": "@shieldcn/action",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "shieldcn starchart — a GitHub Action that renders a shadcn-styled star-history chart for your repo",
   "scripts": {

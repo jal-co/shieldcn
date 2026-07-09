@@ -1,0 +1,26 @@
+core:changelogs:
+  - content: "---\npackages:\n  \"@shieldcn/action\":\n    type: major\n---\n\n# shieldcn starchart\n\nInitial release of the shieldcn starchart GitHub Action.\n\nGitHub restricted the stargazers `starred_at` API to repo admins and\ncollaborators, which killed hosted star-history charts. This action brings\nthem back: inside a workflow, the automatic `GITHUB_TOKEN` still has access,\nso the action fetches the star history, renders a shadcn-styled SVG chart via\n`@shieldcn/core`, and commits it to the repo as `shieldcn[bot]`.\n\n- `mode: both` (default) writes a dark/light pair with a ready-to-paste\n  `<picture>` snippet output\n- Full shieldcn chart styling: `theme`, `color`, `background`, `border`,\n  `area`, `font`, `width`, `height`, `title`, `subtitle`\n- Exact curves for repos under ~3k stars, evenly sampled pages (starcharts\n  strategy) up to GitHub's 40k-star pagination cap\n"
+    filename: starchart-initial-release.md
+    v: 0.0.0
+core:packages:
+  - id: npm:shieldcn
+    updated: false
+  - changelogIds:
+      - starchart-initial-release.md
+    id: npm:@shieldcn/action
+    updated: true
+  - id: npm:shieldcn-cli
+    updated: false
+  - id: npm:@shieldcn/core
+    updated: false
+  - id: npm:@shieldcn/engine
+    updated: false
+  - id: npm:@shieldcn/web
+    updated: false
+npm:packages:
+  - id: npm:shieldcn
+  - id: npm:@shieldcn/action
+  - id: npm:shieldcn-cli
+  - id: npm:@shieldcn/core
+  - id: npm:@shieldcn/engine
+  - id: npm:@shieldcn/web
