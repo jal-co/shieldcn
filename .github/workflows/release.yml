@@ -36,6 +36,9 @@ jobs:
         run: pnpm tegami ci
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # tegami's generated version commit isn't conventional-commit shaped;
+          # skip local husky hooks in CI (commit-check runs on PRs anyway).
+          HUSKY: "0"
 
       # Action release: when the version PR merges, packages/action's version
       # changes. Rebuild the committed dist, tag vX.Y.Z, and move the floating
