@@ -1,7 +1,7 @@
 name: "shieldcn starchart"
 description: >-
-  Render a shadcn-styled star-history chart for your repo and commit it —
-  star charts that keep working after GitHub restricted the stargazers API.
+  Star-history charts that still work — rendered as a shadcn-styled SVG and
+  committed to your repo by shieldcn[bot].
 author: "shieldcn"
 branding:
   icon: "star"
