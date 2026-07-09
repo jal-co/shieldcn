@@ -47,6 +47,16 @@ npx skills add jal-co/shieldcn -a cursor # installs to Cursor
 See [`skills/shieldcn-badges/SKILL.md`](skills/shieldcn-badges/SKILL.md) for
 prompt examples and options.
 
+## Star history
+
+Rendered by the [shieldcn starchart action](https://shieldcn.dev/docs/charts/star-history)
+— star charts that survived GitHub's stargazers API restriction, updated daily
+by `shieldcn[bot]`.
+
+<p align="center">
+  <a href="https://github.com/jal-co/shieldcn/stargazers"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/shieldcn/star-chart-dark.svg" /><img alt="Star history of jal-co/shieldcn" src=".github/shieldcn/star-chart-light.svg" /></picture></a>
+</p>
+
 ## Sponsors
 
 <p align="center">

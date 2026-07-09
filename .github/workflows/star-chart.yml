@@ -1,0 +1,47 @@
+name: Star chart
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+  # Smoke test: on PRs that touch the action, run it without committing and
+  # upload the rendered SVGs as an artifact.
+  pull_request:
+    paths:
+      - "action.yml"
+      - "packages/action/**"
+
+permissions:
+  contents: write
+
+jobs:
+  star-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render star chart
+        id: chart
+        uses: ./
+        with:
+          theme: violet
+          commit: ${{ github.event_name != 'pull_request' }}
+
+      - name: Job summary
+        run: |
+          {
+            echo "### shieldcn starchart"
+            echo ""
+            echo "Stars: **${{ steps.chart.outputs.stars }}**"
+            echo ""
+            echo '```html'
+            echo "${{ steps.chart.outputs.snippet }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload chart artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: star-chart
+          path: .github/shieldcn/*.svg
