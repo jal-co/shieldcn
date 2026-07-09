@@ -1,0 +1,85 @@
+name: "shieldcn starchart"
+description: >-
+  Render a shadcn-styled star-history chart for your repo and commit it —
+  star charts that keep working after GitHub restricted the stargazers API.
+author: "shieldcn"
+branding:
+  icon: "star"
+  color: "gray-dark"
+
+inputs:
+  repo:
+    description: 'Repository to chart, as "owner/repo". Defaults to the current repository.'
+    required: false
+  token:
+    description: "GitHub token with read access to the repo's stargazers. Defaults to the workflow token."
+    required: false
+    default: ${{ github.token }}
+  output:
+    description: "Output SVG path. With mode: both, `-dark`/`-light` suffixes are inserted before `.svg`."
+    required: false
+    default: ".github/shieldcn/star-chart.svg"
+  mode:
+    description: "Color mode: dark, light, or both (writes a <picture>-ready pair)."
+    required: false
+    default: "both"
+  theme:
+    description: "shieldcn accent theme (zinc, slate, blue, green, rose, orange, violet, purple, cyan, emerald)."
+    required: false
+  color:
+    description: "Explicit accent color (hex, without #). Overrides theme."
+    required: false
+  background:
+    description: "Card background: transparent, or a hex color without #. Defaults to the mode surface."
+    required: false
+  border:
+    description: "Draw the rounded card border."
+    required: false
+    default: "true"
+  area:
+    description: "Show the area fill under the line."
+    required: false
+    default: "true"
+  width:
+    description: "Chart width in px (200–2000)."
+    required: false
+    default: "800"
+  height:
+    description: "Chart height in px (120–1200)."
+    required: false
+    default: "400"
+  title:
+    description: "Chart title. Defaults to owner/repo."
+    required: false
+  subtitle:
+    description: "Chart subtitle. Defaults to the formatted star count."
+    required: false
+  font:
+    description: "Font stack keyword (inter, geist, geist-mono, jetbrains-mono, fira-code, roboto, space-grotesk, sans, mono, serif)."
+    required: false
+  logo:
+    description: "Show the shieldcn watermark."
+    required: false
+    default: "true"
+  commit:
+    description: "Commit and push the generated chart as shieldcn[bot]."
+    required: false
+    default: "true"
+  commit-message:
+    description: "Commit message for the chart update."
+    required: false
+    default: "chore: update star chart [skip ci]"
+
+outputs:
+  files:
+    description: "Newline-separated list of written SVG paths."
+  stars:
+    description: "Current total star count."
+  snippet:
+    description: "Ready-to-paste README embed snippet (a <picture> pair when mode is both)."
+  committed:
+    description: "Whether a commit was pushed (true/false)."
+
+runs:
+  using: "node24"
+  main: "packages/action/dist/index.js"
