@@ -40,7 +40,13 @@ function getBoolInput(name: string, fallback: boolean): boolean {
 
 function setOutput(name: string, value: string): void {
   const file = process.env.GITHUB_OUTPUT
-  if (file) appendFileSync(file, `${name}=${value.replace(/\n/g, "%0A")}\n`)
+  if (!file) return
+  if (value.includes("\n")) {
+    // Multiline values use the heredoc form of the GITHUB_OUTPUT file format.
+    appendFileSync(file, `${name}<<SHIELDCN_EOF\n${value}\nSHIELDCN_EOF\n`)
+  } else {
+    appendFileSync(file, `${name}=${value}\n`)
+  }
 }
 
 function fail(message: string): never {

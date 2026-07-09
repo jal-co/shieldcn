@@ -561,8 +561,16 @@ function getBoolInput(name, fallback) {
 }
 function setOutput(name, value) {
   const file = process.env.GITHUB_OUTPUT;
-  if (file) (0, import_node_fs.appendFileSync)(file, `${name}=${value.replace(/\n/g, "%0A")}
+  if (!file) return;
+  if (value.includes("\n")) {
+    (0, import_node_fs.appendFileSync)(file, `${name}<<SHIELDCN_EOF
+${value}
+SHIELDCN_EOF
 `);
+  } else {
+    (0, import_node_fs.appendFileSync)(file, `${name}=${value}
+`);
+  }
 }
 function fail(message) {
   console.error(`::error::${message}`);

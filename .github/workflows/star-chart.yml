@@ -28,14 +28,17 @@ jobs:
           commit: ${{ github.event_name != 'pull_request' }}
 
       - name: Job summary
+        env:
+          STARS: ${{ steps.chart.outputs.stars }}
+          SNIPPET: ${{ steps.chart.outputs.snippet }}
         run: |
           {
             echo "### shieldcn starchart"
             echo ""
-            echo "Stars: **${{ steps.chart.outputs.stars }}**"
+            echo "Stars: **$STARS**"
             echo ""
             echo '```html'
-            echo "${{ steps.chart.outputs.snippet }}"
+            printf '%s\n' "$SNIPPET"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
