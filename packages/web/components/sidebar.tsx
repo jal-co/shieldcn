@@ -173,7 +173,10 @@ const docsNav: NavGroup[] = [
   {
     title: "Charts",
     alwaysOpen: true,
-    items: [{ title: "Overview", href: "/docs/charts" }],
+    items: [
+      { title: "Overview", href: "/docs/charts" },
+      { title: "Star history", href: "/docs/charts/star-history" },
+    ],
   },
   {
     title: "Headers",

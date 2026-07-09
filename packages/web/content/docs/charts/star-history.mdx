@@ -1,0 +1,125 @@
+---
+title: Star history
+description: Bring star-history charts back with the shieldcn starchart GitHub Action — rendered in your repo, where the stargazers API still works.
+---
+
+Star-history charts are back — as a GitHub Action. GitHub
+[restricted the stargazers API](https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/)
+to repo admins and collaborators in June 2026, which killed every hosted
+star-chart service, including shieldcn's own `/chart/github/stars/...`
+endpoint. Inside a GitHub Actions workflow, the automatic `GITHUB_TOKEN` is
+repo-scoped with collaborator access — so the data is still fully available
+there. The **shieldcn starchart** action fetches your star history on a
+schedule, renders the same shadcn-styled chart card as every other
+[shieldcn chart](/docs/charts), and commits the SVG to your repo as
+`shieldcn[bot]`.
+
+## Quick start
+
+Add a workflow that runs the action on a daily cron. The action writes a
+dark/light SVG pair and pushes the result, so the only permission it needs is
+`contents: write`.
+
+```yaml
+# .github/workflows/star-chart.yml
+name: Star chart
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  star-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jal-co/shieldcn@v1
+        with:
+          theme: violet
+```
+
+Then embed the generated pair in your README. GitHub swaps the image with the
+viewer's color scheme:
+
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/shieldcn/star-chart-dark.svg">
+  <img alt="Star history" src=".github/shieldcn/star-chart-light.svg">
+</picture>
+```
+
+The exact snippet for your configuration is also exposed as the `snippet`
+output, and the workflow summary prints it after each run.
+
+## Inputs
+
+All chart styling matches the [chart query parameters](/docs/charts#query-parameters),
+passed as action inputs instead of a URL.
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `repo` | current repo | Repository to chart, as `owner/repo` |
+| `token` | `github.token` | Token with read access to the repo's stargazers |
+| `output` | `.github/shieldcn/star-chart.svg` | Output path; `mode: both` inserts `-dark`/`-light` before `.svg` |
+| `mode` | `both` | `dark`, `light`, or `both` |
+| `theme` | — | Accent theme (`zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald`) |
+| `color` | — | Explicit accent hex without `#`, wins over `theme` |
+| `background` | mode surface | `transparent` or a hex color without `#` |
+| `border` | `true` | Draw the rounded card border |
+| `area` | `true` | Show the gradient area fill under the line |
+| `width` / `height` | `800` / `400` | Chart size in px |
+| `title` / `subtitle` | `owner/repo` / star count | Card text |
+| `font` | `inter` | Font stack keyword, same as badges |
+| `logo` | `true` | Show the shieldcn corner watermark |
+| `commit` | `true` | Commit and push the chart as `shieldcn[bot]` |
+| `commit-message` | `chore: update star chart [skip ci]` | Commit message |
+
+## Outputs
+
+Use the outputs to wire the chart into follow-up steps, for example a job
+summary or a README updater.
+
+| Output | Description |
+| --- | --- |
+| `files` | Newline-separated list of written SVG paths |
+| `stars` | Current total star count |
+| `snippet` | Ready-to-paste README embed (a `<picture>` pair when `mode` is `both`) |
+| `committed` | Whether a commit was pushed (`true`/`false`) |
+
+## Charting another repository
+
+The default `GITHUB_TOKEN` only reads the current repository's stargazers. To
+chart a different repo you own, pass a personal access token with read access
+to that repo:
+
+```yaml
+- uses: jal-co/shieldcn@v1
+  with:
+    repo: your-org/other-repo
+    token: ${{ secrets.STARCHART_TOKEN }}
+```
+
+You can't chart arbitrary third-party repos — that's exactly the access GitHub
+removed.
+
+## How it works
+
+The action reconstructs the curve the same way
+[starcharts](https://github.com/caarlos0/starcharts) does. Repos under roughly
+3,000 stars get an exact curve: every stargazer page is fetched and the sorted
+timestamps are sampled down to 30 points. Larger repos sample pages evenly and
+read the first `starred_at` of each, up to GitHub's 400-page (40,000-star)
+pagination cap. The final point is anchored at "now" with the live total, so
+the chart never undercounts. Rendering goes through the same chart engine as
+every hosted [shieldcn chart](/docs/charts).
+
+## Data source
+
+[GitHub stargazers API](https://docs.github.com/en/rest/activity/starring)
+with the `star+json` media type, authenticated by the workflow's own token. No
+data leaves your repository — the action calls the GitHub API and commits the
+SVG locally, with no shieldcn servers involved.

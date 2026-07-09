@@ -195,12 +195,19 @@ returned a `starred_at` timestamp per stargazer. In June 2026 GitHub
 to repo admins and collaborators, so the data is no longer accessible for
 arbitrary repos.
 
+The data is still accessible in one place: a GitHub Actions workflow running
+in the repo itself, where the automatic `GITHUB_TOKEN` has collaborator
+access. The [shieldcn starchart action](/docs/charts/star-history) fetches
+the history there, renders the same chart card, and commits the SVG to your
+repo.
+
 To keep existing READMEs from breaking, `/chart/github/stars/...` URLs now
-return a **100×1 transparent image** (and `.json` returns `410 Gone`). Replace
-them with an [issues](#github-issues-over-time),
-[commits](#github-commits-over-time), or [npm downloads](#npm-downloads)
-chart. The plain [stars count badge](/docs/badges/github) still works — it
-uses the repo metadata endpoint, which is unaffected.
+return a **100×1 transparent image** (and `.json` returns `410 Gone` pointing
+at the action). If you'd rather stay on hosted charts, swap in an
+[issues](#github-issues-over-time), [commits](#github-commits-over-time), or
+[npm downloads](#npm-downloads) chart. The plain
+[stars count badge](/docs/badges/github) still works — it uses the repo
+metadata endpoint, which is unaffected.
 
 ## How commit history works
 
