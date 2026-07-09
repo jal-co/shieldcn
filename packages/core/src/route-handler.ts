@@ -1901,11 +1901,13 @@ async function handleChart(
 ): Promise<Response> {
   const rest = cleanSegments.slice(1) // after "chart"
 
-  // Star-history charts are permanently unavailable: GitHub restricted the
-  // stargazers list endpoint (`/repos/{owner}/{repo}/stargazers`) to repo
+  // Hosted star-history charts are permanently unavailable: GitHub restricted
+  // the stargazers list endpoint (`/repos/{owner}/{repo}/stargazers`) to repo
   // admins/collaborators in mid-2026, so timestamped star data can no longer
   // be fetched for arbitrary repos. To avoid breaking READMEs with error
-  // badges, star chart URLs now render a 100x1 transparent image.
+  // badges, star chart URLs now render a 100x1 transparent image. The data is
+  // still accessible inside a repo's own workflow, so the 410 points at the
+  // shieldcn starchart GitHub Action instead.
   // https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/
   const isStarChart =
     rest[0] === "stars" || (rest[0] === "github" && rest[1] === "stars")
@@ -1914,8 +1916,10 @@ async function handleChart(
       return Response.json(
         {
           error:
-            "star history charts are no longer available: GitHub restricted the stargazers API to repo admins/collaborators",
-          docs: "https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/",
+            "hosted star history charts are no longer available: GitHub restricted the stargazers API to repo admins/collaborators. Use the shieldcn starchart GitHub Action instead — inside your repo's workflow the data is still accessible.",
+          action: "https://github.com/jal-co/shieldcn",
+          docs: "https://shieldcn.dev/docs/charts/star-history",
+          context: "https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/",
         },
         { status: 410, headers: CACHE_HEADERS },
       )
