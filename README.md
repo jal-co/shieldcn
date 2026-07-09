@@ -49,9 +49,18 @@ prompt examples and options.
 
 ## Star history
 
-Rendered by the [shieldcn starchart action](https://shieldcn.dev/docs/charts/star-history)
-— star charts that survived GitHub's stargazers API restriction, updated daily
-by `shieldcn[bot]`.
+Rendered by the **shieldcn starchart** GitHub Action — star charts that
+survived GitHub's stargazers API restriction, updated daily by
+`shieldcn[bot]`. Add it to your repo:
+
+```yaml
+- uses: jal-co/shieldcn@v1
+  with:
+    theme: violet
+```
+
+[**GitHub Action docs →**](https://shieldcn.dev/docs/charts/star-history) ·
+[action reference](packages/action/README.md)
 
 <p align="center">
   <a href="https://github.com/jal-co/shieldcn/stargazers"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/shieldcn/star-chart-dark.svg" /><img alt="Star history of jal-co/shieldcn" src=".github/shieldcn/star-chart-light.svg" /></picture></a>
