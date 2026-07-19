@@ -14,6 +14,7 @@ import {
   isValidAssetKind,
   assetTypeError,
   contentTypeFromExt,
+  recolorSvgForOppositeMode,
   MAX_ASSET_BYTES,
 } from "@/lib/brand-assets"
 
@@ -80,8 +81,37 @@ export async function POST(req: NextRequest, { params }: Params) {
   const typeErr = assetTypeError(kind, contentType)
   if (typeErr) return NextResponse.json({ error: typeErr }, { status: 415 })
 
-  const data = Buffer.from(await file.arrayBuffer())
-  await putBrandAsset(brand.id, kind, contentType, data, file.name)
+  try {
+    const data = Buffer.from(await file.arrayBuffer())
+    await putBrandAsset(brand.id, kind, contentType, data, file.name)
 
-  return NextResponse.json({ ok: true, kind, contentType, bytes: data.length })
+    // Direct mark uploads get the same alt-mark synthesis as the import flow:
+    // recolor the ink for the opposite badge mode so logo=brand-alt works
+    // without a second manual upload. Only fills the slot when the brand has
+    // no alt yet — an explicitly uploaded alt mark is never clobbered.
+    let altGenerated = false
+    if (kind === "mark" && contentType.includes("svg")) {
+      const kinds = await listBrandAssetKinds(brand.id)
+      const hasAlt = kinds.some((a) => a.kind === "mark-alt")
+      if (!hasAlt) {
+        const svg = data.toString("utf8")
+        const recolored =
+          recolorSvgForOppositeMode(svg, "to-light") ??
+          recolorSvgForOppositeMode(svg, "to-dark")
+        if (recolored) {
+          await putBrandAsset(brand.id, "mark-alt", "image/svg+xml", Buffer.from(recolored, "utf8"))
+          altGenerated = true
+        }
+      }
+    }
+
+    return NextResponse.json({ ok: true, kind, contentType, bytes: data.length, altGenerated })
+  } catch (err) {
+    // Surface the real failure instead of an opaque 500 — an asset store error
+    // was previously an unhandled throw, which made upload failures undebuggable
+    // from the client.
+    console.error(`[brands] asset upload failed slug=${slug} kind=${kind}:`, err)
+    const message = err instanceof Error ? err.message : "asset store failed"
+    return NextResponse.json({ error: `upload failed: ${message}` }, { status: 500 })
+  }
 }

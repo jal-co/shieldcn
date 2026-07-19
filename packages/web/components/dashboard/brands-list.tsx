@@ -55,8 +55,20 @@ function BrandChip({ slug, adaptUrl }: { slug: string; adaptUrl: (url: string) =
       onError={() => setStage((s) => (s + 1) as 0 | 1 | 2)}
       className={cn(
         "size-8 shrink-0 rounded-lg border border-border",
-        isMark ? "bg-muted/40 object-contain p-1" : "object-cover",
+        isMark ? "object-contain p-1" : "object-cover",
       )}
+      // Marks carry any ink — a checker base keeps black and white marks
+      // visible regardless of the site theme (a solid muted bg hid dark marks).
+      style={isMark ? {
+        backgroundColor: "#9ca3af",
+        backgroundImage:
+          "linear-gradient(45deg, rgba(0,0,0,0.18) 25%, transparent 25%), " +
+          "linear-gradient(-45deg, rgba(0,0,0,0.18) 25%, transparent 25%), " +
+          "linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.18) 75%), " +
+          "linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.18) 75%)",
+        backgroundSize: "12px 12px",
+        backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
+      } : undefined}
     />
   )
 }

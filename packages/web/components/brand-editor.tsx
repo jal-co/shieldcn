@@ -10,8 +10,9 @@
  * it and shown for reference/export.
  */
 
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
+import { useDebouncedValue } from "@/lib/use-debounced-value"
 import { Check, Loader2, Save, Upload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ContextDevLogo } from "@/components/context-dev-logo"
@@ -45,10 +46,26 @@ const FONT_SLOTS: { kind: BrandFontKind; label: string }[] = [
   { kind: "font-heading", label: "Heading (font=brand-heading)" },
 ]
 
-const LOGO_SLOTS: { kind: BrandImageKind; label: string; bg: string; hint?: string }[] = [
-  { kind: "mark", label: "Mark / icon", bg: "#18181b", hint: "logo=brand" },
-  { kind: "mark-alt", label: "Alt mark", bg: "#18181b", hint: "logo=brand-alt" },
+const LOGO_SLOTS: { kind: BrandImageKind; label: string; hint?: string }[] = [
+  { kind: "mark", label: "Mark / icon", hint: "logo=brand" },
+  { kind: "mark-alt", label: "Alt mark", hint: "logo=brand-alt" },
 ]
+
+/**
+ * Checkerboard preview surface for logo slots. Marks can carry any ink — a
+ * black mark on a solid dark card (or a white one on light) reads as "nothing
+ * uploaded". The mid-gray checker keeps every ink visible in both site themes.
+ */
+const CHECKER_BG: CSSProperties = {
+  backgroundColor: "#9ca3af",
+  backgroundImage:
+    "linear-gradient(45deg, rgba(0,0,0,0.18) 25%, transparent 25%), " +
+    "linear-gradient(-45deg, rgba(0,0,0,0.18) 25%, transparent 25%), " +
+    "linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.18) 75%), " +
+    "linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.18) 75%)",
+  backgroundSize: "12px 12px",
+  backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
+}
 
 /** An editable hex color field with a native picker + palette quick-picks. */
 function BrandColorField({
@@ -147,6 +164,11 @@ export function BrandEditor({
   const [persisted, setPersisted] = useState<boolean>(Boolean(brand))
 
   const palette = profile.palette ?? []
+  // The preview badges are real server-rendered SVGs (Satori) — one network
+  // render per demo badge. Drive them from a debounced config so typing a hex
+  // color or tweaking tokens doesn't fire dozens of renders per keystroke; the
+  // preview catches up ~350ms after you stop.
+  const previewConfig = useDebouncedValue(config, 350)
 
   // Arriving from the Studio's "Save as brand": prefill the style tokens
   // captured from the current README's dominant look (theme, variant, colors,
@@ -316,7 +338,13 @@ export function BrandEditor({
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error ?? "upload failed")
-      setStoredAssets((prev) => ({ ...prev, [kind]: file.name }))
+      setStoredAssets((prev) => ({
+        ...prev,
+        [kind]: file.name,
+        // Uploading a mark auto-generates a recolored alt server-side (when
+        // none exists) — reflect it immediately so the slot fills in.
+        ...(json.altGenerated ? { "mark-alt": "auto-generated" } : {}),
+      }))
       // Bust the <img> cache for logos so the preview reflects the new file.
       setLogoRev((r) => r + 1)
       // Uploading a mark means "use this as the logo": point config.logo at the
@@ -491,7 +519,7 @@ export function BrandEditor({
                 >
                   <div
                     className="relative flex h-16 w-full items-center justify-center overflow-hidden rounded-md border border-border"
-                    style={{ background: l.bg }}
+                    style={CHECKER_BG}
                   >
                     {busy ? (
                       <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -596,7 +624,7 @@ export function BrandEditor({
           <code>?brand={slug || "acme"}</code>.
         </p>
         <BrandDemoBadges
-          config={config}
+          config={previewConfig}
           slug={slug || undefined}
           saved={persisted}
           hasLogo={storedAssets["mark"] != null || storedAssets["mark-alt"] != null}
