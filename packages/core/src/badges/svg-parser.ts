@@ -29,8 +29,15 @@ export function parseSvg(svg: string): ParsedSvg | null {
   const vbMatch = svg.match(/viewBox="([^"]+)"/)
   const viewBox = vbMatch ? vbMatch[1] : inferViewBox(svg)
 
-  // Detect stroke-based SVGs
+  // Detect stroke-based SVGs (Lucide/Feather style: fill="none" everywhere,
+  // shapes drawn purely by stroke). A root `fill="none"` wrapper is a common
+  // pattern on FILLED icons too (e.g. <svg fill="none"><path fill="currentColor"
+  // stroke="currentColor" stroke-width="2">), so only classify as stroke-based
+  // when no element carries a solid fill — otherwise a solid mark renders as
+  // invisible hairline outlines at badge scale.
+  const hasSolidFill = /fill\s*=\s*["'](?!none["'])[^"']+["']/i.test(svg)
   const isStroke =
+    !hasSolidFill &&
     (svg.includes('fill="none"') || svg.includes("fill='none'")) &&
     (svg.includes('stroke="currentColor"') || svg.includes('stroke="'))
 

@@ -119,6 +119,25 @@ describe("parseSvg — normal shapes still work", () => {
     expect(parsed?.icon.strokeWidth).toBe(2)
   })
 
+  it("a root fill=none wrapper around solid-fill paths is NOT stroke-based", () => {
+    // Common export pattern (e.g. Figma): <svg fill="none"> wrapping paths that
+    // carry their own solid fill + a decorative stroke. Classifying these as
+    // stroke-based rendered them as invisible hairline outlines at badge scale.
+    const parsed = parseSvg(
+      `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 288 320"><path fill="currentColor" stroke="currentColor" stroke-width="2.025" d="M143.8 1a45.6 45.6 0 1 1 0 91.2 45.6 45.6 0 0 1 0-91.2Z"/></svg>`,
+    )
+    expect(parsed?.isStroke).toBe(false)
+    expect(parsed?.icon.strokeWidth).toBeUndefined()
+    expect(parsed?.icon.path).toContain("M143.8")
+  })
+
+  it("a root fill=none wrapper with hex-filled paths is NOT stroke-based", () => {
+    const parsed = parseSvg(
+      `<svg fill="none" viewBox="0 0 24 24"><path fill="#e11d48" d="M2 2h20v20H2z"/></svg>`,
+    )
+    expect(parsed?.isStroke).toBe(false)
+  })
+
   it("returns null when no renderable shapes are present", () => {
     expect(parseSvg(`<svg viewBox="0 0 24 24"><text>hi</text></svg>`)).toBeNull()
   })
