@@ -110,8 +110,27 @@ export type { PoolClient }
 /**
  * Initialize the database schema.
  * Called on first request or at startup.
+ *
+ * Guarded so the DDL runs once per process, not once per query. Every data
+ * helper awaits initDB() before touching the DB; without this guard each
+ * badge/brand request paid a full CREATE/ALTER/DROP round-trip to serverless
+ * Postgres first, which is what made the dashboard feel impossibly slow. On
+ * failure the guard resets so the next call retries instead of caching a
+ * rejected promise forever.
  */
-export async function initDB() {
+let initPromise: Promise<void> | null = null
+
+export function initDB(): Promise<void> {
+  if (!initPromise) {
+    initPromise = runSchema().catch((err) => {
+      initPromise = null
+      throw err
+    })
+  }
+  return initPromise
+}
+
+async function runSchema() {
   await query(`
     CREATE TABLE IF NOT EXISTS github_tokens (
       id SERIAL PRIMARY KEY,

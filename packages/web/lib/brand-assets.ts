@@ -55,30 +55,41 @@ export function recolorSvgForOppositeMode(
   if (!svg.includes("<svg")) return null
   const toColor = target === "to-light" ? "#ffffff" : "#000000"
 
-  // Is a hex/keyword near-black or near-white?
-  const isDarkInk = (v: string): boolean => {
+  // Parse a color value to [r,g,b], or null when unparseable. Handles hex
+  // (3/6-digit), black/white keywords, and rgb(r, g, b).
+  const toRgb = (v: string): [number, number, number] | null => {
     const c = v.trim().toLowerCase()
-    if (c === "black" || c === "#000" || c === "#000000") return true
-    const m = c.match(/^#([0-9a-f]{6})$/)
-    if (!m) return false
-    const n = parseInt(m[1], 16)
-    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-    return 0.299 * r + 0.587 * g + 0.114 * b < 40
+    if (c === "black") return [0, 0, 0]
+    if (c === "white") return [255, 255, 255]
+    let m = c.match(/^#([0-9a-f]{3})$/)
+    if (m) {
+      const [r, g, b] = m[1].split("")
+      return [parseInt(r + r, 16), parseInt(g + g, 16), parseInt(b + b, 16)]
+    }
+    m = c.match(/^#([0-9a-f]{6})$/)
+    if (m) {
+      const n = parseInt(m[1], 16)
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    }
+    m = c.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/)
+    if (m) return [Number(m[1]), Number(m[2]), Number(m[3])]
+    return null
+  }
+  const luma = (rgb: [number, number, number]) =>
+    0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+  const isDarkInk = (v: string): boolean => {
+    const rgb = toRgb(v)
+    return rgb !== null && luma(rgb) < 40
   }
   const isLightInk = (v: string): boolean => {
-    const c = v.trim().toLowerCase()
-    if (c === "white" || c === "#fff" || c === "#ffffff") return true
-    const m = c.match(/^#([0-9a-f]{6})$/)
-    if (!m) return false
-    const n = parseInt(m[1], 16)
-    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-    return 0.299 * r + 0.587 * g + 0.114 * b > 215
+    const rgb = toRgb(v)
+    return rgb !== null && luma(rgb) > 215
   }
   const shouldFlip = target === "to-light" ? isDarkInk : isLightInk
 
   let changed = false
   const out = svg.replace(
-    /(fill|stroke|stop-color|color)\s*[:=]\s*(["']?)(#[0-9a-fA-F]{3,6}|black|white)\2/g,
+    /(fill|stroke|stop-color|color)\s*[:=]\s*(["']?)(#[0-9a-fA-F]{3,6}|black|white|rgb\([^)]*\))\2/g,
     (match, prop, quote, value) => {
       if (value.toLowerCase() === "none") return match
       if (shouldFlip(value)) {
@@ -89,7 +100,22 @@ export function recolorSvgForOppositeMode(
       return match
     },
   )
-  return changed ? out : null
+  if (changed) return out
+
+  // No color attributes matched. SVG's presentational default ink is BLACK, so
+  // a fill-less icon (very common for single-path marks) renders near-invisible
+  // on a dark badge and the regex above has nothing to rewrite — this was the
+  // "sometimes the color doesn't strip" case. Inject an explicit ink on the
+  // root <svg> so the alt mark actually flips. Only meaningful for to-light
+  // (a fill-less SVG is already dark ink).
+  if (target === "to-light") {
+    const hasAnyInk = /(fill|stroke|stop-color)\s*[:=]\s*["']?(?!none)[#a-z0-9(]/i.test(svg)
+    if (!hasAnyInk) {
+      const injected = svg.replace(/<svg\b/, `<svg fill="${toColor}"`)
+      if (injected !== svg) return injected
+    }
+  }
+  return null
 }
 
 /** Guess a content type from a URL/file extension when the server omits one. */

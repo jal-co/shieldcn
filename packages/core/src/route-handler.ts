@@ -3358,9 +3358,11 @@ async function handleBadgeGETInner(
           searchParams.delete("font")
         }
         // logo=brand renders the brand's own hosted logo instead of a provider
-        // icon. Resolve the mode-appropriate SVG (dark badge bg → light-ink
-        // logo) and rewrite `logo` to a data URI so it flows uniformly through
-        // the badge, header, and group logo paths downstream.
+        // icon. Rewrite `logo` to a data URI so it flows uniformly through the
+        // badge, header, and group logo paths downstream. The stored ink color
+        // is irrelevant here: the renderer parses the SVG to paths and recolors
+        // them to the badge's theme ink, so a single mark reads correctly on
+        // both modes (verified by brand-logo-mode.test.ts).
         const logoParam = searchParams.get("logo")
         if (logoParam === "brand" || logoParam === "brand-alt") {
           // Brands ship a square mark (+ optional alt). `logo=brand` uses the
