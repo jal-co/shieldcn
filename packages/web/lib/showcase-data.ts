@@ -396,6 +396,8 @@ export const categories: Category[] = [
       dynamicBadge("Convex", "by @get-convex", "/badge/Convex-F3B01C.svg?logo=convex", "Branded Convex badge using Simple Icons. Best for stack rows, integration lists, and polished README sections."),
     
       dynamicBadge("Telegram", "by @chirizxc", "/badge/Telegram-24A1DE.svg?font=geist-mono&logo=telegram&logoColor=ffffff", "Community badge submitted by chirizxc."),
+    
+      dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
     ],
   },
 ]
