@@ -398,6 +398,7 @@ export const categories: Category[] = [
       dynamicBadge("Telegram", "by @chirizxc", "/badge/Telegram-24A1DE.svg?font=geist-mono&logo=telegram&logoColor=ffffff", "Community badge submitted by chirizxc."),
     
       dynamicBadge("buy me a coffee", "by @feeeedox", "/badge/buy%20me%20a%20coffee-c6be40.svg?logo=buymeacoffee", "Community badge submitted by feeeedox."),
+      dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
     ],
   },
 ]
