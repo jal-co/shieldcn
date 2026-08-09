@@ -399,6 +399,8 @@ export const categories: Category[] = [
     
       dynamicBadge("buy me a coffee", "by @feeeedox", "/badge/buy%20me%20a%20coffee-c6be40.svg?logo=buymeacoffee", "Community badge submitted by feeeedox."),
       dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
+    
+      dynamicBadge("Paperless-ngx", "by @Exerra", "/badge/Paperless--ngx-398439.svg?logo=paperlessngx", "Badge for 3rd party paperless-ngx parsers"),
     ],
   },
 ]
