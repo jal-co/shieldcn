@@ -124,6 +124,7 @@ import {
   type SponsorEntry,
   githubRepoExists,
 } from "./providers/github"
+import { getOpenSSFScorecard, getOpenSSFBestPractices } from "./providers/openssf"
 import { getDiscordOnline, getDiscordByInvite } from "./providers/discord"
 import { getNbaTeamBadge } from "./providers/nba"
 import { parseStaticBadgeContent, getDynamicJsonBadge, getFlagBadge } from "./providers/badge"
@@ -354,6 +355,7 @@ async function resolveGitHubBadge(
     "assets-dl", "dt",
     "downloads", "downloads-all", "downloads-asset",
     "dependabot",
+    "scorecard", "openssf",
   ])
 
   let topic: string
@@ -388,6 +390,10 @@ async function resolveGitHubBadge(
     case "tag":         return getGitHubLatestTag(owner, repo)
     case "contributors": return getGitHubContributors(owner, repo)
     case "dependabot":  return getGitHubDependabot(owner, repo)
+
+    // Supply-chain security (OpenSSF)
+    case "scorecard":   return getOpenSSFScorecard(owner, repo)
+    case "openssf":     return getOpenSSFBestPractices(owner, repo)
 
     // Release (optional channel: stable)
     case "release":     return getGitHubRelease(owner, repo, extra[0])
@@ -1634,7 +1640,7 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
       "license","release","contributors","ci","checks","issues","open-issues","closed-issues",
       "label-issues","prs","open-prs","closed-prs","merged-prs","milestones","commits",
       "last-commit","assets-dl","dt","downloads","downloads-all","downloads-asset",
-      "dependabot","sponsors"])
+      "dependabot","sponsors","scorecard","openssf"])
     const topic = knownTopics.has(rest[0]) ? rest[0] : rest[2]
 
     if (topic === "sponsors") return { simpleIcon: "githubsponsors" }
@@ -1642,6 +1648,12 @@ function getDefaultLogoSlug(segments: string[]): { simpleIcon?: string; reactIco
     if (topic === "forks") return { reactIcon: "GoRepoForked" }
     if (topic === "release" || topic === "tag") return { reactIcon: "GoTag" }
     if (topic === "ci" || topic === "checks") return null // uses status dot
+    // The data is OpenSSF's, not GitHub's — an octocat would misattribute it,
+    // and simple-icons has no OpenSSF mark. A shield reads correctly for both.
+    // GoShieldLock (not GoShieldCheck/GoShield): those are two-path icons and
+    // the icon pipeline only lays out single-path glyphs, so they overlap the
+    // label. Every other reactIcon used here is single-path too.
+    if (topic === "scorecard" || topic === "openssf") return { reactIcon: "GoShieldLock" }
     if (topic === "license") return { reactIcon: "FaBalanceScale" }
     if (topic === "contributors") return { reactIcon: "GoPeople" }
     if (topic === "issues" || topic === "open-issues" || topic === "closed-issues" || topic === "label-issues") return { reactIcon: "GoIssueDraft" }
