@@ -399,6 +399,8 @@ export const categories: Category[] = [
     
       dynamicBadge("buy me a coffee", "by @feeeedox", "/badge/buy%20me%20a%20coffee-c6be40.svg?logo=buymeacoffee", "Community badge submitted by feeeedox."),
       dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
+    
+      dynamicBadge("Scroll to Top", "by @mattpieterse", "/badge/Scroll%20to-Top.svg?variant=ghost&size=xs&font=geist&padX=0", "Add a quick and easy widget that readers can click to scroll them back to the top of your README. Link it to \"#\" with HTML or Markdown Syntax to save users from drowning in endless documentation."),
     ],
   },
 ]
