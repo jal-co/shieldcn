@@ -399,6 +399,8 @@ export const categories: Category[] = [
     
       dynamicBadge("buy me a coffee", "by @feeeedox", "/badge/buy%20me%20a%20coffee-c6be40.svg?logo=buymeacoffee", "Community badge submitted by feeeedox."),
       dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
+    
+      dynamicBadge("Under Construction", "by @mattpieterse", "/badge/Construction%20Zone-abcde3.svg?size=xs&font=geist&logo=lu%3AConstruction&gradient=FFEA61%2CFFD400%2CFFDD3C%2CFFEA61&gap=10", "Place at the top of your markdown files or under individual headings to showcase that the project is in its early stages or that some sections may not be fully fleshed out yet. This helps keep the pressure off when you delegate documentation for later."),
     ],
   },
 ]
