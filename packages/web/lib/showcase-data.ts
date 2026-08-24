@@ -401,6 +401,8 @@ export const categories: Category[] = [
       dynamicBadge("Built By Humans", "by @feeeedox", "/badge/built%20by-humans.svg?variant=outline&theme=red&logo=ri%3AFaHeart&logoColor=ef4444", "Define a project is built by humans without AI assistance"),
     
       dynamicBadge("uv", "by @chirizxc", "/badge/uv-D7FF64.svg?mode=light&logo=uv", "https://github.com/astral-sh/uv"),
+    
+      dynamicBadge("mypy", "by @chirizxc", "/badge/mypy-2A6DB2.svg?mode=light&font=geist&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiPjxwYXRoIGZpbGw9IiMyYTZkYjIiIGQ9Ik0xNS45IDIuMDdjLTcuMSAwLTYuNjcgMy4wOS02LjY3IDMuMDlsLjAxIDMuMTloNi43OXYuOTZINi41NVMyIDguNzkgMiAxNS45NmMwIDcuMTggMy45NyA2LjkyIDMuOTcgNi45MmgyLjM3di0zLjMzcy0uMTMtMy45NyAzLjktMy45N2g2LjczczMuNzguMDYgMy43OC0zLjY1VjUuOHMuNTgtMy43Mi02Ljg1LTMuNzJ6bS0zLjc0IDIuMTVhMS4yMiAxLjIyIDAgMSAxIDAgMi40NGExLjIyIDEuMjIgMCAwIDEgMC0yLjQ0Ii8%2BPHBhdGggZmlsbD0iIzUwNTA1MCIgZD0iTTE2LjEgMjkuOTNjNy4xIDAgNi42Ny0zLjA5IDYuNjctMy4wOWwtLjAxLTMuMTloLTYuNzl2LS45Nmg5LjQ4czQuNTUuNTIgNC41NS02LjY1YzAtNy4xOC0zLjk3LTYuOTItMy45Ny02LjkyaC0yLjM3djMuMzNzLjEzIDMuOTctMy45IDMuOTdoLTYuNzNzLTMuNzgtLjA2LTMuNzggMy42NXY2LjE0cy0uNTggMy43MiA2Ljg1IDMuNzJtMy43NC0yLjE1YTEuMjIgMS4yMiAwIDEgMSAwLTIuNDRhMS4yMiAxLjIyIDAgMCAxIDAgMi40NCIvPjwvc3ZnPg%3D%3D&iconSize=18", "https://github.com/python/mypy"),
     ],
   },
 ]
