@@ -1,12 +1,12 @@
 core:changelogs:
-  - content: "---\npackages:\n  \"@shieldcn/action\":\n    type: major\n---\n\n# shieldcn starchart\n\nInitial release of the shieldcn starchart GitHub Action.\n\nGitHub restricted the stargazers `starred_at` API to repo admins and\ncollaborators, which killed hosted star-history charts. This action brings\nthem back: inside a workflow, the automatic `GITHUB_TOKEN` still has access,\nso the action fetches the star history, renders a shadcn-styled SVG chart via\n`@shieldcn/core`, and commits it to the repo as `shieldcn[bot]`.\n\n- `mode: both` (default) writes a dark/light pair with a ready-to-paste\n  `<picture>` snippet output\n- Full shieldcn chart styling: `theme`, `color`, `background`, `border`,\n  `area`, `font`, `width`, `height`, `title`, `subtitle`\n- Exact curves for repos under ~3k stars, evenly sampled pages (starcharts\n  strategy) up to GitHub's 40k-star pagination cap\n"
-    filename: starchart-initial-release.md
+  - content: "---\npackages:\n  \"@shieldcn/action\":\n    type: minor\n---\n\n# Privacy-safe star history and chart pull requests\n\nFetch complete weekly star history with GitHub's new privacy-safe endpoint.\nThe Action and hosted charts now share the same cumulative series builder.\n\nSet `pull-request: true` to open or update a chart PR instead of pushing to a\nprotected default branch. PR mode commits only generated chart files and\nreturns the PR URL through `pull-request-url`. It requires `contents: write`\nand `pull-requests: write`. Direct commits remain the default, and\n`commit: false` still writes files without publishing them.\n"
+    filename: star-history-and-chart-pull-requests.md
     v: 0.0.0
 core:packages:
   - id: npm:shieldcn
     updated: false
   - changelogIds:
-      - starchart-initial-release.md
+      - star-history-and-chart-pull-requests.md
     id: npm:@shieldcn/action
     updated: true
   - id: npm:shieldcn-cli
