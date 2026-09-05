@@ -36,10 +36,6 @@ import {
 // serializable object, so we model it here and mirror the sandbox URL builder).
 // ---------------------------------------------------------------------------
 
-// "stars" is retired: GitHub restricted the stargazers API to repo
-// admins/collaborators (June 2026). Star chart URLs render a 100x1
-// transparent image; the kind remains in the union so imported/saved
-// documents still parse.
 export type ChartKind = "stars" | "issues" | "commits" | "npm" | "json"
 
 export interface ChartState {

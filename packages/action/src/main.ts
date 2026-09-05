@@ -4,10 +4,6 @@
  *
  * Entrypoint for the shieldcn starchart GitHub Action.
  *
- * Fetches the repo's star history with the workflow's `GITHUB_TOKEN` (which,
- * unlike anonymous/pool tokens, still has access to stargazer timestamps),
- * renders a shadcn-styled SVG line chart via @shieldcn/core, writes it into
- * the repo, and optionally commits the result as shieldcn[bot].
  */
 
 import { execFileSync } from "node:child_process"
@@ -22,6 +18,7 @@ import {
 } from "../../core/src/badges/render-chart"
 import { formatCount } from "../../core/src/format"
 import { getStarHistory } from "./starhistory"
+import { publishChartPullRequest } from "./pull-request"
 
 // ---------------------------------------------------------------------------
 // Action input/output helpers (no @actions/core — inputs arrive as INPUT_*)
@@ -213,13 +210,21 @@ async function run(): Promise<void> {
     setOutput("snippet", `<img alt="Star history of ${owner}/${repo}" src="${files[0]}">`)
   }
 
+  setOutput("pull-request-url", "")
   if (getBoolInput("commit", true)) {
     const message = getInput(
       "commit-message",
       "chore: update star chart [skip ci]",
     )
-    const committed = commitFiles(files, message)
-    setOutput("committed", String(committed))
+    if (getBoolInput("pull-request", false)) {
+      const result = await publishChartPullRequest(process.env.GITHUB_REPOSITORY ?? "", token, files, message)
+      setOutput("committed", String(result.committed))
+      setOutput("pull-request-url", result.url)
+      console.log(result.url ? `Chart pull request: ${result.url}` : "Star chart unchanged. No pull request needed.")
+    } else {
+      const committed = commitFiles(files, message)
+      setOutput("committed", String(committed))
+    }
   } else {
     setOutput("committed", "false")
   }

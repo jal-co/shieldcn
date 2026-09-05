@@ -24,11 +24,7 @@ import { LogoPicker } from "@/components/logo-picker"
 // Types
 // ---------------------------------------------------------------------------
 
-// "stars" is retired: GitHub restricted the stargazers API to repo
-// admins/collaborators (June 2026), so star-history data can no longer be
-// fetched. Star chart URLs now render a 100x1 transparent image.
 type ChartKind = "stars" | "issues" | "commits" | "npm" | "json"
-type ActiveChartKind = Exclude<ChartKind, "stars">
 
 interface ChartSandboxProps {
   /** Initial chart kind. */
@@ -47,10 +43,7 @@ const FONTS = ["inter", "geist", "geist-mono", "jetbrains-mono", "fira-code", "r
 export function ChartSandbox({ kind: initialKind = "npm", defaults = {} }: ChartSandboxProps) {
   const id = useId()
 
-  // Coerce the retired "stars" kind (still referenced from older docs) to npm.
-  const [kind, setKind] = useState<ActiveChartKind>(
-    initialKind === "stars" ? "npm" : initialKind,
-  )
+  const [kind, setKind] = useState<ChartKind>(initialKind)
 
   // Data inputs (interpretation depends on kind).
   const [owner, setOwner] = useState(defaults.owner ?? "vercel")
@@ -102,6 +95,7 @@ export function ChartSandbox({ kind: initialKind = "npm", defaults = {} }: Chart
 
   const endpoint = useMemo(() => {
     switch (kind) {
+      case "stars": return "/chart/github/stars/:owner/:repo.svg"
       case "issues": return "/chart/github/issues/:owner/:repo.svg"
       case "commits": return "/chart/github/commits/:user.svg"
       case "npm": return "/chart/npm/:package.svg"
@@ -112,7 +106,7 @@ export function ChartSandbox({ kind: initialKind = "npm", defaults = {} }: Chart
   const builtUrl = useMemo(() => {
     const ext = imageFormat === "svg" ? ".svg" : ".png"
     let path: string
-    if (kind === "issues") {
+    if (kind === "stars" || kind === "issues") {
       if (!owner || !repo) return null
       path = `/chart/github/${kind}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}${ext}`
     } else if (kind === "commits") {
@@ -195,10 +189,10 @@ export function ChartSandbox({ kind: initialKind = "npm", defaults = {} }: Chart
         {/* Kind + data inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SField label="chart">
-            <Select value={kind} onValueChange={v => setKind(v as ActiveChartKind)}>
+            <Select value={kind} onValueChange={v => setKind(v as ChartKind)}>
               <SelectTrigger aria-label="Chart kind" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="stars" disabled>GitHub stars (retired by GitHub)</SelectItem>
+                <SelectItem value="stars">GitHub stars</SelectItem>
                 <SelectItem value="issues">GitHub issues</SelectItem>
                 <SelectItem value="commits">GitHub commits</SelectItem>
                 <SelectItem value="npm">npm downloads</SelectItem>
@@ -207,7 +201,7 @@ export function ChartSandbox({ kind: initialKind = "npm", defaults = {} }: Chart
             </Select>
           </SField>
 
-          {kind === "issues" && (
+          {(kind === "stars" || kind === "issues") && (
             <>
               <SField label="owner">
                 <Input id={`${id}-owner`} value={owner} onChange={e => setOwner(e.target.value)} placeholder="vercel" />

@@ -49,15 +49,22 @@ prompt examples and options.
 
 ## Star history
 
-Rendered by the **shieldcn starchart** GitHub Action — star charts that
-survived GitHub's stargazers API restriction, updated daily by
-`shieldcn[bot]`. Add it to your repo:
+Hosted star charts use GitHub's privacy-safe weekly history API. Embed
+`https://shieldcn.dev/chart/github/stars/{owner}/{repo}.svg` for any public
+repository, or use `.png` and `.json` at the same path.
+
+To commit a light/dark SVG pair to your repo, use the **shieldcn starchart**
+GitHub Action:
 
 ```yaml
 - uses: jal-co/shieldcn@v1
   with:
     theme: violet
+    pull-request: true
 ```
+
+PR mode needs `contents: write`, `pull-requests: write`, and permission for
+Actions to create pull requests in repository settings.
 
 [**GitHub Action docs →**](https://shieldcn.dev/docs/charts/star-history) ·
 [action reference](packages/action/README.md)

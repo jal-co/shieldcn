@@ -42,7 +42,7 @@
 import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Shield, PanelTop, Heart, Users, FolderGit2, type LucideIcon } from "lucide-react"
+import { ChevronDown, Shield, PanelTop, Star, Heart, Users, FolderGit2, type LucideIcon } from "lucide-react"
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useReducedMotion, type Transition } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { SponsorButton } from "@/components/sponsor-button"
@@ -109,6 +109,7 @@ const NAV = {
       children: [
         { href: "/badge", label: "Badge Builder", icon: Shield },
         { href: "/header", label: "Header Builder", icon: PanelTop },
+        { href: "/docs/charts/star-history", label: "Star Chart Builder", icon: Star },
         { href: "/sponsors", label: "Sponsor List Builder", icon: Heart },
         { href: "/contributors", label: "Contributor List Builder", icon: Users },
         { href: "/gen", label: "Repo Badge Generator", icon: FolderGit2 },
