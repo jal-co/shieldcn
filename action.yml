@@ -1,6 +1,6 @@
 name: "shieldcn starchart"
 description: >-
-  Star-history charts that still work — rendered as a shadcn-styled SVG and
+  Privacy-safe star-history charts rendered as a shadcn-styled SVG and
   committed to your repo by shieldcn[bot].
 author: "shieldcn"
 branding:
@@ -12,7 +12,7 @@ inputs:
     description: 'Repository to chart, as "owner/repo". Defaults to the current repository.'
     required: false
   token:
-    description: "GitHub token with read access to the repo's stargazers. Defaults to the workflow token."
+    description: "GitHub API token. Private repositories require metadata read access. Defaults to the workflow token."
     required: false
     default: ${{ github.token }}
   output:
@@ -65,6 +65,10 @@ inputs:
     description: "Commit and push the generated chart as shieldcn[bot]."
     required: false
     default: "true"
+  pull-request:
+    description: "Open or update a chart PR against the workflow repository's default branch instead of pushing directly. Requires commit: true."
+    required: false
+    default: "false"
   commit-message:
     description: "Commit message for the chart update."
     required: false
@@ -74,9 +78,11 @@ outputs:
   files:
     description: "Newline-separated list of written SVG paths."
   stars:
-    description: "Current total star count."
+    description: "Total stars reported by the history endpoint."
   snippet:
     description: "Ready-to-paste README embed snippet (a <picture> pair when mode is both)."
+  pull-request-url:
+    description: "URL of the chart pull request, or empty when PR mode is disabled or no changes need a PR."
   committed:
     description: "Whether a commit was pushed (true/false)."
 

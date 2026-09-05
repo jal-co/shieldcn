@@ -10,9 +10,15 @@ on:
     paths:
       - "action.yml"
       - "packages/action/**"
+      - "packages/core/src/providers/github-star-history.ts"
 
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: star-chart-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   star-chart:
@@ -26,6 +32,7 @@ jobs:
         with:
           theme: violet
           commit: ${{ github.event_name != 'pull_request' }}
+          pull-request: true
 
       - name: Job summary
         env:

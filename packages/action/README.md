@@ -3,11 +3,9 @@
 Star-history charts for your README — rendered as shadcn-styled SVG cards and
 committed to your repo by a GitHub Action.
 
-GitHub [restricted the stargazers API](https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/)
-to repo admins/collaborators, which broke every hosted star-chart service.
-Inside a GitHub Action, the automatic `GITHUB_TOKEN` still has that access —
-so this action fetches your star history on a schedule, renders the chart, and
-commits it as `shieldcn[bot]`.
+The action uses GitHub's privacy-safe star history API. It supports any public
+repository and private repositories accessible to the supplied token.
+For a hosted chart instead, see the [star history docs](https://shieldcn.dev/docs/charts/star-history).
 
 ## Usage
 
@@ -22,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   star-chart:
@@ -31,6 +30,7 @@ jobs:
       - uses: jal-co/shieldcn@v1
         with:
           theme: violet
+          pull-request: true
 ```
 
 Then embed the generated pair in your README:
@@ -44,12 +44,39 @@ Then embed the generated pair in your README:
 
 (The exact snippet is also exposed as the `snippet` output.)
 
+## Pull requests and protected branches
+
+Set `pull-request: true` to open a PR against the workflow repository's default
+branch. The action updates `chore/shieldcn-star-chart` and reuses its open PR on
+later runs. Only the generated chart files are committed. It never force-pushes
+or pushes directly to the default branch in this mode.
+
+Grant `contents: write` and `pull-requests: write`, and enable **Allow GitHub
+Actions to create and approve pull requests** in the repository's Actions
+settings. The action creates PRs but does not approve them or request reviewers.
+
+`pull-request` defaults to `false`, preserving direct commits. `commit: false`
+writes files only, even with PR mode enabled. The `pull-request-url` output
+contains the existing or newly created PR URL. An unchanged chart creates no commit.
+The `repo` input selects the chart's data source; the PR always targets
+`GITHUB_REPOSITORY`, the repository running the workflow.
+
+PRs created with `GITHUB_TOKEN` do not trigger ordinary push or pull-request
+workflows. If required checks must run automatically, pass a GitHub App token
+or personal access token through the existing `token` input. PR mode removes
+`[skip ci]` from the default commit message; custom messages are left unchanged.
+
+Use a workflow concurrency group to prevent overlapping runs from updating the
+same chart branch. Keep `chore/shieldcn-star-chart` reserved for this action.
+After its PR is merged or closed, the next update starts from the latest default
+branch content and preserves branch ancestry without a force push.
+
 ## Inputs
 
 | Input | Default | Description |
 |---|---|---|
 | `repo` | current repo | Repository to chart (`owner/repo`) |
-| `token` | `github.token` | Token with stargazer read access |
+| `token` | `github.token` | GitHub API token; metadata read access for private repos |
 | `output` | `.github/shieldcn/star-chart.svg` | Output path; `mode: both` inserts `-dark`/`-light` |
 | `mode` | `both` | `dark`, `light`, or `both` |
 | `theme` | — | Accent theme (`zinc`, `slate`, `blue`, `green`, `rose`, `orange`, `violet`, `purple`, `cyan`, `emerald`) |
@@ -62,6 +89,7 @@ Then embed the generated pair in your README:
 | `font` | `inter` | Font stack keyword |
 | `logo` | `true` | shieldcn watermark |
 | `commit` | `true` | Commit + push as `shieldcn[bot]` |
+| `pull-request` | `false` | Open or update a chart PR instead of pushing directly; requires `commit: true` |
 | `commit-message` | `chore: update star chart [skip ci]` | Commit message |
 
 ## Outputs
@@ -69,18 +97,19 @@ Then embed the generated pair in your README:
 | Output | Description |
 |---|---|
 | `files` | Newline-separated written SVG paths |
-| `stars` | Current total star count |
+| `stars` | Total stars reported by the history endpoint |
 | `snippet` | Ready-to-paste README embed |
+| `pull-request-url` | Chart PR URL, or empty when no PR is needed or PR mode is disabled |
 | `committed` | Whether a commit was pushed |
 
 ## How it works
 
-Same reconstruction strategy as [starcharts](https://github.com/caarlos0/starcharts):
-repos under ~3k stars get an exact curve from every stargazer page; larger
-repos sample pages evenly and read the first `starred_at` of each, up to
-GitHub's 400-page (40k star) pagination cap, anchored at "now" with the live
-total. Rendering goes through `@shieldcn/core`'s chart renderer — the same one
-that powers shieldcn's other charts.
+The action fetches every page of weekly star counts from
+`GET /repos/{owner}/{repo}/stargazers/history`, using API version `2026-03-10`.
+It reverses the weeks, accumulates counts from zero, and samples the completed
+curve to at most 30 points. It uses the same fetcher and renderer as hosted
+shieldcn charts, without a token pool or hosted cache. The total comes from
+the history endpoint rather than a separate live count.
 
 ## Development
 

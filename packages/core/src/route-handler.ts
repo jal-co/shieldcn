@@ -11,7 +11,7 @@ import { renderChart, resolveAccent, resolveFontFamily, type ChartSeries, type C
 import { renderHeader, type HeaderLogoInput } from "./badges/render-header"
 import { renderSponsors, type SponsorAvatar, type SponsorTier } from "./badges/render-sponsors"
 import { resolveHeaderBackground } from "./badges/header-backgrounds"
-import { getIssueHistory } from "./providers/starhistory"
+import { getIssueHistory, getStarHistory } from "./providers/starhistory"
 import { getCommitHistory, type CommitHistory } from "./providers/commit-history"
 import { getNpmDownloadSeries } from "./providers/npm"
 import { formatCount } from "./format"
@@ -242,14 +242,6 @@ const ERROR_CACHE_HEADERS = {
   "Cache-Control":
     "public, max-age=60, s-maxage=60, stale-while-revalidate=120",
 }
-
-/**
- * 100x1 fully transparent SVG served for permanently retired image endpoints
- * (star-history charts) so existing READMEs render nothing instead of a
- * broken image or an error badge.
- */
-const TRANSPARENT_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="1" viewBox="0 0 100 1"></svg>'
 
 /**
  * Cache headers for stateful view-counter badges.
@@ -1902,7 +1894,6 @@ function clampNum(
  * Handle a chart request.
  *
  * URL format: /chart/github/issues/{owner}/{repo}.svg
- * (star history is retired — star URLs return a 100x1 transparent image)
  * Query params: width, height, mode, theme, color, area, title.
  */
 async function handleChart(
@@ -1912,41 +1903,6 @@ async function handleChart(
   options?: BadgeRequestOptions,
 ): Promise<Response> {
   const rest = cleanSegments.slice(1) // after "chart"
-
-  // Hosted star-history charts are permanently unavailable: GitHub restricted
-  // the stargazers list endpoint (`/repos/{owner}/{repo}/stargazers`) to repo
-  // admins/collaborators in mid-2026, so timestamped star data can no longer
-  // be fetched for arbitrary repos. To avoid breaking READMEs with error
-  // badges, star chart URLs now render a 100x1 transparent image. The data is
-  // still accessible inside a repo's own workflow, so the 410 points at the
-  // shieldcn starchart GitHub Action instead.
-  // https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/
-  const isStarChart =
-    rest[0] === "stars" || (rest[0] === "github" && rest[1] === "stars")
-  if (isStarChart) {
-    if (format === "json") {
-      return Response.json(
-        {
-          error:
-            "hosted star history charts are no longer available: GitHub restricted the stargazers API to repo admins/collaborators. Use the shieldcn starchart GitHub Action instead — inside your repo's workflow the data is still accessible.",
-          action: "https://github.com/jal-co/shieldcn",
-          docs: "https://shieldcn.dev/docs/charts/star-history",
-          context: "https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/",
-        },
-        { status: 410, headers: CACHE_HEADERS },
-      )
-    }
-    if (format === "png") {
-      const { Resvg } = await ensureResvg()
-      const png = new Resvg(TRANSPARENT_SVG).render().asPng()
-      return new Response(Buffer.from(png), {
-        headers: { "Content-Type": "image/png", ...CACHE_HEADERS },
-      })
-    }
-    return new Response(TRANSPARENT_SVG, {
-      headers: { "Content-Type": "image/svg+xml", ...CACHE_HEADERS },
-    })
-  }
 
   const mode = (searchParams.get("mode") === "light" ? "light" : "dark") as "light" | "dark"
   const width = clampNum(searchParams.get("width"), 200, 2000, 800)
@@ -3059,22 +3015,19 @@ async function resolveChartData(
   }
 
   // --- GitHub issues over time ---
-  // (Star history retired: the stargazers API is admin/collaborator-only as
-  // of mid-2026; star chart URLs short-circuit to a transparent image in
-  // `handleChart` before ever reaching this resolver.)
-  if (provider === "github" || provider === "issues") {
+  if (provider === "github" || provider === "issues" || provider === "stars") {
     let kind: string | undefined
     let owner: string | undefined
     let repo: string | undefined
-    if (provider === "github" && rest[1] === "issues") {
+    if (provider === "github" && (rest[1] === "issues" || rest[1] === "stars")) {
       kind = rest[1]; owner = rest[2]; repo = rest[3]
-    } else if (provider === "issues") {
+    } else if (provider === "issues" || provider === "stars") {
       kind = provider; owner = rest[1]; repo = rest[2]
     }
     if (!kind || !owner || !repo) {
-      return { ok: false, status: 400, msg: "usage: /chart/github/issues/{owner}/{repo}.svg" }
+      return { ok: false, status: 400, msg: `usage: /chart/github/${kind || "issues"}/{owner}/{repo}.svg` }
     }
-    const history = await getIssueHistory(owner, repo)
+    const history = await (kind === "stars" ? getStarHistory(owner, repo) : getIssueHistory(owner, repo))
     if (!history) {
       return { ok: false, status: 404, msg: `could not load ${kind} for ${owner}/${repo}` }
     }

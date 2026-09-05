@@ -2,8 +2,8 @@
 
 // src/main.ts
 var import_node_child_process = require("node:child_process");
-var import_node_fs = require("node:fs");
-var import_node_path = require("node:path");
+var import_node_fs2 = require("node:fs");
+var import_node_path2 = require("node:path");
 
 // ../core/src/format.ts
 function formatCount(count) {
@@ -463,16 +463,62 @@ function renderChart(cfg) {
   return svg;
 }
 
+// ../core/src/providers/github-star-history.ts
+function isStarWeek(value) {
+  if (typeof value !== "object" || value === null) return false;
+  return "week" in value && typeof value.week === "number" && Number.isSafeInteger(value.week) && value.week >= 0 && Number.isFinite(new Date(value.week * 1e3).getTime()) && "total" in value && typeof value.total === "number" && Number.isSafeInteger(value.total) && value.total >= 0 && "days" in value && Array.isArray(value.days) && value.days.length === 7 && value.days.every((day) => typeof day === "number" && Number.isSafeInteger(day) && day >= 0) && value.days.reduce((sum, day) => sum + day, 0) === value.total;
+}
+async function fetchStarHistory(owner, repo, fetchPage) {
+  const weeks = [];
+  const base = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/stargazers/history`;
+  for (let page = 1; page <= 100; page++) {
+    const response = await fetchPage(`${base}?per_page=30&page=${page}`);
+    if (!response?.ok) return null;
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(data) || data.length > 30 || !data.every(isStarWeek)) return null;
+    for (const week of data) {
+      if (weeks.length > 0 && week.week >= weeks[weeks.length - 1].week) return null;
+      weeks.push(week);
+    }
+    if (data.length < 30) break;
+    if (page === 100) return null;
+  }
+  const now = Date.now();
+  if (weeks.length === 0) {
+    return { owner, repo, total: 0, points: [{ date: new Date(now).toISOString(), value: 0 }] };
+  }
+  weeks.reverse();
+  const points = [{ date: new Date(weeks[0].week * 1e3).toISOString(), value: 0 }];
+  let total = 0;
+  for (const week of weeks) {
+    if (week.week * 1e3 > now) return null;
+    total += week.total;
+    points.push({
+      date: new Date(Math.min((week.week + 7 * 86400) * 1e3, now)).toISOString(),
+      value: total
+    });
+  }
+  const count = Math.min(30, points.length);
+  const sampled = Array.from(
+    { length: count },
+    (_, index) => points[Math.round(index * (points.length - 1) / (count - 1))]
+  );
+  return { owner, repo, total, points: sampled };
+}
+
 // src/starhistory.ts
-var MAX_POINTS = 30;
-var MAX_PAGE = 400;
 async function ghFetch(url, token, accept) {
   const res = await fetch(url, {
     headers: {
       Accept: accept,
       Authorization: `Bearer ${token}`,
       "User-Agent": "shieldcn-starchart-action",
-      "X-GitHub-Api-Version": "2022-11-28"
+      "X-GitHub-Api-Version": "2026-03-10"
     }
   });
   if (res.status === 403 || res.status === 429) {
@@ -485,68 +531,110 @@ async function ghFetch(url, token, accept) {
   }
   return res;
 }
-async function fetchStarPage(owner, repo, token, page) {
-  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/stargazers?per_page=100&page=${page}`;
-  const res = await ghFetch(url, token, "application/vnd.github.v3.star+json");
-  const json = await res.json();
-  if (!Array.isArray(json)) return [];
-  return json.map((s) => s.starred_at).filter((d) => typeof d === "string");
-}
-function evenSpread(start, end, count) {
-  if (count <= 1) return [start];
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    out.push(Math.round(start + (end - start) * i / (count - 1)));
-  }
-  return [...new Set(out)];
-}
 async function getStarHistory(owner, repo, token) {
-  const repoRes = await ghFetch(
-    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
-    token,
-    "application/vnd.github.v3+json"
+  const history = await fetchStarHistory(
+    owner,
+    repo,
+    (url) => ghFetch(url, token, "application/vnd.github+json")
   );
-  const meta = await repoRes.json();
-  const total = typeof meta.stargazers_count === "number" ? meta.stargazers_count : 0;
-  const now = (/* @__PURE__ */ new Date()).toISOString();
-  if (total <= 0) {
-    return { owner, repo, total: 0, points: [{ date: now, value: 0 }] };
+  if (!history) throw new Error(`Could not load complete star history for ${owner}/${repo}`);
+  return history;
+}
+
+// src/pull-request.ts
+var import_node_fs = require("node:fs");
+var import_node_path = require("node:path");
+function field(value, key) {
+  if (typeof value !== "object" || value === null || !(key in value)) {
+    throw new Error(`GitHub PR response is missing ${key}.`);
   }
-  const pages = Math.min(MAX_PAGE, Math.max(1, Math.ceil(total / 100)));
-  if (pages <= MAX_POINTS) {
-    const pageNums = evenSpread(1, pages, pages);
-    const results2 = await Promise.all(
-      pageNums.map((p) => fetchStarPage(owner, repo, token, p))
-    );
-    const dates = results2.flat();
-    if (dates.length === 0) {
-      return { owner, repo, total, points: [{ date: now, value: total }] };
+  return Reflect.get(value, key);
+}
+function stringField(value, key) {
+  const result = field(value, key);
+  if (typeof result !== "string") throw new Error(`GitHub PR response has an invalid ${key}.`);
+  return result;
+}
+async function publishChartPullRequest(repository, token, paths, message) {
+  const [owner, repo, extra] = repository.split("/");
+  if (!owner || !repo || extra) throw new Error("PR mode requires GITHUB_REPOSITORY in owner/repo format.");
+  const treeEntries = paths.map((path) => {
+    const normalized = (0, import_node_path.relative)(process.cwd(), (0, import_node_path.resolve)(path));
+    if (!normalized || (0, import_node_path.isAbsolute)(normalized) || normalized === ".." || normalized.startsWith(`..${import_node_path.sep}`)) {
+      throw new Error("PR output paths must stay inside the checked-out repository.");
     }
-    dates.sort();
-    const idxs = evenSpread(0, dates.length - 1, Math.min(MAX_POINTS, dates.length));
-    const points2 = idxs.map((i) => ({ date: dates[i], value: i + 1 }));
-    if (points2[points2.length - 1].value !== total) {
-      points2.push({ date: now, value: total });
+    return {
+      path: normalized.split(import_node_path.sep).join("/"),
+      mode: "100644",
+      type: "blob",
+      content: (0, import_node_fs.readFileSync)(path, "utf8")
+    };
+  });
+  const endpoint = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+  async function github(path, method = "GET", body) {
+    const response = await fetch(`${endpoint}${path}`, {
+      method,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2026-03-10",
+        "User-Agent": "shieldcn-starchart-action",
+        ...body === void 0 ? {} : { "Content-Type": "application/json" }
+      },
+      ...body === void 0 ? {} : { body: JSON.stringify(body) }
+    });
+    if (!response.ok) {
+      const permissionHint = response.status === 403 ? " PR mode needs contents: write, pull-requests: write, and permission for Actions to create pull requests in repository settings." : "";
+      throw new Error(`GitHub PR request failed (${response.status}): ${method} ${path}.${permissionHint}`);
     }
-    return { owner, repo, total, points: points2 };
+    return response.json();
   }
-  const sampledPages = evenSpread(1, pages, MAX_POINTS);
-  const results = await Promise.all(
-    sampledPages.map(async (p) => {
-      const r = await fetchStarPage(owner, repo, token, p);
-      if (r.length === 0) return null;
-      r.sort();
-      return { page: p, date: r[0] };
-    })
-  );
-  const points = [];
-  for (const r of results) {
-    if (!r) continue;
-    points.push({ date: r.date, value: (r.page - 1) * 100 });
+  const baseBranch = stringField(await github(""), "default_branch");
+  const branch = "chore/shieldcn-star-chart";
+  if (baseBranch === branch) throw new Error("The chart PR branch must differ from the default branch.");
+  const query = new URLSearchParams({ state: "open", head: `${owner}:${branch}`, base: baseBranch });
+  const pulls = await github(`/pulls?${query}`);
+  if (!Array.isArray(pulls)) throw new Error("GitHub returned an invalid pull request list.");
+  const existingUrl = pulls.length ? stringField(pulls[0], "html_url") : void 0;
+  const refs = await github(`/git/matching-refs/heads/${branch}`);
+  if (!Array.isArray(refs)) throw new Error("GitHub returned an invalid branch list.");
+  const branchRef = refs.find((ref) => stringField(ref, "ref") === `refs/heads/${branch}`);
+  const branchSha = branchRef ? stringField(field(branchRef, "object"), "sha") : void 0;
+  if (existingUrl && !branchSha) throw new Error("The open chart PR branch is missing. Rerun after resolving the branch state.");
+  const base = await github(`/git/ref/heads/${encodeURIComponent(baseBranch)}`);
+  const baseSha = stringField(field(base, "object"), "sha");
+  const sourceSha = existingUrl && branchSha ? branchSha : baseSha;
+  const source = await github(`/git/commits/${sourceSha}`);
+  const sourceTree = stringField(field(source, "tree"), "sha");
+  const tree = await github("/git/trees", "POST", {
+    base_tree: sourceTree,
+    tree: treeEntries
+  });
+  const treeSha = stringField(tree, "sha");
+  if (treeSha === sourceTree) {
+    return { committed: false, url: existingUrl ?? "" };
   }
-  points.sort((a, b) => a.date.localeCompare(b.date));
-  points.push({ date: now, value: total });
-  return { owner, repo, total, points };
+  const parents = branchSha && !existingUrl && branchSha !== sourceSha ? [branchSha, sourceSha] : [sourceSha];
+  const commit = await github("/git/commits", "POST", {
+    message: message === "chore: update star chart [skip ci]" ? "chore: update star chart" : message,
+    tree: treeSha,
+    parents,
+    author: { name: "shieldcn[bot]", email: "shieldcn[bot]@users.noreply.github.com" }
+  });
+  const commitSha = stringField(commit, "sha");
+  if (branchSha) {
+    await github(`/git/refs/heads/${branch}`, "PATCH", { sha: commitSha, force: false });
+  } else {
+    await github("/git/refs", "POST", { ref: `refs/heads/${branch}`, sha: commitSha });
+  }
+  if (existingUrl) return { committed: true, url: existingUrl };
+  const pull = await github("/pulls", "POST", {
+    title: "chore: update star chart",
+    head: branch,
+    base: baseBranch,
+    body: "Updates the generated star-history charts with the latest GitHub data."
+  });
+  return { committed: true, url: stringField(pull, "html_url") };
 }
 
 // src/main.ts
@@ -563,12 +651,12 @@ function setOutput(name, value) {
   const file = process.env.GITHUB_OUTPUT;
   if (!file) return;
   if (value.includes("\n")) {
-    (0, import_node_fs.appendFileSync)(file, `${name}<<SHIELDCN_EOF
+    (0, import_node_fs2.appendFileSync)(file, `${name}<<SHIELDCN_EOF
 ${value}
 SHIELDCN_EOF
 `);
   } else {
-    (0, import_node_fs.appendFileSync)(file, `${name}=${value}
+    (0, import_node_fs2.appendFileSync)(file, `${name}=${value}
 `);
   }
 }
@@ -675,8 +763,8 @@ async function run() {
       logo,
       link
     });
-    (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)((0, import_node_path.join)(process.cwd(), path)), { recursive: true });
-    (0, import_node_fs.writeFileSync)(path, svg);
+    (0, import_node_fs2.mkdirSync)((0, import_node_path2.dirname)((0, import_node_path2.join)(process.cwd(), path)), { recursive: true });
+    (0, import_node_fs2.writeFileSync)(path, svg);
     console.log(`Wrote ${path}`);
     files.push(path);
   }
@@ -696,13 +784,21 @@ async function run() {
   } else {
     setOutput("snippet", `<img alt="Star history of ${owner}/${repo}" src="${files[0]}">`);
   }
+  setOutput("pull-request-url", "");
   if (getBoolInput("commit", true)) {
     const message = getInput(
       "commit-message",
       "chore: update star chart [skip ci]"
     );
-    const committed = commitFiles(files, message);
-    setOutput("committed", String(committed));
+    if (getBoolInput("pull-request", false)) {
+      const result = await publishChartPullRequest(process.env.GITHUB_REPOSITORY ?? "", token, files, message);
+      setOutput("committed", String(result.committed));
+      setOutput("pull-request-url", result.url);
+      console.log(result.url ? `Chart pull request: ${result.url}` : "Star chart unchanged. No pull request needed.");
+    } else {
+      const committed = commitFiles(files, message);
+      setOutput("committed", String(committed));
+    }
   } else {
     setOutput("committed", "false");
   }

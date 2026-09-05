@@ -10,15 +10,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { handleBadgeGET } from "../route-handler"
 
 function ghStub() {
-  const stargazers = Array.from({ length: 40 }, (_, i) => ({
-    starred_at: new Date(Date.UTC(2022, 0, 1) + i * 86400000).toISOString(),
-  }))
+  const weeks = [
+    { week: 1641686400, total: 25, days: [5, 5, 5, 5, 5, 0, 0] },
+    { week: 1641081600, total: 15, days: [3, 3, 3, 3, 3, 0, 0] },
+  ]
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input)
-    if (url.includes("/stargazers")) {
+    if (url.includes("/stargazers/history")) {
       // Page 1 has data, later pages are empty.
       const page = Number(new URL(url).searchParams.get("page") || "1")
-      const body = page === 1 ? stargazers : []
+      const body = page === 1 ? weeks : []
       return new Response(JSON.stringify(body), { status: 200 })
     }
     if (url.match(/\/repos\/[^/]+\/[^/]+$/)) {
@@ -53,25 +54,64 @@ function commitStub(createdAt: string, perWindow = 5) {
 describe("handleBadgeGET /chart", () => {
   const realFetch = globalThis.fetch
   beforeEach(() => { globalThis.fetch = ghStub() as unknown as typeof fetch })
-  afterEach(() => { globalThis.fetch = realFetch })
+  afterEach(() => { globalThis.fetch = realFetch; vi.unstubAllEnvs() })
 
-  it("renders a 100x1 transparent SVG for retired star-history charts", async () => {
+  it("renders a full SVG for star-history charts", async () => {
     const req = new Request("https://x.dev/chart/github/stars/vercel/next.js.svg?theme=blue")
     const res = await handleBadgeGET(req, ["chart", "github", "stars", "vercel", "next.js.svg"])
     expect(res.status).toBe(200)
     expect(res.headers.get("Content-Type")).toBe("image/svg+xml")
     const svg = await res.text()
-    expect(svg).toContain('width="100"')
-    expect(svg).toContain('height="1"')
-    expect(svg).not.toContain("vercel/next.js")
+    expect(svg).toContain('width="800"')
+    expect(svg).toContain('height="400"')
+    expect(svg).toContain("vercel/next.js")
+    expect(svg).toContain("40 stars")
+    expect(svg).not.toContain("NaN")
   })
 
-  it("returns 410 JSON for retired star-history .json", async () => {
+  it("returns cumulative star-history JSON", async () => {
     const req = new Request("https://x.dev/chart/github/stars/vercel/next.js.json")
     const res = await handleBadgeGET(req, ["chart", "github", "stars", "vercel", "next.js.json"])
-    expect(res.status).toBe(410)
+    expect(res.status).toBe(200)
     const data = await res.json()
-    expect(data.error).toContain("no longer available")
+    expect(data.total).toBe(40)
+    expect(data.points.map((point: { value: number }) => point.value)).toEqual([0, 15, 40])
+  })
+
+  it.each(["light", "dark"])("renders the stars alias in %s mode", async (mode) => {
+    const res = await handleBadgeGET(
+      new Request(`https://x.dev/chart/stars/jal-co/shieldcn.svg?mode=${mode}`),
+      ["chart", "stars", "jal-co", "shieldcn.svg"],
+    )
+    const svg = await res.text()
+    expect(res.status).toBe(200)
+    expect(svg).toContain("jal-co/shieldcn")
+    expect(svg).toContain("40 stars")
+    expect(svg).not.toContain("NaN")
+  })
+
+  it("renders star history as PNG", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const res = await handleBadgeGET(
+      new Request("https://x.dev/chart/stars/jal-co/shieldcn.png"),
+      ["chart", "stars", "jal-co", "shieldcn.png"],
+    )
+    expect(res.status).toBe(200)
+    expect(res.headers.get("Content-Type")).toBe("image/png")
+    const bytes = Buffer.from(await res.arrayBuffer())
+    expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a")
+    expect(bytes.readUInt32BE(16)).toBe(800)
+    expect(bytes.readUInt32BE(20)).toBe(400)
+  })
+
+  it("returns an error instead of a retired image when history is unavailable", async () => {
+    globalThis.fetch = vi.fn(async () => new Response("{}", { status: 404 }))
+    const res = await handleBadgeGET(
+      new Request("https://x.dev/chart/stars/missing/no-history.json"),
+      ["chart", "stars", "missing", "no-history.json"],
+    )
+    expect(res.status).toBe(404)
+    expect((await res.json()).error).toContain("could not load stars")
   })
 
   it("shows a usage error for a malformed issues path", async () => {
