@@ -403,6 +403,8 @@ export const categories: Category[] = [
       dynamicBadge("uv", "by @chirizxc", "/badge/uv-D7FF64.svg?mode=light&logo=uv", "https://github.com/astral-sh/uv"),
     
       dynamicBadge("Ruff v2", "by @chirizxc", "/badge/Ruff-D7FE64.svg?font=geist&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNkN2ZmNjQiIGQ9Ik0zMCA0LjhBMi44IDIuOCAwIDAgMCAyNy4yIDJIMnYyOGgxMi44OHYtOC40aDIuMjRWMzBIMzBWMTkuMzZoLTUuNnYtMi4yNGgyLjhhMi44IDIuOCAwIDAgMCAyLjgtMi44ek0xOS4zNiAxNC44OGgtNi43MnYtMi4yNGg2LjcyeiIvPjwvc3ZnPg%3D%3D", "https://github.com/astral-sh/ruff"),
+    
+      dynamicBadge("CodSpeed", "by @chirizxc", "/badge/codspeed-FF7A55.svg?font=geist&logo=data%3Aimage%2Fsvg%2Bxml%2C%3Csvg+xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27+fill%3D%27none%27+viewBox%3D%270+0+32+32%27%3E%3Cpath+fill%3D%27%2523ff8c4a%27+d%3D%27M8.3+16.7h1.4l3.1+1.6-1.7.2c-3.2.5-4.9-.4-4.5-1.7.1-.5+1-.3+1.7-.1m11-13c2.3+1.3+2.9+2.2+4+3.3+2.7+0+4.2+1.9+3.7+4.7-.3+1.8-4.2+1.2-5+0l-4.6+3.4c-.8.6-3.5.4-3.7.3l1.1-2a5+5+0+0+0+.7-2.5q0-2-2.2-2.1-.3+0-.3.3l.3.2c.8+0+1.3+1+1.3+1.6q0+.8-.4+2c-.3.7-1.5+2.4-1.8+2.6a.2.2+0+0+0+0+.4h.1l.3.1+1+.2L17+16a5+5+0+0+1+3+.5q.6.3.7.8l.1.5c0+1-2.3.4-5+.3h-.6q-1.5+0-3.2-.9h-.2l-1.2-.7-.8-.7c-.3-.6-.1-.6.7-1.5-1.4.2-1.5.3-3+.3-1.7+0-4.4-.1-4.4-1.6q0-1.5+2.2-1.1Q4.6+9.2+7+7c4-3.8+9.6+1.4+13.4+1.4+1.7+0-3-2.5-5-3.2s1.1-3.5+4-1.5M24+8.9a.6.6+0+1+0+0+1+.6.6+0+0+0+0-1%27%2F%3E%3C%2Fsvg%3E&gradient=D8390E%2C+E98234&iconSize=23", "https://github.com/CodSpeedHQ/codspeed"),
     ],
   },
 ]
