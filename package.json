@@ -34,8 +34,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.8",
-    "tegami": "^1.2.4",
+    "lint-staged": "^17.4.1",
+    "tegami": "^1.5.0",
     "turbo": "^2"
   },
   "lint-staged": {
