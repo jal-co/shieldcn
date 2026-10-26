@@ -37,6 +37,7 @@
     "@tiptap/starter-kit": "^3.27.1",
     "@types/flexsearch": "^0.7.42",
     "@types/mdx": "^2.0.14",
+    "@usenotra/geo": "^0.7.0",
     "@visx/curve": "4.0.1-alpha.0",
     "@visx/event": "4.0.1-alpha.0",
     "@visx/geo": "4.0.1-alpha.0",

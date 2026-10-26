@@ -12,8 +12,9 @@
  * touches auth — keeping the Edge runtime free of the DB-backed auth server.
  */
 
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { createGeoProxy } from "@usenotra/geo/next"
 
 const SITE = "https://shieldcn.dev"
 
@@ -25,8 +26,20 @@ const LINK_HEADER = [
   `<${SITE}/llms.txt>; rel="describedby"; type="text/plain"`,
 ].join(", ")
 
+const geo = process.env.NOTRA_GEO_TOKEN
+  ? createGeoProxy({
+      token: process.env.NOTRA_GEO_TOKEN,
+      endpoint: "https://ingest.usenotra.com",
+    })
+  : null
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  if (geo) {
+    after(() => geo(request).catch(() => {}))
+  }
+
   const accept = request.headers.get("accept") || ""
 
   // Markdown content negotiation:

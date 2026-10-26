@@ -14,6 +14,7 @@ Everything lives in `packages/web/.env.local` (gitignored — never committed):
 | `BETTER_AUTH_URL` | Base URL Better Auth builds callback URLs from (`http://localhost:3000` in dev). |
 | `ADMIN_EMAILS` / `ADMIN_USER_IDS` | Comma-separated allowlist. Only these accounts can reach `/dashboard` and manage brands. |
 | `CONTEXT_DEV_API_KEY` | Optional — enables brand import from a domain. |
+| `NOTRA_GEO_TOKEN` | Optional — enables Notra AI-traffic tracking in `middleware.ts`. Skipped silently when unset. |
 
 ## Authentication (minimal, admin-only)
 
