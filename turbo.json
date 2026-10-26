@@ -25,6 +25,7 @@
     "BETTER_AUTH_*",
     "ADMIN_*",
     "CONTEXT_DEV_API_KEY",
+    "NOTRA_GEO_TOKEN",
     "SENTRY_*",
     "NEXT_PUBLIC_*"
   ],

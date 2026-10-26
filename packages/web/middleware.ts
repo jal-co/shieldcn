@@ -10,10 +10,14 @@
  * OAuth is handled entirely inside Better Auth's /api/auth/* handler (the
  * provider redirects to /api/auth/callback/github), so the middleware no longer
  * touches auth — keeping the Edge runtime free of the DB-backed auth server.
+ *
+ * 3. Notra GEO tracking — reports AI crawler/referral traffic after the
+ *    response is sent. Skipped entirely when NOTRA_GEO_TOKEN is unset.
  */
 
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { createGeoProxy } from "@usenotra/geo/next"
 
 const SITE = "https://shieldcn.dev"
 
@@ -25,8 +29,21 @@ const LINK_HEADER = [
   `<${SITE}/llms.txt>; rel="describedby"; type="text/plain"`,
 ].join(", ")
 
+/** Notra GEO tracker — null (no-op) when the token isn't configured. */
+const geo = process.env.NOTRA_GEO_TOKEN
+  ? createGeoProxy({
+      token: process.env.NOTRA_GEO_TOKEN,
+      endpoint: "https://ingest.usenotra.com",
+    })
+  : null
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  if (geo) {
+    after(() => geo(request).catch(() => {}))
+  }
+
   const accept = request.headers.get("accept") || ""
 
   // Markdown content negotiation:
