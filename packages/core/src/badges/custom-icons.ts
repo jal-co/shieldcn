@@ -61,6 +61,9 @@ const registry: Record<string, CustomIconEntry> = {
   shipperclub: { file: "shipperclub.svg", color: "000000" },
   notra: { file: "notra.svg", color: "C8B2EE" },
   neon: { file: "neon.svg", color: "37C38F" },
+  gofiber: { file: "gofiber.svg", color: "00ACD7" },
+  elysiajs: { file: "elysiajs.svg", color: "000000" },
+  windows11: { file: "windows11.svg", color: "0078D4" },
 }
 
 // ---------------------------------------------------------------------------
